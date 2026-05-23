@@ -35,7 +35,7 @@ Each atom dict:
 """
 from __future__ import annotations
 
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Tuple
 import logging
 
 logger = logging.getLogger(__name__)
@@ -66,6 +66,38 @@ _PERMEABILITY_CHANNELS = (
     frozenset({39, 55}),    # 39-55 Emoting (provocation / mood)
 )
 _PERMEABILITY_GATES = {22, 49}  # Gate 22 Grace; Gate 49 Principles (tribal-emotional)
+
+
+# ---------------------------------------------------------------------------
+# Achievement-as-Stabilization configuration
+# ---------------------------------------------------------------------------
+# HD channels & gates that route inner uncertainty into outward building.
+_ACHIEVEMENT_CHANNELS = (
+    frozenset({21, 45}),    # 21-45 Authority / Money line
+    frozenset({32, 54}),    # 32-54 Drive / Transformation
+)
+_ACHIEVEMENT_GATES = {21, 45, 54, 32}
+
+# Saturn-to-personal-planet orb for THIS atom only.
+# Standard ASPECT_TYPES orb is 8°; we tighten to 5° here to avoid the
+# atom over-firing on widely-shared Saturn aspects (calibration call:
+# preserves Pete @ 3.72°, Thaddeus @ 0.37°; drops Mel @ 4.08° who sits
+# at the edge of conceptual drift for this specific pattern).
+_SATURN_PERSONAL_TIGHT_ORB = 5.0
+
+# Saturn-Mercury is the *fallback* astro signal — it leans toward the
+# Certainty Pattern's cognitive-pressure axis rather than achievement.
+# It gets an even tighter orb (3°) so it only emits when the contact is
+# unambiguous. This is what cuts the Mel @ 4.08° edge-case while
+# preserving truly tight Mercury-Saturn structures.
+_SATURN_MERCURY_TIGHT_ORB = 3.0
+
+# Personal points that Saturn must hit for an achievement-axis flag.
+# Mercury is intentionally LAST — Mercury-Saturn alone leans toward the
+# Certainty Pattern's cognitive-pressure axis rather than achievement-as-
+# stabilization, so we only emit it if no stronger Saturn contact exists.
+_SATURN_PERSONAL_TARGETS_PRIMARY = ("Sun", "Moon", "Mars", "Venus", "Ascendant")
+_SATURN_PERSONAL_TARGETS_FALLBACK = ("Mercury",)
 
 
 # ---------------------------------------------------------------------------
@@ -223,6 +255,145 @@ def _strong_pisces_emphasis(astro: Dict[str, Any]) -> int:
         1 for p in _PERSONAL_PLANETS_FOR_SIGN_EMPHASIS
         if _safe_lower(planets.get(p, {}).get("sign")) == "pisces"
     )
+
+
+# ---------------------------------------------------------------------------
+# Achievement-as-Stabilization helpers
+# ---------------------------------------------------------------------------
+def _has_defined_heart(hd: Dict[str, Any]) -> bool:
+    """The Heart center is also called 'Ego' or 'Will' in HD literature.
+    The canonical payload uses 'Ego' but we accept any of the three."""
+    centers = [_safe_lower(c) for c in (hd.get("defined_centers") or [])]
+    return any(c in {"ego", "heart", "will"} for c in centers)
+
+
+def _matching_achievement_channel(hd: Dict[str, Any]) -> Optional[frozenset]:
+    defined = _defined_channels(hd)
+    for ch in _ACHIEVEMENT_CHANNELS:
+        if ch in defined:
+            return ch
+    return None
+
+
+def _matching_achievement_gate(hd: Dict[str, Any]) -> Optional[int]:
+    """Return the first active gate from the achievement gate set, or None.
+    Only used if no achievement channel is already defined."""
+    gates = _active_gates(hd)
+    for g in sorted(_ACHIEVEMENT_GATES):
+        if g in gates:
+            return g
+    return None
+
+
+def _find_saturn_personal_aspect(
+    astro: Dict[str, Any],
+    targets: Tuple[str, ...],
+    max_orb: float = _SATURN_PERSONAL_TIGHT_ORB,
+) -> Optional[Dict[str, Any]]:
+    """Tightest Saturn<->{target} hard aspect within max_orb degrees."""
+    targets_lower = {t.lower() for t in targets}
+    # 'Ascendant' is sometimes stored as 'Asc' in aspect tables.
+    if "ascendant" in targets_lower:
+        targets_lower.add("asc")
+    aspects = astro.get("aspects") or []
+    best: Optional[Dict[str, Any]] = None
+    for asp in aspects:
+        if not isinstance(asp, dict):
+            continue
+        bodies = {_safe_lower(asp.get("body1")), _safe_lower(asp.get("body2"))}
+        if "saturn" not in bodies:
+            continue
+        other = (bodies - {"saturn"}).pop() if (bodies - {"saturn"}) else ""
+        if other not in targets_lower:
+            continue
+        atype = _safe_lower(asp.get("type"))
+        if atype not in _LUNAR_HARD_ASPECTS:  # conj/sq/opp set reused
+            continue
+        try:
+            orb = float(asp.get("orb"))
+        except (TypeError, ValueError):
+            orb = 99.0
+        if orb > max_orb:
+            continue
+        if best is None or orb < float(best.get("orb", 99)):
+            best = asp
+    return best
+
+
+def _find_aspect(
+    astro: Dict[str, Any],
+    body_a: str,
+    body_b: str,
+    types: set,
+) -> Optional[Dict[str, Any]]:
+    """Tightest aspect of any qualifying type between body_a and body_b."""
+    a_l, b_l = body_a.lower(), body_b.lower()
+    pair = {a_l, b_l}
+    best: Optional[Dict[str, Any]] = None
+    for asp in (astro.get("aspects") or []):
+        if not isinstance(asp, dict):
+            continue
+        if {_safe_lower(asp.get("body1")), _safe_lower(asp.get("body2"))} != pair:
+            continue
+        if _safe_lower(asp.get("type")) not in types:
+            continue
+        if best is None or asp.get("orb", 99) < best.get("orb", 99):
+            best = asp
+    return best
+
+
+def _saturn_angular(astro: Dict[str, Any]) -> Optional[int]:
+    sat = (astro.get("planets") or {}).get("Saturn") or {}
+    try:
+        h = int(sat.get("house"))
+    except (TypeError, ValueError):
+        return None
+    return h if h in _ANGULAR_HOUSES else None
+
+
+def _personal_planet_count_by(
+    astro: Dict[str, Any],
+    *,
+    sign: Optional[str] = None,
+    house: Optional[int] = None,
+) -> int:
+    """Count of personal planets matching the given sign OR house."""
+    planets = astro.get("planets") or {}
+    count = 0
+    for p in _PERSONAL_PLANETS_FOR_SIGN_EMPHASIS:
+        pd = planets.get(p) or {}
+        if sign is not None and _safe_lower(pd.get("sign")) != sign.lower():
+            continue
+        if house is not None:
+            try:
+                if int(pd.get("house")) != house:
+                    continue
+            except (TypeError, ValueError):
+                continue
+        count += 1
+    return count
+
+
+def _expression_number(numerology: Dict[str, Any]) -> Optional[int]:
+    """Pulls Expression number from canonical numerology payload, if present."""
+    if not numerology:
+        return None
+    core = numerology.get("core") or {}
+    expr = core.get("expression") or numerology.get("expression") or {}
+    n = expr.get("number") if isinstance(expr, dict) else None
+    if n is None:
+        return None
+    try:
+        return int(n)
+    except (TypeError, ValueError):
+        return None
+
+
+def _format_orb(orb: Any) -> str:
+    try:
+        return f"{float(orb):.1f}°"
+    except (TypeError, ValueError):
+        return "tight"
 
 
 # ---------------------------------------------------------------------------
@@ -530,12 +701,310 @@ def detect_emotional_permeability(chart: Dict[str, Any]) -> Optional[Dict[str, A
 
 
 # ---------------------------------------------------------------------------
+# Detector: Achievement-as-Stabilization
+# ---------------------------------------------------------------------------
+def detect_achievement_as_stabilization(chart: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+    """Strict detector for the 'Achievement-as-Stabilization' atom.
+
+    This atom is NOT ambition, success orientation, founder energy,
+    productivity or hustle identity.
+    This atom IS: accomplishment regulating inner instability, movement
+    replacing emotional uncertainty, building as a way to find solid
+    ground when the inside feels unresolved.
+
+    Required (strict AND):
+      1. HD primary: at least ONE of —
+           * defined channel 21-45 (Authority)
+           * defined channel 32-54 (Drive)
+           * active gate 21 (Control)
+           * active gate 45 (Gatherer)
+           * active gate 54 (Ambition)
+           * active gate 32 (Continuity)
+
+      2. Astrology: at least ONE of (priority order, tightest wins per group):
+           * Mars-Saturn hard aspect (conj/sq/opp)
+           * Saturn-MC hard aspect
+           * Mars-MC hard aspect
+           * Saturn-to-personal hard aspect (Sun/Moon/Mars/Venus/Asc)
+             — capped at 5.0° orb (tighter than the default 8°)
+           * Saturn-to-Mercury hard aspect (fallback ONLY; Mercury-Saturn
+             leans toward the Certainty Pattern's cognitive-pressure axis
+             so it never dominates)
+           * Saturn angular (house 1/4/7/10)
+           * Capricorn emphasis (>=3 personal planets in Capricorn)
+           * 10th-house emphasis (>=3 personal planets in house 10)
+
+    Supporting (NEVER required, NEVER triggers alone):
+      3. Defined Heart center (Ego/Will) — adds a 2nd HD signal when present
+      4. Numerology Life Path or Expression 4 or 8 — adds a Numerology
+         supporting signal when present
+    """
+    if not isinstance(chart, dict):
+        return None
+
+    hd = chart.get("human_design") or {}
+    astro = chart.get("astrology") or {}
+    num = chart.get("numerology") or {}
+
+    # --- Required HD primary
+    hd_channel = _matching_achievement_channel(hd)
+    hd_gate: Optional[int] = None
+    if hd_channel is None:
+        hd_gate = _matching_achievement_gate(hd)
+        if hd_gate is None:
+            return None
+
+    # --- Required Astro (priority-ordered, deterministic)
+    astro_label: Optional[str] = None
+    astro_evidence: Optional[str] = None
+    astro_kind: Optional[str] = None  # internal: used for confidence scoring
+
+    # 1) Mars-Saturn hard (strongest)
+    asp = _find_aspect(astro, "Mars", "Saturn", _LUNAR_HARD_ASPECTS)
+    if asp:
+        astro_label = f"Mars {_safe_lower(asp['type']).capitalize()} Saturn ({_format_orb(asp.get('orb'))})"
+        astro_evidence = (
+            "Mars and Saturn meet at a hard angle in you — desire and "
+            "discipline argue inside the same impulse. Effort doesn't "
+            "relax; it converts to output."
+        )
+        astro_kind = "mars_saturn"
+
+    # 2) Saturn-MC hard
+    if astro_label is None:
+        asp = _find_aspect(astro, "Saturn", "MC", _LUNAR_HARD_ASPECTS)
+        if asp:
+            astro_label = f"Saturn {_safe_lower(asp['type']).capitalize()} MC ({_format_orb(asp.get('orb'))})"
+            astro_evidence = (
+                "Saturn presses directly on the achievement axis of your "
+                "chart. Public progress becomes one of the ways you feel "
+                "real."
+            )
+            astro_kind = "saturn_mc"
+
+    # 3) Mars-MC hard
+    if astro_label is None:
+        asp = _find_aspect(astro, "Mars", "MC", _LUNAR_HARD_ASPECTS)
+        if asp:
+            astro_label = f"Mars {_safe_lower(asp['type']).capitalize()} MC ({_format_orb(asp.get('orb'))})"
+            astro_evidence = (
+                "Mars sits on the achievement axis of your chart. The drive "
+                "to make something happen wires close to your visible "
+                "direction."
+            )
+            astro_kind = "mars_mc"
+
+    # 4) Saturn-to-personal-primary (Sun/Moon/Mars/Venus/Asc), tight orb (≤5°)
+    if astro_label is None:
+        asp = _find_saturn_personal_aspect(astro, _SATURN_PERSONAL_TARGETS_PRIMARY)
+        if asp:
+            bodies = {_safe_lower(asp.get("body1")), _safe_lower(asp.get("body2"))}
+            other_raw = (bodies - {"saturn"}).pop()
+            other = "Ascendant" if other_raw == "asc" else other_raw.capitalize()
+            astro_label = f"Saturn {_safe_lower(asp['type']).capitalize()} {other} ({_format_orb(asp.get('orb'))})"
+            astro_evidence = (
+                "Saturn presses on a personal point in your chart. "
+                "Structure, weight and proving show up where most people "
+                "just live — you build where others rest."
+            )
+            astro_kind = "saturn_personal"
+
+    # 5) Saturn-Mercury (fallback only — demoted to prevent over-firing,
+    #    AND tightened to 3.0° orb since Mercury-Saturn at wider orbs
+    #    leans into the Certainty Pattern's cognitive-pressure axis
+    #    rather than achievement-as-stabilization)
+    if astro_label is None:
+        asp = _find_saturn_personal_aspect(
+            astro,
+            _SATURN_PERSONAL_TARGETS_FALLBACK,
+            max_orb=_SATURN_MERCURY_TIGHT_ORB,
+        )
+        if asp:
+            astro_label = f"Saturn {_safe_lower(asp['type']).capitalize()} Mercury ({_format_orb(asp.get('orb'))})"
+            astro_evidence = (
+                "Your thinking carries Saturn's weight — you organise and "
+                "build with thought, and unresolved questions push you "
+                "toward making something measurable."
+            )
+            astro_kind = "saturn_mercury"
+
+    # 6) Saturn angular
+    if astro_label is None:
+        h = _saturn_angular(astro)
+        if h is not None:
+            astro_label = f"Saturn angular (house {h})"
+            astro_evidence = (
+                "Saturn is angular — duty, structure and 'must build' "
+                "pressure sit close to the visible parts of your life: "
+                "body, home, partnerships, or public role."
+            )
+            astro_kind = "saturn_angular"
+
+    # 7) Capricorn stellium (>=3 personal)
+    if astro_label is None:
+        cap_n = _personal_planet_count_by(astro, sign="Capricorn")
+        if cap_n >= 3:
+            astro_label = f"{cap_n} personal planets in Capricorn"
+            astro_evidence = (
+                "Multiple personal planets in Capricorn. Building, climbing "
+                "and earning ground is baked into how you process most "
+                "things — not a mode you switch into."
+            )
+            astro_kind = "capricorn_stellium"
+
+    # 8) 10th-house stellium
+    if astro_label is None:
+        h10_n = _personal_planet_count_by(astro, house=10)
+        if h10_n >= 3:
+            astro_label = f"{h10_n} personal planets in 10th house"
+            astro_evidence = (
+                "Multiple personal planets in your 10th. The pull to make "
+                "yourself legible in the world isn't a phase, it's wiring."
+            )
+            astro_kind = "tenth_house_stellium"
+
+    if astro_label is None:
+        return None
+
+    # --- Assemble signals
+    signals: List[Dict[str, str]] = []
+
+    # HD primary
+    if hd_channel is not None:
+        if hd_channel == frozenset({21, 45}):
+            signals.append({
+                "lens":     "Human Design",
+                "label":    "Channel 21-45 — Authority",
+                "evidence": (
+                    "You're wired to take charge of what's around you. "
+                    "When the field gets uncertain, you reach for what you "
+                    "can govern — including yourself."
+                ),
+            })
+        else:  # 32-54
+            signals.append({
+                "lens":     "Human Design",
+                "label":    "Channel 32-54 — Drive",
+                "evidence": (
+                    "You carry a striving wave — pressure converts to "
+                    "ambition fast. Moving up and forward is how the "
+                    "system discharges uncertainty."
+                ),
+            })
+    else:
+        gate_labels = {
+            21: ("Gate 21 — Control",
+                 "Gate 21 turns unease into the move to handle what's in "
+                 "front of you. You manage when you can't yet rest."),
+            45: ("Gate 45 — Gatherer",
+                 "Gate 45 leans you toward holding ground for others. "
+                 "Building something legible becomes the way you provide "
+                 "— and steady yourself."),
+            54: ("Gate 54 — Ambition",
+                 "Gate 54 is straight-line upward pressure. Striving "
+                 "doesn't feel optional — it feels like the floor."),
+            32: ("Gate 32 — Continuity",
+                 "Gate 32 watches what survives. Endurance becomes proof "
+                 "— keeping something alive is how the system knows "
+                 "it's stable."),
+        }
+        lbl, ev = gate_labels[hd_gate]
+        signals.append({"lens": "Human Design", "label": lbl, "evidence": ev})
+
+    # HD supporting: Defined Heart center
+    heart_defined = _has_defined_heart(hd)
+    if heart_defined:
+        signals.append({
+            "lens":     "Human Design",
+            "label":    "Defined Heart (Ego)",
+            "evidence": (
+                "Your Heart is defined — willpower runs on a consistent "
+                "supply. That makes building something measurable a "
+                "viable steadying move, not just an aspiration."
+            ),
+        })
+
+    # Astro
+    signals.append({"lens": "Astrology", "label": astro_label, "evidence": astro_evidence})
+
+    # Numerology supporting (LP or Expression 4/8)
+    lp = _life_path_number(num)
+    expr = _expression_number(num)
+    num_match: Optional[Tuple[str, int]] = None
+    if lp in (4, 8):
+        num_match = ("Life Path", lp)
+    elif expr in (4, 8):
+        num_match = ("Expression", expr)
+
+    if num_match is not None:
+        kind, n = num_match
+        if n == 4:
+            ev = (
+                "Your path leans toward structure and steady effort — "
+                "work and order are the materials your system uses to "
+                "feel safe."
+            )
+        else:  # 8
+            ev = (
+                "Your path is wired around mastery and material outcomes. "
+                "Building something tangible is part of how you metabolize "
+                "being alive."
+            )
+        signals.append({
+            "lens":     "Numerology",
+            "label":    f"{kind} {n} (supporting)",
+            "evidence": ev,
+        })
+
+    # Internal confidence scoring (not load-bearing for UI; useful for
+    # telemetry / future weighting work). Bigger = more recognitional.
+    confidence = 1.0
+    if astro_kind in {"mars_saturn", "saturn_mc", "mars_mc"}:
+        confidence += 0.6
+    elif astro_kind == "saturn_personal":
+        confidence += 0.4
+    elif astro_kind in {"capricorn_stellium", "tenth_house_stellium"}:
+        confidence += 0.3
+    elif astro_kind == "saturn_angular":
+        confidence += 0.2
+    elif astro_kind == "saturn_mercury":
+        confidence += 0.1  # Lowest — also caps total ceiling for this fallback
+    if heart_defined:
+        confidence += 0.4
+    if hd_channel is not None:
+        confidence += 0.3
+    if num_match is not None:
+        confidence += 0.2
+
+    return {
+        "atom_id":      "achievement_as_stabilization",
+        "name":         "Achievement as Stabilization",
+        "framing":      "Where different systems point to the same thing.",
+        "recognition": (
+            "When the inside feels unresolved, you look for something to "
+            "build, fix, win, or move forward. Achievement becomes less "
+            "about status and more about finding solid ground."
+        ),
+        "signals":      signals,
+        "matched":      len(signals),
+        "required":     len(signals),
+        "match_mode":   "strict_all",
+        # Internal fields — not used by the UI.
+        "core_signals_required": 2,    # HD primary + astro
+        "has_supporting":        len(signals) > 2,
+        "confidence":            round(confidence, 2),
+        "astro_kind":            astro_kind,
+    }
+
+
+# ---------------------------------------------------------------------------
 # Registry + public entry point
 # ---------------------------------------------------------------------------
 # Order matters for display: first match in this list is shown first.
 _DETECTORS = [
     detect_certainty_pattern,
     detect_emotional_permeability,
+    detect_achievement_as_stabilization,
 ]
 
 

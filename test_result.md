@@ -24491,3 +24491,119 @@ agent_communication:
         Emotional Permeability render-level checks (R1-R9) all PASS
         after the welcome-sign-in-link fix. Negative regression for
         Certainty Pattern also PASS. No code changes required.
+
+
+  - task: "Cross-Lens Synthesis Atoms — Achievement-as-Stabilization"
+    implemented: true
+    working: true
+    file: "/app/backend/services/cross_lens_atoms.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: |
+          ACHIEVEMENT-AS-STABILIZATION ATOM — FULL BACKEND TEST COMPLETE ✅
+          Harness: /app/backend_test.py
+          Result: 61/61 assertions PASS across S1–S6.
+
+          S1 — Selectivity on real users (post-tightening):
+          ✅ Pete  (697f0c6abf35c0528ff06954) → 1 atom, astro_kind=saturn_personal
+             (Saturn-Sun @ 3.7° within the 5° tight cap).
+          ✅ Mel   (697ec826ad4b18f75bf42616) → 0 (Saturn-Mercury @ 4.08° exceeds
+             the demoted 3° fallback cap; no other Saturn-personal markers).
+          ✅ Isaac (69dda348de9cb1c83c0780f8) → 0.
+          ✅ Thaddeus (69dd0b2cc92ba973f8838c11) → 1 atom, saturn_personal
+             (Saturn-Moon @ 0.37°).
+
+          S2 — Seeded achievement demo (6a111d24328ffbb9b24c74cd):
+          ✅ atom_count==1, atom_id="achievement_as_stabilization",
+             astro_kind="mars_saturn", has_supporting=True, matched==required==4,
+             core_signals_required==2, confidence==2.5 (>2.0).
+          ✅ Signal order exactly:
+               [0] HD  · Channel 21-45 — Authority
+               [1] HD  · Defined Heart (Ego)
+               [2] Astro · Mars Square Saturn (2.0°)
+               [3] Numerology · Life Path 8 (supporting)
+
+          S3 — Boundary variants (synthetic charts seeded + verified +
+                                  torn down):
+          ✅ a) HD-only (no astro)              → 0
+          ✅ b) Astro-only (no HD primary)      → 0
+          ✅ c) Saturn-Mercury @ 3.5°           → 0 (above 3° cap)
+          ✅ d) Saturn-Mercury @ 2.0° + Gate 21 → 1, astro_kind=saturn_mercury,
+                signals length==2, has_supporting==False, confidence==1.1
+                (≤1.2 — lowest band).
+          ✅ e) Saturn-Sun @ 4.5° + ch 32-54 + LP 4 + no Heart
+                → 1, signals: [Channel 32-54 — Drive, Saturn Square Sun (4.5°),
+                Life Path 4 (supporting)], astro_kind=saturn_personal.
+          ✅ f) Saturn-Sun @ 5.5° + ch 32-54     → 0 (above 5° tight cap).
+          ✅ g) Mars-Saturn opp 5° + Saturn-MC conj 1° + Sat angular +
+                Cap stellium → 1, astro_kind=mars_saturn (priority wins),
+                label starts "Mars Opposition Saturn".
+          ✅ h) Saturn-MC sq 3° + Gate 45 + LP 8
+                → astro_kind=saturn_mc, signals match
+                [Gate 45 — Gatherer, Saturn Square MC (3.0°), Life Path 8 …].
+          ✅ i) Mars-MC conj 4° + Channel 21-45  → astro_kind=mars_mc.
+          ✅ j) Saturn house 4, Gate 32, no aspects
+                → astro_kind=saturn_angular, label "Saturn angular (house 4)".
+          ✅ k) Sun/Moon/Mercury in Capricorn (Saturn h6, non-angular), Gate 54
+                → astro_kind=capricorn_stellium, label "3 personal planets in
+                Capricorn".
+          ✅ l) 3 personal in house 10 (no Cap count ≥3), Gate 21
+                → astro_kind=tenth_house_stellium.
+          ✅ m) Heart variants — "Heart" only AND "Will" only both inject the
+                "Defined Heart (Ego)" supporting signal.
+          ✅ n) Expression fallback — no LP but core.expression.number==8
+                → numerology label "Expression 8 (supporting)".
+          ✅ o) Wording:
+                LP 4 evidence contains "structure" AND "steady".
+                LP 8 evidence contains "mastery" AND "material".
+
+          S4 — Resilience:
+          ✅ Empty human_design   → 200, atoms=[]
+          ✅ Missing aspects key  → 200, list response, no 500.
+          ✅ Missing planets dict → 200.
+          ✅ Malformed channels (gate1 as string) → 200.
+          ✅ Missing numerology   → 200.
+
+          S5 — Regression on prior atoms:
+          ✅ certainty.demo   (6a110c549ea9d4f6f4e1e961) → 1 atom: certainty_pattern.
+          ✅ permeability.demo (6a111013f662cf2da04a389c) → 1 atom: emotional_permeability.
+          (Both unchanged after the new detector registered.)
+
+          S6 — Multi-atom coexistence:
+          ✅ Synthetic chart layered with Defined Ajna + Gates 4/63 +
+             Mercury-Saturn 2°  (Certainty), Open SP + Channel 6-59 +
+             Moon-Neptune 2° (Permeability), Channel 21-45 + Defined Ego +
+             Mars-Saturn 2° (Achievement), LP 7. Result: atom_count==3
+             in declaration order:
+               [certainty_pattern, emotional_permeability, achievement_as_stabilization].
+             Achievement fires correctly without numerology supporting (LP 7
+             ≠ 4/8), as expected.
+
+          Cleanup: 23 synthetic chart docs (prefix `cross_lens_atoms_test_`)
+          deleted via Motor before exit. No real users / no production demo
+          seeds were touched.
+
+          Backend logs across the run show one `[CrossLensAtoms] user=...`
+          line per request with the correct atom ids and zero exceptions
+          or warnings. No source files were modified during testing.
+
+agent_communication:
+    - agent: "testing"
+      message: |
+        Achievement-as-Stabilization atom verified end-to-end:
+        61/61 assertions PASS (S1–S6). Selectivity calibration holds —
+        Pete & Thaddeus fire on saturn_personal, Mel does NOT fire
+        (Saturn-Mercury 4.08° correctly drops below the 3° fallback cap),
+        Isaac does NOT fire. Seeded demo emits the exact specified
+        signal order + mars_saturn astro_kind + confidence 2.5.
+        Priority cascade, all 8 astro paths, Heart/Will/Ego synonymy,
+        Expression-number fallback, LP 4 vs LP 8 evidence wording, and
+        the calibrated orb caps (5° saturn_personal, 3° saturn_mercury)
+        all behave as specified. Resilience holds against empty/missing/
+        malformed inputs. No regressions on Certainty Pattern or
+        Emotional Permeability. Multi-atom coexistence returns all 3
+        atoms in declaration order. No source files modified.
