@@ -940,6 +940,19 @@ NOT: "I opened a generic chat"
                 # =================================================================
                 grounded_transit_envelope = None
                 grounded_intent = None
+                # astrology-chat-grounding-v2 — debug payload for dev verification
+                astro_chat_debug: Dict[str, Any] = {
+                    "marker": "astrology-chat-grounding-v2",
+                    "intent_detected": None,
+                    "solar_return_used": False,
+                    "solar_return_success": False,
+                    "transit_object_used": False,
+                    "transit_to_natal_used": False,
+                    "natal_object_used": False,
+                    "timeline_summary_used": False,
+                    "fallback_triggered": False,
+                    "astro_sources_used": [],
+                }
                 if request.lens == "astrology" and chart is not None:
                     try:
                         from services.astrology_chat_router import (
@@ -952,19 +965,49 @@ NOT: "I opened a generic chat"
                             NOT_YET_ENABLED,
                             resolve_object_name,
                         )
+                        from services.solar_return_engine import (
+                            compute_solar_return,
+                            build_solar_return_proof_block,
+                        )
 
                         grounded_intent = classify_astrology_intent(request.message)
                         if grounded_intent:
                             mode_label = grounded_intent["data_mode"]
                             obj_name = grounded_intent.get("object")
+                            astro_chat_debug["intent_detected"] = mode_label
+                            astro_chat_debug[f"{mode_label}_used"] = True
                             logger.info(
                                 f"[TransitRouter] intent={mode_label} "
                                 f"object={obj_name} user={request.user_id[:8]}..."
                             )
 
+                            # ── solar_return branch ────────────────────────────
+                            # astrology-chat-grounding-v2
+                            if mode_label == "solar_return":
+                                user_doc = await db.users.find_one({"_id": ObjectId(request.user_id)})
+                                sr_env = compute_solar_return(chart=chart, user=user_doc or {})
+                                astro_chat_debug["solar_return_success"] = bool(sr_env.get("success"))
+                                astro_chat_debug["solar_return_target_year"] = sr_env.get("target_year")
+                                if sr_env.get("success"):
+                                    astro_chat_debug["astro_sources_used"].append("solar_return_engine")
+                                logger.info(
+                                    f"[SolarReturn] success={sr_env.get('success')} "
+                                    f"reason={sr_env.get('reason')} "
+                                    f"target_year={sr_env.get('target_year')}"
+                                )
+                                system_prompt += "\n\n" + build_solar_return_proof_block(sr_env)
+                                if not sr_env.get("success"):
+                                    # Engine refused → use its message verbatim
+                                    astro_chat_debug["fallback_triggered"] = True
+                                    response_text = sr_env.get("message") or (
+                                        "Solar return engine isn't wired into "
+                                        "Astrology Chat yet."
+                                    )
+                                # else: let the LLM read the proof block and answer
+
                             # transit_object + transit_to_natal both need
                             # the deterministic transit position envelope.
-                            if mode_label in ("transit_object", "transit_to_natal") and obj_name:
+                            elif mode_label in ("transit_object", "transit_to_natal") and obj_name:
                                 canonical = resolve_object_name(obj_name)
                                 if canonical in NOT_YET_ENABLED:
                                     logger.info(
@@ -1567,6 +1610,18 @@ USER SHOULD FEEL:
                 if final_debug is None:
                     final_debug = {}
                 final_debug["contradictions"] = contradiction_debug_payload
+
+            # astrology-chat-grounding-v2 — surface intent classifier +
+            # solar return engine usage so the dev pill can confirm
+            # which deterministic source the chat was grounded against.
+            try:
+                if astro_chat_debug and astro_chat_debug.get("intent_detected"):
+                    if final_debug is None:
+                        final_debug = {}
+                    final_debug["astro_chat"] = astro_chat_debug
+            except NameError:
+                # astro_chat_debug only exists when lens == "astrology"
+                pass
 
             evidence_payload: Optional[dict] = None
             try:

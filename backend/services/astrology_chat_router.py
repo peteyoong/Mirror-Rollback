@@ -77,6 +77,23 @@ _TIMELINE_RE = re.compile(
     re.IGNORECASE,
 )
 
+# Solar return — yearly chart anchored on Sun's tropical return to natal degree.
+# astrology-chat-grounding-v2
+_SOLAR_RETURN_RE = re.compile(
+    r"\b("
+    r"solar\s*return|"          # "solar return", "solar-return", "solarreturn"
+    r"sr\s*ascendant|"           # "SR ascendant"
+    r"sr\s*chart|"
+    r"return\s*chart|"
+    r"return\s*ascendant|"
+    r"birthday\s*chart|"
+    r"yearly\s*return|"
+    r"annual\s*chart|"
+    r"annual\s*return"
+    r")\b",
+    re.IGNORECASE,
+)
+
 # Positional question shapes — "where is X", "what sign is X", "what house is X".
 _POSITIONAL_RE = re.compile(
     r"\b(where(?:'s| is)|what sign (?:is|does)|what house (?:is|does)|in what (?:sign|house))\b",
@@ -109,6 +126,19 @@ def classify_astrology_intent(message: str) -> Optional[Dict[str, Any]]:
     has_aspect = bool(_ASPECT_RE.search(text))
     has_positional = bool(_POSITIONAL_RE.search(text))
     has_timeline = bool(_TIMELINE_RE.search(text))
+    has_solar_return = bool(_SOLAR_RETURN_RE.search(text))
+
+    # ── solar_return ──────────────────────────────────────────────────
+    # Catches: "what's my solar return ascendant", "SR chart", "yearly
+    # return", "birthday chart". Checked FIRST so "solar return ascendant"
+    # doesn't get misrouted to positional/natal handling.
+    # astrology-chat-grounding-v2
+    if has_solar_return:
+        return {
+            "data_mode":    "solar_return",
+            "object":       None,
+            "natural_form": text,
+        }
 
     # ── transit_to_natal ───────────────────────────────────────────────
     # Aspect verb + body → transit-to-natal aspect query.
