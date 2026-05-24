@@ -94,6 +94,28 @@ _SOLAR_RETURN_RE = re.compile(
     re.IGNORECASE,
 )
 
+# Natal object query — "tell me about my Lilith", "what does my Chiron mean",
+# "what house is my Vertex in". Distinct from positional/aspect queries because
+# we want a SPECIFIC named natal placement read.   astrology-chat-master-interpreter-v3
+_NATAL_OBJECT_BODIES_RE = re.compile(
+    r"\b("
+    r"lilith|black\s*moon|bml|mean\s*lilith|true\s*lilith|"
+    r"chiron|"
+    r"vertex|anti.?vertex|"
+    r"north\s*node|south\s*node|rahu|ketu|nodes?|"
+    r"part\s*of\s*fortune|pars\s*fortuna|fortuna|"
+    r"juno|ceres|pallas|vesta|eris"
+    r")\b",
+    re.IGNORECASE,
+)
+_NATAL_OBJECT_TRIGGER_RE = re.compile(
+    r"\b("
+    r"tell\s*me\s*about|what\s*does|what's|whats|what\s*is|where\s*is|"
+    r"my|read\s*my|interpret|natal|in\s*my\s*chart"
+    r")\b",
+    re.IGNORECASE,
+)
+
 # Positional question shapes — "where is X", "what sign is X", "what house is X".
 _POSITIONAL_RE = re.compile(
     r"\b(where(?:'s| is)|what sign (?:is|does)|what house (?:is|does)|in what (?:sign|house))\b",
@@ -127,6 +149,21 @@ def classify_astrology_intent(message: str) -> Optional[Dict[str, Any]]:
     has_positional = bool(_POSITIONAL_RE.search(text))
     has_timeline = bool(_TIMELINE_RE.search(text))
     has_solar_return = bool(_SOLAR_RETURN_RE.search(text))
+    natal_obj_body_match = _NATAL_OBJECT_BODIES_RE.search(text)
+    has_natal_obj_trigger = bool(_NATAL_OBJECT_TRIGGER_RE.search(text))
+
+    # ── natal_object (specific named body) ─────────────────────────────
+    # Catches: "tell me about my Lilith", "what does my Chiron mean",
+    # "what house is my Vertex in", "my north node". Must run BEFORE
+    # positional/aspect handlers so the LLM doesn't try to free-form it.
+    # astrology-chat-master-interpreter-v3
+    if natal_obj_body_match and (has_natal_obj_trigger or has_positional or has_natal):
+        obj_raw = natal_obj_body_match.group(0)
+        return {
+            "data_mode":    "natal_object",
+            "object":       obj_raw,
+            "natural_form": text,
+        }
 
     # ── solar_return ──────────────────────────────────────────────────
     # Catches: "what's my solar return ascendant", "SR chart", "yearly

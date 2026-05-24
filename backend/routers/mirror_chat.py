@@ -969,6 +969,10 @@ NOT: "I opened a generic chat"
                             compute_solar_return,
                             build_solar_return_proof_block,
                         )
+                        from services.natal_object_engine import (
+                            compute_natal_object,
+                            build_natal_object_proof_block,
+                        )
 
                         grounded_intent = classify_astrology_intent(request.message)
                         if grounded_intent:
@@ -1004,6 +1008,33 @@ NOT: "I opened a generic chat"
                                         "Astrology Chat yet."
                                     )
                                 # else: let the LLM read the proof block and answer
+
+                            # ── natal_object branch ─────────────────────────────
+                            # astrology-chat-master-interpreter-v3
+                            # Handles: Lilith, Chiron, Vertex, Nodes, Juno, etc.
+                            # CRITICAL: if engine returns not-wired, the proof
+                            # block forbids substitution with another body
+                            # (no Lilith→Moon swap).
+                            elif mode_label == "natal_object" and grounded_intent.get("object"):
+                                obj_q = grounded_intent["object"]
+                                no_env = compute_natal_object(chart=chart, object_name=obj_q)
+                                astro_chat_debug["natal_object_success"] = bool(no_env.get("success"))
+                                astro_chat_debug["natal_object_canonical"] = no_env.get("object")
+                                astro_chat_debug["natal_object_reason"] = no_env.get("reason")
+                                astro_chat_debug["natal_object_source"] = no_env.get("source")
+                                if no_env.get("success"):
+                                    astro_chat_debug["astro_sources_used"].append(
+                                        f"natal_object:{no_env.get('object')}"
+                                    )
+                                logger.info(
+                                    f"[NatalObject] query={obj_q!r} canonical={no_env.get('object')} "
+                                    f"success={no_env.get('success')} reason={no_env.get('reason')} "
+                                    f"source={no_env.get('source')}"
+                                )
+                                system_prompt += "\n\n" + build_natal_object_proof_block(no_env)
+                                if not no_env.get("success"):
+                                    astro_chat_debug["fallback_triggered"] = True
+                                    response_text = no_env.get("message")
 
                             # transit_object + transit_to_natal both need
                             # the deterministic transit position envelope.
