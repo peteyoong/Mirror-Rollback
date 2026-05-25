@@ -25363,3 +25363,128 @@ backend:
 metadata:
   last_main_agent_action: "Added True Sidereal-M Midpoint startup migration hook (P0 — Live Deployment Regression fix)"
   last_main_agent_timestamp: "2026-05-23"
+
+  - task: "Astrology Chat V6 — Pressure Topology Engine"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/services/pressure_topology_engine.py, /app/backend/services/astrology_chat_router.py, /app/backend/routers/mirror_chat.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: "NA"
+          agent: "main"
+          comment: |
+            V6 PRESSURE TOPOLOGY ENGINE — WHOLE-CHART SYNTHESIS LAYER
+
+            Implemented deterministic pressure-topology synthesis that runs
+            ABOVE V4 (object coverage) and V5 (house inventory). Forces the
+            LLM to EXPRESS the chart's repeating pressures, contradictions,
+            and activation hubs instead of inventing generic
+            "Sun in Pisces means…" textbook prose.
+
+            Files modified:
+              1. /app/backend/services/pressure_topology_engine.py
+                 - build_pressure_topology(chart)
+                 - build_narrative_constraints(topology)
+                 - build_pressure_topology_proof_block(topology, constraints)
+                 - Detects: compression (Sun↔Saturn same sign/house/<12°),
+                   pluto pressure (Sun/Moon↔Pluto), overcompensation,
+                   sign-repetition stelliums (≥3 weighted bodies), house
+                   concentrations (≥3 bodies), contradiction pairs
+                   (Pisces↔Virgo, Cancer↔Capricorn, etc., deduped by axis),
+                   activation hubs (top 3 houses by weight).
+                 - Five narrative fields surfaced per spec:
+                   1. Compression
+                   2. Overcompensation
+                   3. Contradiction Pairs
+                   4. Activation Hubs
+                   5. Repetitions
+
+              2. /app/backend/services/astrology_chat_router.py
+                 - New regex _PRESSURE_TOPOLOGY_RE catching "tell me about
+                   my chart", "what does my chart say", "synthesize my
+                   chart", "master read", "core pattern", "what keeps
+                   showing up", "holistic read", etc.
+                 - New data_mode="pressure_topology" returned by
+                   classify_astrology_intent when synthesis question
+                   detected; lower priority than house_inventory and
+                   natal_object so specific lookups still win.
+
+              3. /app/backend/routers/mirror_chat.py
+                 - Imports build_pressure_topology / build_narrative_constraints
+                   / build_pressure_topology_proof_block.
+                 - ALWAYS-ON OVERLAY: every astrology-lens turn injects
+                   the short narrative-constraints envelope into the
+                   system prompt BEFORE intent classification, so even
+                   single-body / single-house questions are framed
+                   through the dominant pressures.
+                 - EXPLICIT BRANCH: when mode_label == "pressure_topology",
+                   appends the full proof block + master-astrologer
+                   instruction (180–280 word synthesis, no textbook
+                   phrasing, no closing question).
+                 - Debug payload extended with:
+                   pressure_topology_used, pressure_topology_overlay_applied,
+                   pressure_topology_core_field, pressure_topology_primary_tension,
+                   pressure_topology_repetition_count,
+                   pressure_topology_contradiction_count.
+
+            Verified locally:
+              ✅ Classifier: "tell me about my chart" → pressure_topology
+              ✅ Classifier: "10th house" still → house_inventory (V5 intact)
+              ✅ Classifier: "where is my natal Chiron" still → natal_object (V4 intact)
+              ✅ Classifier: "where is Mars now" still → transit_object
+              ✅ Engine on Pete: detects Sun↔Saturn compression, Pisces stellium
+                (Sun/Saturn/NN/Chiron), Virgo↔Pisces contradiction (deduped),
+                house 3 activation hub.
+              ✅ Engine on Mel: detects Sun↔Pluto square pluto_pressure, Virgo
+                stellium (Jupiter/Saturn/Pluto/Juno), house 3 hub, survival
+                strategy = "controlled intensity".
+              ✅ No touching of: SVP (31.2836), MIDPOINT_BOUNDARIES, sign
+                attribution, house calc, V2/V3/V4/V5 engines.
+              ✅ Backend boots clean after edit.
+
+            Build marker: astrology-pressure-topology-v6
+
+            TESTING REQUEST:
+              1. POST /api/mirror/chat with lens="astrology" and message
+                 "Tell me about my whole chart" for Pete and Mel. Verify
+                 200 response. Verify response prose mentions the actual
+                 dominant pressures (Pete: compression/Pisces/3rd-house;
+                 Mel: pluto pressure/Virgo/3rd-house) NOT generic textbook
+                 sun-sign phrasing.
+              2. POST /api/mirror/chat with lens="astrology" and a normal
+                 single-body question like "where is my natal Chiron" —
+                 ensure V4 still works (Chiron returned correctly) AND
+                 the topology overlay is applied to the framing.
+              3. POST /api/mirror/chat with lens="astrology" and a house
+                 inventory question like "tell me about my 10th house" —
+                 ensure V5 inventory still wins routing (house_inventory_used=True
+                 and pressure_topology_used=False), but overlay still
+                 applied.
+              4. Verify the response contains no banned phrases:
+                 "this placement suggests", "spiritual journey",
+                 "may feel", closing questions, "?" at end.
+
+metadata:
+  last_main_agent_action: "V6 Pressure Topology Engine — wired into chat router + always-on overlay (P0)"
+  last_main_agent_timestamp: "2026-05-25"
+
+agent_communication:
+    - agent: "main"
+      message: |
+        V6 Pressure Topology Engine is implemented and wired. Please test:
+        (a) Explicit synthesis intent: lens="astrology", message="Tell me about my whole chart"
+            for both Pete (697f0c6abf35c0528ff06954) and Mel (697ec826ad4b18f75bf42616).
+            Verify pressure_topology_used=True in debug, response prose
+            expresses the deterministic constraints (compression/pluto
+            pressure / stellium / contradictions / hub) not textbook prose.
+        (b) Regression: lens="astrology", message="where is my natal Chiron"
+            for Pete. natal_object_used=True, NOT pressure_topology_used,
+            but pressure_topology_overlay_applied=True.
+        (c) Regression: lens="astrology", message="tell me about my 10th house"
+            for Pete. house_inventory_used=True, NOT pressure_topology_used,
+            overlay still applied.
+        (d) Verify NO banned phrases in response text: "this placement suggests",
+            "spiritual journey", "may feel", "?" at end, "this energy".
+        Credentials in /app/memory/test_credentials.md.

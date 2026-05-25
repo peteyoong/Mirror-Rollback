@@ -950,6 +950,8 @@ NOT: "I opened a generic chat"
                     "transit_to_natal_used": False,
                     "natal_object_used": False,
                     "timeline_summary_used": False,
+                    "pressure_topology_used": False,
+                    "pressure_topology_overlay_applied": False,
                     "fallback_triggered": False,
                     "astro_sources_used": [],
                 }
@@ -977,6 +979,55 @@ NOT: "I opened a generic chat"
                             build_house_inventory,
                             build_house_inventory_proof_block,
                         )
+                        from services.pressure_topology_engine import (
+                            build_pressure_topology,
+                            build_narrative_constraints,
+                            build_pressure_topology_proof_block,
+                        )
+
+                        # ── V6 always-on topology overlay ──────────────────
+                        # astrology-pressure-topology-v6
+                        # Inject a SHORT narrative-constraints envelope on
+                        # every astrology-lens turn so even single-body
+                        # questions are interpreted through the dominant
+                        # pressures of the chart, not in isolation. This is
+                        # the layer that turns "Sun in Pisces means…" into
+                        # "Sun in Pisces inside YOUR compression field…".
+                        try:
+                            _overlay_topology = build_pressure_topology(chart)
+                            _overlay_constraints = build_narrative_constraints(_overlay_topology)
+                            if _overlay_constraints.get("available"):
+                                astro_chat_debug["pressure_topology_overlay_applied"] = True
+                                astro_chat_debug["pressure_topology_overlay_core_field"] = (
+                                    _overlay_constraints.get("core_field")
+                                )
+                                overlay_block = (
+                                    "\n=== PRESSURE TOPOLOGY OVERLAY — astrology-pressure-topology-v6 ===\n"
+                                    "This person's chart shows the following deterministic dominant\n"
+                                    "pressures (computed from their planet/sign/house weights). When\n"
+                                    "interpreting ANY specific placement, frame it AS PART OF this\n"
+                                    "larger field. Do not contradict these constraints. Do not invent\n"
+                                    "new dominant themes outside this envelope.\n"
+                                    f"  core_field:                 {_overlay_constraints.get('core_field')}\n"
+                                    f"  primary_tension:            {_overlay_constraints.get('primary_tension')}\n"
+                                    f"  secondary_tension:          {_overlay_constraints.get('secondary_tension')}\n"
+                                    f"  survival_strategy:          {_overlay_constraints.get('dominant_survival_strategy')}\n"
+                                    f"  overcompensation_style:     {_overlay_constraints.get('overcompensation_style')}\n"
+                                    f"  where_pressure_accumulates: {_overlay_constraints.get('where_pressure_accumulates')}\n"
+                                    f"  what_repeats:               {_overlay_constraints.get('what_repeats')}\n"
+                                    "BAN: 'this placement suggests', 'this energy', 'spiritual journey',\n"
+                                    "     textbook definitions, generic 'you may feel…', closing questions.\n"
+                                    "================================================================\n"
+                                )
+                                system_prompt += overlay_block
+                                logger.info(
+                                    f"[PressureTopologyOverlay] core_field={_overlay_constraints.get('core_field')!r} "
+                                    f"primary_tension={_overlay_constraints.get('primary_tension')!r}"
+                                )
+                        except Exception as _overlay_exc:
+                            logger.debug(
+                                f"[PressureTopologyOverlay] skipped: {_overlay_exc}"
+                            )
 
                         grounded_intent = classify_astrology_intent(request.message)
                         if grounded_intent:
@@ -1072,6 +1123,55 @@ NOT: "I opened a generic chat"
                                 if not no_env.get("success"):
                                     astro_chat_debug["fallback_triggered"] = True
                                     response_text = no_env.get("message")
+
+                            # ── pressure_topology branch (V6) ──────────────────
+                            # astrology-pressure-topology-v6
+                            # Whole-chart synthesis: detects repeating pressures,
+                            # contradictions, activation hubs and forces the LLM
+                            # to EXPRESS that topology rather than invent generic
+                            # "Sun in X means…" prose.
+                            elif mode_label == "pressure_topology":
+                                topology = build_pressure_topology(chart)
+                                constraints = build_narrative_constraints(topology)
+                                astro_chat_debug["pressure_topology_used"] = True
+                                astro_chat_debug["pressure_topology_success"] = bool(
+                                    topology.get("success")
+                                )
+                                astro_chat_debug["pressure_topology_core_field"] = (
+                                    constraints.get("core_field")
+                                )
+                                astro_chat_debug["pressure_topology_primary_tension"] = (
+                                    constraints.get("primary_tension")
+                                )
+                                astro_chat_debug["pressure_topology_repetition_count"] = len(
+                                    topology.get("repetition_loops", []) or []
+                                )
+                                astro_chat_debug["pressure_topology_contradiction_count"] = len(
+                                    topology.get("contradiction_pairs", []) or []
+                                )
+                                if topology.get("success"):
+                                    astro_chat_debug["astro_sources_used"].append(
+                                        "pressure_topology_engine"
+                                    )
+                                logger.info(
+                                    f"[PressureTopology] success={topology.get('success')} "
+                                    f"core_field={constraints.get('core_field')!r} "
+                                    f"primary_tension={constraints.get('primary_tension')!r} "
+                                    f"loops={len(topology.get('repetition_loops', []) or [])} "
+                                    f"contras={len(topology.get('contradiction_pairs', []) or [])} "
+                                    f"hubs={len(topology.get('activation_hubs', []) or [])}"
+                                )
+                                system_prompt += "\n\n" + build_pressure_topology_proof_block(
+                                    topology, constraints,
+                                )
+                                if not topology.get("success"):
+                                    astro_chat_debug["fallback_triggered"] = True
+                                    response_text = (
+                                        "I couldn't compute your chart's pressure "
+                                        "topology — the engine returned no signal. "
+                                        "Try asking about a specific placement or "
+                                        "house and I'll work from there."
+                                    )
 
                             # transit_object + transit_to_natal both need
                             # the deterministic transit position envelope.

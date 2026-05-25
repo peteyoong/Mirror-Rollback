@@ -96,6 +96,32 @@ _HOUSE_WORD_TO_NUM = {
     "10th":10,"tenth":10,"11th":11,"eleventh":11,"12th":12,"twelfth":12,
 }
 
+# Pressure-topology / whole-chart synthesis questions.
+# Fires on "tell me about my chart", "what does my chart say",
+# "synthesize my chart", "what's the core pattern", "master read", etc.
+# Distinct from any specific-body or specific-house lookup; this is the
+# fallback synthesis layer (V6). astrology-pressure-topology-v6
+_PRESSURE_TOPOLOGY_RE = re.compile(
+    r"\b("
+    r"(tell\s+me\s+about|what\s+(does|do)|what'?s|whats|read|"
+    r"describe|interpret|synthesi[sz]e|give\s+me)\s+"
+    r"(a\s+|the\s+)?(my\s+)?"
+    r"(whole\s+|entire\s+|overall\s+|full\s+)?chart"
+    r"|master\s+(read|reading|astrologer(\s+read(ing)?)?)"
+    r"|holistic\s+read(ing)?"
+    r"|overall\s+reading"
+    r"|core\s+(of\s+my\s+chart|pattern|theme)"
+    r"|(dominant|main|primary|core)\s+(theme|pattern|pressure|tension)"
+    r"|what.{0,15}keep(s)?\s+(showing\s+up|repeat(ing|s)?|recurring)"
+    r"|what'?s\s+the\s+pattern\s+in\s+my\s+chart"
+    r"|psychological\s+(pattern|topology|pressure)"
+    r"|pressure\s+(pattern|topology)"
+    r"|chart\s+synthesis"
+    r"|topology\s+(of\s+)?my\s+chart"
+    r")\b",
+    re.IGNORECASE,
+)
+
 _SOLAR_RETURN_RE = re.compile(
     r"\b("
     r"solar\s*return|"          # "solar return", "solar-return", "solarreturn"
@@ -176,6 +202,7 @@ def classify_astrology_intent(message: str) -> Optional[Dict[str, Any]]:
     has_positional = bool(_POSITIONAL_RE.search(text))
     has_timeline = bool(_TIMELINE_RE.search(text))
     has_solar_return = bool(_SOLAR_RETURN_RE.search(text))
+    has_pressure_topology = bool(_PRESSURE_TOPOLOGY_RE.search(text))
     natal_obj_body_match = _NATAL_OBJECT_BODIES_RE.search(text)
     has_natal_obj_trigger = bool(_NATAL_OBJECT_TRIGGER_RE.search(text))
     house_match = _HOUSE_INVENTORY_RE.search(text)
@@ -263,6 +290,20 @@ def classify_astrology_intent(message: str) -> Optional[Dict[str, Any]]:
     if has_timeline and not body and not has_positional:
         return {
             "data_mode":    "timeline_summary",
+            "object":       None,
+            "natural_form": text,
+        }
+
+    # ── pressure_topology (V6) ────────────────────────────────────────
+    # Catches whole-chart synthesis questions: "tell me about my chart",
+    # "what does my chart say", "synthesize my chart", "what's the core
+    # pattern", "master read". Distinct from any specific-body lookup;
+    # this is the deterministic synthesis layer that replaces generic
+    # "this placement suggests" LLM hallucination.
+    # astrology-pressure-topology-v6
+    if has_pressure_topology:
+        return {
+            "data_mode":    "pressure_topology",
             "object":       None,
             "natural_form": text,
         }
