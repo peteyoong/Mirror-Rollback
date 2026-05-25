@@ -973,6 +973,10 @@ NOT: "I opened a generic chat"
                             compute_natal_object,
                             build_natal_object_proof_block,
                         )
+                        from services.house_inventory_engine import (
+                            build_house_inventory,
+                            build_house_inventory_proof_block,
+                        )
 
                         grounded_intent = classify_astrology_intent(request.message)
                         if grounded_intent:
@@ -985,9 +989,42 @@ NOT: "I opened a generic chat"
                                 f"object={obj_name} user={request.user_id[:8]}..."
                             )
 
+                            # ── house_inventory branch ─────────────────────────
+                            # astrology-chat-house-hierarchy-v5
+                            # Multi-body house synthesis. Must aggregate the
+                            # FULL object registry (Chiron, Lilith, Lots,
+                            # asteroids) so the LLM never omits a body.
+                            if mode_label == "house_inventory":
+                                h_num = grounded_intent.get("house_number")
+                                h_env = build_house_inventory(chart, h_num)
+                                astro_chat_debug["house_number"] = h_num
+                                astro_chat_debug["objects_in_house"] = [
+                                    o["name"] for o in (h_env.get("objects_in_house") or [])
+                                ]
+                                astro_chat_debug["dominant_body"] = h_env.get("dominant_body")
+                                astro_chat_debug["tension_body"] = h_env.get("tension_body")
+                                astro_chat_debug["house_field_type"] = h_env.get("house_field_type")
+                                astro_chat_debug["inventory_complete_for_computed_objects"] = h_env.get(
+                                    "inventory_complete_for_computed_objects", True)
+                                astro_chat_debug["object_classes_included"] = h_env.get(
+                                    "object_classes_included", [])
+                                astro_chat_debug["object_classes_unsupported"] = h_env.get(
+                                    "object_classes_unsupported", [])
+                                astro_chat_debug["astro_sources_used"].append(
+                                    f"house_inventory:H{h_num}"
+                                )
+                                logger.info(
+                                    f"[HouseInventory] house={h_num} objects="
+                                    f"{[o['name'] for o in h_env.get('objects_in_house') or []]} "
+                                    f"dominant={h_env.get('dominant_body')} "
+                                    f"tension={h_env.get('tension_body')}"
+                                )
+                                system_prompt += "\n\n" + build_house_inventory_proof_block(h_env)
+                                # let the LLM synthesize from the proof block
+
                             # ── solar_return branch ────────────────────────────
                             # astrology-chat-grounding-v2
-                            if mode_label == "solar_return":
+                            elif mode_label == "solar_return":
                                 user_doc = await db.users.find_one({"_id": ObjectId(request.user_id)})
                                 sr_env = compute_solar_return(chart=chart, user=user_doc or {})
                                 astro_chat_debug["solar_return_success"] = bool(sr_env.get("success"))

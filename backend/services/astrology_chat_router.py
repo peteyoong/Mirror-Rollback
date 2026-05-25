@@ -79,6 +79,23 @@ _TIMELINE_RE = re.compile(
 
 # Solar return — yearly chart anchored on Sun's tropical return to natal degree.
 # astrology-chat-grounding-v2
+# House inventory query — "tell me about my 3rd house",
+# "what's in my 10th house", "explain my 7th house collectively".
+# Must fire BEFORE generic natal_object/positional handlers so a multi-
+# body house question goes straight to the synthesis engine.
+# astrology-chat-house-hierarchy-v5
+_HOUSE_INVENTORY_RE = re.compile(
+    r"\b(?:my\s+)?(?P<num>1st|2nd|3rd|4th|5th|6th|7th|8th|9th|10th|11th|12th|"
+    r"first|second|third|fourth|fifth|sixth|seventh|eighth|ninth|tenth|eleventh|twelfth)\s+house\b",
+    re.IGNORECASE,
+)
+_HOUSE_WORD_TO_NUM = {
+    "1st":1,"first":1,"2nd":2,"second":2,"3rd":3,"third":3,
+    "4th":4,"fourth":4,"5th":5,"fifth":5,"6th":6,"sixth":6,
+    "7th":7,"seventh":7,"8th":8,"eighth":8,"9th":9,"ninth":9,
+    "10th":10,"tenth":10,"11th":11,"eleventh":11,"12th":12,"twelfth":12,
+}
+
 _SOLAR_RETURN_RE = re.compile(
     r"\b("
     r"solar\s*return|"          # "solar return", "solar-return", "solarreturn"
@@ -161,6 +178,23 @@ def classify_astrology_intent(message: str) -> Optional[Dict[str, Any]]:
     has_solar_return = bool(_SOLAR_RETURN_RE.search(text))
     natal_obj_body_match = _NATAL_OBJECT_BODIES_RE.search(text)
     has_natal_obj_trigger = bool(_NATAL_OBJECT_TRIGGER_RE.search(text))
+    house_match = _HOUSE_INVENTORY_RE.search(text)
+
+    # ── house_inventory ────────────────────────────────────────────────
+    # Catches: "tell me about my 3rd house", "what's in my 10th house",
+    # "explain my 7th house collectively". Highest priority so multi-body
+    # house questions go straight to the synthesis engine and never get
+    # mis-routed to natal_object handling.
+    # astrology-chat-house-hierarchy-v5
+    if house_match:
+        ord_word = house_match.group("num").lower()
+        h_num = _HOUSE_WORD_TO_NUM.get(ord_word)
+        if h_num:
+            return {
+                "data_mode":    "house_inventory",
+                "house_number": h_num,
+                "natural_form": text,
+            }
 
     # ── natal_object (specific named body) ─────────────────────────────
     # Catches: "tell me about my Lilith", "what does my Chiron mean",
