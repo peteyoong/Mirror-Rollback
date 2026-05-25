@@ -99,12 +99,22 @@ _SOLAR_RETURN_RE = re.compile(
 # we want a SPECIFIC named natal placement read.   astrology-chat-master-interpreter-v3
 _NATAL_OBJECT_BODIES_RE = re.compile(
     r"\b("
+    # Lilith family
     r"lilith|black\s*moon|bml|mean\s*lilith|true\s*lilith|"
+    # White Moon family (unsupported but must route here to refuse cleanly)
+    r"selena|white\s*moon|"
+    r"dark\s*moon|waldemath|"
+    # Chiron, angles
     r"chiron|"
     r"vertex|anti.?vertex|"
+    # Nodes
     r"north\s*node|south\s*node|rahu|ketu|nodes?|"
-    r"part\s*of\s*fortune|pars\s*fortuna|fortuna|"
-    r"juno|ceres|pallas|vesta|eris"
+    # Lots / Arabic parts
+    r"part\s*of\s*fortune|pars\s*fortuna|fortuna|lot\s*of\s*fortune|"
+    r"part\s*of\s*spirit|pars\s*spiritus|lot\s*of\s*spirit|"
+    r"lot\s*of\s*(eros|necessity|courage|victory|nemesis|basis|marriage)|"
+    # Asteroids
+    r"juno|ceres|pallas|vesta|eris|eros|psyche|hygi(?:e|ei)a|astraea"
     r")\b",
     re.IGNORECASE,
 )

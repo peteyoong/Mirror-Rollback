@@ -36,17 +36,31 @@ from calculations.astrology import (
 
 logger = logging.getLogger(__name__)
 
-BUILD_MARKER = "astrology-chat-master-interpreter-v3"
+BUILD_MARKER = "astrology-chat-v4-object-coverage"
 
-# Canonical name → swisseph constant (for objects we COMPUTE on demand
+# Canonical name → swisseph body constant (for objects we COMPUTE on demand
 # because they're not pre-stored in the chart doc).
+#
+# Asteroids use swe.AST_OFFSET + minor planet number. The base asteroid
+# file (seas_18.se1) is bundled with pyswisseph and covers the major
+# main-belt bodies and many named asteroids.
+_AST_OFFSET = getattr(swe, "AST_OFFSET", 10000)
 _COMPUTE_ON_DEMAND = {
-    "Black Moon Lilith":      swe.MEAN_APOG,   # Mean Lunar Apogee, the standard "BML"
+    "Black Moon Lilith":      swe.MEAN_APOG,   # Mean Lunar Apogee — standard BML
     "True Black Moon Lilith": swe.OSCU_APOG,   # Osculating apogee, less common
+    "Ceres":                  _AST_OFFSET + 1,
+    "Pallas":                 _AST_OFFSET + 2,
+    "Vesta":                  _AST_OFFSET + 4,
+    "Astraea":                _AST_OFFSET + 5,
+    "Hygiea":                 _AST_OFFSET + 10,
+    "Psyche":                 _AST_OFFSET + 16,
+    "Eros":                   _AST_OFFSET + 433,
+    "Eris":                   _AST_OFFSET + 136199,   # needs s136199s.se1 ephemeris
 }
 
 # Aliases — the surface the user is likely to use → canonical name.
 _ALIAS = {
+    # Lilith family
     "lilith":              "Black Moon Lilith",
     "black moon":          "Black Moon Lilith",
     "black moon lilith":   "Black Moon Lilith",
@@ -54,7 +68,11 @@ _ALIAS = {
     "mean lilith":         "Black Moon Lilith",
     "true lilith":         "True Black Moon Lilith",
     "true black moon":     "True Black Moon Lilith",
-    # Stored-in-chart aliases — accepted but go through chart-read path:
+    # White Moon family — NOT WIRED (no standard swisseph constant)
+    "selena":              "White Moon Selena",
+    "white moon":          "White Moon Selena",
+    "white moon selena":   "White Moon Selena",
+    # Stored-in-chart aliases
     "chiron":              "Chiron",
     "north node":          "North Node",
     "north_node":          "North Node",
@@ -66,21 +84,51 @@ _ALIAS = {
     "anti-vertex":         "Anti-Vertex",
     "antivertex":          "Anti-Vertex",
     "anti vertex":         "Anti-Vertex",
-    "part of fortune":     "Part of Fortune",
-    "pars fortuna":        "Part of Fortune",
-    "fortuna":             "Part of Fortune",
     "juno":                "Juno",
+    # Computed on demand
     "ceres":               "Ceres",
     "pallas":              "Pallas",
     "vesta":               "Vesta",
     "eris":                "Eris",
+    "eros":                "Eros",
+    "psyche":              "Psyche",
+    "hygiea":              "Hygiea",
+    "hygieia":             "Hygiea",
+    "astraea":             "Astraea",
+    # Lots / Arabic Parts
+    "part of fortune":     "Lot of Fortune",
+    "lot of fortune":      "Lot of Fortune",
+    "pars fortuna":        "Lot of Fortune",
+    "fortuna":             "Lot of Fortune",
+    "part of spirit":      "Lot of Spirit",
+    "lot of spirit":       "Lot of Spirit",
+    "pars spiritus":       "Lot of Spirit",
+    # Lots not yet implemented (will fall into _NOT_WIRED)
+    "lot of eros":         "Lot of Eros",
+    "lot of necessity":    "Lot of Necessity",
+    "lot of courage":      "Lot of Courage",
+    "lot of victory":      "Lot of Victory",
+    "lot of nemesis":      "Lot of Nemesis",
+    "lot of basis":        "Lot of Basis",
+    "lot of marriage":     "Lot of Marriage",
 }
 
 # Objects that we ACKNOWLEDGE but explicitly DO NOT support yet.
-# Any query for these returns the verbatim not-wired message.
+# Any query for these returns the verbatim not-wired message —
+# NEVER substituted with another body.
 _NOT_WIRED = {
-    "Ceres", "Pallas", "Vesta", "Eris", "Part of Fortune",
+    "White Moon Selena",     # no standard ephemeris point
+    "Dark Moon Lilith",      # Waldemath; not in std swisseph
+    "Lot of Eros", "Lot of Necessity", "Lot of Courage",
+    "Lot of Victory", "Lot of Nemesis", "Lot of Basis",
+    "Lot of Marriage", "Lot of Children", "Lot of Father",
+    "Lot of Mother", "Lot of Siblings", "Lot of Career",
+    "Lot of Profession", "Lot of Wealth", "Lot of Death",
+    "Lot of Illness", "Lot of Exaltation",
 }
+
+# Computable via formula (no swisseph body needed)
+_FORMULA_OBJECTS = {"Lot of Fortune", "Lot of Spirit"}
 
 
 def resolve_natal_object_name(raw: str) -> Optional[str]:
@@ -93,12 +141,89 @@ def resolve_natal_object_name(raw: str) -> Optional[str]:
         return _ALIAS[key]
     # Title-case match (e.g. "Chiron")
     cap = raw.strip()
-    for canon in list(_COMPUTE_ON_DEMAND.keys()) + ["Chiron", "North Node",
-                                                     "South Node", "Vertex",
-                                                     "Anti-Vertex", "Juno"]:
+    known_titles = (
+        list(_COMPUTE_ON_DEMAND.keys())
+        + ["Chiron", "North Node", "South Node", "Vertex", "Anti-Vertex", "Juno"]
+        + list(_FORMULA_OBJECTS)
+        + list(_NOT_WIRED)
+    )
+    for canon in known_titles:
         if cap.lower() == canon.lower():
             return canon
     return None
+
+
+def _compute_lot(
+    chart: Dict[str, Any],
+    lot_name: str,
+) -> Optional[Dict[str, Any]]:
+    """Compute a sect-aware Arabic Part / Lot.
+
+    Lot of Fortune:
+        day: ASC + Moon - Sun
+        night: ASC + Sun - Moon
+    Lot of Spirit:
+        day: ASC + Sun - Moon
+        night: ASC + Moon - Sun
+
+    Sect: day if natal Sun is above the horizon (houses 7–12), else
+    night. We approximate by checking the natal Sun house.
+    """
+    astro = (chart or {}).get("astrology") or {}
+    planets = astro.get("planets") or {}
+    angles = astro.get("angles") or {}
+    sun = planets.get("Sun") or {}
+    moon = planets.get("Moon") or {}
+    asc = angles.get("asc") or {}
+
+    # Need tropical longitudes for the formula
+    def _trop(p):
+        return p.get("tropical_longitude") if p.get("tropical_longitude") is not None else (
+            (p.get("longitude") + SVP_DEGREES) if p.get("longitude") is not None else None
+        )
+    sun_t = _trop(sun); moon_t = _trop(moon); asc_t = _trop(asc)
+    if sun_t is None or moon_t is None or asc_t is None:
+        return None
+
+    # Sect: day chart if Sun house in 7..12 (above horizon in Equal house);
+    # fall back to longitude comparison if house missing.
+    sun_house = sun.get("house")
+    if sun_house is not None:
+        is_day = sun_house in (7, 8, 9, 10, 11, 12)
+    else:
+        # Sun > MC tropical → day-ish. Crude fallback.
+        mc = angles.get("mc") or {}
+        mc_t = _trop(mc) or 0.0
+        is_day = ((sun_t - mc_t + 360.0) % 360.0) < 180.0
+
+    if lot_name == "Lot of Fortune":
+        lot_trop = (asc_t + moon_t - sun_t) % 360.0 if is_day else (asc_t + sun_t - moon_t) % 360.0
+        formula = "ASC + Moon - Sun" if is_day else "ASC + Sun - Moon"
+    elif lot_name == "Lot of Spirit":
+        lot_trop = (asc_t + sun_t - moon_t) % 360.0 if is_day else (asc_t + moon_t - sun_t) % 360.0
+        formula = "ASC + Sun - Moon" if is_day else "ASC + Moon - Sun"
+    else:
+        return None
+
+    sid = normalize_degrees(lot_trop - SVP_DEGREES)
+    sign_data = longitude_to_sign_degree(sid, tropical_longitude=lot_trop)
+    house = None
+    cusps = astro.get("houses") or astro.get("house_cusps")
+    if cusps:
+        try:
+            house = get_house_for_planet(sid, cusps)
+        except Exception:
+            pass
+    return {
+        **sign_data,
+        "longitude":          sid,
+        "tropical_longitude": lot_trop,
+        "house":              house,
+        "body_type":          "lot_formula",
+        "source":             "sect_aware_formula",
+        "sect":               "day" if is_day else "night",
+        "formula":            formula,
+    }
 
 
 def _read_stored_natal_object(chart: Dict[str, Any], name: str) -> Optional[Dict[str, Any]]:
@@ -193,8 +318,15 @@ def _compute_natal_lilith(
             "source":             "swisseph_FLG_SWIEPH",
         }
     except Exception as e:
-        logger.warning(f"[NatalObjectEngine] swisseph calc for body_const={body_const} failed: {e}")
-        return None
+        msg = str(e)
+        # File-not-found vs other compute errors → distinguish for caller
+        not_found = "not found" in msg.lower() or ".se1" in msg
+        logger.warning(
+            f"[NatalObjectEngine] swisseph calc for body_const={body_const} failed: {e}"
+        )
+        # Return a sentinel dict (not None) so the caller can distinguish
+        # "ephemeris file missing" from "JD unavailable".
+        return {"__compute_error__": True, "ephemeris_missing": not_found, "raw_error": msg}
 
 
 def compute_natal_object(chart: Dict[str, Any], object_name: str) -> Dict[str, Any]:
@@ -242,10 +374,31 @@ def compute_natal_object(chart: Dict[str, Any], object_name: str) -> Dict[str, A
             "placement": stored,
         }
 
-    # 2) Compute on demand (Lilith family)
+    # 2) Computed via formula (Lot of Fortune / Spirit, sect-aware)
+    if canon in _FORMULA_OBJECTS:
+        placement = _compute_lot(chart, canon)
+        if placement:
+            return {
+                "success": True,
+                "object": canon,
+                "source": "formula",
+                "build_marker": BUILD_MARKER,
+                "placement": placement,
+            }
+        return {
+            "success": False,
+            "object": canon,
+            "reason": "lot_formula_inputs_missing",
+            "build_marker": BUILD_MARKER,
+            "message": f"{canon} couldn't be computed — required "
+                       f"natal Sun/Moon/ASC longitudes are not in the "
+                       f"chart.",
+        }
+
+    # 3) Compute on demand via Swiss Ephemeris
     if canon in _COMPUTE_ON_DEMAND:
         placement = _compute_natal_lilith(chart, _COMPUTE_ON_DEMAND[canon])
-        if placement:
+        if placement and not placement.get("__compute_error__"):
             return {
                 "success": True,
                 "object": canon,
@@ -253,13 +406,22 @@ def compute_natal_object(chart: Dict[str, Any], object_name: str) -> Dict[str, A
                 "build_marker": BUILD_MARKER,
                 "placement": placement,
             }
+        # Distinguish ephemeris-missing from JD-missing
+        if placement and placement.get("__compute_error__") and placement.get("ephemeris_missing"):
+            return {
+                "success": False,
+                "object": canon,
+                "reason": "ephemeris_file_missing",
+                "build_marker": BUILD_MARKER,
+                "message": f"{canon} is not wired into the astrology engine yet "
+                           f"(its Swiss Ephemeris file isn't installed in this build).",
+            }
         return {
             "success": False,
             "object": canon,
-            "reason": "compute_failed_missing_birth_data",
+            "reason": "compute_failed",
             "build_marker": BUILD_MARKER,
-            "message": f"{canon} couldn't be computed — the chart's "
-                       f"birth Julian day isn't accessible.",
+            "message": f"{canon} couldn't be computed from the current chart data.",
         }
 
     # 3) Fall through — recognised name but no path
