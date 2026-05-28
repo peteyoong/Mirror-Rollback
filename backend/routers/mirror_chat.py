@@ -1256,6 +1256,11 @@ NOT: "I opened a generic chat"
                                             f"ruler={_v8_synth.get('ruler')} "
                                             f"destab={_v8_synth.get('destabilizing_planet')}"
                                         )
+                                        # Stash the synthesis so we can
+                                        # post-process the LLM response
+                                        # to enforce the no-trailing-?
+                                        # rule deterministically.
+                                        astro_chat_debug["_v8_post_enforce"] = True
                                 except Exception as _v8_err:
                                     logger.warning(
                                         f"[FieldSynthesisV8] skipped: {_v8_err}"
@@ -1995,6 +2000,35 @@ USER SHOULD FEEL:
                     f"{type(ev_err).__name__}: {ev_err}"
                 )
                 evidence_payload = None
+
+            # ── V8 deterministic post-processor ───────────────────────
+            # astrology-field-synthesis-v8
+            # When the field synthesis engine fired, hard-strip any
+            # trailing coaching question — the LLM occasionally sneaks
+            # one in despite the system-prompt ban. Removes the last
+            # sentence iff it ends with "?" AND the rest of the reply
+            # remains substantive (≥ 150 chars).
+            try:
+                if (
+                    isinstance(response_text, str)
+                    and response_text.strip().endswith("?")
+                    and astro_chat_debug.get("_v8_post_enforce")
+                ):
+                    import re as _re_v8
+                    sentences = _re_v8.split(r"(?<=[.!?])\s+", response_text.strip())
+                    if len(sentences) > 1 and sentences[-1].rstrip().endswith("?"):
+                        trimmed = " ".join(sentences[:-1]).rstrip()
+                        if len(trimmed) >= 150:
+                            logger.info(
+                                "[FieldSynthesisV8] stripped trailing "
+                                f"question (was: {sentences[-1][:80]!r})"
+                            )
+                            response_text = trimmed
+                            astro_chat_debug["_v8_trailing_question_stripped"] = True
+                # Always clean the internal marker key from debug
+                astro_chat_debug.pop("_v8_post_enforce", None)
+            except Exception as _v8_post_err:
+                logger.debug(f"[FieldSynthesisV8] post-process skipped: {_v8_post_err}")
 
             return MirrorChatResponse(
                 response=response_text,

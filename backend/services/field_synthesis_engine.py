@@ -555,7 +555,7 @@ def build_field_synthesis(
     if destab_planet:
         parts.append(
             f"What stabilizes it: {stabilizer_text}. "
-            f"What disrupts it: {destabilizer_text}."
+            f"What disrupts it: {destab_planet} — {destabilizer_text}."
         )
     else:
         parts.append(f"What stabilizes it: {stabilizer_text}.")
@@ -653,7 +653,19 @@ def build_field_synthesis_proof_block(synthesis: Dict[str, Any]) -> str:
         "  ✗ 'spiritual journey'\n"
         "  ✗ generic textbook house definitions\n"
         "  ✗ closing reflection question ('how does this resonate?', etc.)\n"
+        "  ✗ ANY question mark in your reply. Last character MUST be a period.\n"
         "\n"
+        "REQUIRED TOKENS — your reply MUST literally contain ALL of these\n"
+        "tokens (case-insensitive). Dropping any of them = failed turn:\n"
+        f"  • house sign: {synthesis.get('house_sign')}\n"
+        f"  • ruler: {synthesis.get('ruler')}\n"
+        f"  • ruler sign: {synthesis.get('ruler_sign')}\n"
+        f"  • ruler house: {synthesis.get('ruler_house')}\n"
+        + (
+            f"  • destabilizing planet: {synthesis.get('destabilizing_planet')}\n"
+            if synthesis.get('destabilizing_planet') else ""
+        )
+        + "\n"
         "FIRST-SENTENCE RULE: open with the LIVED FIELD, not the label.\n"
         "Example acceptable opening: 'This person's emotional foundation\n"
         "is built around steadiness, but Uranus keeps the floor from\n"
