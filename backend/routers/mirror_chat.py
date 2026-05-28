@@ -1053,6 +1053,11 @@ NOT: "I opened a generic chat"
                             build_narrative_constraints,
                             build_pressure_topology_proof_block,
                         )
+                        from services.field_synthesis_engine import (
+                            build_field_synthesis,
+                            build_field_synthesis_proof_block,
+                            BUILD_MARKER as _FIELD_SYNTH_MARKER,
+                        )
 
                         # ── V6 always-on topology overlay ──────────────────
                         # astrology-pressure-topology-v6
@@ -1174,7 +1179,7 @@ NOT: "I opened a generic chat"
                             # asteroids) so the LLM never omits a body.
                             if mode_label == "house_inventory":
                                 h_num = grounded_intent.get("house_number")
-                                h_env = build_house_inventory(chart, h_num)
+                                h_env = build_house_inventory(_astro_chart, h_num)
                                 astro_chat_debug["house_number"] = h_num
                                 astro_chat_debug["objects_in_house"] = [
                                     o["name"] for o in (h_env.get("objects_in_house") or [])
@@ -1198,6 +1203,63 @@ NOT: "I opened a generic chat"
                                     f"tension={h_env.get('tension_body')}"
                                 )
                                 system_prompt += "\n\n" + build_house_inventory_proof_block(h_env)
+
+                                # ── V8 Field Synthesis ──────────────────────
+                                # astrology-field-synthesis-v8
+                                # Transforms the inventory into a field
+                                # narrative (foundation / instability /
+                                # compensation / relational consequence /
+                                # evolution). Eliminates "the 4th house
+                                # relates to home/family" textbook prose.
+                                try:
+                                    _v8_topology = build_pressure_topology(_astro_chart)
+                                    _v8_topo_constraints = build_narrative_constraints(_v8_topology)
+                                    # Attach the constraint-derived survival
+                                    # strategy onto the topology dict so the
+                                    # field engine can read it directly.
+                                    if _v8_topology and isinstance(_v8_topology, dict):
+                                        _v8_topology.setdefault(
+                                            "dominant_survival_strategy",
+                                            _v8_topo_constraints.get("dominant_survival_strategy"),
+                                        )
+                                    _v8_synth = build_field_synthesis(
+                                        chart=_astro_chart,
+                                        house_number=h_num,
+                                        inventory_envelope=h_env,
+                                        topology=_v8_topology,
+                                    )
+                                    if _v8_synth.get("success"):
+                                        system_prompt += "\n\n" + build_field_synthesis_proof_block(_v8_synth)
+                                        astro_chat_debug["field_synthesis"] = {
+                                            "marker": _FIELD_SYNTH_MARKER,
+                                            "house_number": _v8_synth["house_number"],
+                                            "is_empty": _v8_synth["is_empty"],
+                                            "house_sign": _v8_synth.get("house_sign"),
+                                            "ruler": _v8_synth.get("ruler"),
+                                            "ruler_sign": _v8_synth.get("ruler_sign"),
+                                            "ruler_house": _v8_synth.get("ruler_house"),
+                                            "field_name": _v8_synth.get("field_name"),
+                                            "dominant_dynamic": _v8_synth.get("dominant_dynamic"),
+                                            "stabilizer": _v8_synth.get("stabilizer"),
+                                            "destabilizer": _v8_synth.get("destabilizer"),
+                                            "destabilizing_planet": _v8_synth.get("destabilizing_planet"),
+                                            "survival_strategy": _v8_synth.get("survival_strategy"),
+                                            "synthesis_mode": _v8_synth.get("synthesis_mode"),
+                                            "textbook_mode_used": False,
+                                        }
+                                        astro_chat_debug["astro_sources_used"].append(
+                                            f"field_synthesis:H{h_num}"
+                                        )
+                                        logger.info(
+                                            f"[FieldSynthesisV8] house={h_num} "
+                                            f"is_empty={_v8_synth['is_empty']} "
+                                            f"ruler={_v8_synth.get('ruler')} "
+                                            f"destab={_v8_synth.get('destabilizing_planet')}"
+                                        )
+                                except Exception as _v8_err:
+                                    logger.warning(
+                                        f"[FieldSynthesisV8] skipped: {_v8_err}"
+                                    )
                                 # let the LLM synthesize from the proof block
 
                             # ── solar_return branch ────────────────────────────

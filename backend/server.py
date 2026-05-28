@@ -7320,6 +7320,20 @@ async def api_health_check():
                 and "v7_ask_mirror_engine_used" in _src
                 and "_astro_chart" in _src
             )
+            # V8 field synthesis verification
+            try:
+                from services import field_synthesis_engine as _fse
+                v7_status["field_synthesis_v8_present"] = True
+                v7_status["field_synthesis_marker"] = getattr(
+                    _fse, "BUILD_MARKER", "unknown"
+                )
+                v7_status["field_synthesis_wired"] = (
+                    "astrology-field-synthesis-v8" in _src
+                    and "build_field_synthesis" in _src
+                )
+            except Exception:
+                v7_status["field_synthesis_v8_present"] = False
+                v7_status["field_synthesis_wired"] = False
         except Exception as _v7_health_err:
             v7_status["error"] = str(_v7_health_err)
 
@@ -7340,6 +7354,9 @@ async def api_health_check():
             "ask_mirror_astrology_v7": v7_status["ask_mirror_astrology_v7"],
             "member_chart_resolver_present": v7_status["member_chart_resolver_present"],
             "mirror_chat_router_version": v7_status["mirror_chat_router_version"],
+            # V8 field synthesis verification
+            "astrology_field_synthesis_v8": v7_status.get("field_synthesis_wired", False),
+            "field_synthesis_marker": v7_status.get("field_synthesis_marker", "unknown"),
             "debug": {
                 "env": os.environ.get('ENV', 'unknown'),
                 "db_name": db_name,
