@@ -25488,3 +25488,142 @@ agent_communication:
         (d) Verify NO banned phrases in response text: "this placement suggests",
             "spiritual journey", "may feel", "?" at end, "this energy".
         Credentials in /app/memory/test_credentials.md.
+
+  - task: "Ask Mirror ↔ Astrology Engine Integration (V7) — Member-Aware Delegation"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/services/member_chart_resolver.py, /app/backend/routers/mirror_chat.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: "NA"
+          agent: "main"
+          comment: |
+            V7 ASK MIRROR ↔ ASTROLOGY ENGINE DELEGATION
+            
+            Build marker: ask-mirror-astrology-v7
+            
+            PROBLEM REPORTED BY USER:
+            Ask Mirror (lens=None) was bypassing the deterministic V2-V6
+            astrology stack and falling back to legacy reflective coaching:
+            "I'm here to facilitate reflection and insight from your lenses,
+            rather than provide direct chart readings for others."
+            Query "Tell me about Mel's 4th house" never invoked
+            house_inventory_engine on Mel's chart.
+            
+            ROOT CAUSE:
+            In /app/backend/routers/mirror_chat.py the entire astrology
+            routing block was gated on `request.lens == "astrology" and
+            chart is not None`. Ask Mirror sends lens=None, so the
+            deterministic stack was completely skipped.
+            
+            FIX IMPLEMENTED:
+            1. NEW FILE: /app/backend/services/member_chart_resolver.py
+               - extract_candidate_names(message): pulls capitalised
+                 possessive names ("Mel's", "Thaddeus's") and bare names
+                 if astrology keywords are present.
+               - resolve_target_member(db, asker_user_id, message,
+                 about_person_id): resolves a target person + chart via:
+                   (a) explicit about_person_id (if linked to a user)
+                   (b) name-match against forum_members in asker's forums
+                   (c) name-match against saved_people
+                 Returns dict with target_user_id, target_name,
+                 target_chart, source, forum_id.
+               - Verified resolving Mel/Thaddeus/Isaac correctly for Pete.
+            
+            2. MODIFIED /app/backend/routers/mirror_chat.py:
+               - Run `classify_astrology_intent` BEFORE the gate, not after.
+               - New gate: astrology routing fires when EITHER
+                 lens=="astrology" with chart, OR an astrology intent is
+                 detected (Ask Mirror coverage).
+               - Resolve target chart via member_chart_resolver and use
+                 `_astro_chart` alias throughout the routing block —
+                 every engine call (build_pressure_topology,
+                 build_house_inventory, compute_solar_return,
+                 compute_natal_object, compute_transit_object) now uses
+                 the RESOLVED target chart instead of always the asker's.
+               - Inject V7 master-astrologer instruction block that
+                 explicitly forbids:
+                   "I'm here to facilitate reflection",
+                   "I don't provide direct chart readings",
+                   "this placement suggests", "this energy",
+                   "spiritual journey", "this may indicate", "might",
+                   closing question.
+               - Extended debug payload: v7_target_resolved,
+                 v7_target_name, v7_target_user_id, v7_target_source,
+                 v7_ask_mirror_engine_used.
+            
+            EXPECTED BEHAVIOUR AFTER FIX:
+            For Pete asking via Ask Mirror (lens=None):
+              "Tell me about Mel's 4th house"
+              → v7_target_resolved=True, target_name="Mel"
+              → house_inventory_used=True
+              → engine runs against Mel's chart (697ec826...)
+              → response cites Mel's actual house-4 occupants
+              → NO "I facilitate reflection" prefix
+            
+              "Tell me about my whole chart"
+              → v7_target_resolved=False (no other-person name)
+              → pressure_topology_used=True
+              → engine runs against Pete's chart
+              → response cites Pete's deterministic topology
+            
+              "Tell me about my 7th house" (no target name)
+              → house_inventory_used=True, target=Pete
+            
+            For Astrology Chat (lens="astrology"):
+              ALL existing V2-V6 behaviour preserved (regression).
+            
+            BACKEND STATUS: Boots clean. /api/ → 200.
+            
+            TESTING REQUEST:
+            1. POST /api/mirror/chat with lens=NULL message="Tell me about
+               Mel's 4th house" for Pete (user_id=697f0c6abf35c0528ff06954).
+               Expect:
+                 - debug.astro_chat.v7_target_resolved == True
+                 - debug.astro_chat.v7_target_name == "Mel"
+                 - debug.astro_chat.house_inventory_used == True
+                 - debug.astro_chat.v7_ask_mirror_engine_used == True
+                 - Response prose mentions Mel specifically + her actual
+                   4th-house occupants (NOT generic "4th house relates to
+                   home and family").
+                 - Response does NOT contain "facilitate reflection",
+                   "I don't provide", "this placement suggests",
+                   "spiritual journey", trailing "?".
+            
+            2. POST /api/mirror/chat with lens=NULL message="What does my
+               whole chart say" for Pete. Expect:
+                 - v7_target_resolved == False (no other-person name)
+                 - pressure_topology_used == True
+                 - v7_ask_mirror_engine_used == True
+                 - Response expresses Pete's compression/Pisces/3rd-house
+                   topology.
+            
+            3. Regression: POST /api/mirror/chat with lens="astrology"
+               message="Tell me about my 10th house" for Pete.
+               Expect: house_inventory_used=True, v7_target_resolved=False,
+               v7_ask_mirror_engine_used=False (lens is astrology, not
+               Ask Mirror), proof block correct.
+            
+            4. Regression: POST /api/mirror/chat with lens="astrology"
+               message="Tell me about my whole chart" for Pete.
+               Expect: pressure_topology_used=True, response prose
+               expresses Pete's topology, no regression from V6.
+            
+            5. Verify member_chart_resolver Python unit:
+               from services.member_chart_resolver import resolve_target_member
+               with Pete asking "Tell me about Mel's 4th house" returns
+               target_name="Mel", target_chart != None.
+               with Pete asking "Tell me about my own chart" returns None.
+
+agent_communication:
+    - agent: "main"
+      message: |
+        V7 Ask Mirror ↔ Astrology delegation is wired. Please test the 5
+        scenarios in the task above. Critical success criterion: when
+        Pete asks "Tell me about Mel's 4th house" via Ask Mirror
+        (lens=None), the response MUST cite Mel's deterministic 4th house
+        occupants (not a generic textbook 4th-house definition) AND must
+        not contain "I'm here to facilitate reflection" or any variant.
+        Credentials in /app/memory/test_credentials.md.

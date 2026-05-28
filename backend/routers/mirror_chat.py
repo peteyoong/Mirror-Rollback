@@ -954,8 +954,77 @@ NOT: "I opened a generic chat"
                     "pressure_topology_overlay_applied": False,
                     "fallback_triggered": False,
                     "astro_sources_used": [],
+                    # V7 — Ask Mirror member/forum delegation
+                    "v7_target_resolved": False,
+                    "v7_target_name": None,
+                    "v7_target_user_id": None,
+                    "v7_target_source": None,
+                    "v7_ask_mirror_engine_used": False,
                 }
-                if request.lens == "astrology" and chart is not None:
+
+                # ── V7 Ask Mirror astrology delegation ────────────────────
+                # ask-mirror-astrology-v7
+                # Classify intent FIRST (regardless of lens) so Ask Mirror
+                # (lens=None) also routes astrology questions into the
+                # deterministic V2-V6 engines. Then resolve the target
+                # person — when the message references a forum member by
+                # name (e.g. "Mel's 4th house"), swap to that member's
+                # chart so engines run on the right person.
+                _astro_v7_intent_preview = None
+                try:
+                    from services.astrology_chat_router import (
+                        classify_astrology_intent as _cls_v7,
+                    )
+                    _astro_v7_intent_preview = _cls_v7(request.message or "")
+                except Exception as _v7_cls_err:
+                    logger.debug(f"[AskMirrorV7] classifier skipped: {_v7_cls_err}")
+
+                _astro_routing_active = (
+                    (request.lens == "astrology" and chart is not None)
+                    or (_astro_v7_intent_preview is not None)
+                )
+
+                # Resolve target chart (defaults to asker's chart)
+                _astro_chart = chart
+                _astro_target_name = None
+                _astro_target_user_id = None
+                _astro_target_source = None
+                if _astro_routing_active:
+                    try:
+                        from services.member_chart_resolver import (
+                            resolve_target_member,
+                        )
+                        _v7_tgt = await resolve_target_member(
+                            db=db,
+                            asker_user_id=request.user_id,
+                            message=request.message or "",
+                            about_person_id=request.about_person_id,
+                        )
+                        if _v7_tgt and _v7_tgt.get("target_chart"):
+                            _astro_chart = _v7_tgt["target_chart"]
+                            _astro_target_name = _v7_tgt.get("target_name")
+                            _astro_target_user_id = _v7_tgt.get("target_user_id")
+                            _astro_target_source = _v7_tgt.get("source")
+                            astro_chat_debug["v7_target_resolved"] = True
+                            astro_chat_debug["v7_target_name"] = _astro_target_name
+                            astro_chat_debug["v7_target_user_id"] = _astro_target_user_id
+                            astro_chat_debug["v7_target_source"] = _astro_target_source
+                            logger.info(
+                                f"[AskMirrorV7] target_resolved "
+                                f"name={_astro_target_name!r} "
+                                f"uid={_astro_target_user_id} "
+                                f"source={_astro_target_source} "
+                                f"intent={_astro_v7_intent_preview!r}"
+                            )
+                    except Exception as v7e:
+                        logger.debug(f"[AskMirrorV7] resolver skipped: {v7e}")
+
+                # Mark whether this is an Ask-Mirror-engine call (lens
+                # is not "astrology" but we are still running engines).
+                if _astro_routing_active and request.lens != "astrology":
+                    astro_chat_debug["v7_ask_mirror_engine_used"] = True
+
+                if _astro_routing_active and _astro_chart is not None:
                     try:
                         from services.astrology_chat_router import (
                             classify_astrology_intent,
@@ -994,7 +1063,7 @@ NOT: "I opened a generic chat"
                         # the layer that turns "Sun in Pisces means…" into
                         # "Sun in Pisces inside YOUR compression field…".
                         try:
-                            _overlay_topology = build_pressure_topology(chart)
+                            _overlay_topology = build_pressure_topology(_astro_chart)
                             _overlay_constraints = build_narrative_constraints(_overlay_topology)
                             if _overlay_constraints.get("available"):
                                 astro_chat_debug["pressure_topology_overlay_applied"] = True
@@ -1027,6 +1096,64 @@ NOT: "I opened a generic chat"
                         except Exception as _overlay_exc:
                             logger.debug(
                                 f"[PressureTopologyOverlay] skipped: {_overlay_exc}"
+                            )
+
+                        # ── V7 Ask Mirror master-astrologer instruction ──
+                        # ask-mirror-astrology-v7
+                        # When Ask Mirror (lens != "astrology") routes an
+                        # astrology question, inject a hard instruction so
+                        # the LLM does NOT fall back to "I facilitate
+                        # reflection rather than provide direct chart
+                        # readings…". The deterministic engine has already
+                        # computed the answer — the LLM's job is to
+                        # render it in Mirror voice, not to refuse.
+                        if (
+                            request.lens != "astrology"
+                            and _astro_v7_intent_preview is not None
+                        ):
+                            _v7_target_blurb = (
+                                f"This question is about {_astro_target_name}'s "
+                                f"chart (a forum member of yours)."
+                                if _astro_target_name
+                                else "This question is about your own chart."
+                            )
+                            _v7_chart_blurb = (
+                                "You DO have the deterministic chart for the "
+                                "target person — the engine has just computed "
+                                "it and the proof block below contains the "
+                                "actual placements."
+                                if _astro_chart is not None
+                                else "The engine could not hydrate the target "
+                                     "chart — say so plainly, do not invent."
+                            )
+                            v7_instruction = (
+                                "\n=== ASK MIRROR ASTROLOGY DELEGATION — ask-mirror-astrology-v7 ===\n"
+                                f"{_v7_target_blurb}\n"
+                                f"{_v7_chart_blurb}\n"
+                                "\n"
+                                "ABSOLUTE RULES (override any earlier voice/safety guard):\n"
+                                "  1. DO NOT begin with 'I'm here to facilitate reflection',\n"
+                                "     'I don't provide direct chart readings', or any variant.\n"
+                                "  2. DO NOT defer the question with a coaching prompt.\n"
+                                "  3. DO express the deterministic placements computed by\n"
+                                "     the engine (see proof block below).\n"
+                                "  4. DO frame the synthesis through pressure topology when\n"
+                                "     available — describe the FIELD, not textbook house\n"
+                                "     definitions.\n"
+                                "  5. NO 'this placement suggests', 'this energy', 'spiritual\n"
+                                "     journey', 'this may indicate', 'might'. NO closing\n"
+                                "     question.\n"
+                                "  6. When the target person is someone other than the user,\n"
+                                "     describe the field as it appears in THEIR chart — do not\n"
+                                "     pivot to a verdict on their personality or coach the\n"
+                                "     user about their relationship.\n"
+                                "===========================================================\n"
+                            )
+                            system_prompt += v7_instruction
+                            logger.info(
+                                f"[AskMirrorV7] instruction_injected "
+                                f"target={_astro_target_name!r} "
+                                f"intent={_astro_v7_intent_preview!r}"
                             )
 
                         grounded_intent = classify_astrology_intent(request.message)
@@ -1077,7 +1204,7 @@ NOT: "I opened a generic chat"
                             # astrology-chat-grounding-v2
                             elif mode_label == "solar_return":
                                 user_doc = await db.users.find_one({"_id": ObjectId(request.user_id)})
-                                sr_env = compute_solar_return(chart=chart, user=user_doc or {})
+                                sr_env = compute_solar_return(chart=_astro_chart, user=user_doc or {})
                                 astro_chat_debug["solar_return_success"] = bool(sr_env.get("success"))
                                 astro_chat_debug["solar_return_target_year"] = sr_env.get("target_year")
                                 if sr_env.get("success"):
@@ -1105,7 +1232,7 @@ NOT: "I opened a generic chat"
                             # (no Lilith→Moon swap).
                             elif mode_label == "natal_object" and grounded_intent.get("object"):
                                 obj_q = grounded_intent["object"]
-                                no_env = compute_natal_object(chart=chart, object_name=obj_q)
+                                no_env = compute_natal_object(chart=_astro_chart, object_name=obj_q)
                                 astro_chat_debug["natal_object_success"] = bool(no_env.get("success"))
                                 astro_chat_debug["natal_object_canonical"] = no_env.get("object")
                                 astro_chat_debug["natal_object_reason"] = no_env.get("reason")
@@ -1131,7 +1258,7 @@ NOT: "I opened a generic chat"
                             # to EXPRESS that topology rather than invent generic
                             # "Sun in X means…" prose.
                             elif mode_label == "pressure_topology":
-                                topology = build_pressure_topology(chart)
+                                topology = build_pressure_topology(_astro_chart)
                                 constraints = build_narrative_constraints(topology)
                                 astro_chat_debug["pressure_topology_used"] = True
                                 astro_chat_debug["pressure_topology_success"] = bool(
@@ -1191,7 +1318,7 @@ NOT: "I opened a generic chat"
                                     )
                                 else:
                                     grounded_transit_envelope = compute_transit_object(
-                                        chart=chart,
+                                        chart=_astro_chart,
                                         object_name=obj_name,
                                     )
                                     logger.info(
