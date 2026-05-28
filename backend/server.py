@@ -7298,6 +7298,31 @@ async def api_health_check():
         # Get build info from deployment guard
         build_info = get_build_info()
         
+        # V7 verification fields — ask-mirror-v7-active-route-fix
+        # Allows the user to verify which deployment has V7 active.
+        v7_status = {
+            "ask_mirror_astrology_v7": False,
+            "member_chart_resolver_present": False,
+            "mirror_chat_router_version": "unknown",
+        }
+        try:
+            from services import member_chart_resolver as _mcr
+            v7_status["member_chart_resolver_present"] = True
+            v7_status["mirror_chat_router_version"] = getattr(
+                _mcr, "BUILD_MARKER", "unknown"
+            )
+            # Confirm V7 wiring is actually in the active mirror_chat router
+            import inspect
+            from routers import mirror_chat as _mc_router
+            _src = inspect.getsource(_mc_router)
+            v7_status["ask_mirror_astrology_v7"] = (
+                "ask-mirror-astrology-v7" in _src
+                and "v7_ask_mirror_engine_used" in _src
+                and "_astro_chart" in _src
+            )
+        except Exception as _v7_health_err:
+            v7_status["error"] = str(_v7_health_err)
+
         return {
             "ok": True,
             "service": "backend",
@@ -7311,12 +7336,17 @@ async def api_health_check():
                 "source_files": build_info["source_files"],
                 "validation": build_info["validation"],
             },
+            # V7 active-route verification (top-level for easy curl check)
+            "ask_mirror_astrology_v7": v7_status["ask_mirror_astrology_v7"],
+            "member_chart_resolver_present": v7_status["member_chart_resolver_present"],
+            "mirror_chat_router_version": v7_status["mirror_chat_router_version"],
             "debug": {
                 "env": os.environ.get('ENV', 'unknown'),
                 "db_name": db_name,
                 "db_uri_last_4": db_uri_last_4,
                 "collections": collections[:20],  # Limit to first 20
                 "lifeline_events_total": lifeline_count,
+                "v7_status": v7_status,
             }
         }
     except Exception as e:
