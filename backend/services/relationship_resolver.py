@@ -302,7 +302,7 @@ def build_relational_synthesis_block(
         "    for what is missing').\n"
         "  • Cite the destabilising planet by name when relevant.\n"
         "  • NOT pivot into reflective coaching prompts.\n"
-        "  • NOT use any banned phrases ('how does this resonate', 'reflect on',\n"
+        "  • NOT use any BANNED phrases ('how does this resonate', 'reflect on',\n"
         "    'consider how', 'in astrology').\n"
         "\n"
         "STRUCTURE OF FULL ANSWER:\n"
