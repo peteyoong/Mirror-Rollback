@@ -1,0 +1,44 @@
+{
+  "summary": "V8 Field Synthesis Engine integration tested end-to-end against the live backend. 6 of 7 pytest tests pass (86%). PASSING: GET /api/health surfaces astrology_field_synthesis_v8=true and field_synthesis_marker='astrology-field-synthesis-v8' AND ask_mirror_astrology_v7=true AND mirror_chat_router_version='ask-mirror-astrology-v7'. Unit-level build_field_synthesis() on Mel's chart returns success=True, is_empty=True, house_sign='Virgo', ruler='Mercury', ruler_sign='Gemini', ruler_house=11, destabilizing_planet='Saturn' (Mercury-Saturn hard aspect detected), synthesis_mode='field', textbook_mode_used=False, narrative > 200 chars. Live /api/mirror/chat: Pete asking 'Tell me about Mel's 4th house' (lens=null) routes through V7 (target_resolved=Mel, MEL_ID) and V8 (field_synthesis injected with all expected determinist fields). Pete's 10th and 1st house lens='astrology' calls fire V8 with correct house_number. Regressions confirmed: 'my whole chart' and 'natal Chiron' branches do NOT inject field_synthesis. FAILING: response prose for Mel's 4th house contains 'mercury'/'virgo'/'gemini' but NOT 'saturn' — destabilizing planet is named in debug.field_synthesis.destabilizing_planet='Saturn' but never surfaces in the response text. Investigation shows the LLM is returning the deterministic synthesis_narrative seed verbatim, and that seed only uses Saturn's destabilizer *phrase* ('the field is editing itself, narrower than the interior wants') without naming Saturn. The proof block names Saturn in the destabilizing_planet line but the LLM does not weave it into prose.",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {
+        "endpoint": "POST /api/mirror/chat (V8 field synthesis branch)",
+        "issue": "Response prose does not surface destabilizing_planet name. For Pete-asks-about-Mel's-4th-house, debug.field_synthesis.destabilizing_planet='Saturn' but the response text contains only Saturn's destabilizer phrase ('the field is editing itself'), never the word 'Saturn'. Spec requires response prose to mention Mercury AND Virgo AND Gemini AND Saturn. Root cause: field_synthesis_engine.py:556-559 builds 'What disrupts it: {destabilizer_text}' from _DESTABILIZER_BY_PLANET which is phrase-only — the planet name itself is dropped. Fix: change the seed to include the planet name, e.g. 'What disrupts it: Saturn — the field is editing itself…'. The LLM is returning the seed verbatim so the planet name must be baked into the deterministic narrative."
+      }
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [],
+    "react_native_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_field_synthesis_v8.py",
+    "/app/test_reports/pytest/v8_results.xml"
+  ],
+  "action_items": [
+    "field_synthesis_engine.py: prepend the destabilizing planet name to the 'What disrupts it' clause in the synthesis_narrative seed so the LLM (which is echoing the seed verbatim) surfaces Saturn/Pluto/Neptune/Uranus by name in the response prose. Suggested edit at services/field_synthesis_engine.py around lines 555-559: if destab_planet: parts.append(f'What stabilizes it: {stabilizer_text}. What disrupts it: {destab_planet} — {destabilizer_text}.'). After fix, re-run test_pete_asks_mel_4th_field_synthesis to confirm 'saturn' token appears in prose.",
+    "Optional: ensure the LLM ELABORATES the seed (not just echoes) — current behaviour for the Mel 4th-house call is that the response IS exactly the synthesis_narrative seed. This is acceptable per V8 design (deterministic prose) but means any required tokens must be embedded in the seed."
+  ],
+  "critical_code_review_comments": [
+    "field_synthesis_engine.py is well-structured but the 'destabilizer' text intentionally drops the planet name in favour of an experiential phrase. This collides with the testability requirement that the response mention the planet by name. Embedding the planet name in the seed is the cleanest fix.",
+    "mirror_chat.py:1207-1260 V8 wiring is clean — only fires inside the house_inventory branch, so the 'whole chart' and 'natal object' regressions correctly do NOT inject field_synthesis. astro_chat_debug.field_synthesis is a flat dict with all 11 expected keys.",
+    "Reminder: mirror_chat.py is now >2000 lines with V2–V8 branches stacked inside one function. Consider extracting the astrology routing block (lines ~926–1260) into a dedicated module."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_field_synthesis_v8.py (new — 7 tests)",
+    "/app/test_reports/pytest/v8_results.xml (generated)"
+  ],
+  "success_rate": {
+    "backend": "86% (6/7 tests passed; only failure is the destab-planet-name-in-prose check)",
+    "frontend": "not tested (backend-only request)"
+  },
+  "seed_data_creation": "None — used existing charts for Pete (697f0c6abf35c0528ff06954) and Mel (697ec826ad4b18f75bf42616) and forum 69dd05eaa333335fcbf3ad33.",
+  "retest_needed": true,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "V8 field_synthesis debug shape: debug.astro_chat.field_synthesis = {marker, house_number, is_empty, house_sign, ruler, ruler_sign, ruler_house, field_name, dominant_dynamic, stabilizer, destabilizer, destabilizing_planet, survival_strategy, synthesis_mode, textbook_mode_used}. V8 only fires inside the house_inventory branch (i.e. when the message classifies as a house question). Verified: Mel's H4 cusp=Virgo, ruler Mercury in Gemini H11, Mercury-Saturn hard aspect; Pete's H10 cusp resolves correctly; Pete's H1 cusp=Sagittarius, ruler Jupiter; whole-chart + natal-object regressions preserve absence of field_synthesis. LLM currently echoes synthesis_narrative seed verbatim — any required prose tokens must be embedded in the seed.",
+  "rca_of_issue": "Spec requires response prose to name 'Saturn' for Mel's 4th house. The deterministic engine correctly detects destabilizing_planet='Saturn' (Mercury-Saturn aspect within orb) and exposes it in debug.field_synthesis.destabilizing_planet, but the synthesis_narrative seed only includes Saturn's experiential destabilizer phrase ('the field is editing itself, narrower than the interior wants') without the word 'Saturn'. The LLM returns the seed verbatim, so 'Saturn' never appears. Reproduction: POST /api/mirror/chat {user_id: '697f0c6abf35c0528ff06954', message: \"Tell me about Mel's 4th house\"} → response.lower() does not contain 'saturn'. Mitigation: edit field_synthesis_engine.py synthesis_narrative builder (around line 556) to prepend `{destab_planet} — ` to the destabilizer phrase when destab_planet is present."
+}

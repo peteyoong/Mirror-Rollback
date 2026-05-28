@@ -25627,3 +25627,148 @@ agent_communication:
         occupants (not a generic textbook 4th-house definition) AND must
         not contain "I'm here to facilitate reflection" or any variant.
         Credentials in /app/memory/test_credentials.md.
+
+  - task: "Astrology Chat V8 — Field Synthesis Engine"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/services/field_synthesis_engine.py, /app/backend/routers/mirror_chat.py, /app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: "NA"
+          agent: "main"
+          comment: |
+            V8 FIELD SYNTHESIS ENGINE — astrology-field-synthesis-v8
+            
+            Problem: V5/V6/V7 deterministic engines were working but LLM
+            was still rendering responses as textbook prose:
+              "the 4th house relates to home, family, and roots…"
+            
+            V8 transforms the deterministic inputs (house inventory +
+            ruler condition + aspects + topology) into ONE coherent
+            FIELD synthesis with 5 sections: foundation / instability /
+            compensation / relational consequence / evolution.
+            
+            NEW FILE: /app/backend/services/field_synthesis_engine.py
+              - HOUSE_ARCHETYPES: lived-field words for each of 12
+                houses (not "themes" — actual field descriptions).
+              - SIGN_RULER: modern rulerships table.
+              - _build_destabilizer / _build_stabilizer /
+                _build_compensation / _build_relational_consequence /
+                _build_evolution: deterministic synthesis builders.
+              - build_field_synthesis(chart, house_number,
+                inventory_envelope, topology) returns full dict
+                including synthesis_narrative.
+              - build_field_synthesis_proof_block(syn) returns the
+                LLM-facing instruction block with hard bans + 5-part
+                scaffold + first-sentence rule.
+              - Works for EMPTY houses (derives via ruler condition +
+                ruler aspects to outer planets).
+              - Handles BOTH chart storage shapes (legacy
+                formatted_cusps + new True Sidereal-M cusp_signs).
+            
+            WIRED INTO /app/backend/routers/mirror_chat.py:
+              - In house_inventory branch, after the house inventory
+                proof block is injected, the V8 engine ALSO computes
+                pressure topology + field synthesis and appends the
+                V8 proof block. The h_env now uses _astro_chart so
+                V7 member targeting (Mel's chart for "Mel's 4th house")
+                cascades correctly into V8.
+              - debug.astro_chat.field_synthesis = {
+                  marker, house_number, is_empty, house_sign, ruler,
+                  ruler_sign, ruler_house, field_name, dominant_dynamic,
+                  stabilizer, destabilizer, destabilizing_planet,
+                  survival_strategy, synthesis_mode, textbook_mode_used
+                }
+            
+            HEALTH ENDPOINT (/api/server.py):
+              - Added top-level fields:
+                  astrology_field_synthesis_v8: bool (wiring verified)
+                  field_synthesis_marker: "astrology-field-synthesis-v8"
+              - debug.v7_status now also contains
+                field_synthesis_v8_present + field_synthesis_wired.
+            
+            VERIFIED LOCALLY (Pete asking via Ask Mirror lens=null):
+              "Tell me about Mel's 4th house"
+              → field_synthesis.marker = astrology-field-synthesis-v8
+              → field_synthesis.house_number = 4
+              → field_synthesis.is_empty = True
+              → field_synthesis.house_sign = Virgo
+              → field_synthesis.ruler = Mercury in Gemini in H11
+              → field_synthesis.destabilizing_planet = Saturn
+              → response prose: "This emotional foundation field is
+                structurally quiet—no planets occupy the 4th house—so
+                its texture is expressed through Mercury, the ruler of
+                Virgo, currently in Gemini in the 11th house..."
+              → ZERO banned phrases ('the 4th house relates', 'home
+                family roots', 'this placement suggests', 'in
+                astrology', 'I'm here to facilitate', 'this energy',
+                'spiritual journey').
+              → Response covers all 5 sections (foundation /
+                instability / compensation / relational / evolution).
+            
+            HEALTH VERIFICATION:
+              GET /api/health
+                ask_mirror_astrology_v7: true
+                astrology_field_synthesis_v8: true
+                field_synthesis_marker: astrology-field-synthesis-v8
+                mirror_chat_router_version: ask-mirror-astrology-v7
+            
+            TESTING REQUEST:
+            1. POST /api/mirror/chat lens=null message="Tell me about
+               Mel's 4th house" for Pete. Verify
+               debug.astro_chat.field_synthesis.marker ==
+               "astrology-field-synthesis-v8", is_empty==True,
+               house_sign=="Virgo", ruler=="Mercury",
+               destabilizing_planet=="Saturn". Response prose must
+               open with the LIVED FIELD, NOT textbook definitions.
+               BANNED PHRASE CHECK on response (case insensitive):
+                 ✗ "the 4th house relates to"
+                 ✗ "themes associated with the 4th house"
+                 ✗ "home, family, roots"
+                 ✗ "this placement suggests"
+                 ✗ "this energy"
+                 ✗ "in astrology"
+                 ✗ "facilitate reflection"
+                 ✗ "spiritual journey"
+                 ✗ trailing "?"
+               Response must mention Mercury / Virgo / Gemini / 11th
+               and Saturn (the destabilizer).
+            
+            2. POST /api/mirror/chat lens="astrology" message="Tell
+               me about my 10th house" for Pete. Verify
+               field_synthesis.house_number==10, ruler=="Mercury" in
+               Aquarius in H2, destabilizing_planet=="Pluto",
+               is_empty==False. Response prose must express Pete's
+               Pluto-edited public vocation field — NOT generic 10th
+               house textbook.
+            
+            3. POST /api/mirror/chat lens="astrology" message="Tell
+               me about my 1st house" for Pete. is_empty=True (no
+               planets in H1), ruler=Jupiter in Leo H8,
+               destabilizing_planet=Neptune (Jupiter-Neptune square).
+            
+            4. Regression: POST /api/mirror/chat lens="astrology"
+               message="Tell me about my whole chart" for Pete.
+               pressure_topology_used=True, field_synthesis absent
+               (V8 only fires for house_inventory intent), V6
+               behaviour preserved.
+            
+            5. Regression: POST /api/mirror/chat lens="astrology"
+               message="where is my natal Chiron". natal_object_used.
+               No field_synthesis injected (not a house question).
+            
+            6. GET /api/health verify all 4 fields present and true.
+
+agent_communication:
+    - agent: "main"
+      message: |
+        V8 Field Synthesis Engine wired. Engine builds 5-part field
+        synthesis from house_inventory + ruler condition + ruler
+        aspects + pressure topology. Tested locally — Mel's empty
+        4th house now produces deterministic Mercury-Gemini-H11
+        ruler synthesis with Saturn destabilizer, not "home/family"
+        textbook. Please run the 6 scenarios above. Critical: the
+        banned phrase check is the hard pass/fail criterion.
+        Credentials in /app/memory/test_credentials.md.
