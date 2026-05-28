@@ -25772,3 +25772,101 @@ agent_communication:
         textbook. Please run the 6 scenarios above. Critical: the
         banned phrase check is the hard pass/fail criterion.
         Credentials in /app/memory/test_credentials.md.
+
+  - task: "Astrology Chat V10 — Relationship-Aware Synthesis"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/services/relationship_resolver.py, /app/backend/routers/mirror_chat.py, /app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: "NA"
+          agent: "main"
+          comment: |
+            V10 RELATIONSHIP-AWARE ASTROLOGY SYNTHESIS
+            Build marker: relationship-aware-astrology-v10
+            
+            New file: /app/backend/services/relationship_resolver.py
+              - resolve_relationship(db, asker, target_user_id, target_name, forum_id)
+                resolves role via priority: explicit map > saved_people >
+                forum_members.relationship_type > forum inference (two-person
+                private "X & Y" forum → partner; small private → close_circle).
+              - build_relational_synthesis_block(asker_name, target_name,
+                relationship_ctx, field_synthesis) — produces the LLM
+                instruction block requiring a relational paragraph after
+                the V8 field synthesis.
+              - Role profiles: spouse, partner, ex_partner, child, parent,
+                sibling, close_friend, friend, close_circle, colleague,
+                boss, forum_member.
+            
+            Wired into /app/backend/routers/mirror_chat.py:
+              - After V7 resolves target_user_id, V10 resolves relationship
+                role + closeness + emotional_weight.
+              - After V8 field synthesis block is appended, V10 relational
+                synthesis block is appended on top.
+              - debug.astro_chat.relationship_context = {
+                  relationship_detected, relationship_role, closeness,
+                  emotional_weight, relationship_source, forum_name,
+                  asker_name, relational_synthesis_used
+                }
+            
+            New admin endpoint /app/backend/server.py:
+              POST /api/admin/map-relationship
+              Body: {asker_user_id, target_user_id, target_name, relationship_type}
+              Upserts relationship_mappings collection.
+            
+            Health endpoint /api/health top-level adds:
+              relationship_aware_astrology_v10: bool
+              relationship_resolver_marker: "relationship-aware-astrology-v10"
+            
+            VERIFIED LOCALLY:
+              POST /api/admin/map-relationship → spouse for Pete↔Mel
+              POST /api/mirror/chat lens=null "Tell me about Mel's 4th
+                  house and how does that map to me" →
+                debug.relationship_context.relationship_role = "spouse"
+                debug.relationship_context.relationship_source = "explicit_map"
+                debug.relationship_context.asker_name = "Pete"
+                debug.relationship_context.relational_synthesis_used = True
+              Response prose includes a relational paragraph:
+                "Inside your relationship with Mel, this dynamic can
+                manifest in unique ways. With Uranus's influence, there
+                might be moments where Mel's need for stability clashes
+                with sudden changes, creating a zigzag of emotional
+                connectivity..."
+            
+            TESTING REQUEST:
+            1. GET /api/health → relationship_aware_astrology_v10=True,
+               relationship_resolver_marker="relationship-aware-astrology-v10".
+            
+            2. POST /api/admin/map-relationship to set Pete↔Mel=spouse if not set.
+            
+            3. POST /api/mirror/chat lens=null message="Tell me about Mel's
+               4th house and how does that map to me" for Pete. Verify
+               debug.astro_chat.relationship_context: relationship_detected=True,
+               relationship_role="spouse", relationship_source="explicit_map" or
+               "forum_inference", asker_name="Pete" or similar,
+               relational_synthesis_used=True. Response must contain a
+               relational paragraph that names the asker (Pete/"you")
+               AND mentions Uranus (the destabilizer). NO textbook prose.
+            
+            4. Without setting an explicit map, the resolver falls back to
+               "forum_inference" because "Pete & Mel" is a 2-member private
+               forum → relationship_role="partner". Test this by deleting
+               the explicit map and re-running step 3.
+            
+            5. Regression: lens="astrology" message="Tell me about my 10th
+               house" for Pete (no target person mentioned). Verify NO
+               relationship_context fires (relational_synthesis_used should
+               be absent or False). Pure self-chart V8 behaviour preserved.
+
+agent_communication:
+    - agent: "main"
+      message: |
+        V10 relationship-aware synthesis is wired. The resolver chains
+        explicit map → saved_people → forum_members → forum inference.
+        Pete & Mel is a 2-member private forum so falls back to "partner"
+        via inference; for "spouse" specifically, the explicit
+        /api/admin/map-relationship was used to seed Pete↔Mel=spouse.
+        Please run the 5 scenarios above. Credentials in
+        /app/memory/test_credentials.md.

@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="1" skipped="0" tests="7" time="21.639" timestamp="2026-05-28T09:40:05.583880+00:00" hostname="agent-env-f4150bb6-ff57-4591-a680-f27289c54e84"><testcase classname="tests.test_relationship_aware_astrology_v10.TestHealthV10" name="test_health_exposes_v10_markers" time="0.283" /><testcase classname="tests.test_relationship_aware_astrology_v10.TestAdminMapRelationship" name="test_map_pete_mel_spouse" time="0.124" /><testcase classname="tests.test_relationship_aware_astrology_v10.TestRelationalSynthesisExplicitMap" name="test_pete_mel_4th_spouse_relational" time="6.330" /><testcase classname="tests.test_relationship_aware_astrology_v10.TestRelationalSynthesisForumInferenceFallback" name="test_pete_mel_fallback_partner" time="5.510" /><testcase classname="tests.test_relationship_aware_astrology_v10.TestSelfChartNoRelationalSynthesis" name="test_pete_10th_house_no_relational" time="4.873" /><testcase classname="tests.test_relationship_aware_astrology_v10.TestBuildRelationalSynthesisBlock" name="test_block_contents" time="0.001"><failure message="AssertionError: Missing token 'BANNED' in block:&#10;  &#10;  === RELATIONAL SYNTHESIS — relationship-aware-astrology-v10 ===&#10;  asker:              Pete&#10;  target:             Mel&#10;  relationship_role:  spouse&#10;  closeness:          high&#10;  emotional_weight:   high&#10;  source:             explicit_map&#10;  &#10;  INSTRUCTION:&#10;    Frame this as a SPOUSE dynamic — describe how the target's field shows up inside the marriage / partnership specifically.&#10;  &#10;  After describing the target's field (per the field-synthesis&#10;  proof block above), you MUST add a RELATIONAL paragraph that&#10;  answers: 'How does this field manifest INSIDE the relationship&#10;  between Pete and Mel?'&#10;  &#10;  This relational paragraph must:&#10;    • Name the asker by name (or 'you' if asker_name unavailable).&#10;    • Describe a SPECIFIC interaction loop between the two fields&#10;      (e.g. 'When you hold steady space, Mel reads the silence as&#10;      emotional absence and her nervous system starts searching&#10;      for what is missing').&#10;    • Cite the destabilising planet by name when relevant.&#10;    • NOT pivot into reflective coaching prompts.&#10;    • NOT use any banned phrases ('how does this resonate', 'reflect on',&#10;      'consider how', 'in astrology').&#10;  &#10;  STRUCTURE OF FULL ANSWER:&#10;    Paragraph 1 — Field synthesis (per the V8 proof block above)&#10;    Paragraph 2 — Relational mapping inside this specific dynamic&#10;  ===========================================================&#10;  &#10;assert 'BANNED' in &quot;\n=== RELATIONAL SYNTHESIS — relationship-aware-astrology-v10 ===\nasker:              Pete\ntarget:             Mel\nrelationship_role:  spouse\ncloseness:          high\nemotional_weight:   high\nsource:             explicit_map\n\nINSTRUCTION:\n  Frame this as a SPOUSE dynamic — describe how the target's field shows up inside the marriage / partnership specifically.\n\nAfter describing the target's field (per the field-synthesis\nproof block above), you MUST add a RELATIONAL paragraph that\nanswers: 'How does this field manifest INSIDE the relationship\nbetween Pete and Mel?'\n\nThis relational paragraph must:\n  • Name the asker by name (or 'you' if asker_name unavailable).\n  • Describe a SPECIFIC interaction loop between the two fields\n    (e.g. 'When you hold steady space, Mel reads the silence as\n    emotional absence and her nervous system starts searching\n    for what is missing').\n  • Cite the destabilising planet by name when relevant.\n  • NOT pivot into reflective coaching prompts.\n  • NOT use any banned phrases ('how does this resonate', 'reflect on',\n    'consider how', 'in astrology').\n\nSTRUCTURE OF FULL ANSWER:\n  Paragraph 1 — Field synthesis (per the V8 proof block above)\n  Paragraph 2 — Relational mapping inside this specific dynamic\n===========================================================\n&quot;">tests/test_relationship_aware_astrology_v10.py:325: in test_block_contents
+    assert token in block, f"Missing token {token!r} in block:\n{block}"
+E   AssertionError: Missing token 'BANNED' in block:
+E     
+E     === RELATIONAL SYNTHESIS — relationship-aware-astrology-v10 ===
+E     asker:              Pete
+E     target:             Mel
+E     relationship_role:  spouse
+E     closeness:          high
+E     emotional_weight:   high
+E     source:             explicit_map
+E     
+E     INSTRUCTION:
+E       Frame this as a SPOUSE dynamic — describe how the target's field shows up inside the marriage / partnership specifically.
+E     
+E     After describing the target's field (per the field-synthesis
+E     proof block above), you MUST add a RELATIONAL paragraph that
+E     answers: 'How does this field manifest INSIDE the relationship
+E     between Pete and Mel?'
+E     
+E     This relational paragraph must:
+E       • Name the asker by name (or 'you' if asker_name unavailable).
+E       • Describe a SPECIFIC interaction loop between the two fields
+E         (e.g. 'When you hold steady space, Mel reads the silence as
+E         emotional absence and her nervous system starts searching
+E         for what is missing').
+E       • Cite the destabilising planet by name when relevant.
+E       • NOT pivot into reflective coaching prompts.
+E       • NOT use any banned phrases ('how does this resonate', 'reflect on',
+E         'consider how', 'in astrology').
+E     
+E     STRUCTURE OF FULL ANSWER:
+E       Paragraph 1 — Field synthesis (per the V8 proof block above)
+E       Paragraph 2 — Relational mapping inside this specific dynamic
+E     ===========================================================
+E     
+E   assert 'BANNED' in "\n=== RELATIONAL SYNTHESIS — relationship-aware-astrology-v10 ===\nasker:              Pete\ntarget:             Mel\nrelationship_role:  spouse\ncloseness:          high\nemotional_weight:   high\nsource:             explicit_map\n\nINSTRUCTION:\n  Frame this as a SPOUSE dynamic — describe how the target's field shows up inside the marriage / partnership specifically.\n\nAfter describing the target's field (per the field-synthesis\nproof block above), you MUST add a RELATIONAL paragraph that\nanswers: 'How does this field manifest INSIDE the relationship\nbetween Pete and Mel?'\n\nThis relational paragraph must:\n  • Name the asker by name (or 'you' if asker_name unavailable).\n  • Describe a SPECIFIC interaction loop between the two fields\n    (e.g. 'When you hold steady space, Mel reads the silence as\n    emotional absence and her nervous system starts searching\n    for what is missing').\n  • Cite the destabilising planet by name when relevant.\n  • NOT pivot into reflective coaching prompts.\n  • NOT use any banned phrases ('how does this resonate', 'reflect on',\n    'consider how', 'in astrology').\n\nSTRUCTURE OF FULL ANSWER:\n  Paragraph 1 — Field synthesis (per the V8 proof block above)\n  Paragraph 2 — Relational mapping inside this specific dynamic\n===========================================================\n"</failure></testcase><testcase classname="tests.test_relationship_aware_astrology_v10.TestNonAstrologyQuery" name="test_dinner_query_no_routing" time="4.413" /></testsuite></testsuites>

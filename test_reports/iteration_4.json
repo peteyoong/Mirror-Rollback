@@ -1,0 +1,43 @@
+{
+  "summary": "V10 Relationship-Aware Astrology integration tested end-to-end against the live backend at https://pressure-topology.preview.emergentagent.com. 6 of 7 pytest tests pass (86%). PASSING: (1) GET /api/health exposes relationship_aware_astrology_v10=true, relationship_resolver_marker='relationship-aware-astrology-v10', astrology_field_synthesis_v8=true, ask_mirror_astrology_v7=true. (2) POST /api/admin/map-relationship for Pete→Mel as 'spouse' returns 200 + persists doc in relationship_mappings with build_marker='relationship-aware-astrology-v10'. (3) POST /api/mirror/chat lens=null \"Tell me about Mel's 4th house and how does that map to me\" for Pete with explicit map → debug.astro_chat.relationship_context.relationship_detected=True, relationship_role='spouse', relationship_source='explicit_map', relational_synthesis_used=True, asker_name contains 'Pete'; debug.astro_chat.v7_target_name='Mel'; debug.astro_chat.field_synthesis.destabilizing_planet='Uranus'; response prose contains 'uranus' AND an asker reference ('pete'/'you'/'your relationship'); no banned phrases; response does not end with '?'. (4) After deleting the explicit map, the same query falls back to forum_inference yielding relationship_role='partner' and relationship_source='forum_inference' (Pete & Mel is a 2-member private forum named 'Pete & Mel'); relational synthesis paragraph still produced framed as partner. Mapping was restored at teardown. (5) Regression: lens='astrology' \"Tell me about my 10th house\" for Pete → v7_target_resolved=False, house_inventory_used=True, field_synthesis.house_number=10; relationship_context absent / relational_synthesis_used=False (self-chart V8 behaviour preserved). (6) Edge case: lens=null 'What is for dinner?' for Pete → no field_synthesis and no relational_synthesis_used (default Mirror reflection mode fires). FAILING: (7) Unit test build_relational_synthesis_block — the returned block contains 'relationship-aware-astrology-v10', 'spouse', 'Pete', 'Mel', 'RELATIONAL paragraph' but NOT the literal uppercase token 'BANNED'; the current implementation lists prohibited phrases under lowercase 'banned phrases' instead of an explicit uppercase 'BANNED' ban-list header.",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {
+        "endpoint": "services/relationship_resolver.py :: build_relational_synthesis_block",
+        "issue": "Spec requires the returned synthesis-block string to include the literal uppercase token 'BANNED' (as a ban-list marker). The current implementation uses lowercase 'banned phrases' inside an inline bullet. Recommended fix: change the inline bullet at /app/backend/services/relationship_resolver.py:305-306 from \"• NOT use any banned phrases ('how does this resonate', 'reflect on', 'consider how', 'in astrology').\" to an explicit BANNED line, e.g. \"BANNED PHRASES (must not appear in the relational paragraph): 'how does this resonate', 'reflect on', 'consider how', 'in astrology', 'typically associated', 'this house represents', trailing '?'.\". This both satisfies the V10 contract and gives the LLM a clearer ban-list header. All other content checks (marker, role, asker_name, target_name, 'RELATIONAL paragraph') already pass."
+      }
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [],
+    "react_native_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_relationship_aware_astrology_v10.py",
+    "/app/test_reports/pytest/v10_results.xml"
+  ],
+  "action_items": [
+    "Add the literal uppercase token 'BANNED' to the synthesis block returned by services/relationship_resolver.py::build_relational_synthesis_block (e.g. promote the banned-phrase bullet to a 'BANNED PHRASES:' header). After fix, re-run pytest tests/test_relationship_aware_astrology_v10.py::TestBuildRelationalSynthesisBlock — this is a one-line copy edit and does not affect any prose behaviour because the integration tests with the live LLM already pass."
+  ],
+  "critical_code_review_comments": [
+    "relationship_resolver.py is well-structured and the priority chain (explicit_map → saved_people → forum_relationship → forum_inference → default) behaves correctly end-to-end. Both 'explicit_map' and 'forum_inference' paths verified live.",
+    "mirror_chat.py V10 wiring (lines 1027-1085 for resolution + 1324-1350 for synthesis-block injection) correctly: only resolves relationship after a V7 target is detected; reads forum_id from V7 target context; falls back gracefully on resolver exceptions; persists relationship_context onto astro_chat_debug; flips relational_synthesis_used to True only when build_relational_synthesis_block is injected. All seven scenarios behaved as expected.",
+    "mirror_chat.py is now >2000 lines; the V7/V8/V10 routing block is becoming difficult to navigate. Recommend extracting the astrology routing (~lines 920-1360) into services/astrology_pipeline.py in a future refactor."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_relationship_aware_astrology_v10.py (new — 7 tests)",
+    "/app/test_reports/pytest/v10_results.xml (generated)"
+  ],
+  "success_rate": {
+    "backend": "86% (6/7 pytest tests passed; only failure is a one-line wording check on build_relational_synthesis_block requiring the literal uppercase 'BANNED' token)",
+    "frontend": "not tested (backend-only request)"
+  },
+  "seed_data_creation": "Created/upserted one explicit mapping in relationship_mappings (asker=697f0c6abf35c0528ff06954 / target=697ec826ad4b18f75bf42616 / spouse). The fallback test deletes it transiently and the test fixture restores it at teardown. No other seed data created.",
+  "retest_needed": false,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "V10 debug shape: debug.astro_chat.relationship_context = {relationship_detected, relationship_role, closeness, emotional_weight, relationship_source, forum_name, asker_name, relational_synthesis_used}. relational_synthesis_used is only True when build_relational_synthesis_block was actually injected into the system_prompt (i.e. inside the house_inventory + V7-target branch with relationship_detected). For Pete asking about Mel's 4th house: explicit_map → spouse; without map → forum_inference → partner (Pete & Mel forum 69dd05eaa333335fcbf3ad33 is private, member_count=2, name contains ' & '). build_relational_synthesis_block currently misses the literal 'BANNED' token (lowercase 'banned phrases' is used instead) — single-line copy edit needed in /app/backend/services/relationship_resolver.py around line 305. All live LLM behaviour (relational paragraph, asker reference, planet name surfaced) is working correctly.",
+  "rca_of_issue": "Single failing assertion: TestBuildRelationalSynthesisBlock expects the literal token 'BANNED' inside the system-prompt block produced by build_relational_synthesis_block. Reproduction: from services.relationship_resolver import build_relational_synthesis_block; b = build_relational_synthesis_block(asker_name='Pete', target_name='Mel', relationship_ctx={'relationship_role':'spouse','closeness':'high','emotional_weight':'high','relationship_source':'explicit_map'}); assert 'BANNED' in b → fails. Root cause: the block writes 'banned phrases' (lowercase) under a bullet rather than a dedicated 'BANNED' header. Mitigation: change the bullet at services/relationship_resolver.py line 305-306 to read 'BANNED PHRASES (must not appear in the relational paragraph): ...'. This is a docstring/copy-edit fix only — no behavioural change; the LLM already produces compliant prose."
+}
