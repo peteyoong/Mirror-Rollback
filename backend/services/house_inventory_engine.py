@@ -75,23 +75,50 @@ def _house_of(astro: Dict[str, Any], sid_longitude: float) -> Optional[int]:
 
 
 def build_house_inventory(chart: Dict[str, Any], house_number: int) -> Dict[str, Any]:
-    """Public API. Walks _INVENTORY_TARGETS, asks natal_object_engine for
-    each one, and collects those whose computed house == house_number.
+    """Public API. Aggregates EVERY computed object in the target house.
 
-    Returns a deterministic envelope ready for prompt injection.
+    Sources (in priority order):
+      1. astro.planets  (Sun..Pluto + Chiron + Juno + Earth, when stored)
+      2. astro.nodes    (North / South)
+      3. astro.angles   (ASC / DSC / MC / IC / Vertex / Anti-Vertex)
+      4. natal_object_engine for extended objects not in storage
+         (Black Moon Lilith, Lot of Fortune/Spirit, asteroids).
+
+    Build marker: mel-4th-house-inventory-fix-v1
     """
     astro = (chart or {}).get("astrology") or {}
-    cusps = astro.get("houses") or astro.get("house_cusps")
+    houses_blob = astro.get("houses") or astro.get("house_cusps") or {}
 
-    # House sign + cusp degree
+    # ── House sign + cusp degree ──────────────────────────────────────
     house_sign = None
     cusp_deg = None
-    if cusps and 1 <= house_number <= 12:
+    if isinstance(houses_blob, dict):
+        # New shape: {"cusps":[...], "formatted_cusps":[{house,sign,...}], ...}
+        cusps_list = houses_blob.get("cusps")
+        formatted = houses_blob.get("formatted_cusps") or []
+        cusp_signs = houses_blob.get("cusp_signs")
+        if isinstance(cusps_list, list) and 1 <= house_number <= len(cusps_list):
+            try:
+                cusp_deg = float(cusps_list[house_number - 1])
+            except Exception:
+                pass
+        if isinstance(cusp_signs, list) and 1 <= house_number <= len(cusp_signs):
+            sign_val = cusp_signs[house_number - 1]
+            if isinstance(sign_val, str):
+                house_sign = sign_val
+        if house_sign is None and isinstance(formatted, list):
+            for f in formatted:
+                if isinstance(f, dict) and f.get("house") == house_number:
+                    house_sign = f.get("sign")
+                    break
+    elif isinstance(houses_blob, list) and 1 <= house_number <= len(houses_blob):
+        # Legacy shape: flat list of cusp degrees
         try:
-            cusp_deg = float(cusps[house_number - 1])
-            # Sign from cusp longitude
+            cusp_deg = float(houses_blob[house_number - 1])
             from calculations.astrology import longitude_to_sign_degree
-            sd = longitude_to_sign_degree(cusp_deg, tropical_longitude=cusp_deg + 31.2836)
+            sd = longitude_to_sign_degree(
+                cusp_deg, tropical_longitude=cusp_deg + 31.2836,
+            )
             house_sign = sd.get("sign")
         except Exception:
             pass
@@ -99,34 +126,98 @@ def build_house_inventory(chart: Dict[str, Any], house_number: int) -> Dict[str,
     objects_in_house: List[Dict[str, Any]] = []
     classes_included: List[str] = []
     classes_unsupported: List[str] = []
+    seen_names: set = set()
 
+    def _add_obj(name: str, placement: Dict[str, Any], source: str) -> None:
+        if not name or name in seen_names:
+            return
+        body_house = placement.get("house")
+        if body_house is None and placement.get("longitude") is not None:
+            body_house = _house_of(astro, placement["longitude"])
+        if body_house != house_number:
+            return
+        objects_in_house.append({
+            "name":      name,
+            "category":  _CATEGORY.get(name, "other"),
+            "sign":      placement.get("sign"),
+            "degree":    placement.get("degree") or placement.get("sign_degree"),
+            "house":     house_number,
+            "source":    source,
+            "formatted": placement.get("formatted"),
+            "longitude": placement.get("longitude"),
+        })
+        seen_names.add(name)
+        if name not in classes_included:
+            classes_included.append(name)
+
+    # 1) Stored planets (mel-4th-house-inventory-fix-v1)
+    stored_planets = astro.get("planets") or {}
+    if isinstance(stored_planets, dict):
+        for pname, pdata in stored_planets.items():
+            if isinstance(pdata, dict):
+                _add_obj(pname, pdata, "stored_planets")
+
+    # 2) Stored nodes
+    nodes = astro.get("nodes") or {}
+    if isinstance(nodes, dict):
+        # north/south sub-dicts
+        n = nodes.get("north")
+        if isinstance(n, dict):
+            _add_obj("North Node", n, "stored_nodes")
+        s = nodes.get("south")
+        if isinstance(s, dict):
+            _add_obj("South Node", s, "stored_nodes")
+
+    # 3) Stored angles — assign to natural houses (IC=4, DSC=7, MC=10, ASC=1)
+    # Vertex / Anti-Vertex use the longitude → house lookup like planets.
+    angles = astro.get("angles") or {}
+    if isinstance(angles, dict):
+        _angle_natural_house = {
+            "asc": 1, "ascendant": 1,
+            "dc": 7, "dsc": 7, "descendant": 7,
+            "mc": 10, "midheaven": 10,
+            "ic": 4, "imum_coeli": 4, "imum coeli": 4,
+        }
+        for ang_key, ang_data in angles.items():
+            if not isinstance(ang_data, dict):
+                continue
+            canon = {
+                "asc": "Ascendant",
+                "ascendant": "Ascendant",
+                "dc": "Descendant",
+                "dsc": "Descendant",
+                "descendant": "Descendant",
+                "mc": "Midheaven",
+                "midheaven": "Midheaven",
+                "ic": "IC",
+                "imum_coeli": "IC",
+                "imum coeli": "IC",
+                "vertex": "Vertex",
+                "anti_vertex": "Anti-Vertex",
+                "anti-vertex": "Anti-Vertex",
+                "antivertex": "Anti-Vertex",
+            }.get(ang_key.lower())
+            if not canon:
+                continue
+            # Inject natural house for the cusp-axis angles
+            ang_copy = dict(ang_data)
+            if canon in ("Ascendant", "Descendant", "Midheaven", "IC"):
+                ang_copy["house"] = _angle_natural_house.get(ang_key.lower())
+            _add_obj(canon, ang_copy, "stored_angles")
+
+    # 4) Extended objects via natal_object_engine (Lilith / Lots / asteroids)
+    # Skip names we already added from storage.
     for body_name in _INVENTORY_TARGETS:
+        if body_name in seen_names:
+            continue
         env = compute_natal_object(chart, body_name)
         if not env.get("success"):
-            # Track unsupported only if it's a hard refusal, not a missing-data noise
             reason = env.get("reason") or ""
             if reason in ("object_not_wired", "ephemeris_file_missing"):
                 classes_unsupported.append(body_name)
             continue
         placement = env.get("placement") or {}
-        body_house = placement.get("house")
-        # If the engine didn't compute house, fall back to cusp-based lookup
-        if body_house is None and placement.get("longitude") is not None:
-            body_house = _house_of(astro, placement["longitude"])
-        if body_house != house_number:
-            continue
-        objects_in_house.append({
-            "name":      env.get("object"),
-            "category":  _CATEGORY.get(env.get("object"), "other"),
-            "sign":      placement.get("sign"),
-            "degree":    placement.get("degree"),
-            "house":     house_number,
-            "source":    env.get("source"),
-            "formatted": placement.get("formatted"),
-            "longitude": placement.get("longitude"),
-        })
-        if env.get("object") not in classes_included:
-            classes_included.append(env.get("object"))
+        _add_obj(env.get("object") or body_name, placement, env.get("source") or "natal_object_engine")
 
     hierarchy = _build_house_hierarchy(objects_in_house, house_sign)
 

@@ -7280,6 +7280,44 @@ async def get_lenses():
     }
 
 
+
+@api_router.get("/admin/house-inventory-forensic")
+async def admin_house_inventory_forensic(user_id: str):
+    """Forensic endpoint to inspect house inventory 1-12 for a user.
+
+    Build marker: mel-4th-house-inventory-fix-v1
+
+    Returns full inventory for all 12 houses with source attribution,
+    plus a per-object verification (longitude / sign / degree / house)
+    so the user can compare against Genetic Matrix / Astro.com.
+    """
+    from services.house_inventory_engine import build_house_inventory
+    chart = await db.charts.find_one({"user_id": user_id})
+    if not chart:
+        raise HTTPException(404, f"No chart found for user_id={user_id}")
+    inventory = {}
+    for h in range(1, 13):
+        env = build_house_inventory(chart, h)
+        inventory[f"H{h}"] = {
+            "house_sign":       env.get("house_sign"),
+            "house_cusp_degree": env.get("house_cusp_degree"),
+            "dominant_body":    env.get("dominant_body"),
+            "tension_body":     env.get("tension_body"),
+            "house_field_type": env.get("house_field_type"),
+            "pressure_pattern": env.get("pressure_pattern"),
+            "objects_in_house": env.get("objects_in_house"),
+            "object_classes_included":   env.get("object_classes_included"),
+            "object_classes_unsupported": env.get("object_classes_unsupported"),
+        }
+    return {
+        "ok":          True,
+        "user_id":     user_id,
+        "build_marker": "mel-4th-house-inventory-fix-v1",
+        "chart_present": True,
+        "inventory":   inventory,
+    }
+
+
 @api_router.get("/health")
 async def api_health_check():
     """Health check endpoint under /api prefix for deployment verification."""
