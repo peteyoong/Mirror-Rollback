@@ -1024,6 +1024,65 @@ NOT: "I opened a generic chat"
                 if _astro_routing_active and request.lens != "astrology":
                     astro_chat_debug["v7_ask_mirror_engine_used"] = True
 
+                # ── V10 Relationship resolution ───────────────────────
+                # relationship-aware-astrology-v10
+                # When V7 has resolved a target person, ALSO resolve the
+                # relationship role so the master-astrologer engine can
+                # produce relational synthesis instead of "generic
+                # assistant discussing another person".
+                _v10_rel_ctx: Dict[str, Any] = {}
+                _v10_asker_name: Optional[str] = None
+                if _astro_routing_active and _astro_target_user_id and _astro_chart is not chart:
+                    try:
+                        from services.relationship_resolver import (
+                            resolve_relationship,
+                        )
+                        # Asker display name (best-effort)
+                        try:
+                            asker_doc = await db.users.find_one(
+                                {"_id": ObjectId(request.user_id)}
+                            )
+                            if asker_doc:
+                                _v10_asker_name = (
+                                    asker_doc.get("name")
+                                    or asker_doc.get("display_name")
+                                    or asker_doc.get("first_name")
+                                    or (
+                                        asker_doc.get("email", "").split("@")[0]
+                                        if asker_doc.get("email") else None
+                                    )
+                                )
+                        except Exception:
+                            pass
+                        _v10_forum_id = None
+                        if _v7_tgt:
+                            _v10_forum_id = _v7_tgt.get("forum_id")
+                        _v10_rel_ctx = await resolve_relationship(
+                            db=db,
+                            asker_user_id=request.user_id,
+                            target_user_id=_astro_target_user_id,
+                            target_name=_astro_target_name,
+                            forum_id=_v10_forum_id,
+                        )
+                        astro_chat_debug["relationship_context"] = {
+                            "relationship_detected": _v10_rel_ctx.get("relationship_detected"),
+                            "relationship_role":     _v10_rel_ctx.get("relationship_role"),
+                            "closeness":             _v10_rel_ctx.get("closeness"),
+                            "emotional_weight":      _v10_rel_ctx.get("emotional_weight"),
+                            "relationship_source":   _v10_rel_ctx.get("relationship_source"),
+                            "forum_name":            _v10_rel_ctx.get("forum_name"),
+                            "asker_name":            _v10_asker_name,
+                            "relational_synthesis_used": False,
+                        }
+                        logger.info(
+                            f"[RelationshipResolverV10] asker={_v10_asker_name!r} "
+                            f"target={_astro_target_name!r} "
+                            f"role={_v10_rel_ctx.get('relationship_role')!r} "
+                            f"source={_v10_rel_ctx.get('relationship_source')!r}"
+                        )
+                    except Exception as v10e:
+                        logger.warning(f"[RelationshipResolverV10] skipped: {v10e}")
+
                 if _astro_routing_active and _astro_chart is not None:
                     try:
                         from services.astrology_chat_router import (
@@ -1261,6 +1320,35 @@ NOT: "I opened a generic chat"
                                         # to enforce the no-trailing-?
                                         # rule deterministically.
                                         astro_chat_debug["_v8_post_enforce"] = True
+
+                                        # ── V10 Relational synthesis ──
+                                        # relationship-aware-astrology-v10
+                                        if _v10_rel_ctx.get("relationship_detected"):
+                                            try:
+                                                from services.relationship_resolver import (
+                                                    build_relational_synthesis_block,
+                                                )
+                                                system_prompt += build_relational_synthesis_block(
+                                                    asker_name=_v10_asker_name,
+                                                    target_name=_astro_target_name,
+                                                    relationship_ctx=_v10_rel_ctx,
+                                                    field_synthesis=_v8_synth,
+                                                )
+                                                rc = astro_chat_debug.get("relationship_context") or {}
+                                                rc["relational_synthesis_used"] = True
+                                                astro_chat_debug["relationship_context"] = rc
+                                                astro_chat_debug["astro_sources_used"].append(
+                                                    f"relational_synthesis:{_v10_rel_ctx.get('relationship_role')}"
+                                                )
+                                                logger.info(
+                                                    f"[RelationalSynthesisV10] injected "
+                                                    f"role={_v10_rel_ctx.get('relationship_role')!r} "
+                                                    f"source={_v10_rel_ctx.get('relationship_source')!r}"
+                                                )
+                                            except Exception as v10s_err:
+                                                logger.warning(
+                                                    f"[RelationalSynthesisV10] skipped: {v10s_err}"
+                                                )
                                 except Exception as _v8_err:
                                     logger.warning(
                                         f"[FieldSynthesisV8] skipped: {_v8_err}"

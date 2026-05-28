@@ -7281,6 +7281,47 @@ async def get_lenses():
 
 
 
+@api_router.post("/admin/map-relationship")
+async def admin_map_relationship(payload: dict):
+    """Explicitly map the relationship between asker and target.
+
+    Build marker: relationship-aware-astrology-v10
+
+    Body: {
+        "asker_user_id":    "...",
+        "target_user_id":   "...",  (optional if target_name provided)
+        "target_name":      "Mel",  (optional if target_user_id provided)
+        "relationship_type": "spouse" | "partner" | ...
+    }
+    Upserts into the `relationship_mappings` collection.
+    """
+    asker = payload.get("asker_user_id")
+    target_uid = payload.get("target_user_id")
+    target_nm = payload.get("target_name")
+    rel = payload.get("relationship_type")
+    if not asker or not rel or not (target_uid or target_nm):
+        raise HTTPException(
+            400, "asker_user_id, relationship_type, and (target_user_id "
+                 "OR target_name) are required",
+        )
+    query = {"asker_user_id": asker}
+    if target_uid:
+        query["target_user_id"] = target_uid
+    if target_nm:
+        query["target_name"] = target_nm
+    doc = {
+        **query,
+        "relationship_type": rel,
+        "updated_at":        datetime.now(timezone.utc),
+        "build_marker":      "relationship-aware-astrology-v10",
+    }
+    await db.relationship_mappings.update_one(
+        query, {"$set": doc}, upsert=True,
+    )
+    return {"ok": True, "mapping": doc}
+
+
+
 @api_router.get("/admin/house-inventory-forensic")
 async def admin_house_inventory_forensic(user_id: str):
     """Forensic endpoint to inspect house inventory 1-12 for a user.
@@ -7372,6 +7413,19 @@ async def api_health_check():
             except Exception:
                 v7_status["field_synthesis_v8_present"] = False
                 v7_status["field_synthesis_wired"] = False
+            # V10 relationship resolver verification
+            try:
+                from services import relationship_resolver as _rr
+                v7_status["relationship_resolver_present"] = (
+                    "relationship-aware-astrology-v10" in _src
+                    and "resolve_relationship" in _src
+                )
+                v7_status["relationship_resolver_marker"] = getattr(
+                    _rr, "BUILD_MARKER", "unknown"
+                )
+            except Exception:
+                v7_status["relationship_resolver_present"] = False
+                v7_status["relationship_resolver_marker"] = "unknown"
         except Exception as _v7_health_err:
             v7_status["error"] = str(_v7_health_err)
 
@@ -7395,6 +7449,9 @@ async def api_health_check():
             # V8 field synthesis verification
             "astrology_field_synthesis_v8": v7_status.get("field_synthesis_wired", False),
             "field_synthesis_marker": v7_status.get("field_synthesis_marker", "unknown"),
+            # V10 relationship-aware verification
+            "relationship_aware_astrology_v10": v7_status.get("relationship_resolver_present", False),
+            "relationship_resolver_marker": v7_status.get("relationship_resolver_marker", "unknown"),
             "debug": {
                 "env": os.environ.get('ENV', 'unknown'),
                 "db_name": db_name,
