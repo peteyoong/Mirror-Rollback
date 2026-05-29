@@ -311,22 +311,57 @@ export default function ForumMappingsScreen() {
                   </Text>
                 </View>
 
-                {/* ACTIVATION — small emphasis line, sits beneath the paragraph */}
-                {field.activation && (
-                  <View
-                    style={[
-                      styles.activationChip,
-                      { backgroundColor: (theme.accent || '#8B5CF6') + '12', borderColor: (theme.accent || '#8B5CF6') + '40' },
-                    ]}
-                  >
-                    <Text style={[styles.activationLabel, { color: theme.accent || '#8B5CF6' }]}>
-                      WHAT ACTIVATES
-                    </Text>
-                    <Text style={[styles.activationText, { color: theme.text }]}>
-                      {field.activation}
-                    </Text>
-                  </View>
-                )}
+                {/* ACTIVATION — small emphasis line, sits beneath the paragraph.
+                    relationship-mapping-deep-astrology-v2-ui: suppress when the
+                    activation text already appears in the field paragraph (the
+                    earlier rendering had a hard duplicate). */}
+                {(() => {
+                  const para = (field.field_paragraph || '').toLowerCase();
+                  const act = (field.activation || '').toLowerCase();
+                  if (!field.activation) return null;
+                  // Heuristic overlap check — share ≥ 24 consecutive characters
+                  // OR > 65% token overlap → duplicate.
+                  const sharedSubstring = (() => {
+                    if (act.length < 24) return false;
+                    for (let i = 0; i <= act.length - 24; i++) {
+                      if (para.includes(act.substr(i, 24))) return true;
+                    }
+                    return false;
+                  })();
+                  const actTokens = new Set(act.split(/\W+/).filter(t => t.length > 3));
+                  const paraTokens = new Set(para.split(/\W+/).filter(t => t.length > 3));
+                  let shared = 0;
+                  actTokens.forEach(t => { if (paraTokens.has(t)) shared++; });
+                  const overlap = actTokens.size > 0 ? shared / actTokens.size : 0;
+                  const isDuplicate = sharedSubstring || overlap > 0.65;
+                  if (isDuplicate) {
+                    if (typeof window !== 'undefined' && (window as any).__mirrorActivationDupLogged !== mapping?.member_id) {
+                      (window as any).__mirrorActivationDupLogged = mapping?.member_id;
+                      // eslint-disable-next-line no-console
+                      console.log('[RelationshipMappingV2-UI] suppressed duplicate WHAT ACTIVATES card', {
+                        member: mapping?.member_name,
+                        overlap: Math.round(overlap * 100) + '%',
+                        build_marker: 'relationship-mapping-deep-astrology-v2-ui',
+                      });
+                    }
+                    return null;
+                  }
+                  return (
+                    <View
+                      style={[
+                        styles.activationChip,
+                        { backgroundColor: (theme.accent || '#8B5CF6') + '12', borderColor: (theme.accent || '#8B5CF6') + '40' },
+                      ]}
+                    >
+                      <Text style={[styles.activationLabel, { color: theme.accent || '#8B5CF6' }]}>
+                        WHAT ACTIVATES
+                      </Text>
+                      <Text style={[styles.activationText, { color: theme.text }]}>
+                        {field.activation}
+                      </Text>
+                    </View>
+                  );
+                })()}
 
                 {/* THEMES — clustered cards, each contains its own friction in-line */}
                 {Array.isArray(field.themes) && field.themes.length > 0 && (
@@ -553,34 +588,117 @@ export default function ForumMappingsScreen() {
                       </View>
                     ))}
 
-                    {/* ASTROLOGY SIGNALS */}
-                    {signals?.astrology && (
-                      (signals.astrology.attraction?.length > 0 || signals.astrology.tension?.length > 0 || signals.astrology.growth?.length > 0) && (
-                        <View style={styles.lensSection}>
-                          <Text style={[styles.signalsNote, { color: theme.textTertiary }]}>
-                            ASTROLOGICAL DYNAMICS
-                          </Text>
-                          {signals.astrology.attraction?.map((item: string, i: number) => (
-                            <View key={`aa-${i}`} style={styles.lensSignalRow}>
-                              <Text style={[styles.lensSignalIcon, { color: '#D4A574' }]}>✦</Text>
-                              <Text style={[styles.lensSignalText, { color: theme.textSecondary }]}>{item}</Text>
-                            </View>
-                          ))}
-                          {signals.astrology.tension?.map((item: string, i: number) => (
-                            <View key={`at-${i}`} style={styles.lensSignalRow}>
-                              <Text style={[styles.lensSignalIcon, { color: '#CF6679' }]}>⚡</Text>
-                              <Text style={[styles.lensSignalText, { color: theme.textSecondary }]}>{item}</Text>
-                            </View>
-                          ))}
-                          {signals.astrology.growth?.map((item: string, i: number) => (
-                            <View key={`ag-${i}`} style={styles.lensSignalRow}>
-                              <Text style={[styles.lensSignalIcon, { color: '#81C784' }]}>↑</Text>
-                              <Text style={[styles.lensSignalText, { color: theme.textSecondary }]}>{item}</Text>
-                            </View>
-                          ))}
-                        </View>
-                      )
-                    )}
+                    {/* ASTROLOGY SIGNALS — V2 deep card preferred, legacy as fallback */}
+                    {(() => {
+                      // relationship-mapping-deep-astrology-v2-ui
+                      const v2 = mapping?.astrology_dynamics;
+                      const v2Has =
+                        v2 && (v2.headline || v2.body) &&
+                        (typeof v2.body === 'string' ? v2.body.trim().length > 0 : false);
+                      const legacy = signals?.astrology;
+                      const legacyHas =
+                        legacy &&
+                        (legacy.attraction?.length > 0 ||
+                          legacy.tension?.length > 0 ||
+                          legacy.growth?.length > 0);
+
+                      if (typeof window !== 'undefined' && (window as any).__mirrorAstroLogged !== mapping?.member_id) {
+                        (window as any).__mirrorAstroLogged = mapping?.member_id;
+                        // eslint-disable-next-line no-console
+                        console.log('[RelationshipMappingV2-UI]', {
+                          member: mapping?.member_name,
+                          has_astrology_dynamics: !!v2Has,
+                          astrology_dynamics_rendered: !!v2Has,
+                          legacy_astrology_rendered: !v2Has && !!legacyHas,
+                          build_marker: 'relationship-mapping-deep-astrology-v2-ui',
+                          relationship_role: (mapping?.debug?.relationship_context?.relationship_role) || null,
+                        });
+                      }
+
+                      if (v2Has) {
+                        return (
+                          <View style={styles.lensSection}>
+                            <Text style={[styles.signalsNote, { color: theme.textTertiary }]}>
+                              ASTROLOGICAL DYNAMICS
+                            </Text>
+                            {v2.headline ? (
+                              <Text
+                                style={[
+                                  styles.lensSignalText,
+                                  {
+                                    color: theme.text,
+                                    fontSize: 15,
+                                    lineHeight: 22,
+                                    marginBottom: 8,
+                                    fontWeight: '600',
+                                  },
+                                ]}
+                              >
+                                {v2.headline}
+                              </Text>
+                            ) : null}
+                            {v2.body ? (
+                              <Text
+                                style={[
+                                  styles.lensSignalText,
+                                  {
+                                    color: theme.textSecondary,
+                                    fontSize: 14,
+                                    lineHeight: 22,
+                                  },
+                                ]}
+                              >
+                                {v2.body}
+                              </Text>
+                            ) : null}
+                            {Array.isArray(v2.supporting_signals) && v2.supporting_signals.length > 0 ? (
+                              <View style={{ marginTop: 10 }}>
+                                <Text style={[styles.signalsNote, { color: theme.textTertiary, fontSize: 11 }]}>
+                                  WHY THIS IS SHOWING UP
+                                </Text>
+                                {v2.supporting_signals.slice(0, 6).map((sig: string, i: number) => (
+                                  <View key={`v2sup-${i}`} style={styles.lensSignalRow}>
+                                    <Text style={[styles.lensSignalIcon, { color: '#D4A574' }]}>·</Text>
+                                    <Text style={[styles.lensSignalText, { color: theme.textTertiary, fontSize: 12 }]}>
+                                      {sig}
+                                    </Text>
+                                  </View>
+                                ))}
+                              </View>
+                            ) : null}
+                          </View>
+                        );
+                      }
+
+                      if (legacyHas) {
+                        return (
+                          <View style={styles.lensSection}>
+                            <Text style={[styles.signalsNote, { color: theme.textTertiary }]}>
+                              ASTROLOGICAL DYNAMICS
+                            </Text>
+                            {legacy.attraction?.map((item: string, i: number) => (
+                              <View key={`aa-${i}`} style={styles.lensSignalRow}>
+                                <Text style={[styles.lensSignalIcon, { color: '#D4A574' }]}>✦</Text>
+                                <Text style={[styles.lensSignalText, { color: theme.textSecondary }]}>{item}</Text>
+                              </View>
+                            ))}
+                            {legacy.tension?.map((item: string, i: number) => (
+                              <View key={`at-${i}`} style={styles.lensSignalRow}>
+                                <Text style={[styles.lensSignalIcon, { color: '#CF6679' }]}>⚡</Text>
+                                <Text style={[styles.lensSignalText, { color: theme.textSecondary }]}>{item}</Text>
+                              </View>
+                            ))}
+                            {legacy.growth?.map((item: string, i: number) => (
+                              <View key={`ag-${i}`} style={styles.lensSignalRow}>
+                                <Text style={[styles.lensSignalIcon, { color: '#81C784' }]}>↑</Text>
+                                <Text style={[styles.lensSignalText, { color: theme.textSecondary }]}>{item}</Text>
+                              </View>
+                            ))}
+                          </View>
+                        );
+                      }
+                      return null;
+                    })()}
 
                     {/* ENNEAGRAM SIGNALS */}
                     {signals?.enneagram && Object.keys(signals.enneagram).length > 0 ? (
@@ -658,6 +776,14 @@ export default function ForumMappingsScreen() {
             {/* BUILD MARKER — for deploy verification */}
             <Text style={[styles.buildMarker, { color: theme.textTertiary }]}>
               build · {BUILD_ID} · {BUILD_AT}
+            </Text>
+            <Text style={[styles.buildMarker, { color: theme.textTertiary, opacity: 0.55 }]}>
+              relationship-mapping-deep-astrology-v2-ui
+              {(() => {
+                const role = mapping?.debug?.relationship_context?.relationship_role;
+                const hasV2 = !!mapping?.astrology_dynamics?.body;
+                return role ? ` · role:${role}${hasV2 ? ' · v2:on' : ''}` : '';
+              })()}
             </Text>
 
             {/* Spacer for bottom */}
