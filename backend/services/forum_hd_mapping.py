@@ -1905,6 +1905,94 @@ async def get_forum_member_mappings(
             )
             mapping["member_id"] = str(member_id)
 
+            # ──────────────────────────────────────────────────────────
+            # V2: relationship-mapping-deep-astrology-v2
+            # Inject role-aware deep astrology synthesis + dedupe across
+            # signal cards. Strictly additive — legacy fields preserved.
+            # ──────────────────────────────────────────────────────────
+            try:
+                from services.relationship_resolver import resolve_relationship
+                from services.relationship_astrology_engine import (
+                    build_relationship_astrology,
+                    dedupe_mapping_sections,
+                    BUILD_MARKER as _RAE_MARKER,
+                )
+                _rel_ctx = await resolve_relationship(
+                    db=db,
+                    asker_user_id=current_user_id,
+                    target_user_id=str(member_id),
+                    target_name=member_name,
+                    forum_id=forum_id,
+                )
+                _role = _rel_ctx.get("relationship_role") or "forum_member"
+                _spouse_aware = _role in ("spouse", "partner", "ex_partner")
+                logger.info(
+                    f"[RelationshipMappingV2] pair={current_user_name}<->{member_name} "
+                    f"role={_role} source={_rel_ctx.get('relationship_source')}"
+                )
+                if current_chart and member_chart:
+                    _deep = build_relationship_astrology(
+                        chart_a=current_chart,
+                        chart_b=member_chart,
+                        name_a=current_user_name,
+                        name_b=member_name,
+                        relationship_role=_role,
+                        closeness=_rel_ctx.get("closeness", "medium"),
+                        emotional_weight=_rel_ctx.get("emotional_weight", "medium"),
+                    )
+                    if _deep.get("success"):
+                        # Promote the deep astrology card into the
+                        # signals.astrology surface so the UI picks it up.
+                        signals = mapping.get("signals") or {}
+                        astro_existing = signals.get("astrology") or {}
+                        # Preserve the legacy attraction/tension/growth
+                        # arrays but PREPEND the V2 card so the headline
+                        # leads with the spouse-aware synthesis.
+                        if isinstance(astro_existing, dict):
+                            astro_existing["v2_card"] = _deep["astrology_card"]
+                            astro_existing["core_relational_pattern"] = _deep["core_relational_pattern"]
+                            astro_existing["emotional_safety_loop"] = _deep["emotional_safety_loop"]
+                            astro_existing["communication_loop"] = _deep["communication_loop"]
+                            astro_existing["conflict_signature"] = _deep["conflict_signature"]
+                            astro_existing["repair_condition"] = _deep["repair_condition"]
+                            astro_existing["spouse_specific_translation"] = _deep.get("spouse_specific_translation")
+                            astro_existing["ic_emotional_foundation"] = _deep.get("ic_emotional_foundation")
+                            astro_existing["what_a_triggers_in_b"] = _deep.get("what_a_triggers_in_b")
+                            astro_existing["what_b_triggers_in_a"] = _deep.get("what_b_triggers_in_a")
+                            astro_existing["supporting_signals"] = _deep["supporting_signals"]
+                            astro_existing["build_marker"] = _RAE_MARKER
+                            signals["astrology"] = astro_existing
+                        else:
+                            signals["astrology"] = {
+                                "v2_card": _deep["astrology_card"],
+                                "build_marker": _RAE_MARKER,
+                                "core_relational_pattern": _deep["core_relational_pattern"],
+                                "supporting_signals": _deep["supporting_signals"],
+                            }
+                        mapping["signals"] = signals
+                        # Surface a top-level astrology_dynamics card so
+                        # the UI can render it as the dedicated section.
+                        mapping["astrology_dynamics"] = _deep["astrology_card"]
+
+                # Attach relationship_context debug
+                mapping.setdefault("debug", {})["relationship_context"] = {
+                    "target_name":          member_name,
+                    "relationship_role":    _role,
+                    "role_source":          _rel_ctx.get("relationship_source"),
+                    "closeness":            _rel_ctx.get("closeness"),
+                    "emotional_weight":     _rel_ctx.get("emotional_weight"),
+                    "spouse_context_used":  _spouse_aware,
+                    "forum_name":           _rel_ctx.get("forum_name"),
+                    "build_marker":         _RAE_MARKER,
+                }
+
+                # Dedupe pass — removes overlapping shallow phrases.
+                mapping = dedupe_mapping_sections(mapping)
+            except Exception as _v2_err:
+                logger.warning(
+                    f"[RelationshipMappingV2] skipped for {member_name}: {_v2_err}"
+                )
+
             # -----------------------------------------------------------
             # OPHIUCHUS DISTORTION LAYER — contextual, subtle, 1 bullet,
             # only when at least one person has Ophiuchus AND the pair's
