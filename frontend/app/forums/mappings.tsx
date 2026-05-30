@@ -516,6 +516,89 @@ export default function ForumMappingsScreen() {
               </>
             )}
 
+            {/* ─────────────────────────────────────────────────── */}
+            {/* V2 ASTROLOGICAL DYNAMICS — UNCONDITIONAL              */}
+            {/* relationship-v2-astrology-render-fix:                  */}
+            {/* Renders independently of HD signals and collapse       */}
+            {/* state. Only requires mapping.astrology_dynamics.body.  */}
+            {/* ─────────────────────────────────────────────────── */}
+            {(() => {
+              const v2 = (selectedMember as any)?.astrology_dynamics;
+              const hasV2Astrology =
+                !!(v2 && (v2.body || v2.headline));
+              if (!hasV2Astrology) return null;
+              if (typeof window !== 'undefined' && (window as any).__mirrorAstroLogged !== selectedMember?.member_id) {
+                (window as any).__mirrorAstroLogged = selectedMember?.member_id;
+                // eslint-disable-next-line no-console
+                console.log('[RelationshipMappingV2-UI]', {
+                  member: (selectedMember as any)?.member_name,
+                  has_astrology_dynamics: true,
+                  astrology_dynamics_rendered: true,
+                  legacy_astrology_rendered: false,
+                  legacy_hidden_due_to_v2: !!((selectedMember as any)?.signals?.astrology?.legacy_hidden_due_to_v2),
+                  build_marker: 'relationship-v2-astrology-render-fix',
+                  relationship_role: ((selectedMember as any)?.debug?.relationship_context?.relationship_role) || null,
+                  dedupe: (selectedMember as any)?.debug?.relationship_mapping_dedupe || null,
+                });
+              }
+              return (
+                <View
+                  style={[
+                    styles.signalsSection,
+                    { borderTopColor: theme.border, paddingTop: 16, marginTop: 8 },
+                  ]}
+                >
+                  <Text
+                    style={[
+                      styles.signalsNote,
+                      { color: theme.textTertiary, marginBottom: 8 },
+                    ]}
+                  >
+                    ASTROLOGICAL DYNAMICS
+                  </Text>
+                  {v2.headline ? (
+                    <Text
+                      style={{
+                        color: theme.text,
+                        fontSize: 16,
+                        lineHeight: 23,
+                        fontWeight: '600',
+                        marginBottom: 10,
+                      }}
+                    >
+                      {v2.headline}
+                    </Text>
+                  ) : null}
+                  {v2.body ? (
+                    <Text
+                      style={{
+                        color: theme.textSecondary,
+                        fontSize: 14,
+                        lineHeight: 22,
+                      }}
+                    >
+                      {v2.body}
+                    </Text>
+                  ) : null}
+                  {Array.isArray(v2.supporting_signals) && v2.supporting_signals.length > 0 ? (
+                    <View style={{ marginTop: 12 }}>
+                      <Text style={[styles.signalsNote, { color: theme.textTertiary, fontSize: 11 }]}>
+                        WHY THIS IS SHOWING UP
+                      </Text>
+                      {v2.supporting_signals.slice(0, 6).map((sig: string, i: number) => (
+                        <View key={`v2sup-uncond-${i}`} style={styles.lensSignalRow}>
+                          <Text style={[styles.lensSignalIcon, { color: '#D4A574' }]}>·</Text>
+                          <Text style={[styles.lensSignalText, { color: theme.textTertiary, fontSize: 12 }]}>
+                            {sig}
+                          </Text>
+                        </View>
+                      ))}
+                    </View>
+                  ) : null}
+                </View>
+              );
+            })()}
+
             {/* ================================================ */}
             {/* LAYER 3: SIGNALS (Collapsible proof layer)       */}
             {/* "Why this is so strong" — HD channels + future   */}
