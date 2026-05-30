@@ -1306,6 +1306,9 @@ NOT: "I opened a generic chat"
                                             "synthesis_mode": _v8_synth.get("synthesis_mode"),
                                             "textbook_mode_used": False,
                                         }
+                                        # Stash full synth (incl. ruler_aspects)
+                                        # for the V8 token-enforcement post-processor.
+                                        astro_chat_debug["_v8_synth_full"] = _v8_synth
                                         astro_chat_debug["astro_sources_used"].append(
                                             f"field_synthesis:H{h_num}"
                                         )
@@ -2091,11 +2094,12 @@ USER SHOULD FEEL:
 
             # ── V8 deterministic post-processor ───────────────────────
             # astrology-field-synthesis-v8
-            # When the field synthesis engine fired, hard-strip any
-            # trailing coaching question — the LLM occasionally sneaks
-            # one in despite the system-prompt ban. Removes the last
-            # sentence iff it ends with "?" AND the rest of the reply
-            # remains substantive (≥ 150 chars).
+            # When the field synthesis engine fired:
+            #   (a) hard-strip any trailing coaching question
+            #   (b) ENFORCE required deterministic tokens (house sign,
+            #       ruler, house number, destabilizer, major aspects)
+            #       by appending a single "Behind this field" anchor
+            #       sentence whenever the LLM dropped them.
             try:
                 if (
                     isinstance(response_text, str)
@@ -2113,10 +2117,125 @@ USER SHOULD FEEL:
                             )
                             response_text = trimmed
                             astro_chat_debug["_v8_trailing_question_stripped"] = True
-                # Always clean the internal marker key from debug
+
+                # Token-enforcement anchor — astrology-field-synthesis-v8-anchor
+                _v8_synth_full = astro_chat_debug.get("_v8_synth_full")
+                if (
+                    isinstance(response_text, str)
+                    and astro_chat_debug.get("_v8_post_enforce")
+                    and isinstance(_v8_synth_full, dict)
+                    and _v8_synth_full.get("success")
+                ):
+                    def _ord_v8(n):
+                        if not n:
+                            return ""
+                        suf = "th" if 11 <= (n % 100) <= 13 else {1:"st",2:"nd",3:"rd"}.get(n % 10, "th")
+                        return f"{n}{suf}"
+
+                    house_n  = _v8_synth_full.get("house_number")
+                    house_s  = _v8_synth_full.get("house_sign") or ""
+                    ruler    = _v8_synth_full.get("ruler") or ""
+                    ruler_s  = _v8_synth_full.get("ruler_sign") or ""
+                    ruler_h  = _v8_synth_full.get("ruler_house")
+                    destab   = _v8_synth_full.get("destabilizing_planet") or ""
+                    aspects  = _v8_synth_full.get("ruler_aspects") or []
+
+                    lower = response_text.lower()
+                    house_ord = _ord_v8(house_n).lower()
+                    ruler_h_ord = _ord_v8(ruler_h).lower() if ruler_h else ""
+
+                    required = []
+                    if house_s and house_s.lower() not in lower:
+                        required.append(f"sign:{house_s}")
+                    if house_ord and house_ord not in lower and (
+                        f"{house_n}th" not in lower and f"house {house_n}" not in lower
+                    ):
+                        required.append(f"house:{house_ord}")
+                    if ruler and ruler.lower() not in lower:
+                        required.append(f"ruler:{ruler}")
+                    if ruler_s and ruler_s.lower() not in lower:
+                        required.append(f"ruler_sign:{ruler_s}")
+                    if ruler_h_ord and ruler_h_ord not in lower and f"house {ruler_h}" not in lower:
+                        required.append(f"ruler_house:{ruler_h_ord}")
+                    if destab and destab.lower() not in lower:
+                        required.append(f"destab:{destab}")
+
+                    # Notable aspect tokens (e.g. "Mercury–Saturn square").
+                    # Prioritize hard aspects (square, opposition, conjunction)
+                    # to Saturn / outer planets — those are diagnostically loud.
+                    _hard_types = {"square", "opposition", "conjunction"}
+                    _loud_others = {"Saturn", "Uranus", "Neptune", "Pluto",
+                                    "Chiron", "Mars", "Jupiter"}
+                    notable_aspect_phrases = []
+                    # Pass 1: hard aspects to loud bodies (in tight-orb order)
+                    for a in aspects:
+                        if not isinstance(a, dict):
+                            continue
+                        other = a.get("with") or ""
+                        typ = a.get("type") or ""
+                        if not other or not typ:
+                            continue
+                        if typ.lower() in _hard_types and other in _loud_others:
+                            loose_present = (
+                                other.lower() in lower and typ.lower() in lower
+                            )
+                            if not loose_present:
+                                notable_aspect_phrases.append(f"{ruler}–{other} {typ}")
+                    # Pass 2: anything else within orb (fallback)
+                    for a in aspects:
+                        if not isinstance(a, dict):
+                            continue
+                        other = a.get("with") or ""
+                        typ = a.get("type") or ""
+                        if not other or not typ:
+                            continue
+                        phrase = f"{ruler}–{other} {typ}"
+                        if phrase in notable_aspect_phrases:
+                            continue
+                        loose_present = (
+                            other.lower() in lower and typ.lower() in lower
+                        )
+                        if not loose_present:
+                            notable_aspect_phrases.append(phrase)
+                    # Cap to top 3 for anchor brevity
+                    notable_aspect_phrases = notable_aspect_phrases[:3]
+                    if notable_aspect_phrases:
+                        required.append("aspects:" + "|".join(notable_aspect_phrases))
+
+                    if required:
+                        # Build anchor sentence deterministically.
+                        anchor_bits = []
+                        if house_s and house_n:
+                            anchor_bits.append(f"{house_s} on the {_ord_v8(house_n)} house cusp")
+                        if destab and house_n:
+                            anchor_bits.append(f"{destab} tenanted in the {_ord_v8(house_n)}")
+                        if ruler and ruler_s and ruler_h:
+                            anchor_bits.append(
+                                f"{ruler} (the ruler) in {ruler_s} in the {_ord_v8(ruler_h)} house"
+                            )
+                        elif ruler:
+                            anchor_bits.append(f"{ruler} as the ruler")
+                        if notable_aspect_phrases:
+                            anchor_bits.append("with " + ", ".join(notable_aspect_phrases))
+
+                        if anchor_bits:
+                            anchor = "Behind this field: " + "; ".join(anchor_bits) + "."
+                            sep = "\n\n" if not response_text.endswith("\n") else ""
+                            response_text = response_text.rstrip() + sep + anchor
+                            astro_chat_debug["_v8_anchor_appended"] = True
+                            astro_chat_debug["_v8_anchor_missing_tokens"] = required
+                            logger.info(
+                                f"[FieldSynthesisV8] anchor appended; "
+                                f"missing_tokens={required}"
+                            )
+
+                # Always clean the internal marker keys from debug
                 astro_chat_debug.pop("_v8_post_enforce", None)
+                astro_chat_debug.pop("_v8_synth_full", None)
             except Exception as _v8_post_err:
                 logger.debug(f"[FieldSynthesisV8] post-process skipped: {_v8_post_err}")
+                astro_chat_debug.pop("_v8_post_enforce", None)
+                astro_chat_debug.pop("_v8_synth_full", None)
 
             return MirrorChatResponse(
                 response=response_text,

@@ -239,6 +239,11 @@ export default function ForumMappingsScreen() {
   const renderDetailModal = () => {
     if (!selectedMember) return null;
 
+    // Alias `mapping` so legacy inline blocks that reference `mapping`
+    // resolve correctly. (renderMappingRow uses the parameter `mapping`;
+    // here we use the modal's selected member but expose the same name.)
+    const mapping = selectedMember as ForumMemberMapping;
+
     // Read from 3-layer structure with backward compat fallbacks
     const story = (selectedMember as any).story || { headline: selectedMember.headline, summary: selectedMember.description };
     const patterns = (selectedMember as any).patterns || null;
@@ -311,37 +316,39 @@ export default function ForumMappingsScreen() {
                   </Text>
                 </View>
 
-                {/* ACTIVATION — small emphasis line, sits beneath the paragraph.
-                    relationship-mapping-deep-astrology-v2-ui: suppress when the
-                    activation text already appears in the field paragraph (the
-                    earlier rendering had a hard duplicate). */}
+                {/* ACTIVATION — DETERMINISTIC SINGLE-SURFACE RULE.
+                    relationship-mapping-activation-single-surface:
+                    The Relationship Field paragraph IS the activation surface.
+                    Render the WHAT ACTIVATES chip ONLY when field.activation is
+                    a distinct, non-overlapping line (exact equality and
+                    normalized substring containment both count as duplicate).
+                    No heuristic thresholds — overlap = suppress. */}
                 {(() => {
-                  const para = (field.field_paragraph || '').toLowerCase();
-                  const act = (field.activation || '').toLowerCase();
-                  if (!field.activation) return null;
-                  // Heuristic overlap check — share ≥ 24 consecutive characters
-                  // OR > 65% token overlap → duplicate.
-                  const sharedSubstring = (() => {
-                    if (act.length < 24) return false;
-                    for (let i = 0; i <= act.length - 24; i++) {
-                      if (para.includes(act.substr(i, 24))) return true;
-                    }
-                    return false;
-                  })();
-                  const actTokens = new Set(act.split(/\W+/).filter(t => t.length > 3));
-                  const paraTokens = new Set(para.split(/\W+/).filter(t => t.length > 3));
-                  let shared = 0;
-                  actTokens.forEach(t => { if (paraTokens.has(t)) shared++; });
-                  const overlap = actTokens.size > 0 ? shared / actTokens.size : 0;
-                  const isDuplicate = sharedSubstring || overlap > 0.65;
+                  const rawPara = field.field_paragraph || '';
+                  const rawAct = field.activation || '';
+                  if (!rawAct.trim()) {
+                    (selectedMember as any).__diagActivationSurface = 'paragraph-only';
+                    return null;
+                  }
+                  const norm = (s: string) =>
+                    s.toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+                  const para = norm(rawPara);
+                  const act = norm(rawAct);
+                  const exact = para === act;
+                  const contained = para.length > 0 && act.length > 0 && para.includes(act);
+                  const isDuplicate = exact || contained;
+                  (selectedMember as any).__diagActivationSurface = isDuplicate
+                    ? 'paragraph-only (chip suppressed)'
+                    : 'paragraph + chip';
                   if (isDuplicate) {
                     if (typeof window !== 'undefined' && (window as any).__mirrorActivationDupLogged !== mapping?.member_id) {
                       (window as any).__mirrorActivationDupLogged = mapping?.member_id;
                       // eslint-disable-next-line no-console
-                      console.log('[RelationshipMappingV2-UI] suppressed duplicate WHAT ACTIVATES card', {
+                      console.log('[RelationshipMappingV2-UI] WHAT ACTIVATES chip suppressed (duplicate of paragraph)', {
                         member: mapping?.member_name,
-                        overlap: Math.round(overlap * 100) + '%',
-                        build_marker: 'relationship-mapping-deep-astrology-v2-ui',
+                        exact_match: exact,
+                        substring_contained: contained,
+                        build_marker: 'relationship-mapping-activation-single-surface',
                       });
                     }
                     return null;
@@ -671,89 +678,46 @@ export default function ForumMappingsScreen() {
                       </View>
                     ))}
 
-                    {/* ASTROLOGY SIGNALS — V2 deep card preferred, legacy as fallback */}
+                    {/* ASTROLOGY SIGNALS — V2 is rendered UNCONDITIONALLY above
+                        the collapsible. This inner block ONLY renders legacy
+                        attraction/tension/growth as a fallback when there is
+                        NO V2 deep card. relationship-mapping-astrology-single-surface */}
                     {(() => {
-                      // relationship-mapping-deep-astrology-v2-ui
                       const v2 = mapping?.astrology_dynamics;
                       const v2Has =
                         v2 && (v2.headline || v2.body) &&
                         (typeof v2.body === 'string' ? v2.body.trim().length > 0 : false);
                       const legacy = signals?.astrology;
+                      const legacyHidden = !!(legacy && (legacy as any).legacy_hidden_due_to_v2);
                       const legacyHas =
                         legacy &&
                         (legacy.attraction?.length > 0 ||
                           legacy.tension?.length > 0 ||
                           legacy.growth?.length > 0);
 
-                      if (typeof window !== 'undefined' && (window as any).__mirrorAstroLogged !== mapping?.member_id) {
-                        (window as any).__mirrorAstroLogged = mapping?.member_id;
+                      if (typeof window !== 'undefined' && (window as any).__mirrorAstroLoggedInner !== mapping?.member_id) {
+                        (window as any).__mirrorAstroLoggedInner = mapping?.member_id;
                         // eslint-disable-next-line no-console
-                        console.log('[RelationshipMappingV2-UI]', {
+                        console.log('[RelationshipMappingV2-UI] inner-panel astrology decision', {
                           member: mapping?.member_name,
-                          has_astrology_dynamics: !!v2Has,
-                          astrology_dynamics_rendered: !!v2Has,
-                          legacy_astrology_rendered: !v2Has && !!legacyHas,
-                          legacy_hidden_due_to_v2: !!(legacy && (legacy as any).legacy_hidden_due_to_v2),
-                          build_marker: 'relationship-mapping-deep-astrology-v2-ui',
-                          relationship_role: (mapping?.debug?.relationship_context?.relationship_role) || null,
-                          dedupe: mapping?.debug?.relationship_mapping_dedupe || null,
+                          v2_has: !!v2Has,
+                          legacy_has: !!legacyHas,
+                          legacy_hidden_due_to_v2: legacyHidden,
+                          decision: v2Has
+                            ? 'skip-inner (V2 already rendered above)'
+                            : legacyHas && !legacyHidden
+                              ? 'render-legacy-fallback'
+                              : 'render-nothing',
+                          build_marker: 'relationship-mapping-astrology-single-surface',
                         });
                       }
 
-                      if (v2Has) {
-                        return (
-                          <View style={styles.lensSection}>
-                            <Text style={[styles.signalsNote, { color: theme.textTertiary }]}>
-                              ASTROLOGICAL DYNAMICS
-                            </Text>
-                            {v2.headline ? (
-                              <Text
-                                style={[
-                                  styles.lensSignalText,
-                                  {
-                                    color: theme.text,
-                                    fontSize: 15,
-                                    lineHeight: 22,
-                                    marginBottom: 8,
-                                    fontWeight: '600',
-                                  },
-                                ]}
-                              >
-                                {v2.headline}
-                              </Text>
-                            ) : null}
-                            {v2.body ? (
-                              <Text
-                                style={[
-                                  styles.lensSignalText,
-                                  {
-                                    color: theme.textSecondary,
-                                    fontSize: 14,
-                                    lineHeight: 22,
-                                  },
-                                ]}
-                              >
-                                {v2.body}
-                              </Text>
-                            ) : null}
-                            {Array.isArray(v2.supporting_signals) && v2.supporting_signals.length > 0 ? (
-                              <View style={{ marginTop: 10 }}>
-                                <Text style={[styles.signalsNote, { color: theme.textTertiary, fontSize: 11 }]}>
-                                  WHY THIS IS SHOWING UP
-                                </Text>
-                                {v2.supporting_signals.slice(0, 6).map((sig: string, i: number) => (
-                                  <View key={`v2sup-${i}`} style={styles.lensSignalRow}>
-                                    <Text style={[styles.lensSignalIcon, { color: '#D4A574' }]}>·</Text>
-                                    <Text style={[styles.lensSignalText, { color: theme.textTertiary, fontSize: 12 }]}>
-                                      {sig}
-                                    </Text>
-                                  </View>
-                                ))}
-                              </View>
-                            ) : null}
-                          </View>
-                        );
-                      }
+                      // Single-surface rule: if V2 exists, the top-level
+                      // unconditional V2 card is the ONLY astrology surface.
+                      if (v2Has) return null;
+
+                      // No V2 and legacy was explicitly hidden → render nothing.
+                      if (legacyHidden) return null;
 
                       if (legacyHas) {
                         return (
@@ -858,12 +822,59 @@ export default function ForumMappingsScreen() {
               </View>
             )}
 
+            {/* ───────────────────────────────────────────────── */}
+            {/* RELATIONSHIP DIAGNOSTICS FOOTER — always visible   */}
+            {/* relationship-mapping-diagnostics-footer-v1         */}
+            {/* ───────────────────────────────────────────────── */}
+            {(() => {
+              const rel = (selectedMember as any)?.debug?.relationship_context || {};
+              const v2 = (selectedMember as any)?.astrology_dynamics;
+              const v2Has =
+                !!(v2 && (v2.headline || (typeof v2.body === 'string' && v2.body.trim().length > 0)));
+              const legacy = (selectedMember as any)?.signals?.astrology || {};
+              const legacyHidden = !!legacy.legacy_hidden_due_to_v2;
+              const activationSurface =
+                (selectedMember as any).__diagActivationSurface || 'unknown';
+              const role = rel.relationship_role || 'none';
+              return (
+                <View style={[styles.diagFooter, { borderTopColor: theme.border, backgroundColor: (theme.surfaceLight || theme.surface) + '80' }]}>
+                  <Text style={[styles.diagFooterTitle, { color: theme.textTertiary }]}>
+                    RELATIONSHIP DIAGNOSTICS
+                  </Text>
+                  <View style={styles.diagFooterRow}>
+                    <Text style={[styles.diagFooterKey, { color: theme.textTertiary }]}>role</Text>
+                    <Text style={[styles.diagFooterVal, { color: theme.textSecondary }]}>
+                      {role}{rel.role_source ? `  ·  src:${rel.role_source}` : ''}
+                    </Text>
+                  </View>
+                  <View style={styles.diagFooterRow}>
+                    <Text style={[styles.diagFooterKey, { color: theme.textTertiary }]}>astrology_v2</Text>
+                    <Text style={[styles.diagFooterVal, { color: v2Has ? '#81C784' : '#CF6679' }]}>
+                      {v2Has ? 'rendered' : 'missing'}
+                    </Text>
+                  </View>
+                  <View style={styles.diagFooterRow}>
+                    <Text style={[styles.diagFooterKey, { color: theme.textTertiary }]}>legacy_hidden</Text>
+                    <Text style={[styles.diagFooterVal, { color: legacyHidden ? '#81C784' : theme.textSecondary }]}>
+                      {legacyHidden ? 'true' : 'false'}
+                    </Text>
+                  </View>
+                  <View style={styles.diagFooterRow}>
+                    <Text style={[styles.diagFooterKey, { color: theme.textTertiary }]}>duplicate_suppression</Text>
+                    <Text style={[styles.diagFooterVal, { color: theme.textSecondary }]}>
+                      {activationSurface}
+                    </Text>
+                  </View>
+                </View>
+              );
+            })()}
+
             {/* BUILD MARKER — for deploy verification */}
             <Text style={[styles.buildMarker, { color: theme.textTertiary }]}>
               build · {BUILD_ID} · {BUILD_AT}
             </Text>
             <Text style={[styles.buildMarker, { color: theme.textTertiary, opacity: 0.55 }]}>
-              relationship-mapping-deep-astrology-v2-ui
+              relationship-mapping-diagnostics-footer-v1
               {(() => {
                 const role = mapping?.debug?.relationship_context?.relationship_role;
                 const hasV2 = !!mapping?.astrology_dynamics?.body;
@@ -969,6 +980,38 @@ const styles = StyleSheet.create({
     marginBottom: 8,
     opacity: 0.6,
     letterSpacing: 0.4,
+  },
+  diagFooter: {
+    marginTop: 24,
+    paddingTop: 12,
+    paddingHorizontal: 12,
+    paddingBottom: 12,
+    borderTopWidth: 1,
+    borderRadius: 8,
+  },
+  diagFooterTitle: {
+    fontSize: 10,
+    letterSpacing: 1.5,
+    fontWeight: '600',
+    marginBottom: 8,
+  },
+  diagFooterRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    paddingVertical: 3,
+  },
+  diagFooterKey: {
+    fontSize: 11,
+    fontFamily: 'monospace',
+    flex: 0,
+    minWidth: 140,
+  },
+  diagFooterVal: {
+    fontSize: 11,
+    fontFamily: 'monospace',
+    flex: 1,
+    textAlign: 'right',
   },
   header: {
     flexDirection: 'row',
