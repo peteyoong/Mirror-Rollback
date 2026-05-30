@@ -10,5 +10,5 @@
  * diagnostic step is to ask whether they see this BUILD_ID at the
  * bottom of those screens.
  */
-export const BUILD_ID = 'relationship-v2-live-field-verification';
+export const BUILD_ID = 'relationship-v2-final-cleanup-20260529';
 export const BUILD_AT = '2026-05-29';

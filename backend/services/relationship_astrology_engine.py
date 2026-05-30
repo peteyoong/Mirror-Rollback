@@ -328,13 +328,13 @@ def _build_conflict_repair(
             f"Same elemental fight — when conflict comes, you escalate or "
             "withdraw in sync, missing the corrective friction the other element "
             "would supply.",
-            "Repair condition: deliberate slowing — one of you must take the "
-            "missing-element role consciously."
+            "deliberate slowing — one of you must take the missing-element "
+            "role consciously."
         )
     return (
         f"{name_a}'s Moon ({a_el}) and {name_b}'s Moon ({b_el}) read conflict "
         "differently — one as activity, the other as emotional load.",
-        "Repair condition: name the asymmetry out loud before debating content."
+        "name the asymmetry out loud before debating content."
     )
 
 

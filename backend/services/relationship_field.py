@@ -914,18 +914,11 @@ def _build_field_paragraph(
         )
         return f"{body} {convergence_note}".strip() if convergence_note else body
 
-    theme_labels = [t["label"].lower() for t in themes[:3]]
-    if len(theme_labels) == 1:
-        theme_sentence = f"Also alive: {theme_labels[0]}."
-    elif len(theme_labels) == 2:
-        theme_sentence = f"Also alive: {theme_labels[0]} and {theme_labels[1]}."
-    else:
-        theme_sentence = (
-            f"Also alive: {theme_labels[0]}, "
-            f"{theme_labels[1]}, and {theme_labels[2]}."
-        )
-
-    parts = [activation, theme_sentence]
+    # relationship-v2-final-cleanup: drop the "Also alive: X and Y" recap
+    # entirely — the themes are already exposed as their own distinct cards
+    # downstream (what_lives_between_you / activation / today). The top
+    # paragraph should be ONE integrated synthesis, not a label recap.
+    parts = [activation]
     if convergence_note:
         parts.append(convergence_note)
     return " ".join(parts)

@@ -610,8 +610,10 @@ export default function ForumMappingsScreen() {
                           has_astrology_dynamics: !!v2Has,
                           astrology_dynamics_rendered: !!v2Has,
                           legacy_astrology_rendered: !v2Has && !!legacyHas,
+                          legacy_hidden_due_to_v2: !!(legacy && (legacy as any).legacy_hidden_due_to_v2),
                           build_marker: 'relationship-mapping-deep-astrology-v2-ui',
                           relationship_role: (mapping?.debug?.relationship_context?.relationship_role) || null,
+                          dedupe: mapping?.debug?.relationship_mapping_dedupe || null,
                         });
                       }
 

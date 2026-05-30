@@ -1961,6 +1961,15 @@ async def get_forum_member_mappings(
                             astro_existing["what_b_triggers_in_a"] = _deep.get("what_b_triggers_in_a")
                             astro_existing["supporting_signals"] = _deep["supporting_signals"]
                             astro_existing["build_marker"] = _RAE_MARKER
+                            # relationship-v2-final-cleanup: suppress
+                            # legacy bullets (attraction/tension/growth)
+                            # when V2 deep card is present so the
+                            # frontend never has to choose between two
+                            # conflicting astrology payloads.
+                            astro_existing["legacy_hidden_due_to_v2"] = True
+                            astro_existing["attraction"] = []
+                            astro_existing["tension"] = []
+                            astro_existing["growth"] = []
                             signals["astrology"] = astro_existing
                         else:
                             signals["astrology"] = {
