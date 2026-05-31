@@ -316,13 +316,15 @@ export default function ForumMappingsScreen() {
                   </Text>
                 </View>
 
-                {/* ACTIVATION — DETERMINISTIC SINGLE-SURFACE RULE.
-                    relationship-mapping-activation-single-surface:
+                {/* ACTIVATION — DETERMINISTIC SINGLE-SURFACE RULE v2.
+                    relationship-mapping-activation-single-surface-v2:
                     The Relationship Field paragraph IS the activation surface.
-                    Render the WHAT ACTIVATES chip ONLY when field.activation is
-                    a distinct, non-overlapping line (exact equality and
-                    normalized substring containment both count as duplicate).
-                    No heuristic thresholds — overlap = suppress. */}
+                    Suppress the WHAT ACTIVATES chip when activation is:
+                      (a) exactly equal to paragraph (normalized), OR
+                      (b) substring-contained either way (normalized), OR
+                      (c) Jaccard token overlap ≥ 0.55.
+                    Last guard catches near-identical strings that differ by
+                    one or two surrounding sentences. */}
                 {(() => {
                   const rawPara = field.field_paragraph || '';
                   const rawAct = field.activation || '';
@@ -330,25 +332,54 @@ export default function ForumMappingsScreen() {
                     (selectedMember as any).__diagActivationSurface = 'paragraph-only';
                     return null;
                   }
+                  if (!rawPara.trim()) {
+                    // No paragraph → activation is the ONLY surface; render it
+                    (selectedMember as any).__diagActivationSurface = 'chip-only (no paragraph)';
+                    return (
+                      <View
+                        style={[
+                          styles.activationChip,
+                          { backgroundColor: (theme.accent || '#8B5CF6') + '12', borderColor: (theme.accent || '#8B5CF6') + '40' },
+                        ]}
+                      >
+                        <Text style={[styles.activationLabel, { color: theme.accent || '#8B5CF6' }]}>
+                          WHAT ACTIVATES
+                        </Text>
+                        <Text style={[styles.activationText, { color: theme.text }]}>
+                          {field.activation}
+                        </Text>
+                      </View>
+                    );
+                  }
                   const norm = (s: string) =>
                     s.toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
                   const para = norm(rawPara);
                   const act = norm(rawAct);
                   const exact = para === act;
-                  const contained = para.length > 0 && act.length > 0 && para.includes(act);
-                  const isDuplicate = exact || contained;
+                  const containedAinB = para.length > 0 && act.length > 0 && para.includes(act);
+                  const containedBinA = para.length > 0 && act.length > 0 && act.includes(para);
+                  // Jaccard token overlap as last guard
+                  const tokens = (s: string) =>
+                    new Set(s.split(/\s+/).filter(t => t.length > 3));
+                  const tA = tokens(para);
+                  const tB = tokens(act);
+                  let inter = 0;
+                  tA.forEach(t => { if (tB.has(t)) inter++; });
+                  const union = new Set([...tA, ...tB]).size || 1;
+                  const jaccard = inter / union;
+                  const highOverlap = jaccard >= 0.55;
+                  const isDuplicate = exact || containedAinB || containedBinA || highOverlap;
                   (selectedMember as any).__diagActivationSurface = isDuplicate
-                    ? 'paragraph-only (chip suppressed)'
-                    : 'paragraph + chip';
+                    ? `paragraph-only (chip suppressed; jaccard=${jaccard.toFixed(2)})`
+                    : `paragraph + chip (jaccard=${jaccard.toFixed(2)})`;
                   if (isDuplicate) {
                     if (typeof window !== 'undefined' && (window as any).__mirrorActivationDupLogged !== mapping?.member_id) {
                       (window as any).__mirrorActivationDupLogged = mapping?.member_id;
                       // eslint-disable-next-line no-console
-                      console.log('[RelationshipMappingV2-UI] WHAT ACTIVATES chip suppressed (duplicate of paragraph)', {
+                      console.log('[RelationshipMappingV2-UI] WHAT ACTIVATES chip suppressed', {
                         member: mapping?.member_name,
-                        exact_match: exact,
-                        substring_contained: contained,
-                        build_marker: 'relationship-mapping-activation-single-surface',
+                        exact, containedAinB, containedBinA, jaccard,
+                        build_marker: 'relationship-mapping-activation-single-surface-v2',
                       });
                     }
                     return null;
@@ -747,7 +778,35 @@ export default function ForumMappingsScreen() {
                           </View>
                         );
                       }
-                      return null;
+                      // EMPTY-STATE DIAGNOSTIC — never silently render nothing.
+                      // Surface the reason so the user can see WHY astrology
+                      // didn't produce signals (usually role!=spouse → V10
+                      // didn't fire, AND legacy has no content for this pair).
+                      const rel = (mapping as any)?.debug?.relationship_context || {};
+                      const roleStr = rel.relationship_role || 'unknown';
+                      const srcStr = rel.role_source || 'unknown';
+                      return (
+                        <View style={styles.lensSection}>
+                          <Text style={[styles.signalsNote, { color: theme.textTertiary }]}>
+                            ASTROLOGICAL DYNAMICS
+                          </Text>
+                          <Text
+                            style={{
+                              color: theme.textTertiary,
+                              fontSize: 12,
+                              fontStyle: 'italic',
+                              lineHeight: 18,
+                              marginTop: 4,
+                            }}
+                          >
+                            No deterministic astrology signals were generated
+                            for this pairing (role: {roleStr} · src: {srcStr}).
+                            Astrological dynamics are produced when both
+                            charts are available and the relationship role is
+                            mapped explicitly.
+                          </Text>
+                        </View>
+                      );
                     })()}
 
                     {/* ENNEAGRAM SIGNALS */}
