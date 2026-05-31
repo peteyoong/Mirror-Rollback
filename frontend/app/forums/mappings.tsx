@@ -523,165 +523,120 @@ export default function ForumMappingsScreen() {
               </>
             )}
 
-            {/* ─────────────────────────────────────────────────── */}
-            {/* V2 ASTROLOGICAL DYNAMICS — UNCONDITIONAL              */}
-            {/* relationship-v2-astrology-render-fix:                  */}
-            {/* Renders independently of HD signals and collapse       */}
-            {/* state. Only requires mapping.astrology_dynamics.body.  */}
-            {/* ─────────────────────────────────────────────────── */}
-            {(() => {
-              const v2 = (selectedMember as any)?.astrology_dynamics;
-              const hasV2Astrology =
-                !!(v2 && (v2.body || v2.headline));
-              if (!hasV2Astrology) return null;
-              if (typeof window !== 'undefined' && (window as any).__mirrorAstroLogged !== selectedMember?.member_id) {
-                (window as any).__mirrorAstroLogged = selectedMember?.member_id;
-                // eslint-disable-next-line no-console
-                console.log('[RelationshipMappingV2-UI]', {
-                  member: (selectedMember as any)?.member_name,
-                  has_astrology_dynamics: true,
-                  astrology_dynamics_rendered: true,
-                  legacy_astrology_rendered: false,
-                  legacy_hidden_due_to_v2: !!((selectedMember as any)?.signals?.astrology?.legacy_hidden_due_to_v2),
-                  build_marker: 'relationship-v2-astrology-render-fix',
-                  relationship_role: ((selectedMember as any)?.debug?.relationship_context?.relationship_role) || null,
-                  dedupe: (selectedMember as any)?.debug?.relationship_mapping_dedupe || null,
-                });
-              }
-              return (
-                <View
-                  style={[
-                    styles.signalsSection,
-                    { borderTopColor: theme.border, paddingTop: 16, marginTop: 8 },
-                  ]}
-                >
-                  <Text
-                    style={[
-                      styles.signalsNote,
-                      { color: theme.textTertiary, marginBottom: 8 },
-                    ]}
-                  >
-                    ASTROLOGICAL DYNAMICS
-                  </Text>
-                  {v2.headline ? (
-                    <Text
-                      style={{
-                        color: theme.text,
-                        fontSize: 16,
-                        lineHeight: 23,
-                        fontWeight: '600',
-                        marginBottom: 10,
-                      }}
-                    >
-                      {v2.headline}
-                    </Text>
-                  ) : null}
-                  {v2.body ? (
-                    <Text
-                      style={{
-                        color: theme.textSecondary,
-                        fontSize: 14,
-                        lineHeight: 22,
-                      }}
-                    >
-                      {v2.body}
-                    </Text>
-                  ) : null}
-                  {Array.isArray(v2.supporting_signals) && v2.supporting_signals.length > 0 ? (
-                    <View style={{ marginTop: 12 }}>
-                      <Text style={[styles.signalsNote, { color: theme.textTertiary, fontSize: 11 }]}>
-                        WHY THIS IS SHOWING UP
-                      </Text>
-                      {v2.supporting_signals.slice(0, 6).map((sig: string, i: number) => (
-                        <View key={`v2sup-uncond-${i}`} style={styles.lensSignalRow}>
-                          <Text style={[styles.lensSignalIcon, { color: '#D4A574' }]}>·</Text>
-                          <Text style={[styles.lensSignalText, { color: theme.textTertiary, fontSize: 12 }]}>
-                            {sig}
-                          </Text>
-                        </View>
-                      ))}
-                    </View>
-                  ) : null}
-                </View>
-              );
-            })()}
+            {/* ──────────────────────────────────────────────────────── */}
+            {/* V2 ASTROLOGICAL DYNAMICS has been MOVED into the         */}
+            {/* "Why this is so strong" accordion below, alongside       */}
+            {/* Design Connections, Enneagram Dynamics, and Elemental    */}
+            {/* (BaZi) Dynamics. relationship-mapping-astrology-in-accordion */}
+            {/* ──────────────────────────────────────────────────────── */}
 
             {/* ================================================ */}
             {/* LAYER 3: SIGNALS (Collapsible proof layer)       */}
-            {/* "Why this is so strong" — HD channels + future   */}
+            {/* "Why this is so strong" — opens when ANY lens has  */}
+            {/* content: HD channels, V2 astrology, Enneagram,     */}
+            {/* BaZi, or Numerology.                               */}
+            {/* relationship-mapping-accordion-multi-lens          */}
             {/* ================================================ */}
-            {hdSignals.length > 0 && (
-              <View style={styles.signalsSection}>
-                <TouchableOpacity
-                  style={[styles.signalsToggle, { borderColor: theme.border }]}
-                  onPress={() => setShowWhyExpanded(!showWhyExpanded)}
-                  activeOpacity={0.7}
-                >
-                  <Text style={[styles.signalsToggleText, { color: theme.textSecondary }]}>
-                    {showWhyExpanded ? 'Hide what drives this' : 'Why this is so strong'}
-                  </Text>
-                  <Ionicons
-                    name={showWhyExpanded ? "chevron-up" : "chevron-down"}
-                    size={20}
-                    color={theme.textTertiary}
-                  />
-                </TouchableOpacity>
+            {(() => {
+              const v2 = (selectedMember as any)?.astrology_dynamics;
+              const hasV2Astro =
+                !!(v2 && (v2.body || v2.headline) &&
+                  (typeof v2.body === 'string' ? v2.body.trim().length > 0 : !!v2.headline));
+              const legacy = signals?.astrology;
+              const legacyHidden = !!(legacy && (legacy as any).legacy_hidden_due_to_v2);
+              const hasLegacyAstro =
+                !!legacy &&
+                !legacyHidden &&
+                (legacy.attraction?.length > 0 ||
+                  legacy.tension?.length > 0 ||
+                  legacy.growth?.length > 0);
+              const hasEnneagram =
+                !!signals?.enneagram && Object.keys(signals.enneagram).length > 0;
+              const hasBazi =
+                !!signals?.bazi && Object.keys(signals.bazi).length > 0;
+              const hasNumerology =
+                !!signals?.numerology && (signals.numerology.themes?.length || 0) > 0;
+              const hasAnySignal =
+                hdSignals.length > 0 || hasV2Astro || hasLegacyAstro ||
+                hasEnneagram || hasBazi || hasNumerology;
 
-                {showWhyExpanded && (
-                  <View style={styles.whyContent}>
-                    <Text style={[styles.signalsNote, { color: theme.textTertiary }]}>
-                      DESIGN CONNECTIONS
+              if (!hasAnySignal) return null;
+
+              return (
+                <View style={styles.signalsSection}>
+                  <TouchableOpacity
+                    style={[styles.signalsToggle, { borderColor: theme.border }]}
+                    onPress={() => setShowWhyExpanded(!showWhyExpanded)}
+                    activeOpacity={0.7}
+                  >
+                    <Text style={[styles.signalsToggleText, { color: theme.textSecondary }]}>
+                      {showWhyExpanded ? 'Hide what drives this' : 'Why this is so strong'}
                     </Text>
-                    {hdSignals.map((channel: any, index: number) => (
-                      <View 
-                        key={channel.channel} 
-                        style={[
-                          styles.channelCard, 
-                          { backgroundColor: theme.surface, borderColor: theme.border }
-                        ]}
-                      >
-                        {/* Translation line — plain language */}
-                        {channel.translation && (
-                          <Text style={[styles.channelTranslation, { color: theme.text }]}>
-                            {channel.translation}
-                          </Text>
-                        )}
-                        <View style={styles.channelGates}>
-                          <View style={[styles.gateBox, { borderColor: theme.border }]}>
-                            <Text style={[styles.gateLabel, { color: theme.textTertiary }]}>You</Text>
-                            <Text style={[styles.gateNumber, { color: theme.text }]}>
-                              Gate {channel.your_gate}
-                            </Text>
-                          </View>
-                          <View style={styles.channelConnector}>
-                            <View style={[styles.connectorLine, { backgroundColor: theme.border }]} />
-                            <Text style={[styles.channelId, { color: theme.textSecondary }]}>
-                              {channel.channel}
-                            </Text>
-                            <View style={[styles.connectorLine, { backgroundColor: theme.border }]} />
-                          </View>
-                          <View style={[styles.gateBox, { borderColor: theme.border }]}>
-                            <Text style={[styles.gateLabel, { color: theme.textTertiary }]}>They</Text>
-                            <Text style={[styles.gateNumber, { color: theme.text }]}>
-                              Gate {channel.their_gate}
-                            </Text>
-                          </View>
-                        </View>
-                        <View style={styles.channelInfo}>
-                          <Text style={[styles.channelName, { color: theme.text }]}>
-                            Channel of {channel.name}
-                          </Text>
-                          <Text style={[styles.channelTheme, { color: theme.textSecondary }]}>
-                            {channel.theme}
-                          </Text>
-                        </View>
-                      </View>
-                    ))}
+                    <Ionicons
+                      name={showWhyExpanded ? "chevron-up" : "chevron-down"}
+                      size={20}
+                      color={theme.textTertiary}
+                    />
+                  </TouchableOpacity>
 
-                    {/* ASTROLOGY SIGNALS — V2 is rendered UNCONDITIONALLY above
-                        the collapsible. This inner block ONLY renders legacy
-                        attraction/tension/growth as a fallback when there is
-                        NO V2 deep card. relationship-mapping-astrology-single-surface */}
+                  {showWhyExpanded && (
+                    <View style={styles.whyContent}>
+                      {/* HD CHANNELS — only when HD signals present */}
+                      {hdSignals.length > 0 && (
+                        <>
+                          <Text style={[styles.signalsNote, { color: theme.textTertiary }]}>
+                            DESIGN CONNECTIONS
+                          </Text>
+                          {hdSignals.map((channel: any, index: number) => (
+                            <View 
+                              key={channel.channel} 
+                              style={[
+                                styles.channelCard, 
+                                { backgroundColor: theme.surface, borderColor: theme.border }
+                              ]}
+                            >
+                              {/* Translation line — plain language */}
+                              {channel.translation && (
+                                <Text style={[styles.channelTranslation, { color: theme.text }]}>
+                                  {channel.translation}
+                                </Text>
+                              )}
+                              <View style={styles.channelGates}>
+                                <View style={[styles.gateBox, { borderColor: theme.border }]}>
+                                  <Text style={[styles.gateLabel, { color: theme.textTertiary }]}>You</Text>
+                                  <Text style={[styles.gateNumber, { color: theme.text }]}>
+                                    Gate {channel.your_gate}
+                                  </Text>
+                                </View>
+                                <View style={styles.channelConnector}>
+                                  <View style={[styles.connectorLine, { backgroundColor: theme.border }]} />
+                                  <Text style={[styles.channelId, { color: theme.textSecondary }]}>
+                                    {channel.channel}
+                                  </Text>
+                                  <View style={[styles.connectorLine, { backgroundColor: theme.border }]} />
+                                </View>
+                                <View style={[styles.gateBox, { borderColor: theme.border }]}>
+                                  <Text style={[styles.gateLabel, { color: theme.textTertiary }]}>They</Text>
+                                  <Text style={[styles.gateNumber, { color: theme.text }]}>
+                                    Gate {channel.their_gate}
+                                  </Text>
+                                </View>
+                              </View>
+                              <View style={styles.channelInfo}>
+                                <Text style={[styles.channelName, { color: theme.text }]}>
+                                  Channel of {channel.name}
+                                </Text>
+                                <Text style={[styles.channelTheme, { color: theme.textSecondary }]}>
+                                  {channel.theme}
+                                </Text>
+                              </View>
+                            </View>
+                          ))}
+                        </>
+                      )}
+
+                    {/* ASTROLOGICAL DYNAMICS — V2 preferred, legacy fallback.
+                        relationship-mapping-astrology-in-accordion */}
                     {(() => {
                       const v2 = mapping?.astrology_dynamics;
                       const v2Has =
@@ -698,23 +653,69 @@ export default function ForumMappingsScreen() {
                       if (typeof window !== 'undefined' && (window as any).__mirrorAstroLoggedInner !== mapping?.member_id) {
                         (window as any).__mirrorAstroLoggedInner = mapping?.member_id;
                         // eslint-disable-next-line no-console
-                        console.log('[RelationshipMappingV2-UI] inner-panel astrology decision', {
+                        console.log('[RelationshipMappingV2-UI] in-accordion astrology decision', {
                           member: mapping?.member_name,
                           v2_has: !!v2Has,
                           legacy_has: !!legacyHas,
                           legacy_hidden_due_to_v2: legacyHidden,
                           decision: v2Has
-                            ? 'skip-inner (V2 already rendered above)'
+                            ? 'render-v2-in-accordion'
                             : legacyHas && !legacyHidden
                               ? 'render-legacy-fallback'
                               : 'render-nothing',
-                          build_marker: 'relationship-mapping-astrology-single-surface',
+                          build_marker: 'relationship-mapping-astrology-in-accordion',
                         });
                       }
 
-                      // Single-surface rule: if V2 exists, the top-level
-                      // unconditional V2 card is the ONLY astrology surface.
-                      if (v2Has) return null;
+                      // Preferred: V2 deep card rendered INSIDE the accordion
+                      if (v2Has) {
+                        return (
+                          <View style={styles.lensSection}>
+                            <Text style={[styles.signalsNote, { color: theme.textTertiary }]}>
+                              ASTROLOGICAL DYNAMICS
+                            </Text>
+                            {v2.headline ? (
+                              <Text
+                                style={{
+                                  color: theme.text,
+                                  fontSize: 15,
+                                  lineHeight: 22,
+                                  fontWeight: '600',
+                                  marginBottom: 8,
+                                }}
+                              >
+                                {v2.headline}
+                              </Text>
+                            ) : null}
+                            {v2.body ? (
+                              <Text
+                                style={{
+                                  color: theme.textSecondary,
+                                  fontSize: 14,
+                                  lineHeight: 22,
+                                }}
+                              >
+                                {v2.body}
+                              </Text>
+                            ) : null}
+                            {Array.isArray(v2.supporting_signals) && v2.supporting_signals.length > 0 ? (
+                              <View style={{ marginTop: 10 }}>
+                                <Text style={[styles.signalsNote, { color: theme.textTertiary, fontSize: 11 }]}>
+                                  WHY THIS IS SHOWING UP
+                                </Text>
+                                {v2.supporting_signals.slice(0, 6).map((sig: string, i: number) => (
+                                  <View key={`v2sup-acc-${i}`} style={styles.lensSignalRow}>
+                                    <Text style={[styles.lensSignalIcon, { color: '#D4A574' }]}>·</Text>
+                                    <Text style={[styles.lensSignalText, { color: theme.textTertiary, fontSize: 12 }]}>
+                                      {sig}
+                                    </Text>
+                                  </View>
+                                ))}
+                              </View>
+                            ) : null}
+                          </View>
+                        );
+                      }
 
                       // No V2 and legacy was explicitly hidden → render nothing.
                       if (legacyHidden) return null;
@@ -820,7 +821,8 @@ export default function ForumMappingsScreen() {
                   </View>
                 )}
               </View>
-            )}
+              );
+            })()}
 
             {/* ───────────────────────────────────────────────── */}
             {/* RELATIONSHIP DIAGNOSTICS FOOTER — always visible   */}

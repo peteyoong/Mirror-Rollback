@@ -10,5 +10,5 @@
  * diagnostic step is to ask whether they see this BUILD_ID at the
  * bottom of those screens.
  */
-export const BUILD_ID = 'rel-v2-single-surface-and-diagnostics';
-export const BUILD_AT = '2026-05-30T08:30';
+export const BUILD_ID = 'rel-v2-astrology-in-accordion';
+export const BUILD_AT = '2026-05-31T03:25';
