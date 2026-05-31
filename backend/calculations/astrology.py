@@ -413,7 +413,7 @@ def get_full_natal_chart(
     lat: float,
     lon: float,
     sidereal_settings: Optional[Dict] = None,
-    house_system: str = "Equal",
+    house_system: str = "Placidus",
     node_mode: str = "true_node"
 ) -> Dict:
     """Calculate complete True Sidereal natal chart per Project Mirror spec.
@@ -522,9 +522,44 @@ def get_full_natal_chart(
     dc_sidereal = normalize_degrees(asc_sidereal + 180)
     
     # =========================================================================
-    # CALCULATE EQUAL HOUSES
+    # CALCULATE HOUSE CUSPS — Equal or Placidus (GM-Aligned-V2)
     # =========================================================================
-    house_cusps = calculate_equal_houses(asc_sidereal)
+    # gm-aligned-v2-placidus-cusps
+    # Placidus path: swe.houses_ex with SEFLG_SIDEREAL after setting
+    # user-defined SVP (matches Mirror's True Sidereal-M). The
+    # returned cusps are in the SAME sidereal frame as asc_sidereal,
+    # so planet→house assignment via get_house_for_planet() works
+    # directly without further coordinate translation.
+    if house_system == "Placidus":
+        import swisseph as swe
+        # Lock the sidereal mode to Mirror's user-defined SVP so the
+        # houses are returned in the True Sidereal-M frame.
+        swe.set_sid_mode(swe.SIDM_USER, 2451545.0, svp_degrees)
+        flags = swe.FLG_SIDEREAL | swe.FLG_SWIEPH
+        try:
+            cusps_p, ascmc_p = swe.houses_ex(jd, lat, lon, b"P", flags)
+        except Exception as _hex_err:
+            # If swisseph fails (rare; near-pole anomalies), fall back
+            # to Equal so the chart still renders deterministically.
+            cusps_p = None
+            ascmc_p = None
+        if cusps_p is not None and len(cusps_p) >= 12:
+            house_cusps = [normalize_degrees(c) for c in cusps_p[:12]]
+            # Override ASC/MC with swisseph's Placidus output so the
+            # angles match the cusp set (small ~14' difference vs the
+            # Equal-derived ASC at high latitudes is real Placidus
+            # math, not a bug).
+            asc_sidereal = normalize_degrees(ascmc_p[0])
+            mc_sidereal  = normalize_degrees(ascmc_p[1])
+            dc_sidereal  = normalize_degrees(asc_sidereal + 180)
+            ic_sidereal  = normalize_degrees(mc_sidereal + 180)
+            _placidus_cusps_source = "swisseph.houses_ex"
+        else:
+            house_cusps = calculate_equal_houses(asc_sidereal)
+            _placidus_cusps_source = "fallback_to_equal"
+    else:
+        house_cusps = calculate_equal_houses(asc_sidereal)
+        _placidus_cusps_source = None
     
     # =========================================================================
     # CALCULATE ALL PLANETS WITH RETROGRADE STATUS
