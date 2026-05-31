@@ -286,6 +286,40 @@ def register(
                 target_member_id=request.target_member_id,
             )
 
+            # ── FORUM MIRROR RELATIONAL ORCHESTRATOR V1 ──────────────────
+            # forum-mirror-relational-orchestrator-v1
+            # Resolves target member, classifies intent, and injects
+            # deterministic relational context BEFORE the LLM call so
+            # questions like "Mel's 4th house and how does it map to me"
+            # don't fall back to textbook astrology.
+            orchestrator_payload: Dict[str, Any] = {}
+            try:
+                from services.forum_mirror_orchestrator import (
+                    build_relational_orchestrator_payload,
+                )
+                orchestrator_payload = await build_relational_orchestrator_payload(
+                    db=db,
+                    forum_id=forum_id,
+                    asker_user_id=request.user_id,
+                    message=request.message,
+                    mode=request.mode.value,
+                    target_member_id=request.target_member_id,
+                )
+                logger.info(
+                    f"[ForumMirrorOrchestrator] frame={orchestrator_payload.get('frame')} "
+                    f"intent={orchestrator_payload.get('intent')} "
+                    f"house={orchestrator_payload.get('house_number')} "
+                    f"target={(orchestrator_payload.get('resolved_target') or {}).get('target_name')!r} "
+                    f"role={orchestrator_payload.get('relationship_role')!r} "
+                    f"source={orchestrator_payload.get('role_source')!r}"
+                )
+            except Exception as _orch_err:  # noqa: BLE001
+                logger.warning(
+                    f"[ForumMirrorOrchestrator] orchestrator failed, "
+                    f"falling back to generic prompt: {_orch_err}"
+                )
+                orchestrator_payload = {}
+
             recent_history = await db.forum_chat_messages.find({
                 "forum_id": forum_id,
                 "user_id": request.user_id,
@@ -306,12 +340,33 @@ def register(
             if history_parts:
                 system_prompt += "\n" + "\n".join(history_parts)
 
+            # Inject the orchestrator addendum BEFORE the generic mode
+            # hint so the relational framing wins when both apply.
+            resolved_target_block = (orchestrator_payload or {}).get("resolved_target")
+            if orchestrator_payload.get("system_prompt_addendum"):
+                system_prompt += orchestrator_payload["system_prompt_addendum"]
+
             if request.mode == ForumChatMode.SELF:
-                system_prompt += "\n\nThe user is asking about THEMSELVES in the context of this forum."
+                if resolved_target_block:
+                    # User is on Me tab but referenced another member.
+                    # Override the generic "asking about themselves"
+                    # framing so the LLM treats this as relational.
+                    system_prompt += (
+                        f"\n\nThe user opened the chat in 'Me' mode but the "
+                        f"message references "
+                        f"{resolved_target_block.get('target_name')}. "
+                        f"Pivot the answer to the field between the user "
+                        f"and {resolved_target_block.get('target_name')}. "
+                        f"Use the DETERMINISTIC EVIDENCE above.\n"
+                    )
+                else:
+                    system_prompt += "\n\nThe user is asking about THEMSELVES in the context of this forum."
             elif request.mode == ForumChatMode.MEMBER:
                 system_prompt += (
                     f"\n\nThe user is asking about another member ({target_member_name}). "
-                    f"Be respectful and focus on potential strengths and perspectives."
+                    f"Use the DETERMINISTIC EVIDENCE above. Be respectful and "
+                    f"answer from the field between the user and "
+                    f"{target_member_name}, not in isolation."
                 )
             else:  # FORUM mode
                 system_prompt += "\n\nThe user is asking about the FORUM GROUP DYNAMICS as a whole."
@@ -344,6 +399,103 @@ def register(
                 )
 
             now = datetime.now(timezone.utc)
+
+            # ── V8 token-anchor enforcement ──────────────────────────────
+            # forum-mirror-relational-orchestrator-v1 + astrology-field-synthesis-v8-anchor
+            # When the orchestrator ran V8 field synthesis, append a
+            # deterministic "Behind this field:" anchor if the LLM
+            # dropped required tokens (house sign, ruler, ruler sign,
+            # ruler house, destabilizer, notable hard aspects).
+            try:
+                _v8_synth_full = (
+                    orchestrator_payload.get("debug", {}).get("_v8_synth_full")
+                    if orchestrator_payload else None
+                )
+                if (
+                    isinstance(response_text, str)
+                    and isinstance(_v8_synth_full, dict)
+                    and _v8_synth_full.get("success")
+                ):
+                    def _ord_v8(n):
+                        if not n:
+                            return ""
+                        suf = "th" if 11 <= (n % 100) <= 13 else \
+                              {1: "st", 2: "nd", 3: "rd"}.get(n % 10, "th")
+                        return f"{n}{suf}"
+
+                    house_n  = _v8_synth_full.get("house_number")
+                    house_s  = _v8_synth_full.get("house_sign") or ""
+                    ruler    = _v8_synth_full.get("ruler") or ""
+                    ruler_s  = _v8_synth_full.get("ruler_sign") or ""
+                    ruler_h  = _v8_synth_full.get("ruler_house")
+                    destab   = _v8_synth_full.get("destabilizing_planet") or ""
+                    aspects  = _v8_synth_full.get("ruler_aspects") or []
+
+                    lower = response_text.lower()
+                    missing: List[str] = []
+                    if house_s and house_s.lower() not in lower:
+                        missing.append("sign")
+                    house_ord = _ord_v8(house_n).lower()
+                    if house_ord and house_ord not in lower and f"house {house_n}" not in lower:
+                        missing.append("house")
+                    if ruler and ruler.lower() not in lower:
+                        missing.append("ruler")
+                    if destab and destab.lower() not in lower:
+                        missing.append("destab")
+
+                    # Hard-aspect phrases to loud bodies (square/opp/conj)
+                    _hard_types = {"square", "opposition", "conjunction"}
+                    _loud_others = {"Saturn", "Uranus", "Neptune", "Pluto",
+                                    "Chiron", "Mars", "Jupiter"}
+                    notable_aspect_phrases: List[str] = []
+                    for a in aspects:
+                        if not isinstance(a, dict):
+                            continue
+                        other = a.get("with") or ""
+                        typ = a.get("type") or ""
+                        if not other or not typ:
+                            continue
+                        if typ.lower() in _hard_types and other in _loud_others:
+                            loose_present = (
+                                other.lower() in lower and typ.lower() in lower
+                            )
+                            if not loose_present:
+                                notable_aspect_phrases.append(f"{ruler}–{other} {typ}")
+                    notable_aspect_phrases = notable_aspect_phrases[:3]
+                    if notable_aspect_phrases:
+                        missing.append("aspects")
+
+                    if missing:
+                        anchor_bits: List[str] = []
+                        if house_s and house_n:
+                            anchor_bits.append(
+                                f"{house_s} on the {_ord_v8(house_n)} house cusp"
+                            )
+                        if destab and house_n:
+                            anchor_bits.append(
+                                f"{destab} tenanted in the {_ord_v8(house_n)}"
+                            )
+                        if ruler and ruler_s and ruler_h:
+                            anchor_bits.append(
+                                f"{ruler} (the ruler) in {ruler_s} in the {_ord_v8(ruler_h)} house"
+                            )
+                        elif ruler:
+                            anchor_bits.append(f"{ruler} as the ruler")
+                        if notable_aspect_phrases:
+                            anchor_bits.append("with " + ", ".join(notable_aspect_phrases))
+                        if anchor_bits:
+                            anchor = "Behind this field: " + "; ".join(anchor_bits) + "."
+                            sep = "\n\n" if not response_text.endswith("\n") else ""
+                            response_text = response_text.rstrip() + sep + anchor
+                            logger.info(
+                                f"[ForumMirrorOrchestrator] V8 anchor appended; "
+                                f"missing={missing}"
+                            )
+            except Exception as _v8_post_err:  # noqa: BLE001
+                logger.debug(
+                    f"[ForumMirrorOrchestrator] V8 anchor skipped: {_v8_post_err}"
+                )
+
             message_doc = {
                 "forum_id": forum_id,
                 "user_id": request.user_id,
