@@ -42,11 +42,21 @@ from datetime import datetime, timezone
 # Engine version — bump when the Today V5 narrative / signal contract changes.
 # Today caches are keyed by (user_id, date, engine_version); a bump
 # automatically invalidates every cached daily payload across all users.
-ENGINE_VERSION = "today_v5.1"
+#
+# V6 (this version): scored signal ranking + transit-pair archetypes +
+# optional operator/founder register + LLM payload expansion + removal
+# of the blanket _CONFLICT_CORE override. astrology-today-v6
+ENGINE_VERSION = "today_v6.0"
 
 from typing import Any, Dict, List, Optional, Set
 
 from services.transit_dominance_engine import build_dominance_payload
+from services.transit_scoring import (
+    ARCHETYPES as V6_ARCHETYPES,
+    apply_register as v6_apply_register,
+    match_archetype as v6_match_archetype,
+    rank_candidates as v6_rank_candidates,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -390,17 +400,26 @@ async def _call_llm_for_sections(
 
     dom = dominance.get("dominant_signal") or {}
     conflict = bool(dominance.get("signal_conflict"))
-    payload = {
-        "continuity":       is_continuity,
-        "signal_conflict":  conflict,
-        "dominant_type":    dom.get("type"),
-        "dominant_label":   dom.get("label"),
-        "intensity":        dominance.get("intensity"),
-        "house_hint":       _house_hint_from_signal(dom),
-        "active_categories": dominance.get("active_categories") or [],
-        "core_message_already_written": core_message,
-        "secondary_labels": [s.get("label") for s in (dominance.get("secondary_signals") or [])][:3],
-    }
+    v6 = dominance.get("__v6_payload") or {}
+    if v6:
+        payload = {
+            **v6,
+            "intensity":        dominance.get("intensity"),
+            "active_categories": dominance.get("active_categories") or [],
+            "secondary_labels": [s.get("label") for s in (dominance.get("secondary_signals") or [])][:3],
+        }
+    else:
+        payload = {
+            "continuity":       is_continuity,
+            "signal_conflict":  conflict,
+            "dominant_type":    dom.get("type"),
+            "dominant_label":   dom.get("label"),
+            "intensity":        dominance.get("intensity"),
+            "house_hint":       _house_hint_from_signal(dom),
+            "active_categories": dominance.get("active_categories") or [],
+            "core_message_already_written": core_message,
+            "secondary_labels": [s.get("label") for s in (dominance.get("secondary_signals") or [])][:3],
+        }
 
     for attempt in range(MAX_LLM_RETRIES):
         try:
@@ -524,33 +543,126 @@ async def build_today_v5_payload(
     chart_doc: Optional[Dict[str, Any]],
     prior_day_payload: Optional[Dict[str, Any]] = None,
     dt: Optional[datetime] = None,
+    register: Optional[str] = None,
 ) -> Dict[str, Any]:
     dominance = build_dominance_payload(
         user_id, chart_doc, dt=dt, prior_day_payload=prior_day_payload,
     )
-    dom_type = (dominance.get("dominant_signal") or {}).get("type")
-    signal_conflict = bool(dominance.get("signal_conflict"))
 
+    # ── V6: scored ranking — picks dominant by score, not by tier-append order
+    # astrology-today-v6-scoring
+    ranking = v6_rank_candidates(
+        aspects=dominance.get("transit_natal_aspects") or [],
+        moon_phase=dominance.get("moon_phase") or {},
+        ingresses=dominance.get("ingresses") or [],
+        house_activations=dominance.get("house_activations") or {},
+        sky=dominance.get("sky") or {},
+    )
+    dominant_v6  = ranking["dominant"]
+    destab_v6    = ranking["destabilizer"]
+    amp_v6       = ranking["amplifier"]
+    ranked_all   = ranking["ranked_candidates"]
+
+    # ── V6: archetype lookup with optional operator-founder register
+    archetype_key = v6_match_archetype(dominant_v6)
+    archetype = V6_ARCHETYPES.get(archetype_key) if archetype_key else None
+    archetype = v6_apply_register(archetype_key, archetype, register)
+
+    # Build the core message from the matched archetype (NOT from a
+    # blanket _CONFLICT_CORE). Fall back to V5 archetype catalogue if
+    # the V6 transit-pair matcher had no entry for the dominant signal.
+    signal_conflict = bool(dominance.get("signal_conflict"))
     is_continuity = bool(
         prior_day_payload
         and prior_day_payload.get("signature_hash") == dominance["signature_hash"]
     )
 
-    # Section 1 — deterministic CORE MESSAGE
-    core_message = _core_message(dom_type, signal_conflict, is_continuity)
+    if archetype and archetype.get("core"):
+        core_message = archetype["core"]
+        archetype_source = f"v6_archetype:{archetype_key}"
+    else:
+        # V5 fallback — type-based archetype (still uses _SINGLE_CORE)
+        legacy_type = (dominance.get("dominant_signal") or {}).get("type") or \
+                      (dominant_v6 or {}).get("subtype")
+        core_message = _core_message(legacy_type, False, is_continuity)  # no conflict override
+        archetype_source = f"v5_fallback:{legacy_type}"
 
-    # Sections 2-4 — LLM with guardrails + regen loop
-    sections = await _call_llm_for_sections(dominance, core_message, is_continuity)
+    if is_continuity:
+        core_message = _CONTINUITY_WRAPPER + core_message
+
+    # If multi-category day, surface destabilizer + amplifier as a
+    # modifier line that lives ALONGSIDE the dominant — NOT replacing it.
+    conflict_modifier_line = ""
+    if signal_conflict and (destab_v6 or amp_v6):
+        bits = []
+        if amp_v6:
+            bits.append(f"The {amp_v6.get('label')} makes it more visible.")
+        if destab_v6:
+            bits.append(f"{destab_v6.get('label')} adds friction the day can mistake for the headline.")
+        conflict_modifier_line = " ".join(bits)
+
+    # ── V6: expanded LLM payload (transit identity passed through)
+    expanded_payload_for_llm = {
+        "continuity":      is_continuity,
+        "signal_conflict": signal_conflict,
+        "conflict_mode":   "modifier_not_override",
+        "register":        register,
+        "archetype_key":   archetype_key,
+        "archetype_theme": (archetype or {}).get("theme"),
+        "dominant": {
+            "label":          (dominant_v6 or {}).get("label"),
+            "type":           (dominant_v6 or {}).get("type"),
+            "transit_planet": (dominant_v6 or {}).get("transit_planet"),
+            "natal_point":    (dominant_v6 or {}).get("natal_point"),
+            "aspect":         (dominant_v6 or {}).get("aspect"),
+            "orb":            (dominant_v6 or {}).get("orb"),
+            "applying":       (dominant_v6 or {}).get("applying"),
+            "house":          (dominant_v6 or {}).get("house"),
+            "score":          (dominant_v6 or {}).get("score"),
+        },
+        "destabilizer": _summarize_for_llm(destab_v6),
+        "amplifier":    _summarize_for_llm(amp_v6),
+        "house_hint":   _house_hint_from_signal(dominant_v6),
+        "core_message_already_written": core_message,
+    }
+
+    # Sections 2-4 — LLM with guardrails + regen loop. Pass the v6
+    # expanded payload via the existing _call_llm_for_sections by
+    # synthesising a dominance-shaped dict it expects.
+    dominance_for_llm = dict(dominance)
+    dominance_for_llm["dominant_signal"] = dominant_v6
+    dominance_for_llm["secondary_signals"] = [
+        c for c in ranked_all[1:6]
+    ]
+    dominance_for_llm["__v6_payload"] = expanded_payload_for_llm
+    sections = await _call_llm_for_sections(
+        dominance_for_llm, core_message, is_continuity
+    )
     llm_used = sections is not None
     if not sections:
-        sections = _fallback_sections(dominance)
+        sections = _fallback_sections(dominance_for_llm)
 
-    # Assemble markdown body for any downstream consumer that just wants
-    # one string (the FE will read the structured `sections` instead).
+    # Use archetype's deterministic risk / move as a hard floor when
+    # the LLM dropped them (they should never be the generic V5 fallback
+    # for an archetype-matched day).
+    if archetype:
+        if not sections.get("the_risk") or len(sections["the_risk"]) < 12:
+            sections["the_risk"] = archetype.get("risk", sections.get("the_risk", ""))
+        mv = sections.get("the_move") or {}
+        if not mv.get("action") or len(mv["action"]) < 8:
+            mv["action"] = archetype.get("move", mv.get("action", ""))
+        if not mv.get("reflect"):
+            mv["reflect"] = (
+                f"What does {(archetype.get('theme') or 'this').split(',')[0]} "
+                f"actually look like in your day right now?"
+            )
+        sections["the_move"] = mv
+
     bullets_md = "\n".join(f"- {b}" for b in sections["how_it_shows_up"])
     body_md = (
-        f"{core_message}\n\n"
-        f"How this shows up:\n{bullets_md}\n\n"
+        f"{core_message}"
+        + (f"\n\n{conflict_modifier_line}" if conflict_modifier_line else "")
+        + f"\n\nHow this shows up:\n{bullets_md}\n\n"
         f"The risk:\n{sections['the_risk']}\n\n"
         f"The move:\n"
         f"Action — {sections['the_move']['action']}\n"
@@ -558,41 +670,51 @@ async def build_today_v5_payload(
     )
 
     return {
-        "user_id":          user_id,
-        "date":             (dt or datetime.now(timezone.utc)).strftime("%Y-%m-%d"),
-        "timestamp_utc":    dominance["timestamp_utc"],
-        "headline":         core_message,
-        "body_markdown":    body_md,
-        # New structured sections — consumed by the upcoming FE accordion.
+        "user_id":       user_id,
+        "date":          (dt or datetime.now(timezone.utc)).strftime("%Y-%m-%d"),
+        "timestamp_utc": dominance["timestamp_utc"],
+        "headline":      core_message,
+        "body_markdown": body_md,
         "sections": {
             "core_message":    core_message,
+            "conflict_modifier": conflict_modifier_line,
             "how_it_shows_up": sections["how_it_shows_up"],
             "the_risk":        sections["the_risk"],
             "the_move":        sections["the_move"],
         },
-        "intensity":            dominance["intensity"],
-        "signal_conflict":      signal_conflict,
-        "continuity":           is_continuity,
+        "intensity":              dominance["intensity"],
+        "signal_conflict":        signal_conflict,
+        "conflict_mode":          "modifier_not_override",
+        "continuity":             is_continuity,
         "why_today_is_different": dominance["why_today_is_different"],
-        "dominant_signal":      dominance["dominant_signal"],
+        # V6 surface for FE / debug
+        "dominant_signal":   dominant_v6,
+        "destabilizer":      destab_v6,
+        "amplifier":         amp_v6,
+        "archetype": {
+            "key":    archetype_key,
+            "source": archetype_source,
+            "theme":  (archetype or {}).get("theme"),
+            "register": register,
+        },
+        "ranked_candidates": ranked_all,
+        # Backward compat
         "secondary_signals":    dominance["secondary_signals"],
         "background_signals":   dominance["background_signals"],
         "signature_hash":       dominance["signature_hash"],
         "signature_changed":    dominance["signature_changed"],
         "why_this_is_showing_up": {
-            "dominant_signal":      dominance["dominant_signal"],
-            "secondary_signals":    dominance["secondary_signals"],
-            "background_signals":   dominance["background_signals"],
+            "dominant_signal":      dominant_v6,
+            "ranked_candidates":    ranked_all[:8],
+            "destabilizer":         destab_v6,
+            "amplifier":            amp_v6,
             "intensity":            dominance["intensity"],
             "signal_conflict":      signal_conflict,
             "active_categories":    dominance.get("active_categories") or [],
             "moon_phase":           dominance["moon_phase"],
             "tight_aspect_count":   dominance["tight_aspect_count"],
             "aspect_count":         dominance["aspect_count"],
-            # Outer-planet backdrop: surface the current sign of
-            # Uranus / Neptune / Pluto so the proof layer can render
-            # long-cycle context even when no ingress is in window.
-            "outer_backdrop":       [
+            "outer_backdrop": [
                 {
                     "planet": p,
                     "sign":   (((dominance.get("sky") or {}).get("bodies") or {}).get(p) or {}).get("sign"),
@@ -601,9 +723,26 @@ async def build_today_v5_payload(
                 for p in ("Uranus", "Neptune", "Pluto")
                 if ((dominance.get("sky") or {}).get("bodies") or {}).get(p, {}).get("sign")
             ],
+            "archetype_key":        archetype_key,
+            "archetype_source":     archetype_source,
         },
-        "llm_used":             llm_used,
+        "llm_used":      llm_used,
+        "engine_version": ENGINE_VERSION,
     }
+
+
+def _summarize_for_llm(cand: Optional[Dict[str, Any]]) -> Optional[Dict[str, Any]]:
+    if not cand:
+        return None
+    return {
+        "label":  cand.get("label"),
+        "type":   cand.get("type"),
+        "score":  cand.get("score"),
+        "orb":    cand.get("orb"),
+        "applying": cand.get("applying"),
+        "exact_in_hours": cand.get("exact_in_hours"),
+    }
+
 
 
 __all__ = [

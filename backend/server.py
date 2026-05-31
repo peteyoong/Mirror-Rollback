@@ -31368,6 +31368,26 @@ async def get_astrology_today_v5(user_id: str, force_refresh: bool = False) -> D
             user_id=user_id,
             chart_doc=chart,
             prior_day_payload=prior_payload,
+            register=(
+                # V6 register selection — defaults to operator_founder
+                # ONLY for explicitly opted-in users (pilot). Other users
+                # get the default (None) register and use the base
+                # transit-pair archetype.
+                (await db.users.find_one(
+                    {"_id": __import__('bson').ObjectId(user_id)},
+                    {"today_register": 1, "email": 1},
+                ) or {}).get("today_register")
+                or (
+                    "operator_founder"
+                    if (
+                        (await db.users.find_one(
+                            {"_id": __import__('bson').ObjectId(user_id)},
+                            {"email": 1},
+                        ) or {}).get("email") == "pete@pulsifi.me"
+                    )
+                    else None
+                )
+            ),
         )
 
         # Store for tomorrow's continuity pass — now stamped with the
