@@ -26,7 +26,16 @@ router = APIRouter(prefix="/api/admin", tags=["admin-gm-aligned"])
 
 ASTRO_ENGINE_VERSION = "gm-aligned-v1"
 HD_ENGINE_VERSION    = "gm-aligned-v1"
-CANONICAL_HOUSE_SYSTEM = "Placidus"
+# ---------------------------------------------------------------------------
+# FORENSIC V2 FREEZE (2026-05-31):
+# The previous fork's switch to Placidus was based on Ana's PDF only. Pete and
+# Mel's GM screenshots explicitly say "House: Equal". Therefore there is NO
+# evidence that GM uses Placidus universally — see
+# /app/memory/gm_forensic_audit_2026-05-31.md
+# Mirror's canonical default is reverted to Equal. Placidus remains an
+# OPTIONAL house system available via `house_system="Placidus"` on the engine.
+# ---------------------------------------------------------------------------
+CANONICAL_HOUSE_SYSTEM = "Equal"
 
 
 @router.get("/gm-forensic-ana")
@@ -188,7 +197,19 @@ _DERIVED_CACHE_COLLECTIONS = (
 
 # Tokens required to actually mutate data — guards against accidental
 # triggering of a destructive recompute on production.
-_RECOMPUTE_CONFIRM_TOKEN = "GM_PLACIDUS_RECOMPUTE_V1"
+#
+# FORENSIC V2 FREEZE (2026-05-31): the previous Placidus migration is FROZEN.
+# The old token ("GM_PLACIDUS_RECOMPUTE_V1") is intentionally rotated so any
+# previously-typed curl commands DO NOT mutate the database. A new token will
+# only be issued after the gm-true-sidereal-forensic-v2 investigation
+# concludes and the user explicitly approves.
+_RECOMPUTE_CONFIRM_TOKEN = "__FROZEN__GM_FORENSIC_V2_PENDING__"
+_MIGRATION_FROZEN = True
+_MIGRATION_FREEZE_REASON = (
+    "GM forensic audit (2026-05-31) showed Pete & Mel's GM charts are 'House: Equal'. "
+    "Universal Placidus migration is no longer justified. Awaiting gm-true-sidereal-forensic-v2 "
+    "outcome before any recompute is permitted. See /app/memory/gm_forensic_audit_2026-05-31.md"
+)
 
 
 def _parse_user_birth(u: Dict[str, Any]):
@@ -268,7 +289,22 @@ async def gm_aligned_recompute(
     from calculations.astrology import get_full_natal_chart
     from calculations.human_design import get_human_design_chart
 
-    will_write = (not dry_run) and (confirm == _RECOMPUTE_CONFIRM_TOKEN)
+    will_write = (
+        (not dry_run)
+        and (confirm == _RECOMPUTE_CONFIRM_TOKEN)
+        and (not _MIGRATION_FROZEN)
+    )
+
+    if _MIGRATION_FROZEN and not dry_run:
+        return {
+            "marker":   "gm-aligned-recompute-FROZEN",
+            "frozen":   True,
+            "reason":   _MIGRATION_FREEZE_REASON,
+            "dry_run":  dry_run,
+            "will_write": False,
+            "hint": "Pass dry_run=true to inspect candidate users without writing. "
+                    "Live recompute is disabled until forensic V2 concludes.",
+        }
 
     now = datetime.now(timezone.utc)
     summary: Dict[str, Any] = {
