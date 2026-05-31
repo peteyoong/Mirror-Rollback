@@ -280,18 +280,80 @@ async def get_member_lens_data(user_id: str) -> dict:
                     lens_data["astrology"]["moon"] = moon
 
                 # Rising (Ascendant)
-                houses = astro.get("houses", {})
-                if houses:
-                    rising_sign = houses.get("ascendant_sign")
-                    if not rising_sign:
-                        # If ascendant_sign not available, try to derive from degree
-                        asc_degree = houses.get("ascendant")
-                        if isinstance(asc_degree, (int, float)):
-                            # Convert degree to zodiac sign via global attribution mode.
-                            # Build marker: true-sidereal-midpoint-production-migration-v1
-                            from calculations.astrology import longitude_to_sign_degree as _lts
-                            rising_sign = _lts(float(asc_degree) % 360)["sign"]
-                    lens_data["astrology"]["rising"] = rising_sign
+                # ── FORENSIC FIX (astrology-lens-summary-rising-fix-v1) ──
+                # Mirror's astrology engine writes the Ascendant to
+                # astro.angles.asc.{sign,longitude} (since the True
+                # Sidereal-M migration). The earlier code path only
+                # looked at astro.houses.ascendant_sign /
+                # astro.houses.ascendant — which the current engine
+                # does NOT populate — so `rising_sign` always
+                # silently fell through to None, and the lens summary
+                # surface picked up a stale or fallback value.
+                #
+                # Source-of-truth order (most authoritative first):
+                #   1. astro.angles.asc.sign            ← canonical
+                #   2. astro.angles.ascendant.sign      ← legacy alias
+                #   3. astro.houses.ascendant_sign      ← legacy intake forms
+                #   4. derive from astro.angles.asc.longitude
+                #   5. derive from astro.houses.ascendant (legacy float)
+                rising_sign = None
+                rising_source = None
+                rising_asc_longitude = None
+
+                angles = (astro.get("angles") or {})
+                asc_node = angles.get("asc") or angles.get("ascendant") or {}
+                if isinstance(asc_node, dict) and asc_node.get("sign"):
+                    rising_sign   = asc_node.get("sign")
+                    rising_source = "astro.angles.asc.sign"
+                    rising_asc_longitude = asc_node.get("longitude")
+
+                houses = astro.get("houses", {}) or {}
+                if not rising_sign and houses.get("ascendant_sign"):
+                    rising_sign   = houses.get("ascendant_sign")
+                    rising_source = "astro.houses.ascendant_sign (legacy)"
+
+                if not rising_sign:
+                    asc_deg = (
+                        (asc_node.get("longitude") if isinstance(asc_node, dict) else None)
+                        or houses.get("ascendant")
+                    )
+                    if isinstance(asc_deg, (int, float)):
+                        from calculations.astrology import longitude_to_sign_degree as _lts
+                        rising_sign = _lts(float(asc_deg) % 360)["sign"]
+                        rising_source = "derived from longitude"
+                        rising_asc_longitude = float(asc_deg)
+
+                lens_data["astrology"]["rising"] = rising_sign
+
+                # ── Forensic debug payload (always populated) ───────
+                # astrology-lens-summary-debug-v1
+                from datetime import datetime, timezone as _tz
+                lens_data["astrology"]["_debug"] = {
+                    "summary_string": " · ".join(
+                        f"{(lens_data['astrology'].get(k) or '?').title()} {label}"
+                        for k, label in (("sun", "Sun"), ("moon", "Moon"), ("rising", "Rising"))
+                        if lens_data["astrology"].get(k)
+                    ),
+                    "summary_sun_source":     "astro.planets.Sun.sign",
+                    "summary_moon_source":    "astro.planets.Moon.sign",
+                    "summary_rising_source":  rising_source,
+                    "asc_from_angles":        (asc_node.get("sign") if isinstance(asc_node, dict) else None),
+                    "asc_longitude":          rising_asc_longitude,
+                    "stored_houses_ascendant_sign":  houses.get("ascendant_sign"),
+                    "stored_houses_ascendant_deg":   houses.get("ascendant"),
+                    "stored_angles_keys":     list(angles.keys()) if isinstance(angles, dict) else [],
+                    "stored_houses_keys":     list(houses.keys()) if isinstance(houses, dict) else [],
+                    "chart_engine_version":   (astro.get("metadata") or {}).get("computation_version"),
+                    "chart_sidereal_mode":    (astro.get("metadata") or {}).get("sidereal_mode"),
+                    "chart_house_system":     (astro.get("metadata") or {}).get("house_system"),
+                    "birth_input_used": {
+                        "utc":  (astro.get("metadata") or {}).get("input_datetime_utc"),
+                        "lat":  ((astro.get("metadata") or {}).get("coordinates") or {}).get("lat"),
+                        "lon":  ((astro.get("metadata") or {}).get("coordinates") or {}).get("lon"),
+                    },
+                    "summary_generated_at":   datetime.now(_tz.utc).isoformat(),
+                    "fix_build_marker":       "astrology-lens-summary-rising-fix-v1",
+                }
 
                 # Calculate dominant element and modality from planets
                 element_counts = {"Fire": 0, "Earth": 0, "Air": 0, "Water": 0}
