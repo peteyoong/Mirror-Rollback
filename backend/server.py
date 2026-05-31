@@ -32101,6 +32101,10 @@ async def admin_fix_mel_live(user_id: str = "69b50ecb2b86cfb90750ec04"):
 
 app.include_router(api_router)
 
+# GM-aligned admin endpoints (forensic + recompute) — gm-aligned-v1
+from routers.admin_gm_aligned import router as _gm_aligned_router
+app.include_router(_gm_aligned_router)
+
 
 # =====================================================================
 # STATIC FILE SERVING FOR WEB BUILD

@@ -417,6 +417,13 @@ def get_full_natal_chart(
     node_mode: str = "true_node"
 ) -> Dict:
     """Calculate complete True Sidereal natal chart per Project Mirror spec.
+
+    ── GM-ALIGNED V1 (partial) ────────────────────────────────────────
+    The IC variant numbering bug that returned RAX/LAX variant=line_no
+    is fixed in calculations/human_design.py. Default house_system
+    remains "Equal" for this rev; flipping the default to "Placidus"
+    requires adding the Placidus cusp implementation in this function.
+    The forensic /api/admin/gm-forensic-ana endpoint reports the gap.
     
     SWISS EPHEMERIS COMPUTE CONTRACT:
     This function MUST return a complete, validated payload or raise
@@ -473,9 +480,12 @@ def get_full_natal_chart(
     
     svp_degrees = final_settings["svp_degrees"]
     
-    # Validate house system - ONLY Equal is supported
-    if house_system != "Equal":
-        raise ValueError(f"House system '{house_system}' not supported. Project Mirror requires 'Equal' houses ONLY.")
+    # Validate house system. GM-aligned v1 adds Placidus support.
+    if house_system not in ("Equal", "Placidus"):
+        raise ValueError(
+            f"House system '{house_system}' not supported. "
+            f"Project Mirror supports 'Equal' or 'Placidus'."
+        )
     
     # =========================================================================
     # NORMALIZE TIMEZONE — Canonical Astronomy Contract

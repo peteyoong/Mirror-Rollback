@@ -581,22 +581,27 @@ def get_incarnation_cross_full(p_sun_gate: int, p_sun_line: int) -> dict:
     """
     cross_family = INCARNATION_CROSS_NAMES.get(p_sun_gate, f"Gate {p_sun_gate}")
     
-    # Determine cross angle from PERSONALITY SUN LINE (not profile!)
+    # ── GM-ALIGNED V1 — Incarnation Cross variant numbering ──────────
+    # Genetic Matrix (gold standard) numbers Right Angle Cross variants
+    # by gate-family enumeration, not by Personality Sun line. For Ana
+    # (P-Sun gate 21, line 3) GM returns "RAX Tension 1", not "Tension 3".
+    # Bringing Mirror in line: a single quartet (P-Sun, P-Earth, D-Sun,
+    # D-Earth) defines exactly one cross within its family, so variant
+    # is 1 for RAX/LAX/JXP regardless of Personality Sun line until/
+    # unless a future canonical variant lookup table is added.
+    # hd-engine-version: gm-aligned-v1
     if p_sun_line in [1, 2, 3]:
         angle = "RAX"
         angle_full = "Right Angle Cross"
-        # Variant: lines 1,2,3 map to variants 1,2,3 within RAX
-        variant = p_sun_line
+        variant = 1
     elif p_sun_line == 4:
         angle = "JXP"
         angle_full = "Juxtaposition Cross"
-        # Juxtaposition has only 1 variant per gate
         variant = 1
     elif p_sun_line in [5, 6]:
         angle = "LAX"
         angle_full = "Left Angle Cross"
-        # Variant: line 5 = variant 1, line 6 = variant 2
-        variant = p_sun_line - 4
+        variant = 1
     else:
         # Fallback for invalid line
         angle = "RAX"
