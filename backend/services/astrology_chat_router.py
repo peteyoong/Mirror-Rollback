@@ -175,6 +175,128 @@ _POSITIONAL_RE = re.compile(
     re.IGNORECASE,
 )
 
+# ---------------------------------------------------------------------------
+# Lifecycle queries — "tell me about my Saturn return", "when does my Chiron
+# return", "am I in midlife", "nodal opposition"…
+# astrology-lifecycle-v1
+#
+# Each pattern maps to an `event_key` known by services.lifecycle_engine.
+# The router collects every matched key, plus detects whether the user is
+# asking PERSONALLY ("my", "for me", "in my chart", "when does X happen
+# to me") vs CONCEPTUALLY ("what is", "explain", "tell me about saturn
+# returns in general"). The downstream proof-block builder uses this to
+# pick its instruction set.
+# ---------------------------------------------------------------------------
+_LIFECYCLE_EVENT_PATTERNS: list[tuple[str, str]] = [
+    # (event_key, regex)
+    ("saturn_return",          r"saturn\s+return"),
+    ("saturn_opposition",      r"saturn\s+opp(osition|osite)\s+saturn|"
+                               r"saturn.{0,8}opp(osition|osite)"),
+    ("saturn_square_saturn",   r"saturn\s+sq(uare|uares)\s+saturn"),
+    ("jupiter_return",         r"jupiter\s+return"),
+    ("jupiter_opposition",     r"jupiter\s+opp(osition|osite)"),
+    ("uranus_opposition",      r"uranus\s+opp(osition|osite)|midlife\s+(uprising|crisis)"),
+    ("uranus_return",          r"uranus\s+return"),
+    ("neptune_square_neptune", r"neptune\s+sq(uare|uares)\s+neptune|neptune\s+square"),
+    ("pluto_square_pluto",     r"pluto\s+sq(uare|uares)\s+pluto|pluto\s+square"),
+    ("chiron_return",          r"chiron\s+return"),
+    ("nodal_return",           r"nodal\s+return|north\s+node\s+return"),
+    ("nodal_opposition",       r"nodal\s+opp(osition|osite)|north\s+node\s+opp(osition|osite)"),
+    ("progressed_lunation",    r"progressed\s+lunation|progressed\s+(new|full)\s+moon|"
+                               r"secondary\s+progressed\s+moon|progressed\s+moon\s+return"),
+    ("midlife_cluster",        r"\bmidlife\b(?!\s+(uprising|crisis))"),
+    # Annual / monthly returns — light support; engine handles them too
+    ("mars_return",            r"mars\s+return"),
+    ("venus_return",           r"venus\s+return"),
+]
+_LIFECYCLE_RES = [(k, re.compile(p, re.IGNORECASE)) for k, p in _LIFECYCLE_EVENT_PATTERNS]
+
+# Personal phrasing — implies "answer the person before the concept".
+_LIFECYCLE_PERSONAL_RE = re.compile(
+    r"\b(my\b|mine\b|for\s+me\b|in\s+my\s+chart|in\s+my\s+life|when\s+(does|did|will|is)\s+(my\s+|this\s+happen)|"
+    r"am\s+i\s+(in|during|before|after)|"
+    r"where\s+am\s+i\s+in\s+my|what\s+stage\s+of\s+(my\s+)?)\b",
+    re.IGNORECASE,
+)
+# Pure conceptual phrasing — "what is X / explain X in general"
+_LIFECYCLE_CONCEPT_ONLY_RE = re.compile(
+    r"\b(what\s+is(?:\s+a)?|what(?:'s|s)?\s+a|explain|define|generally|in\s+general)\b",
+    re.IGNORECASE,
+)
+
+# Follow-up phrasing — "when does that happen", "and when is it", "what about
+# for me", "show me the dates". These imply we should reuse the lifecycle
+# event from the previous turn.
+_LIFECYCLE_FOLLOWUP_RE = re.compile(
+    r"\b(and\s+when|when\s+(does|did|will|is)\s+(that|this|it)|"
+    r"what\s+about\s+(for\s+me|me|that)|"
+    r"show\s+me\s+the\s+dates?|"
+    r"give\s+me\s+the\s+dates?|"
+    r"in\s+my\s+chart)\b",
+    re.IGNORECASE,
+)
+
+
+def _detect_lifecycle(text: str, history: list | None = None) -> Optional[Dict[str, Any]]:
+    """Return a lifecycle envelope or None.
+
+    {
+        "data_mode":    "lifecycle",
+        "event_keys":   ["saturn_return", ...],
+        "phrasing":     "personal" | "concept" | "concept_no_anchor",
+        "followup":     bool,
+        "natural_form": <original text>,
+    }
+
+    `history` (optional) is a list of recent {role, content} dicts. When
+    the user message has follow-up phrasing ("and when does that happen",
+    "when is that", "what about for me") without a specific event keyword,
+    the most recently mentioned lifecycle event in the assistant/user
+    history is reused.
+    """
+    keys: list[str] = []
+    for k, rgx in _LIFECYCLE_RES:
+        if rgx.search(text):
+            keys.append(k)
+
+    is_followup = bool(_LIFECYCLE_FOLLOWUP_RE.search(text))
+
+    if not keys and is_followup and history:
+        # Scan recent turns (newest first) for any lifecycle event keyword
+        for turn in reversed(history[-10:]):
+            content = (turn.get("content") if isinstance(turn, dict) else "") or ""
+            for k, rgx in _LIFECYCLE_RES:
+                if rgx.search(content):
+                    keys.append(k)
+                    break
+            if keys:
+                break
+
+    if not keys:
+        return None
+
+    is_personal = bool(_LIFECYCLE_PERSONAL_RE.search(text))
+    is_concept  = bool(_LIFECYCLE_CONCEPT_ONLY_RE.search(text))
+    if is_followup:
+        # Follow-up to a prior personal turn always personalizes.
+        phrasing = "personal"
+    elif is_personal:
+        phrasing = "personal"
+    elif is_concept and not is_personal:
+        phrasing = "concept_no_anchor"
+    else:
+        phrasing = "personal"
+    if is_concept and is_personal:
+        phrasing = "concept"
+
+    return {
+        "data_mode":    "lifecycle",
+        "event_keys":   keys,
+        "phrasing":     phrasing,
+        "followup":     is_followup,
+        "natural_form": text,
+    }
+
 
 def _extract_body(text: str) -> Optional[str]:
     """Return the first canonical body name mentioned in the text."""
@@ -184,12 +306,18 @@ def _extract_body(text: str) -> Optional[str]:
     return resolve_object_name(m.group(0))
 
 
-def classify_astrology_intent(message: str) -> Optional[Dict[str, Any]]:
+def classify_astrology_intent(
+    message: str,
+    history: list | None = None,
+) -> Optional[Dict[str, Any]]:
     """Classify an incoming astrology-lens message.
 
     Returns a dict with at minimum:
         { "data_mode": <str>, "object": Optional[str], "natural_form": <str> }
     or None if no deterministic mode matched (caller stays on free-form chat).
+
+    `history` (optional) is a list of recent {role, content} dicts used to
+    resolve lifecycle follow-up phrasing such as "and when does that happen?".
     """
     if not message or not isinstance(message, str):
         return None
@@ -206,6 +334,18 @@ def classify_astrology_intent(message: str) -> Optional[Dict[str, Any]]:
     natal_obj_body_match = _NATAL_OBJECT_BODIES_RE.search(text)
     has_natal_obj_trigger = bool(_NATAL_OBJECT_TRIGGER_RE.search(text))
     house_match = _HOUSE_INVENTORY_RE.search(text)
+
+    # ── lifecycle (Saturn return / Chiron return / Nodal / Uranus opp …) ──
+    # astrology-lifecycle-v1
+    # P0 trust path. Must run BEFORE solar_return / transit_to_natal /
+    # natal_object so a question like "tell me about my Saturn return"
+    # cannot be misrouted to the transit-to-natal engine (which would
+    # answer "Saturn transiting your Saturn" without the cycle-position
+    # framing) or to natal_object (which would just describe natal
+    # Saturn in sign and house).
+    lifecycle_intent = _detect_lifecycle(text, history=history)
+    if lifecycle_intent:
+        return lifecycle_intent
 
     # ── house_inventory ────────────────────────────────────────────────
     # Catches: "tell me about my 3rd house", "what's in my 10th house",
@@ -405,4 +545,5 @@ __all__ = [
     "classify_astrology_intent",
     "build_transit_object_proof_block",
     "build_transit_object_user_facing_prefix",
+    "_detect_lifecycle",
 ]

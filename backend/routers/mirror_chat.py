@@ -975,7 +975,7 @@ NOT: "I opened a generic chat"
                     from services.astrology_chat_router import (
                         classify_astrology_intent as _cls_v7,
                     )
-                    _astro_v7_intent_preview = _cls_v7(request.message or "")
+                    _astro_v7_intent_preview = _cls_v7(request.message or "", history=history)
                 except Exception as _v7_cls_err:
                     logger.debug(f"[AskMirrorV7] classifier skipped: {_v7_cls_err}")
 
@@ -1220,7 +1220,7 @@ NOT: "I opened a generic chat"
                                 f"intent={_astro_v7_intent_preview!r}"
                             )
 
-                        grounded_intent = classify_astrology_intent(request.message)
+                        grounded_intent = classify_astrology_intent(request.message, history=history)
                         if grounded_intent:
                             mode_label = grounded_intent["data_mode"]
                             obj_name = grounded_intent.get("object")
@@ -1357,6 +1357,93 @@ NOT: "I opened a generic chat"
                                         f"[FieldSynthesisV8] skipped: {_v8_err}"
                                     )
                                 # let the LLM synthesize from the proof block
+
+                            # ── lifecycle branch ───────────────────────────────
+                            # astrology-lifecycle-v1
+                            # P0 trust: "tell me about my Saturn return" must
+                            # locate THIS user in their actual cycle, not
+                            # explain the textbook concept.
+                            elif mode_label == "lifecycle":
+                                from services.lifecycle_engine import (
+                                    compute_lifecycle,
+                                    build_lifecycle_proof_block,
+                                )
+                                # Resolve birth UTC. Chart metadata stores it
+                                # under `input_datetime_utc` (ISO, naive UTC).
+                                # The chart object can be either a raw chart
+                                # (with .metadata at top level) or the user-
+                                # document wrapper (with .astrology.metadata).
+                                from datetime import datetime as _dt, timezone as _tz
+                                _astro_inner = (
+                                    (_astro_chart or {}).get("astrology")
+                                    or _astro_chart
+                                    or {}
+                                )
+                                _md = _astro_inner.get("metadata") or {}
+                                _bu_raw = (
+                                    _md.get("input_datetime_utc")
+                                    or _md.get("birth_utc")
+                                )
+                                _birth_utc = None
+                                if isinstance(_bu_raw, str):
+                                    try:
+                                        _birth_utc = _dt.fromisoformat(
+                                            _bu_raw.replace("Z", "+00:00")
+                                        )
+                                        if _birth_utc.tzinfo is None:
+                                            _birth_utc = _birth_utc.replace(tzinfo=_tz.utc)
+                                    except Exception:
+                                        _birth_utc = None
+                                elif isinstance(_bu_raw, _dt):
+                                    _birth_utc = (
+                                        _bu_raw if _bu_raw.tzinfo
+                                        else _bu_raw.replace(tzinfo=_tz.utc)
+                                    )
+
+                                if _birth_utc is None:
+                                    # Cannot compute lifecycle without birth UTC
+                                    astro_chat_debug["lifecycle_skipped"] = "no_birth_utc"
+                                    logger.warning("[Lifecycle] skipped: no birth_utc in chart metadata")
+                                else:
+                                    lc_keys = grounded_intent.get("event_keys") or None
+                                    # "midlife_cluster" virtual key expands to
+                                    # the three midlife events
+                                    if lc_keys and "midlife_cluster" in lc_keys:
+                                        lc_keys = [k for k in lc_keys if k != "midlife_cluster"]
+                                        lc_keys += [
+                                            "uranus_opposition",
+                                            "neptune_square_neptune",
+                                            "pluto_square_pluto",
+                                            "chiron_return",
+                                        ]
+                                    # Deduplicate while preserving order
+                                    lc_keys = list(dict.fromkeys(lc_keys)) if lc_keys else None
+
+                                    lc_env = compute_lifecycle(
+                                        chart=_astro_inner,
+                                        birth_utc=_birth_utc,
+                                        event_keys=lc_keys,
+                                    )
+                                    astro_chat_debug["lifecycle_success"] = bool(
+                                        lc_env.get("success")
+                                    )
+                                    astro_chat_debug["lifecycle_events_requested"] = lc_keys
+                                    astro_chat_debug["lifecycle_active"] = list(
+                                        (lc_env.get("active_by_key") or {}).keys()
+                                    )
+                                    if lc_env.get("success"):
+                                        astro_chat_debug["astro_sources_used"].append(
+                                            "lifecycle_engine"
+                                        )
+                                    phrasing = grounded_intent.get("phrasing", "personal")
+                                    system_prompt += "\n\n" + build_lifecycle_proof_block(
+                                        lc_env, user_phrasing_mode=phrasing
+                                    )
+                                    logger.info(
+                                        f"[Lifecycle] keys={lc_keys} "
+                                        f"phrasing={phrasing} "
+                                        f"active={list((lc_env.get('active_by_key') or {}).keys())}"
+                                    )
 
                             # ── solar_return branch ────────────────────────────
                             # astrology-chat-grounding-v2
