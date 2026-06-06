@@ -51,29 +51,14 @@ async def main():
     if not aspects:
         print("  (no aspects within orb)")
         return
-    print(f"Aspects within orb ({len(aspects)} total):")
-    print(f"{'#':>2}  {'transit':10} {'aspect':12} {'natal':14} {'orb°':>6} {'days_to_exact':>13} {'score':>6}  nature")
-    for i, a in enumerate(sorted(aspects, key=lambda x: -x['score']), 1):
+    print(f"Aspects within orb ({len(aspects)} total) — POST RANKING PATCH:")
+    print(f"{'#':>2}  {'transit':10} {'aspect':12} {'natal':14} {'orb°':>6} {'days_to_exact':>13}  {'score':>6}  {'demoted':>8}  nature")
+    for i, a in enumerate(aspects, 1):
         body = a['transit_planet']
         asp_name = a['aspect']
-        angle = next(k for k,v in ASPECT_TABLE.items() if v['name']==asp_name)
-        # Need TROPICAL for swisseph scan
-        nat_trop = natal[a['natal_planet']].get("tropical_longitude")
-        if nat_trop is None:
-            # Use sidereal + SVP
-            nat_trop = (natal[a['natal_planet']]["longitude"] + 31.2836) % 360
-        from services.lifecycle_engine import _scan_transit_passes, _jd_to_iso
-        jd_now = swe.julday(now.year, now.month, now.day, 0.0)
-        passes_pos = _scan_transit_passes(body, nat_trop,  angle, jd_now-90, jd_now+90, step_days=2.0)
-        passes_neg = _scan_transit_passes(body, nat_trop, -angle, jd_now-90, jd_now+90, step_days=2.0) if angle not in (0,180) else []
-        all_passes = sorted(passes_pos + passes_neg)
-        if all_passes:
-            nearest = min(all_passes, key=lambda j: abs(j - jd_now))
-            days_to = nearest - jd_now
-            exact_iso = _jd_to_iso(nearest)[:10]
-        else:
-            days_to = float('nan')
-            exact_iso = "n/a"
-        print(f"{i:2}  {a['transit_planet']:10} {asp_name:12} {a['natal_planet']:14} {a['orb']:6.2f} {days_to:+9.1f} ({exact_iso}) {a['score']:6.3f}  {a['nature']}")
+        dte = a.get('days_to_exact')
+        dte_s = f"{dte:+8.1f}" if dte is not None else "    n/a "
+        dem = "Y" if a.get('future_demoted') else "-"
+        print(f"{i:2}  {a['transit_planet']:10} {asp_name:12} {a['natal_planet']:14} {a['orb']:6.2f} {dte_s}      {a['score']:6.3f}  {dem:>8}  {a['nature']}")
 
 asyncio.run(main())

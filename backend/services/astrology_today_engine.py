@@ -242,10 +242,25 @@ def get_current_transits(dt: Optional[datetime] = None) -> Dict[str, Dict]:
 def compute_transit_natal_aspects(
     transit_positions: Dict[str, Dict],
     natal_planets: Dict[str, Dict],
+    *,
+    today_utc: Optional[datetime] = None,
+    apply_future_demote: bool = True,
 ) -> List[Dict]:
-    """Compute transit-to-natal aspects, scored by strength."""
+    """Compute transit-to-natal aspects, scored by strength.
+
+    ranking-future-demote-v1 (2026-06-06)
+    -------------------------------------
+    Each aspect is annotated with a signed ``days_to_exact`` (negative =
+    past, positive = future). After the default score-sort, aspects whose
+    *exact* date is more than 7 days in the future are **demoted** below
+    every aspect whose exact date is within ±2 days, but **kept in the
+    list** so they remain visible in the signal map / accordion.
+
+    Pure ranking tweak — no natal math, no ayanamsa, no house change.
+    See `/app/memory/mel_transit_forensic_2026-06-06.md`.
+    """
     aspects = []
-    
+
     for t_name, t_data in transit_positions.items():
         t_lon = t_data['longitude']
         for n_name, n_data in natal_planets.items():
@@ -254,20 +269,20 @@ def compute_transit_natal_aspects(
             n_lon = n_data.get('longitude', 0)
             if not n_lon:
                 continue
-            
+
             # Check each aspect type
             for angle, asp_info in ASPECT_TYPES.items():
                 diff = abs(t_lon - n_lon) % 360
                 if diff > 180:
                     diff = 360 - diff
-                
+
                 orb = abs(diff - angle)
                 if orb <= asp_info['orb']:
                     # Score: tighter orb + heavier planets = stronger
                     orb_score = 1.0 - (orb / asp_info['orb'])
                     planet_score = (PLANET_WEIGHT.get(t_name, 5) + PLANET_WEIGHT.get(n_name, 5)) / 20.0
                     total_score = orb_score * asp_info['weight'] * planet_score
-                    
+
                     aspects.append({
                         'transit_planet': t_name,
                         'natal_planet': n_name,
@@ -277,10 +292,87 @@ def compute_transit_natal_aspects(
                         'score': round(total_score, 3),
                         'transit_sign': t_data['sign'],
                         'natal_sign': n_data.get('sign', '?'),
+                        # ranking-future-demote-v1: filled in below
+                        'days_to_exact': None,
+                        'future_demoted': False,
                     })
-    
-    # Sort by score descending
+
+    # ── days_to_exact computation (ranking-future-demote-v1) ────────────
+    if aspects:
+        now = today_utc or datetime.now(timezone.utc)
+        try:
+            from services.lifecycle_engine import _scan_transit_passes
+            jd_now = swe.julday(now.year, now.month, now.day,
+                                 now.hour + now.minute / 60.0)
+            for a in aspects:
+                nat = natal_planets.get(a['natal_planet']) or {}
+                nat_trop = nat.get('tropical_longitude')
+                if nat_trop is None:
+                    # Fall back: sidereal + SVP
+                    nat_trop = (nat.get('longitude', 0.0) + 31.2836) % 360.0
+                # Resolve aspect angle from name (faster than dict lookup
+                # below for a small fixed set)
+                aspect_angle = next(
+                    (k for k, v in ASPECT_TYPES.items() if v['name'] == a['aspect']),
+                    None,
+                )
+                if aspect_angle is None:
+                    continue
+                passes_pos = _scan_transit_passes(
+                    body=a['transit_planet'], target_long=nat_trop,
+                    offset_deg=aspect_angle,
+                    jd_start=jd_now - 90.0, jd_end=jd_now + 90.0,
+                    step_days=2.0,
+                )
+                passes_neg: List[float] = []
+                if aspect_angle not in (0.0, 180.0):
+                    passes_neg = _scan_transit_passes(
+                        body=a['transit_planet'], target_long=nat_trop,
+                        offset_deg=-aspect_angle,
+                        jd_start=jd_now - 90.0, jd_end=jd_now + 90.0,
+                        step_days=2.0,
+                    )
+                all_p = sorted(passes_pos + passes_neg)
+                if all_p:
+                    nearest = min(all_p, key=lambda j: abs(j - jd_now))
+                    a['days_to_exact'] = round(nearest - jd_now, 1)
+        except Exception as e:
+            logger.warning(
+                f"[TodayRank] days_to_exact computation skipped: {e}"
+            )
+
+    # Sort by score descending (default behaviour preserved)
     aspects.sort(key=lambda x: -x['score'])
+
+    # ── future-exact demotion rule (ranking-future-demote-v1) ──────────
+    # If any aspect exact within ±2 days exists, demote every aspect
+    # whose exact is >7 days in the future BELOW the "near-exact" group,
+    # while preserving relative order inside each bucket.
+    if apply_future_demote and aspects:
+        near_exact = [
+            a for a in aspects
+            if a.get('days_to_exact') is not None
+            and abs(a['days_to_exact']) <= 2.0
+        ]
+        if near_exact:
+            FUTURE_THRESHOLD = 7.0
+            high_priority: List[Dict] = []
+            demoted:       List[Dict] = []
+            others:        List[Dict] = []
+            for a in aspects:
+                dte = a.get('days_to_exact')
+                if dte is not None and dte > FUTURE_THRESHOLD:
+                    a['future_demoted'] = True
+                    demoted.append(a)
+                else:
+                    high_priority.append(a)
+            # Preserve score-order within each bucket
+            aspects = high_priority + demoted
+            logger.info(
+                f"[TodayRank] future-demote-v1: demoted={len(demoted)} "
+                f"near_exact={len(near_exact)} total={len(aspects)}"
+            )
+
     return aspects
 
 
