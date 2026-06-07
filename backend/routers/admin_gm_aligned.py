@@ -27,15 +27,18 @@ router = APIRouter(prefix="/api/admin", tags=["admin-gm-aligned"])
 ASTRO_ENGINE_VERSION = "gm-aligned-v1"
 HD_ENGINE_VERSION    = "gm-aligned-v1"
 # ---------------------------------------------------------------------------
-# FORENSIC V2 FREEZE (2026-05-31):
+# FORENSIC V2 FREEZE (2026-05-31)  +  house-system-source-of-truth-v1 (2026-06-07):
 # The previous fork's switch to Placidus was based on Ana's PDF only. Pete and
 # Mel's GM screenshots explicitly say "House: Equal". Therefore there is NO
 # evidence that GM uses Placidus universally — see
 # /app/memory/gm_forensic_audit_2026-05-31.md
-# Mirror's canonical default is reverted to Equal. Placidus remains an
-# OPTIONAL house system available via `house_system="Placidus"` on the engine.
+# Mirror's canonical default is "Equal". Placidus remains an OPTIONAL house
+# system available via `house_system="Placidus"` on the engine.
+#
+# Source of truth: imported from calculations.astrology — the ONLY place
+# in the codebase that should declare the canonical value.
 # ---------------------------------------------------------------------------
-CANONICAL_HOUSE_SYSTEM = "Equal"
+from calculations.astrology import CANONICAL_HOUSE_SYSTEM  # noqa: E402, F401
 
 
 @router.get("/gm-forensic-ana")
@@ -352,7 +355,13 @@ async def gm_aligned_recompute(
             continue
 
         try:
-            chart = get_full_natal_chart(birth_datetime=utc, lat=lat, lon=lon)
+            # house-system-source-of-truth-v1: defence in depth — pass the
+            # canonical constant explicitly even though the function default
+            # now resolves to the same value.
+            chart = get_full_natal_chart(
+                birth_datetime=utc, lat=lat, lon=lon,
+                house_system=CANONICAL_HOUSE_SYSTEM,
+            )
             hd    = get_human_design_chart(birth_datetime=utc, lat=lat, lon=lon)
             await db.charts.update_one(
                 {"user_id": uid},

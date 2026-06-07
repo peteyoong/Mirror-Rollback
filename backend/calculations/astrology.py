@@ -74,6 +74,24 @@ swe.set_sid_mode(swe.SIDM_USER, J2000_EPOCH, SVP_DEGREES)
 CALC_FLAGS_SIDEREAL = swe.FLG_SWIEPH | swe.FLG_SIDEREAL
 CALC_FLAGS_TROPICAL = swe.FLG_SWIEPH  # For tropical-only calculations
 
+# ---------------------------------------------------------------------------
+# CANONICAL HOUSE SYSTEM — Single source of truth.
+# Build marker: house-system-source-of-truth-v1  (2026-06-07)
+#
+# This constant is the ONLY place in the codebase that decides Mirror's
+# default house system. Every callsite that previously relied on an implicit
+# function default (which historically was "Placidus") now picks this value
+# up by way of `get_full_natal_chart(..., house_system=CANONICAL_HOUSE_SYSTEM)`
+# in its parameter signature.
+#
+# Placidus remains a valid OPT-IN value — pass `house_system="Placidus"`
+# explicitly when you need it (forensic comparisons, future per-user
+# preference, etc.). Do NOT change this constant without an explicit
+# product decision; flipping it back to Placidus would silently change the
+# computed houses for every chart in the system.
+# ---------------------------------------------------------------------------
+CANONICAL_HOUSE_SYSTEM = "Equal"
+
 # Planet constants
 PLANETS = {
     'Sun': swe.SUN,
@@ -413,7 +431,7 @@ def get_full_natal_chart(
     lat: float,
     lon: float,
     sidereal_settings: Optional[Dict] = None,
-    house_system: str = "Placidus",
+    house_system: str = CANONICAL_HOUSE_SYSTEM,
     node_mode: str = "true_node"
 ) -> Dict:
     """Calculate complete True Sidereal natal chart per Project Mirror spec.

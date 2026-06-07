@@ -23,7 +23,7 @@ from typing import Tuple
 import re
 
 # Import calculation engines
-from calculations.astrology import get_full_natal_chart, close_ephemeris, ComputeIntegrityError
+from calculations.astrology import get_full_natal_chart, close_ephemeris, ComputeIntegrityError, CANONICAL_HOUSE_SYSTEM
 from calculations.human_design import get_human_design_chart, get_incarnation_cross_interpretation
 from llm_model_config import get_primary_model, get_fallback_model
 from calculations.gene_keys import get_gene_keys_sequences
@@ -27438,7 +27438,11 @@ async def fix_deployed_data():
                 # Recompute astrology if SVP wrong
                 if svp != 31.2836:
                     try:
-                        astro = get_full_natal_chart(birth_dt, lat, lon)
+                        # house-system-source-of-truth-v1: explicit canonical
+                        astro = get_full_natal_chart(
+                            birth_dt, lat, lon,
+                            house_system=CANONICAL_HOUSE_SYSTEM,
+                        )
                         if astro:
                             update["astrology"] = astro
                     except Exception as e:
@@ -32032,7 +32036,11 @@ async def admin_fix_mel_live(user_id: str = "69b50ecb2b86cfb90750ec04"):
         bazi_chart = None
         hd_chart = None
         try:
-            astro_chart = get_full_natal_chart(birth_dt, 2.1896, 102.2501)
+            # house-system-source-of-truth-v1: explicit canonical
+            astro_chart = get_full_natal_chart(
+                birth_dt, 2.1896, 102.2501,
+                house_system=CANONICAL_HOUSE_SYSTEM,
+            )
         except Exception as e:
             logger.warning(f"[admin/fix_mel_live] astro recompute failed: {e}")
         try:
@@ -32731,7 +32739,11 @@ async def run_startup_data_migrations():
                     birth_dt = datetime(year, month, day, hour, minute)
                 
                 try:
-                    astro_chart = get_full_natal_chart(birth_dt, float(lat), float(lon))
+                    # house-system-source-of-truth-v1: explicit canonical
+                    astro_chart = get_full_natal_chart(
+                        birth_dt, float(lat), float(lon),
+                        house_system=CANONICAL_HOUSE_SYSTEM,
+                    )
                 except Exception:
                     astro_chart = None
                 try:
