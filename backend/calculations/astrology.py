@@ -953,7 +953,11 @@ def get_full_natal_chart(
         # Metadata block (includes node_mode as required)
         'metadata': {
             'node_mode': node_mode,
-            'house_system': "Equal",
+            # house-system-source-of-truth-v1 metadata fix (2026-06-07):
+            # Stamp the ACTUAL house_system that was used to compute this chart.
+            # Previously this was hard-coded "Equal" so charts requested with
+            # explicit house_system="Placidus" were silently mislabelled.
+            'house_system': house_system,
             'sidereal_mode': final_settings['mode'],
             'svp_degrees': svp_degrees,
             'computation_version': 'mirror-deterministic-v1',
@@ -967,7 +971,7 @@ def get_full_natal_chart(
         'nodes': nodes,
         'angles': angles,
         'houses': {
-            'system': "Equal",
+            'system': house_system,
             'cusps': house_cusps,
             'formatted_cusps': formatted_houses,
             'ascendant': asc_sidereal,

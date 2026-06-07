@@ -33,11 +33,18 @@ def test_default_call_returns_equal():
 def test_explicit_placidus_still_works():
     birth = datetime(1981, 7, 12, 23, 55, tzinfo=timezone.utc)
     chart = get_full_natal_chart(birth, 2.1896, 102.2501, house_system="Placidus")
-    # Placidus still computes — branch present and functional
-    assert chart["metadata"]["house_system"] == "Equal"  # metadata stamp stays "Equal" — see note
-    # The Placidus cusps differ from Equal cusps (sanity check on the math
-    # branch firing). Both house arrays are 12 entries long.
+    # house-system-source-of-truth-v1 metadata fix: metadata now reflects
+    # the ACTUAL house system used (not hard-coded "Equal").
+    assert chart["metadata"]["house_system"] == "Placidus"
+    assert chart["houses"]["system"] == "Placidus"
     assert len(chart["houses"]["cusps"]) == 12
+
+def test_default_metadata_says_equal():
+    """The default-call path must stamp 'Equal' into metadata + houses."""
+    birth = datetime(1981, 7, 12, 23, 55, tzinfo=timezone.utc)
+    chart = get_full_natal_chart(birth, 2.1896, 102.2501)
+    assert chart["metadata"]["house_system"] == "Equal"
+    assert chart["houses"]["system"] == "Equal"
 
 
 # ---- 4. migration freeze still effective -----------------------------------
