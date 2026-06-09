@@ -32118,6 +32118,23 @@ app.include_router(api_router)
 from routers.admin_gm_aligned import router as _gm_aligned_router
 app.include_router(_gm_aligned_router)
 
+# =====================================================================
+# TEMPORARY — Variant A Phase 5 production-migration admin routes
+# Build marker: variant-a-prod-migration-admin-v1
+#
+# These three routes (GET /api/admin/migration-info,
+# POST /api/admin/migration-snapshot, POST /api/admin/migration-run)
+# exist solely to run the V-A migration against the deployed MongoDB.
+# They are guarded by the MIGRATION_ADMIN_TOKEN env var + X-Admin-Token
+# header; the write route additionally refuses to run against any
+# DB that looks like preview/test_database/localhost.
+#
+# REMOVE THIS BLOCK after the production migration completes and the
+# operator has captured the report.
+# =====================================================================
+from routers import admin_variant_a_migration as _variant_a_admin
+app.include_router(_variant_a_admin.router)
+
 
 # =====================================================================
 # STATIC FILE SERVING FOR WEB BUILD
