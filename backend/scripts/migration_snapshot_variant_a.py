@@ -64,6 +64,8 @@ ALL_TRACKED_ANGLES = ("asc", "mc", "dc", "ic")
 # so the snapshot reflects exactly what Phase 5 will see).
 # ---------------------------------------------------------------------------
 def _parse_user_birth(u: Dict[str, Any]) -> Optional[Tuple[datetime, float, float]]:
+    """IANA-first timezone resolution. Mirrors the production chart
+    pipeline; matches scripts/migration_phase5_variant_a.py."""
     bd = u.get("birth_date")
     bt = u.get("birth_time") or "12:00"
     bl = u.get("birth_location") or {}
@@ -75,7 +77,6 @@ def _parse_user_birth(u: Dict[str, Any]) -> Optional[Tuple[datetime, float, floa
         lon = bl.get("longitude")
     if bd is None or lat is None or lon is None:
         return None
-
     if isinstance(bd, str):
         try:
             bd_dt = datetime.fromisoformat(bd.split("T")[0])
@@ -83,35 +84,40 @@ def _parse_user_birth(u: Dict[str, Any]) -> Optional[Tuple[datetime, float, floa
             return None
     else:
         bd_dt = bd
-
     try:
         hh, mm = map(int, str(bt).split(":")[:2])
     except Exception:
         hh, mm = 12, 0
-
+    local_naive = bd_dt.replace(hour=hh, minute=mm, second=0, tzinfo=None)
     tz_minutes = u.get("timezone_minutes")
-    if tz_minutes is None:
-        tz_str = u.get("timezone")
-        if isinstance(tz_str, str) and len(tz_str) >= 3 and tz_str[0] in "+-":
-            sign = 1 if tz_str[0] == "+" else -1
+    if tz_minutes is not None:
+        local_aware = local_naive.replace(
+            tzinfo=timezone(timedelta(minutes=int(tz_minutes)))
+        )
+        return local_aware.astimezone(timezone.utc), float(lat), float(lon)
+    tz_raw = u.get("timezone")
+    if isinstance(tz_raw, str) and tz_raw:
+        try:
+            from zoneinfo import ZoneInfo
+            local_aware = local_naive.replace(tzinfo=ZoneInfo(tz_raw))
+            return local_aware.astimezone(timezone.utc), float(lat), float(lon)
+        except Exception:
+            pass
+        if len(tz_raw) >= 3 and tz_raw[0] in "+-":
             try:
-                if ":" in tz_str:
-                    h, m = map(int, tz_str[1:].split(":"))
-                else:
-                    h, m = int(tz_str[1:3]), 0
-                tz_minutes = sign * (h * 60 + m)
+                sign = 1 if tz_raw[0] == "+" else -1
+                hhmm = tz_raw.lstrip("+-")
+                hh_o, mm_o = (hhmm.split(":") if ":" in hhmm
+                              else (hhmm[:2], hhmm[2:] or "00"))
+                offset_min = sign * (int(hh_o) * 60 + int(mm_o))
+                local_aware = local_naive.replace(
+                    tzinfo=timezone(timedelta(minutes=offset_min))
+                )
+                return local_aware.astimezone(timezone.utc), float(lat), float(lon)
             except Exception:
-                tz_minutes = 0
-        elif isinstance(tz_str, (int, float)):
-            tz_minutes = int(tz_str * 60)
-        else:
-            tz_minutes = 0
-
-    local = bd_dt.replace(
-        hour=hh, minute=mm, second=0,
-        tzinfo=timezone(timedelta(minutes=int(tz_minutes))),
-    )
-    return local.astimezone(timezone.utc), float(lat), float(lon)
+                pass
+    local_aware = local_naive.replace(tzinfo=timezone.utc)
+    return local_aware.astimezone(timezone.utc), float(lat), float(lon)
 
 
 # ---------------------------------------------------------------------------

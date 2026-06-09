@@ -1,0 +1,1877 @@
+{
+  "marker": "variant-a-13-sign-migration-v1",
+  "engine": "midpoint13_variant_a_v1",
+  "dry_run": false,
+  "recompute": {
+    "phase": "5_recompute",
+    "build_marker": "variant-a-13-sign-migration-v1",
+    "engine_version": "midpoint13_variant_a_v1",
+    "house_system": "Equal",
+    "dry_run": false,
+    "started_at": "2026-06-09T16:08:34.450449+00:00",
+    "users_scanned": 171,
+    "users_with_birth_data": 168,
+    "users_skipped": 3,
+    "users_migrated": 168,
+    "users_inserted": 0,
+    "users_updated": 168,
+    "errors": [],
+    "writes": [
+      {
+        "user_id": "6971c81f2b40fd5ef501d375",
+        "name": "Yoong Weng Hong Peter Andrew",
+        "email": "peter@test.com",
+        "new_sun": "Pisces",
+        "new_moon": "Aries",
+        "new_asc": "Gemini",
+        "has_ophi": false,
+        "action": "updated"
+      },
+      {
+        "user_id": "6971c86d2b40fd5ef501d376",
+        "name": "Test User",
+        "email": null,
+        "new_sun": "Taurus",
+        "new_moon": "Sagittarius",
+        "new_asc": "Virgo",
+        "has_ophi": false,
+        "action": "updated"
+      },
+      {
+        "user_id": "6971c8ceca59929a2e3e1c1b",
+        "name": "John Doe",
+        "email": null,
+        "new_sun": "Pisces",
+        "new_moon": "Aquarius",
+        "new_asc": "Taurus",
+        "has_ophi": true,
+        "action": "updated"
+      },
+      {
+        "user_id": "6971c8f681beab3a8955b255",
+        "name": "Jane Smith",
+        "email": null,
+        "new_sun": "Gemini",
+        "new_moon": "Scorpio",
+        "new_asc": "Aries",
+        "has_ophi": false,
+        "action": "updated"
+      },
+      {
+        "user_id": "6971cc4381beab3a8955b256",
+        "name": "Yoong Weng Hong Peter Andrew",
+        "email": null,
+        "new_sun": "Pisces",
+        "new_moon": "Aries",
+        "new_asc": "Gemini",
+        "has_ophi": false,
+        "action": "updated"
+      },
+      {
+        "user_id": "697c69de3a1efea080939120",
+        "name": "Test Fresh User",
+        "email": null,
+        "new_sun": "Taurus",
+        "new_moon": "Aquarius",
+        "new_asc": "Leo",
+        "has_ophi": true,
+        "action": "updated"
+      },
+      {
+        "user_id": "697d572a48b93ef590dbec0b",
+        "name": "User1",
+        "email": null,
+        "new_sun": "Pisces",
+        "new_moon": "Aries",
+        "new_asc": "Sagittarius",
+        "has_ophi": false,
+        "action": "updated"
+      },
+      {
+        "user_id": "697ec6ffad4b18f75bf42615",
+        "name": "Debug Test User",
+        "email": null,
+        "new_sun": "Cancer",
+        "new_moon": "Leo",
+        "new_asc": "Virgo",
+        "has_ophi": true,
+        "action": "updated"
+      },
+      {
+        "user_id": "697ec826ad4b18f75bf42616",
+        "name": "Mel",
+        "email": "melissa.mars@gmail.com",
+        "new_sun": "Gemini",
+        "new_moon": "Scorpio",
+        "new_asc": "Cancer",
+        "has_ophi": true,
+        "action": "updated"
+      },
+      {
+        "user_id": "697ee14bceedc541fa3ac85d",
+        "name": "Pete",
+        "email": null,
+        "new_sun": "Pisces",
+        "new_moon": "Aries",
+        "new_asc": "Sagittarius",
+        "has_ophi": false,
+        "action": "updated"
+      },
+      {
+        "user_id": "697f0c6abf35c0528ff06954",
+        "name": "Pete",
+        "email": "pete@pulsifi.me",
+        "new_sun": "Pisces",
+        "new_moon": "Aries",
+        "new_asc": "Sagittarius",
+        "has_ophi": false,
+        "action": "updated"
+      },
+      {
+        "user_id": "697f224b366f6814412d8c84",
+        "name": "Pete",
+        "email": null,
+        "new_sun": "Pisces",
+        "new_moon": "Aries",
+        "new_asc": "Aries",
+        "has_ophi": false,
+        "action": "updated"
+      },
+      {
+        "user_id": "697f5fbc2f673947064066bb",
+        "name": "Pete",
+        "email": "pete@pulsifi.me",
+        "new_sun": "Pisces",
+        "new_moon": "Aries",
+        "new_asc": "Sagittarius",
+        "has_ophi": false,
+        "action": "updated"
+      },
+      {
+        "user_id": "697f74791a7a96aa35e283a0",
+        "name": "E2E Test User",
+        "email": null,
+        "new_sun": "Taurus",
+        "new_moon": "Sagittarius",
+        "new_asc": "Cancer",
+        "has_ophi": false,
+        "action": "updated"
+      },
+      {
+        "user_id": "697f751b1a7a96aa35e283a1",
+        "name": "Test User E2E",
+        "email": null,
+        "new_sun": "Pisces",
+        "new_moon": "Pisces",
+        "new_asc": "Sagittarius",
+        "has_ophi": true,
+        "action": "updated"
+      },
+      {
+        "user_id": "697f78e11a7a96aa35e283a2",
+        "name": "Session Test User",
+        "email": null,
+        "new_sun": "Gemini",
+        "new_moon": "Sagittarius",
+        "new_asc": "Gemini",
+        "has_ophi": false,
+        "action": "updated"
+      },
+      {
+        "user_id": "697f795f1a7a96aa35e283a3",
+        "name": "Reload Test User",
+        "email": "reflector@test.com",
+        "new_sun": "Scorpio",
+        "new_moon": "Leo",
+        "new_asc": "Scorpio",
+        "has_ophi": false,
+        "action": "updated"
+      },
+      {
+        "user_id": "697f79961a7a96aa35e283a4",
+        "name": "Persist Test",
+        "email": null,
+        "new_sun": "Gemini",
+        "new_moon": "Pisces",
+        "new_asc": "Taurus",
+        "has_ophi": false,
+        "action": "updated"
+      },
+      {
+        "user_id": "697f79d31a7a96aa35e283a6",
+        "name": "Lens Test User",
+        "email": null,
+        "new_sun": "Pisces",
+        "new_moon": "Virgo",
+        "new_asc": "Pisces",
+        "has_ophi": false,
+        "action": "updated"
+      },
+      {
+        "user_id": "697f85d0545f4ee7cc768835",
+        "name": "Test User",
+        "email": null,
+        "new_sun": "Taurus",
+        "new_moon": "Sagittarius",
+        "new_asc": "Leo",
+        "has_ophi": false,
+        "action": "updated"
+      },
+      {
+        "user_id": "697f8642545f4ee7cc768836",
+        "name": "Pete",
+        "email": null,
+        "new_sun": "Pisces",
+        "new_moon": "Aries",
+        "new_asc": "Sagittarius",
+        "has_ophi": false,
+        "action": "updated"
+      },
+      {
+        "user_id": "697f8997545f4ee7cc768838",
+        "name": "Pete",
+        "email": null,
+        "new_sun": "Pisces",
+        "new_moon": "Aries",
+        "new_asc": "Sagittarius",
+        "has_ophi": false,
+        "action": "updated"
+      },
+      {
+        "user_id": "697f973c2caf672a29468ed4",
+        "name": "Test User",
+        "email": null,
+        "new_sun": "Taurus",
+        "new_moon": "Aquarius",
+        "new_asc": "Leo",
+        "has_ophi": true,
+        "action": "updated"
+      },
+      {
+        "user_id": "697f97622caf672a29468ed5",
+        "name": "Test User",
+        "email": null,
+        "new_sun": "Taurus",
+        "new_moon": "Aquarius",
+        "new_asc": "Leo",
+        "has_ophi": true,
+        "action": "updated"
+      },
+      {
+        "user_id": "697f984b2caf672a29468ed7",
+        "name": "Mirror Tester",
+        "email": null,
+        "new_sun": "Sagittarius",
+        "new_moon": "Aquarius",
+        "new_asc": "Pisces",
+        "has_ophi": false,
+        "action": "updated"
+      },
+      {
+        "user_id": "697f988a2caf672a29468ed9",
+        "name": "Chat Tester",
+        "email": null,
+        "new_sun": "Aries",
+        "new_moon": "Capricorn",
+        "new_asc": "Aquarius",
+        "has_ophi": true,
+        "action": "updated"
+      },
+      {
+        "user_id": "697f98ad2caf672a29468edb",
+        "name": "Mirror Chat Test",
+        "email": null,
+        "new_sun": "Gemini",
+        "new_moon": "Sagittarius",
+        "new_asc": "Capricorn",
+        "has_ophi": false,
+        "action": "updated"
+      },
+      {
+        "user_id": "697f98cd2caf672a29468edd",
+        "name": "Alex",
+        "email": null,
+        "new_sun": "Leo",
+        "new_moon": "Libra",
+        "new_asc": "Leo",
+        "has_ophi": true,
+        "action": "updated"
+      },
+      {
+        "user_id": "697f98f52caf672a29468edf",
+        "name": "Sam",
+        "email": null,
+        "new_sun": "Sagittarius",
+        "new_moon": "Aquarius",
+        "new_asc": "Scorpio",
+        "has_ophi": false,
+        "action": "updated"
+      },
+      {
+        "user_id": "697f993a2caf672a29468ee1",
+        "name": "Jordan",
+        "email": null,
+        "new_sun": "Pisces",
+        "new_moon": "Gemini",
+        "new_asc": "Cancer",
+        "has_ophi": false,
+        "action": "updated"
+      },
+      {
+        "user_id": "697f995c2caf672a29468ee3",
+        "name": "Taylor",
+        "email": null,
+        "new_sun": "Taurus",
+        "new_moon": "Sagittarius",
+        "new_asc": "Pisces",
+        "has_ophi": true,
+        "action": "updated"
+      },
+      {
+        "user_id": "697f999a2caf672a29468ee5",
+        "name": "Riley",
+        "email": null,
+        "new_sun": "Leo",
+        "new_moon": "Taurus",
+        "new_asc": "Libra",
+        "has_ophi": false,
+        "action": "updated"
+      },
+      {
+        "user_id": "697f99c92caf672a29468ee7",
+        "name": "Casey",
+        "email": null,
+        "new_sun": "Libra",
+        "new_moon": "Taurus",
+        "new_asc": "Capricorn",
+        "has_ophi": true,
+        "action": "updated"
+      },
+      {
+        "user_id": "697f9b592caf672a29468ee9",
+        "name": "LensTest",
+        "email": null,
+        "new_sun": "Aquarius",
+        "new_moon": "Ophiuchus",
+        "new_asc": "Scorpio",
+        "has_ophi": true,
+        "action": "updated"
+      },
+      {
+        "user_id": "697f9b782caf672a29468eeb",
+        "name": "AstroTest",
+        "email": null,
+        "new_sun": "Leo",
+        "new_moon": "Capricorn",
+        "new_asc": "Virgo",
+        "has_ophi": false,
+        "action": "updated"
+      },
+      {
+        "user_id": "697f9b9c2caf672a29468eed",
+        "name": "TestLens",
+        "email": null,
+        "new_sun": "Virgo",
+        "new_moon": "Libra",
+        "new_asc": "Virgo",
+        "has_ophi": false,
+        "action": "updated"
+      },
+      {
+        "user_id": "697f9bc22caf672a29468eef",
+        "name": "ScrollTest",
+        "email": null,
+        "new_sun": "Pisces",
+        "new_moon": "Aquarius",
+        "new_asc": "Taurus",
+        "has_ophi": true,
+        "action": "updated"
+      },
+      {
+        "user_id": "697f9bf92caf672a29468ef1",
+        "name": "ButtonTest",
+        "email": null,
+        "new_sun": "Gemini",
+        "new_moon": "Aquarius",
+        "new_asc": "Taurus",
+        "has_ophi": false,
+        "action": "updated"
+      },
+      {
+        "user_id": "697f9c5e2caf672a29468ef3",
+        "name": "ModalTest2",
+        "email": null,
+        "new_sun": "Virgo",
+        "new_moon": "Aquarius",
+        "new_asc": "Leo",
+        "has_ophi": false,
+        "action": "updated"
+      },
+      {
+        "user_id": "697f9c8a2caf672a29468ef5",
+        "name": "ChatTest",
+        "email": null,
+        "new_sun": "Capricorn",
+        "new_moon": "Leo",
+        "new_asc": "Sagittarius",
+        "has_ophi": true,
+        "action": "updated"
+      },
+      {
+        "user_id": "697f9cc52caf672a29468ef7",
+        "name": "HDTest",
+        "email": null,
+        "new_sun": "Sagittarius",
+        "new_moon": "Aquarius",
+        "new_asc": "Scorpio",
+        "has_ophi": true,
+        "action": "updated"
+      },
+      {
+        "user_id": "697f9cef2caf672a29468ef9",
+        "name": "CloseTest",
+        "email": null,
+        "new_sun": "Taurus",
+        "new_moon": "Leo",
+        "new_asc": "Cancer",
+        "has_ophi": false,
+        "action": "updated"
+      },
+      {
+        "user_id": "697f9e5c2caf672a29468efb",
+        "name": "SessionTest",
+        "email": null,
+        "new_sun": "Aries",
+        "new_moon": "Libra",
+        "new_asc": "Scorpio",
+        "has_ophi": false,
+        "action": "updated"
+      },
+      {
+        "user_id": "697f9e922caf672a29468efd",
+        "name": "PersistTest",
+        "email": null,
+        "new_sun": "Taurus",
+        "new_moon": "Gemini",
+        "new_asc": "Virgo",
+        "has_ophi": true,
+        "action": "updated"
+      },
+      {
+        "user_id": "697f9ec22caf672a29468eff",
+        "name": "ReopenTest",
+        "email": null,
+        "new_sun": "Pisces",
+        "new_moon": "Virgo",
+        "new_asc": "Gemini",
+        "has_ophi": false,
+        "action": "updated"
+      },
+      {
+        "user_id": "697f9fe92caf672a29468f01",
+        "name": "UITest",
+        "email": null,
+        "new_sun": "Pisces",
+        "new_moon": "Virgo",
+        "new_asc": "Gemini",
+        "has_ophi": false,
+        "action": "updated"
+      },
+      {
+        "user_id": "697fa01c2caf672a29468f03",
+        "name": "LensUI",
+        "email": null,
+        "new_sun": "Leo",
+        "new_moon": "Virgo",
+        "new_asc": "Virgo",
+        "has_ophi": true,
+        "action": "updated"
+      },
+      {
+        "user_id": "697fa0652caf672a29468f05",
+        "name": "FinalTest",
+        "email": null,
+        "new_sun": "Libra",
+        "new_moon": "Aries",
+        "new_asc": "Virgo",
+        "has_ophi": true,
+        "action": "updated"
+      },
+      {
+        "user_id": "697fa0be2caf672a29468f07",
+        "name": "PolishTest",
+        "email": null,
+        "new_sun": "Gemini",
+        "new_moon": "Pisces",
+        "new_asc": "Capricorn",
+        "has_ophi": false,
+        "action": "updated"
+      },
+      {
+        "user_id": "697fa1e22caf672a29468f09",
+        "name": "ModalUI",
+        "email": null,
+        "new_sun": "Leo",
+        "new_moon": "Pisces",
+        "new_asc": "Sagittarius",
+        "has_ophi": false,
+        "action": "updated"
+      },
+      {
+        "user_id": "697fa20e2caf672a29468f0b",
+        "name": "HDModalTest",
+        "email": null,
+        "new_sun": "Libra",
+        "new_moon": "Scorpio",
+        "new_asc": "Ophiuchus",
+        "has_ophi": true,
+        "action": "updated"
+      },
+      {
+        "user_id": "697fa4241ea0ea87a2f58c77",
+        "name": "MemoryTest",
+        "email": null,
+        "new_sun": "Aries",
+        "new_moon": "Libra",
+        "new_asc": "Cancer",
+        "has_ophi": false,
+        "action": "updated"
+      },
+      {
+        "user_id": "697fa4591ea0ea87a2f58c79",
+        "name": "MemoryTest2",
+        "email": null,
+        "new_sun": "Leo",
+        "new_moon": "Virgo",
+        "new_asc": "Virgo",
+        "has_ophi": true,
+        "action": "updated"
+      },
+      {
+        "user_id": "697fa4951ea0ea87a2f58c7b",
+        "name": "SendTest",
+        "email": null,
+        "new_sun": "Gemini",
+        "new_moon": "Aquarius",
+        "new_asc": "Pisces",
+        "has_ophi": false,
+        "action": "updated"
+      },
+      {
+        "user_id": "697fa4d31ea0ea87a2f58c7d",
+        "name": "ExpandTest",
+        "email": null,
+        "new_sun": "Sagittarius",
+        "new_moon": "Aquarius",
+        "new_asc": "Taurus",
+        "has_ophi": true,
+        "action": "updated"
+      },
+      {
+        "user_id": "697fa5101ea0ea87a2f58c7f",
+        "name": "EvidenceTest",
+        "email": null,
+        "new_sun": "Aquarius",
+        "new_moon": "Virgo",
+        "new_asc": "Gemini",
+        "has_ophi": false,
+        "action": "updated"
+      },
+      {
+        "user_id": "697fa7779468f7a9126c13a8",
+        "name": "TimelineTest",
+        "email": null,
+        "new_sun": "Gemini",
+        "new_moon": "Pisces",
+        "new_asc": "Cancer",
+        "has_ophi": false,
+        "action": "updated"
+      },
+      {
+        "user_id": "697fa7a39468f7a9126c13aa",
+        "name": "TimelineView",
+        "email": null,
+        "new_sun": "Virgo",
+        "new_moon": "Sagittarius",
+        "new_asc": "Sagittarius",
+        "has_ophi": true,
+        "action": "updated"
+      },
+      {
+        "user_id": "697fa7ca9468f7a9126c13ac",
+        "name": "FullTest",
+        "email": null,
+        "new_sun": "Pisces",
+        "new_moon": "Leo",
+        "new_asc": "Gemini",
+        "has_ophi": false,
+        "action": "updated"
+      },
+      {
+        "user_id": "697fa8149468f7a9126c13ae",
+        "name": "EventTest",
+        "email": null,
+        "new_sun": "Taurus",
+        "new_moon": "Virgo",
+        "new_asc": "Sagittarius",
+        "has_ophi": false,
+        "action": "updated"
+      },
+      {
+        "user_id": "697fa8549468f7a9126c13b0",
+        "name": "FinalTimeline",
+        "email": null,
+        "new_sun": "Libra",
+        "new_moon": "Pisces",
+        "new_asc": "Leo",
+        "has_ophi": true,
+        "action": "updated"
+      },
+      {
+        "user_id": "697fa87a9468f7a9126c13b2",
+        "name": "TimelineOnly",
+        "email": null,
+        "new_sun": "Leo",
+        "new_moon": "Ophiuchus",
+        "new_asc": "Sagittarius",
+        "has_ophi": true,
+        "action": "updated"
+      },
+      {
+        "user_id": "697fab5efe4990d8400d0de6",
+        "name": "Pete",
+        "email": null,
+        "new_sun": "Pisces",
+        "new_moon": "Aries",
+        "new_asc": "Sagittarius",
+        "has_ophi": false,
+        "action": "updated"
+      },
+      {
+        "user_id": "697fad1035b15413386d5425",
+        "name": "TransparencyTest",
+        "email": null,
+        "new_sun": "Aries",
+        "new_moon": "Libra",
+        "new_asc": "Taurus",
+        "has_ophi": false,
+        "action": "updated"
+      },
+      {
+        "user_id": "697fad5035b15413386d5427",
+        "name": "FinalTest",
+        "email": null,
+        "new_sun": "Leo",
+        "new_moon": "Aquarius",
+        "new_asc": "Scorpio",
+        "has_ophi": false,
+        "action": "updated"
+      },
+      {
+        "user_id": "697fad7235b15413386d5429",
+        "name": "MirrorView",
+        "email": null,
+        "new_sun": "Gemini",
+        "new_moon": "Taurus",
+        "new_asc": "Virgo",
+        "has_ophi": true,
+        "action": "updated"
+      },
+      {
+        "user_id": "698023a6a2368d8c90927ebc",
+        "name": "Luna",
+        "email": null,
+        "new_sun": "Taurus",
+        "new_moon": "Aquarius",
+        "new_asc": "Gemini",
+        "has_ophi": true,
+        "action": "updated"
+      },
+      {
+        "user_id": "698023dda2368d8c90927ebd",
+        "name": "Luna",
+        "email": null,
+        "new_sun": "Taurus",
+        "new_moon": "Aquarius",
+        "new_asc": "Leo",
+        "has_ophi": true,
+        "action": "updated"
+      },
+      {
+        "user_id": "69802712a2368d8c90927ebe",
+        "name": "Luna",
+        "email": null,
+        "new_sun": "Taurus",
+        "new_moon": "Aquarius",
+        "new_asc": "Leo",
+        "has_ophi": true,
+        "action": "updated"
+      },
+      {
+        "user_id": "6980274fa2368d8c90927ebf",
+        "name": "TestRefresh",
+        "email": null,
+        "new_sun": "Taurus",
+        "new_moon": "Aquarius",
+        "new_asc": "Leo",
+        "has_ophi": true,
+        "action": "updated"
+      },
+      {
+        "user_id": "698029c55b020b708d7198f5",
+        "name": "Luna",
+        "email": null,
+        "new_sun": "Taurus",
+        "new_moon": "Aquarius",
+        "new_asc": "Leo",
+        "has_ophi": true,
+        "action": "updated"
+      },
+      {
+        "user_id": "69804ccaff8ae1f4644f6d12",
+        "name": "Test User",
+        "email": null,
+        "new_sun": "Pisces",
+        "new_moon": "Virgo",
+        "new_asc": "Aquarius",
+        "has_ophi": true,
+        "action": "updated"
+      },
+      {
+        "user_id": "69804d30ff8ae1f4644f6d13",
+        "name": "Test User",
+        "email": null,
+        "new_sun": "Pisces",
+        "new_moon": "Virgo",
+        "new_asc": "Aquarius",
+        "has_ophi": true,
+        "action": "updated"
+      },
+      {
+        "user_id": "69804df9ff8ae1f4644f6d14",
+        "name": "Verify User",
+        "email": null,
+        "new_sun": "Pisces",
+        "new_moon": "Pisces",
+        "new_asc": "Leo",
+        "has_ophi": true,
+        "action": "updated"
+      },
+      {
+        "user_id": "69804e74ff8ae1f4644f6d15",
+        "name": "Lens Tester",
+        "email": null,
+        "new_sun": "Taurus",
+        "new_moon": "Aquarius",
+        "new_asc": "Gemini",
+        "has_ophi": true,
+        "action": "updated"
+      },
+      {
+        "user_id": "69804eb0ff8ae1f4644f6d16",
+        "name": "Test User",
+        "email": null,
+        "new_sun": "Taurus",
+        "new_moon": "Aquarius",
+        "new_asc": "Gemini",
+        "has_ophi": true,
+        "action": "updated"
+      },
+      {
+        "user_id": "69804eddff8ae1f4644f6d17",
+        "name": "Test User",
+        "email": null,
+        "new_sun": "Taurus",
+        "new_moon": "Aquarius",
+        "new_asc": "Gemini",
+        "has_ophi": true,
+        "action": "updated"
+      },
+      {
+        "user_id": "69804f1cff8ae1f4644f6d18",
+        "name": "Test User",
+        "email": null,
+        "new_sun": "Taurus",
+        "new_moon": "Aquarius",
+        "new_asc": "Gemini",
+        "has_ophi": true,
+        "action": "updated"
+      },
+      {
+        "user_id": "69804f64ff8ae1f4644f6d19",
+        "name": "Verifier",
+        "email": null,
+        "new_sun": "Taurus",
+        "new_moon": "Aquarius",
+        "new_asc": "Gemini",
+        "has_ophi": true,
+        "action": "updated"
+      },
+      {
+        "user_id": "69804faeff8ae1f4644f6d1a",
+        "name": "Verifier",
+        "email": null,
+        "new_sun": "Taurus",
+        "new_moon": "Aquarius",
+        "new_asc": "Gemini",
+        "has_ophi": true,
+        "action": "updated"
+      },
+      {
+        "user_id": "69804ff3ff8ae1f4644f6d1b",
+        "name": "Verifier",
+        "email": null,
+        "new_sun": "Taurus",
+        "new_moon": "Aquarius",
+        "new_asc": "Gemini",
+        "has_ophi": true,
+        "action": "updated"
+      },
+      {
+        "user_id": "69805050ff8ae1f4644f6d1c",
+        "name": "Verifier",
+        "email": null,
+        "new_sun": "Taurus",
+        "new_moon": "Aquarius",
+        "new_asc": "Gemini",
+        "has_ophi": true,
+        "action": "updated"
+      },
+      {
+        "user_id": "6980509dff8ae1f4644f6d1d",
+        "name": "HD Tester",
+        "email": null,
+        "new_sun": "Taurus",
+        "new_moon": "Aquarius",
+        "new_asc": "Gemini",
+        "has_ophi": true,
+        "action": "updated"
+      },
+      {
+        "user_id": "698050d5ff8ae1f4644f6d1e",
+        "name": "HD Tester",
+        "email": null,
+        "new_sun": "Taurus",
+        "new_moon": "Aquarius",
+        "new_asc": "Gemini",
+        "has_ophi": true,
+        "action": "updated"
+      },
+      {
+        "user_id": "69805114ff8ae1f4644f6d1f",
+        "name": "HD Tester",
+        "email": null,
+        "new_sun": "Taurus",
+        "new_moon": "Aquarius",
+        "new_asc": "Gemini",
+        "has_ophi": true,
+        "action": "updated"
+      },
+      {
+        "user_id": "69805189ff8ae1f4644f6d20",
+        "name": "Modal Tester",
+        "email": null,
+        "new_sun": "Taurus",
+        "new_moon": "Aquarius",
+        "new_asc": "Gemini",
+        "has_ophi": true,
+        "action": "updated"
+      },
+      {
+        "user_id": "698051c5ff8ae1f4644f6d21",
+        "name": "HD Modal",
+        "email": null,
+        "new_sun": "Taurus",
+        "new_moon": "Aquarius",
+        "new_asc": "Gemini",
+        "has_ophi": true,
+        "action": "updated"
+      },
+      {
+        "user_id": "69805201ff8ae1f4644f6d22",
+        "name": "Deep Dive",
+        "email": null,
+        "new_sun": "Taurus",
+        "new_moon": "Aquarius",
+        "new_asc": "Gemini",
+        "has_ophi": true,
+        "action": "updated"
+      },
+      {
+        "user_id": "69805230ff8ae1f4644f6d23",
+        "name": "Final Test",
+        "email": null,
+        "new_sun": "Taurus",
+        "new_moon": "Aquarius",
+        "new_asc": "Gemini",
+        "has_ophi": true,
+        "action": "updated"
+      },
+      {
+        "user_id": "69805aba7d4f5e011977a0ec",
+        "name": "Num Test",
+        "email": null,
+        "new_sun": "Taurus",
+        "new_moon": "Aquarius",
+        "new_asc": "Gemini",
+        "has_ophi": true,
+        "action": "updated"
+      },
+      {
+        "user_id": "69805af67d4f5e011977a0ed",
+        "name": "Num Test2",
+        "email": null,
+        "new_sun": "Taurus",
+        "new_moon": "Aquarius",
+        "new_asc": "Gemini",
+        "has_ophi": true,
+        "action": "updated"
+      },
+      {
+        "user_id": "69805b517d4f5e011977a0ee",
+        "name": "Chat Test",
+        "email": null,
+        "new_sun": "Taurus",
+        "new_moon": "Aquarius",
+        "new_asc": "Gemini",
+        "has_ophi": true,
+        "action": "updated"
+      },
+      {
+        "user_id": "69805b877d4f5e011977a0f0",
+        "name": "Modal Test",
+        "email": null,
+        "new_sun": "Taurus",
+        "new_moon": "Aquarius",
+        "new_asc": "Gemini",
+        "has_ophi": true,
+        "action": "updated"
+      },
+      {
+        "user_id": "69805f885f73a8f13f0152c9",
+        "name": "Unlock Test",
+        "email": null,
+        "new_sun": "Taurus",
+        "new_moon": "Aquarius",
+        "new_asc": "Gemini",
+        "has_ophi": true,
+        "action": "updated"
+      },
+      {
+        "user_id": "698063576fce97a58f50ba49",
+        "name": "Bug Fix Test",
+        "email": null,
+        "new_sun": "Pisces",
+        "new_moon": "Aries",
+        "new_asc": "Aries",
+        "has_ophi": false,
+        "action": "updated"
+      },
+      {
+        "user_id": "69819ddeadf9b9277e25e551",
+        "name": "Pete",
+        "email": null,
+        "new_sun": "Pisces",
+        "new_moon": "Aries",
+        "new_asc": "Sagittarius",
+        "has_ophi": false,
+        "action": "updated"
+      },
+      {
+        "user_id": "69819f1a1e4549392d7cb6d1",
+        "name": "Migration Test User",
+        "email": null,
+        "new_sun": "Taurus",
+        "new_moon": "Aquarius",
+        "new_asc": "Leo",
+        "has_ophi": true,
+        "action": "updated"
+      },
+      {
+        "user_id": "6981a215ba0bbbdb9cadfe85",
+        "name": "Tester2",
+        "email": null,
+        "new_sun": "Pisces",
+        "new_moon": "Aries",
+        "new_asc": "Sagittarius",
+        "has_ophi": false,
+        "action": "updated"
+      },
+      {
+        "user_id": "6981a4e886daac084aad4280",
+        "name": "Test User",
+        "email": null,
+        "new_sun": "Taurus",
+        "new_moon": "Aquarius",
+        "new_asc": "Leo",
+        "has_ophi": true,
+        "action": "updated"
+      },
+      {
+        "user_id": "6983115b26082437d1a75ede",
+        "name": "Pete",
+        "email": null,
+        "new_sun": "Pisces",
+        "new_moon": "Aries",
+        "new_asc": "Sagittarius",
+        "has_ophi": false,
+        "action": "updated"
+      },
+      {
+        "user_id": "69835a96f7922e80c94694cb",
+        "name": null,
+        "email": null,
+        "new_sun": "Taurus",
+        "new_moon": "Aquarius",
+        "new_asc": "Gemini",
+        "has_ophi": true,
+        "action": "updated"
+      },
+      {
+        "user_id": "69835ae5f7922e80c94694cc",
+        "name": null,
+        "email": null,
+        "new_sun": "Taurus",
+        "new_moon": "Aquarius",
+        "new_asc": "Gemini",
+        "has_ophi": true,
+        "action": "updated"
+      },
+      {
+        "user_id": "69835b31f7922e80c94694cd",
+        "name": null,
+        "email": null,
+        "new_sun": "Taurus",
+        "new_moon": "Aquarius",
+        "new_asc": "Gemini",
+        "has_ophi": true,
+        "action": "updated"
+      },
+      {
+        "user_id": "69835baaf7922e80c94694ce",
+        "name": null,
+        "email": null,
+        "new_sun": "Taurus",
+        "new_moon": "Aquarius",
+        "new_asc": "Gemini",
+        "has_ophi": true,
+        "action": "updated"
+      },
+      {
+        "user_id": "69835be2f7922e80c94694cf",
+        "name": null,
+        "email": null,
+        "new_sun": "Taurus",
+        "new_moon": "Aquarius",
+        "new_asc": "Gemini",
+        "has_ophi": true,
+        "action": "updated"
+      },
+      {
+        "user_id": "69835c1cf7922e80c94694d0",
+        "name": null,
+        "email": null,
+        "new_sun": "Taurus",
+        "new_moon": "Aquarius",
+        "new_asc": "Gemini",
+        "has_ophi": true,
+        "action": "updated"
+      },
+      {
+        "user_id": "69835cd9f7922e80c94694d1",
+        "name": null,
+        "email": null,
+        "new_sun": "Taurus",
+        "new_moon": "Aquarius",
+        "new_asc": "Gemini",
+        "has_ophi": true,
+        "action": "updated"
+      },
+      {
+        "user_id": "69835d6ff7922e80c94694d2",
+        "name": null,
+        "email": null,
+        "new_sun": "Taurus",
+        "new_moon": "Aquarius",
+        "new_asc": "Gemini",
+        "has_ophi": true,
+        "action": "updated"
+      },
+      {
+        "user_id": "69835dabf7922e80c94694d3",
+        "name": null,
+        "email": null,
+        "new_sun": "Taurus",
+        "new_moon": "Aquarius",
+        "new_asc": "Gemini",
+        "has_ophi": true,
+        "action": "updated"
+      },
+      {
+        "user_id": "69835e01f7922e80c94694d4",
+        "name": null,
+        "email": null,
+        "new_sun": "Taurus",
+        "new_moon": "Aquarius",
+        "new_asc": "Gemini",
+        "has_ophi": true,
+        "action": "updated"
+      },
+      {
+        "user_id": "69835e54f7922e80c94694d5",
+        "name": null,
+        "email": null,
+        "new_sun": "Taurus",
+        "new_moon": "Aquarius",
+        "new_asc": "Gemini",
+        "has_ophi": true,
+        "action": "updated"
+      },
+      {
+        "user_id": "69835eabf7922e80c94694d6",
+        "name": null,
+        "email": null,
+        "new_sun": "Taurus",
+        "new_moon": "Aquarius",
+        "new_asc": "Gemini",
+        "has_ophi": true,
+        "action": "updated"
+      },
+      {
+        "user_id": "69835ef3f7922e80c94694d7",
+        "name": null,
+        "email": null,
+        "new_sun": "Taurus",
+        "new_moon": "Aquarius",
+        "new_asc": "Gemini",
+        "has_ophi": true,
+        "action": "updated"
+      },
+      {
+        "user_id": "69835f33f7922e80c94694d8",
+        "name": null,
+        "email": null,
+        "new_sun": "Taurus",
+        "new_moon": "Aquarius",
+        "new_asc": "Gemini",
+        "has_ophi": true,
+        "action": "updated"
+      },
+      {
+        "user_id": "69835f92f7922e80c94694d9",
+        "name": null,
+        "email": null,
+        "new_sun": "Taurus",
+        "new_moon": "Aquarius",
+        "new_asc": "Gemini",
+        "has_ophi": true,
+        "action": "updated"
+      },
+      {
+        "user_id": "69836148e8b22682d6890e2b",
+        "name": null,
+        "email": null,
+        "new_sun": "Taurus",
+        "new_moon": "Aquarius",
+        "new_asc": "Gemini",
+        "has_ophi": true,
+        "action": "updated"
+      },
+      {
+        "user_id": "69836b3eb59ea7e8da3dfd61",
+        "name": null,
+        "email": null,
+        "new_sun": "Taurus",
+        "new_moon": "Aquarius",
+        "new_asc": "Gemini",
+        "has_ophi": true,
+        "action": "updated"
+      },
+      {
+        "user_id": "69839b176f50f7b014371e56",
+        "name": null,
+        "email": null,
+        "new_sun": "Taurus",
+        "new_moon": "Aquarius",
+        "new_asc": "Leo",
+        "has_ophi": true,
+        "action": "updated"
+      },
+      {
+        "user_id": "69839b9d6f50f7b014371e57",
+        "name": null,
+        "email": null,
+        "new_sun": "Taurus",
+        "new_moon": "Aquarius",
+        "new_asc": "Gemini",
+        "has_ophi": true,
+        "action": "updated"
+      },
+      {
+        "user_id": "6984146e15cc7b6f08808609",
+        "name": null,
+        "email": null,
+        "new_sun": "Taurus",
+        "new_moon": "Aquarius",
+        "new_asc": "Leo",
+        "has_ophi": true,
+        "action": "updated"
+      },
+      {
+        "user_id": "6984474b0c675beb4d25c7c9",
+        "name": null,
+        "email": null,
+        "new_sun": "Taurus",
+        "new_moon": "Aquarius",
+        "new_asc": "Leo",
+        "has_ophi": true,
+        "action": "updated"
+      },
+      {
+        "user_id": "698447a20c675beb4d25c7ca",
+        "name": null,
+        "email": null,
+        "new_sun": "Taurus",
+        "new_moon": "Aquarius",
+        "new_asc": "Leo",
+        "has_ophi": true,
+        "action": "updated"
+      },
+      {
+        "user_id": "69844d90d3c116eb57b78d31",
+        "name": "Pete",
+        "email": null,
+        "new_sun": "Pisces",
+        "new_moon": "Aries",
+        "new_asc": "Sagittarius",
+        "has_ophi": false,
+        "action": "updated"
+      },
+      {
+        "user_id": "6984567ac987df9c6a534cd8",
+        "name": "Test Numerology User",
+        "email": null,
+        "new_sun": "Taurus",
+        "new_moon": "Capricorn",
+        "new_asc": "Virgo",
+        "has_ophi": false,
+        "action": "updated"
+      },
+      {
+        "user_id": "69845770a4dbd17ceaf8a0cc",
+        "name": "Numerology Gate Test",
+        "email": null,
+        "new_sun": "Leo",
+        "new_moon": "Gemini",
+        "new_asc": "Virgo",
+        "has_ophi": false,
+        "action": "updated"
+      },
+      {
+        "user_id": "69845779a4dbd17ceaf8a0cd",
+        "name": "Test User With Name",
+        "email": null,
+        "new_sun": "Taurus",
+        "new_moon": "Capricorn",
+        "new_asc": "Virgo",
+        "has_ophi": false,
+        "action": "updated"
+      },
+      {
+        "user_id": "698457cea4dbd17ceaf8a0ce",
+        "name": "Numerology Gate Test",
+        "email": null,
+        "new_sun": "Leo",
+        "new_moon": "Gemini",
+        "new_asc": "Virgo",
+        "has_ophi": false,
+        "action": "updated"
+      },
+      {
+        "user_id": "698457d6a4dbd17ceaf8a0cf",
+        "name": "Test User With Name",
+        "email": null,
+        "new_sun": "Taurus",
+        "new_moon": "Capricorn",
+        "new_asc": "Virgo",
+        "has_ophi": false,
+        "action": "updated"
+      },
+      {
+        "user_id": "6984580213cf6c2aff715989",
+        "name": "Numerology Gate Test",
+        "email": null,
+        "new_sun": "Leo",
+        "new_moon": "Gemini",
+        "new_asc": "Virgo",
+        "has_ophi": false,
+        "action": "updated"
+      },
+      {
+        "user_id": "6984582213cf6c2aff71598a",
+        "name": "Test User With Name",
+        "email": null,
+        "new_sun": "Taurus",
+        "new_moon": "Capricorn",
+        "new_asc": "Virgo",
+        "has_ophi": false,
+        "action": "updated"
+      },
+      {
+        "user_id": "6984aa87d117c2dc62ea3cdb",
+        "name": "Lock Test User",
+        "email": null,
+        "new_sun": "Pisces",
+        "new_moon": "Sagittarius",
+        "new_asc": "Leo",
+        "has_ophi": false,
+        "action": "updated"
+      },
+      {
+        "user_id": "6984b4a4ce7b78080ce4853a",
+        "name": "Peter",
+        "email": null,
+        "new_sun": "Pisces",
+        "new_moon": "Aries",
+        "new_asc": "Sagittarius",
+        "has_ophi": false,
+        "action": "updated"
+      },
+      {
+        "user_id": "6984be037537ae36f426e355",
+        "name": "Ship Gate Test User",
+        "email": null,
+        "new_sun": "Cancer",
+        "new_moon": "Taurus",
+        "new_asc": "Leo",
+        "has_ophi": true,
+        "action": "updated"
+      },
+      {
+        "user_id": "6985d0bfdfd30ad4c014a23b",
+        "name": "Pete",
+        "email": null,
+        "new_sun": "Pisces",
+        "new_moon": "Aries",
+        "new_asc": "Sagittarius",
+        "has_ophi": false,
+        "action": "updated"
+      },
+      {
+        "user_id": "6988367869b8a8ebd21c101a",
+        "name": "Tester",
+        "email": null,
+        "new_sun": "Pisces",
+        "new_moon": "Aries",
+        "new_asc": "Sagittarius",
+        "has_ophi": false,
+        "action": "updated"
+      },
+      {
+        "user_id": "698896de8235f34e01f1e359",
+        "name": "Jakob",
+        "email": null,
+        "new_sun": "Virgo",
+        "new_moon": "Virgo",
+        "new_asc": "Capricorn",
+        "has_ophi": true,
+        "action": "updated"
+      },
+      {
+        "user_id": "6988e993ef78a656df512498",
+        "name": "Colin Wee",
+        "email": null,
+        "new_sun": "Capricorn",
+        "new_moon": "Taurus",
+        "new_asc": "Aries",
+        "has_ophi": false,
+        "action": "updated"
+      },
+      {
+        "user_id": "69894cc932380843ba87d121",
+        "name": "Jaan",
+        "email": null,
+        "new_sun": "Ophiuchus",
+        "new_moon": "Taurus",
+        "new_asc": "Gemini",
+        "has_ophi": true,
+        "action": "updated"
+      },
+      {
+        "user_id": "6989d6df276be25f3f007264",
+        "name": "Natt",
+        "email": null,
+        "new_sun": "Aries",
+        "new_moon": "Virgo",
+        "new_asc": "Virgo",
+        "has_ophi": true,
+        "action": "updated"
+      },
+      {
+        "user_id": "6989d747276be25f3f007265",
+        "name": "Pat",
+        "email": null,
+        "new_sun": "Capricorn",
+        "new_moon": "Libra",
+        "new_asc": "Capricorn",
+        "has_ophi": true,
+        "action": "updated"
+      },
+      {
+        "user_id": "69999f640845a85163b0e665",
+        "name": null,
+        "email": null,
+        "new_sun": "Aries",
+        "new_moon": "Libra",
+        "new_asc": "Gemini",
+        "has_ophi": false,
+        "action": "updated"
+      },
+      {
+        "user_id": "69999f710845a85163b0e666",
+        "name": null,
+        "email": null,
+        "new_sun": "Aries",
+        "new_moon": "Libra",
+        "new_asc": "Gemini",
+        "has_ophi": false,
+        "action": "updated"
+      },
+      {
+        "user_id": "69999f820845a85163b0e667",
+        "name": null,
+        "email": null,
+        "new_sun": "Aries",
+        "new_moon": "Libra",
+        "new_asc": "Gemini",
+        "has_ophi": false,
+        "action": "updated"
+      },
+      {
+        "user_id": "69999f970845a85163b0e668",
+        "name": null,
+        "email": null,
+        "new_sun": "Aries",
+        "new_moon": "Libra",
+        "new_asc": "Gemini",
+        "has_ophi": false,
+        "action": "updated"
+      },
+      {
+        "user_id": "69999fa90845a85163b0e669",
+        "name": null,
+        "email": null,
+        "new_sun": "Aries",
+        "new_moon": "Libra",
+        "new_asc": "Gemini",
+        "has_ophi": false,
+        "action": "updated"
+      },
+      {
+        "user_id": "69999fdc0845a85163b0e66a",
+        "name": null,
+        "email": null,
+        "new_sun": "Aries",
+        "new_moon": "Libra",
+        "new_asc": "Gemini",
+        "has_ophi": false,
+        "action": "updated"
+      },
+      {
+        "user_id": "69a7deee2f433b2372665628",
+        "name": "Aby",
+        "email": null,
+        "new_sun": "Gemini",
+        "new_moon": "Scorpio",
+        "new_asc": "Aquarius",
+        "has_ophi": false,
+        "action": "updated"
+      },
+      {
+        "user_id": "69ac801533a6b3d43e40fac9",
+        "name": "TestUser",
+        "email": null,
+        "new_sun": "Taurus",
+        "new_moon": "Aquarius",
+        "new_asc": "Gemini",
+        "has_ophi": true,
+        "action": "updated"
+      },
+      {
+        "user_id": "69ace84118ee2b46fbc50c20",
+        "name": "TestUser",
+        "email": "test@example.com",
+        "new_sun": "Taurus",
+        "new_moon": "Aquarius",
+        "new_asc": "Gemini",
+        "has_ophi": true,
+        "action": "updated"
+      },
+      {
+        "user_id": "69ad820d9e77604a182d7e3e",
+        "name": null,
+        "email": null,
+        "new_sun": "Taurus",
+        "new_moon": "Aquarius",
+        "new_asc": "Gemini",
+        "has_ophi": true,
+        "action": "updated"
+      },
+      {
+        "user_id": "69ad82339e77604a182d7e3f",
+        "name": null,
+        "email": null,
+        "new_sun": "Taurus",
+        "new_moon": "Aquarius",
+        "new_asc": "Gemini",
+        "has_ophi": true,
+        "action": "updated"
+      },
+      {
+        "user_id": "69ad82859e77604a182d7e40",
+        "name": null,
+        "email": null,
+        "new_sun": "Taurus",
+        "new_moon": "Aquarius",
+        "new_asc": "Gemini",
+        "has_ophi": true,
+        "action": "updated"
+      },
+      {
+        "user_id": "69aee5a90710b5654c27cd52",
+        "name": "PeteTeat",
+        "email": null,
+        "new_sun": "Pisces",
+        "new_moon": "Aries",
+        "new_asc": "Sagittarius",
+        "has_ophi": false,
+        "action": "updated"
+      },
+      {
+        "user_id": "69b7701b718eb343e524fd24",
+        "name": null,
+        "email": null,
+        "new_sun": "Taurus",
+        "new_moon": "Aquarius",
+        "new_asc": "Gemini",
+        "has_ophi": true,
+        "action": "updated"
+      },
+      {
+        "user_id": "69b7703d718eb343e524fd25",
+        "name": null,
+        "email": null,
+        "new_sun": "Taurus",
+        "new_moon": "Aquarius",
+        "new_asc": "Gemini",
+        "has_ophi": true,
+        "action": "updated"
+      },
+      {
+        "user_id": "69b7707b718eb343e524fd26",
+        "name": null,
+        "email": null,
+        "new_sun": "Taurus",
+        "new_moon": "Aquarius",
+        "new_asc": "Gemini",
+        "has_ophi": true,
+        "action": "updated"
+      },
+      {
+        "user_id": "69b770a8718eb343e524fd27",
+        "name": null,
+        "email": null,
+        "new_sun": "Taurus",
+        "new_moon": "Aquarius",
+        "new_asc": "Gemini",
+        "has_ophi": true,
+        "action": "updated"
+      },
+      {
+        "user_id": "69b7b1ecf10aa24aa9a7913d",
+        "name": "Melissa Test Reflector",
+        "email": null,
+        "new_sun": "Gemini",
+        "new_moon": "Ophiuchus",
+        "new_asc": "Gemini",
+        "has_ophi": true,
+        "action": "updated"
+      },
+      {
+        "user_id": "69bd108e17ec8fb0ab616e42",
+        "name": "Test User",
+        "email": null,
+        "new_sun": "Taurus",
+        "new_moon": "Capricorn",
+        "new_asc": "Virgo",
+        "has_ophi": false,
+        "action": "updated"
+      },
+      {
+        "user_id": "69be1ac1f90f003c2fac0fac",
+        "name": "Test User V5",
+        "email": null,
+        "new_sun": "Taurus",
+        "new_moon": "Aquarius",
+        "new_asc": "Virgo",
+        "has_ophi": true,
+        "action": "updated"
+      },
+      {
+        "user_id": "69be1b5ef90f003c2fac0fad",
+        "name": "V5 Final Test",
+        "email": null,
+        "new_sun": "Taurus",
+        "new_moon": "Aquarius",
+        "new_asc": "Virgo",
+        "has_ophi": true,
+        "action": "updated"
+      },
+      {
+        "user_id": "69be9f5516f5f129e7591667",
+        "name": "Test User",
+        "email": "test@example.com",
+        "new_sun": "Sagittarius",
+        "new_moon": "Aquarius",
+        "new_asc": "Aries",
+        "has_ophi": true,
+        "action": "updated"
+      },
+      {
+        "user_id": "69bf56aebb8e08b219fbd9b5",
+        "name": "Test Astro User",
+        "email": "astro@test.com",
+        "new_sun": "Pisces",
+        "new_moon": "Libra",
+        "new_asc": "Cancer",
+        "has_ophi": false,
+        "action": "updated"
+      },
+      {
+        "user_id": "69c4c69e4abb47eacbfef790",
+        "name": "Pete",
+        "email": null,
+        "new_sun": "Pisces",
+        "new_moon": "Aries",
+        "new_asc": "Sagittarius",
+        "has_ophi": false,
+        "action": "updated"
+      },
+      {
+        "user_id": "69c90702497688b97a8e67a1",
+        "name": "Mel ",
+        "email": "melissa.mars@gmail.com",
+        "new_sun": "Gemini",
+        "new_moon": "Scorpio",
+        "new_asc": "Gemini",
+        "has_ophi": true,
+        "action": "updated"
+      },
+      {
+        "user_id": "69dd0b2cc92ba973f8838c11",
+        "name": "Thaddeus Yoong",
+        "email": "thaddeus.yoong@test.com",
+        "new_sun": "Gemini",
+        "new_moon": "Aries",
+        "new_asc": "Ophiuchus",
+        "has_ophi": true,
+        "action": "updated"
+      },
+      {
+        "user_id": "69dda348de9cb1c83c0780f8",
+        "name": "Isaac Yoong",
+        "email": "isaac.yoong@test.com",
+        "new_sun": "Pisces",
+        "new_moon": "Leo",
+        "new_asc": "Aquarius",
+        "has_ophi": true,
+        "action": "updated"
+      },
+      {
+        "user_id": "6a17e8cf5bc5cc688d66eba0",
+        "name": "Naina",
+        "email": "nandika@emergent.sh",
+        "new_sun": "Aquarius",
+        "new_moon": "Libra",
+        "new_asc": "Taurus",
+        "has_ophi": true,
+        "action": "updated"
+      }
+    ],
+    "ophiuchus_entries": 99,
+    "finished_at": "2026-06-09T16:08:34.637069+00:00"
+  },
+  "caches": {
+    "dry_run": false,
+    "caches": {
+      "astrology_timeline_cache": {
+        "existed": 0,
+        "deleted": 0
+      },
+      "deep_dive_cache": {
+        "existed": 0,
+        "deleted": 0
+      },
+      "forum_story_cache": {
+        "existed": 0,
+        "deleted": 0
+      },
+      "governing_chapter_cache": {
+        "existed": 0,
+        "deleted": 0
+      },
+      "lifeline_synthesis_cache": {
+        "existed": 0,
+        "deleted": 0
+      },
+      "lunar_synthesis_cache": {
+        "existed": 0,
+        "deleted": 0
+      },
+      "pattern_drift_cache": {
+        "existed": 0,
+        "deleted": 0
+      },
+      "pattern_mirror_cache": {
+        "existed": 0,
+        "deleted": 0
+      },
+      "pattern_running_me_v2": {
+        "existed": 0,
+        "deleted": 0
+      },
+      "relationship_today_cache": {
+        "existed": 0,
+        "deleted": 0
+      },
+      "relationship_mappings": {
+        "existed": 0,
+        "deleted": 0
+      },
+      "today_patterns": {
+        "existed": 0,
+        "deleted": 0
+      },
+      "daily_pattern_signals": {
+        "existed": 0,
+        "deleted": 0
+      },
+      "keystone_patterns": {
+        "existed": 0,
+        "deleted": 0
+      },
+      "longitudinal_pattern_memory": {
+        "existed": 0,
+        "deleted": 0
+      },
+      "pattern_signals": {
+        "existed": 0,
+        "deleted": 0
+      },
+      "pattern_memory_signals": {
+        "existed": 0,
+        "deleted": 0
+      },
+      "pattern_exposures": {
+        "existed": 0,
+        "deleted": 0
+      },
+      "pattern_interpretations": {
+        "existed": 0,
+        "deleted": 0
+      },
+      "relationship_today_events": {
+        "existed": 0,
+        "deleted": 0
+      },
+      "relationship_patterns": {
+        "existed": 0,
+        "deleted": 0
+      }
+    }
+  },
+  "validation": {
+    "phase": "6_validation",
+    "checks": [
+      {
+        "desc": "Jaan Sun must be Ophiuchus",
+        "matched_user": "Jaan",
+        "ok": true,
+        "expected": {
+          "sun": "Ophiuchus"
+        },
+        "actual": {
+          "sun": "Ophiuchus"
+        }
+      },
+      {
+        "desc": "LensTest Moon must be Ophiuchus",
+        "matched_user": "LensTest",
+        "ok": true,
+        "expected": {
+          "moon": "Ophiuchus"
+        },
+        "actual": {
+          "moon": "Ophiuchus"
+        }
+      },
+      {
+        "desc": "TimelineOnly Moon must be Ophiuchus",
+        "matched_user": "TimelineOnly",
+        "ok": true,
+        "expected": {
+          "moon": "Ophiuchus"
+        },
+        "actual": {
+          "moon": "Ophiuchus"
+        }
+      },
+      {
+        "desc": "Pete Sun=Pisces, Mercury=Pisces, Venus=Pisces",
+        "matched_user": "pete@pulsifi.me",
+        "ok": true,
+        "expected": {
+          "sun": "Pisces",
+          "mercury": "Pisces",
+          "venus": "Pisces"
+        },
+        "actual": {
+          "sun": "Pisces",
+          "mercury": "Pisces",
+          "venus": "Pisces"
+        }
+      },
+      {
+        "desc": "Mel Sun=Gemini House 12, Venus=Leo",
+        "matched_user": "melissa.mars@gmail.com",
+        "ok": true,
+        "expected": {
+          "sun": "Gemini",
+          "sun_house": 12,
+          "venus": "Leo"
+        },
+        "actual": {
+          "sun": "Gemini",
+          "sun_house": 12,
+          "venus": "Leo"
+        }
+      }
+    ],
+    "house_system_check": {
+      "Equal": 171
+    },
+    "engine_version_check": {
+      "midpoint13_variant_a_v1": 168,
+      "<missing>": 3
+    },
+    "forensic_payload_check": {
+      "with_forensic_variant_b": 168,
+      "total": 171
+    },
+    "snapshot_check": {
+      "exists": true,
+      "path": "/app/backend/audits/variant_a_migration_snapshot.json",
+      "size_bytes": 91170
+    }
+  }
+}
