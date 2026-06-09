@@ -127,6 +127,31 @@ def _migrate_body(body_doc: Dict[str, Any]) -> Optional[Dict[str, Any]]:
 
 
 async def migrate_chart(db, user_id: str, chart_doc: Dict[str, Any], dry_run: bool) -> Dict[str, Any]:
+    # variant-a-13-sign-migration-v1 guard — never downgrade a chart that
+    # has already been migrated to the canonical Variant-A engine. This
+    # legacy function uses the 12-sign (Variant-B) attributor and would
+    # otherwise silently relabel Ophiuchus placements back to Scorpio.
+    if isinstance(chart_doc, dict) and (
+        chart_doc.get("astrology_engine_version") == "midpoint13_variant_a_v1"
+        and chart_doc.get("migration_marker") == "variant-a-13-sign-migration-v1"
+    ):
+        return {
+            "user_id":            user_id,
+            "skipped_variant_a":  True,
+            "asc_flipped":        False,
+            "mc_flipped":         False,
+            "placements_changed": 0,
+            "planet_sign_flips":  [],
+            "asc_before":         None,
+            "asc_after":          None,
+            "mc_before":          None,
+            "mc_after":           None,
+            "sun_before":         None,
+            "sun_after":          None,
+            "moon_before":        None,
+            "moon_after":         None,
+        }
+
     astro = chart_doc.get("astrology") or {}
     angles = astro.get("angles", {}) or {}
     planets = astro.get("planets", {}) or {}

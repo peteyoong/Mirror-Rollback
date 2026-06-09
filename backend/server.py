@@ -10724,6 +10724,11 @@ async def check_and_migrate_astrology_chart(user_id: str) -> Tuple[bool, str, di
     if not chart:
         return (False, "Chart not found", {})
     
+    # variant-a-13-sign-migration-v1 guard — a V-A canonical chart is
+    # current by definition; never let the auto-migrate path overwrite it.
+    if _is_variant_a_migrated(chart):
+        return (False, "Chart is current (Variant A canonical)", chart)
+    
     astro = chart.get('astrology', {})
     
     # Check if needs migration
@@ -32289,6 +32294,35 @@ async def _safe_run_migrations():
         logger.error(f"[Migration] Background migration failed (non-fatal): {e}")
 
 
+# ---------------------------------------------------------------------------
+# Variant-A migration guard
+# Build marker: variant-a-13-sign-migration-v1
+# ---------------------------------------------------------------------------
+# Once a chart has been migrated to the canonical Variant-A engine
+# (midpoint13_variant_a_v1), NO startup / auto / background migration may
+# downgrade it. This helper is the single source of truth for that decision
+# and is consulted by every path that writes db.charts on startup.
+
+VARIANT_A_ENGINE_VERSION   = "midpoint13_variant_a_v1"
+VARIANT_A_MIGRATION_MARKER = "variant-a-13-sign-migration-v1"
+VARIANT_A_SIGN_ATTRIBUTION_VERSION = "midpoint13_variant_a"
+
+
+def _is_variant_a_migrated(chart: Any) -> bool:
+    """True when a chart doc carries the Variant-A engine stamp + marker.
+
+    A V-A chart is the canonical source of truth. Any startup migration
+    that would otherwise overwrite chart.astrology MUST honour this and
+    skip the chart.
+    """
+    if not isinstance(chart, dict):
+        return False
+    return (
+        chart.get("astrology_engine_version") == VARIANT_A_ENGINE_VERSION
+        and chart.get("migration_marker") == VARIANT_A_MIGRATION_MARKER
+    )
+
+
 async def _migrate_true_sidereal_midpoint():
     """
     Idempotent migration: re-applies True Sidereal-M Midpoint sign attribution
@@ -32310,15 +32344,24 @@ async def _migrate_true_sidereal_midpoint():
     from calculations.sign_attribution import MIDPOINT_MODEL_NAME
     
     # Quick scan: how many charts still need migration?
+    # variant-a-13-sign-migration-v1 guard — never re-migrate a chart that
+    # already carries the Variant-A engine stamp. Otherwise this legacy
+    # path would silently downgrade canonical V-A charts back to V-B.
     needs_migration_filter = {
-        "$or": [
-            {"astrology.zodiac_mode": {"$exists": False}},
-            {"astrology.zodiac_mode": {"$ne": MIDPOINT_MODEL_NAME}},
+        "$and": [
+            {
+                "$or": [
+                    {"astrology.zodiac_mode": {"$exists": False}},
+                    {"astrology.zodiac_mode": {"$ne": MIDPOINT_MODEL_NAME}},
+                ]
+            },
+            {"astrology_engine_version": {"$ne": VARIANT_A_ENGINE_VERSION}},
+            {"migration_marker":         {"$ne": VARIANT_A_MIGRATION_MARKER}},
         ]
     }
     pending_count = await db.charts.count_documents(needs_migration_filter)
     if pending_count == 0:
-        logger.info("[Migration 0] True Sidereal-M Midpoint: all charts already migrated ✓")
+        logger.info("[Migration 0] True Sidereal-M Midpoint: all charts already migrated ✓ (V-A charts respected)")
         return
     
     logger.info(
@@ -32328,11 +32371,16 @@ async def _migrate_true_sidereal_midpoint():
     migrated = 0
     asc_flips = 0
     errors = 0
+    skipped_variant_a = 0
     samples = []
     
     async for chart in db.charts.find(needs_migration_filter):
         uid = chart.get("user_id")
         if not uid:
+            continue
+        # Defense in depth — never downgrade a V-A migrated chart.
+        if _is_variant_a_migrated(chart):
+            skipped_variant_a += 1
             continue
         try:
             r = await _midpoint_migrate_chart(db, uid, chart, dry_run=False)
@@ -32373,7 +32421,7 @@ async def _migrate_true_sidereal_midpoint():
     
     logger.info(
         f"[Migration 0] True Sidereal-M Midpoint complete: migrated={migrated} "
-        f"asc_flips={asc_flips} errors={errors}"
+        f"asc_flips={asc_flips} errors={errors} skipped_variant_a={skipped_variant_a}"
     )
     for s in samples:
         logger.info(f"[Migration 0]   {s['user_id']}: ASC {s['asc']} | Sun {s['sun']}")
@@ -32399,6 +32447,10 @@ async def run_startup_data_migrations():
     charts_cursor = db.charts.find({})
     charts_needing_recompute = []
     async for chart in charts_cursor:
+        # variant-a-13-sign-migration-v1 guard — never overwrite a V-A
+        # canonical chart's astrology sub-doc.
+        if _is_variant_a_migrated(chart):
+            continue
         debug_stamp = chart.get("debug_stamp", {})
         sid_settings = debug_stamp.get("sidereal_settings_used", {}) if debug_stamp else {}
         svp_used = sid_settings.get("svp_degrees") if sid_settings else None
@@ -32686,6 +32738,9 @@ async def run_startup_data_migrations():
     charts_cursor_2 = db.charts.find({})
     second_pass = []
     async for chart in charts_cursor_2:
+        # variant-a-13-sign-migration-v1 guard — never recompute a V-A chart.
+        if _is_variant_a_migrated(chart):
+            continue
         ds = chart.get("debug_stamp", {}) or {}
         svp = (ds.get("sidereal_settings_used") or {}).get("svp_degrees")
         bazi = chart.get("bazi") or {}
