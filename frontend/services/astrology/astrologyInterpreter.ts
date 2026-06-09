@@ -59,13 +59,16 @@ export const SIGN_ELEMENTS: { [key: string]: string } = {
   'Aries': 'Fire', 'Leo': 'Fire', 'Sagittarius': 'Fire',
   'Taurus': 'Earth', 'Virgo': 'Earth', 'Capricorn': 'Earth',
   'Gemini': 'Air', 'Libra': 'Air', 'Aquarius': 'Air',
-  'Cancer': 'Water', 'Scorpio': 'Water', 'Pisces': 'Water'
+  'Cancer': 'Water', 'Scorpio': 'Water', 'Pisces': 'Water',
+  // ophiuchus-first-class-content-v1: 5th transcendent element (Ether).
+  'Ophiuchus': 'Ether',
 };
 
 export const SIGN_MODALITIES: { [key: string]: string } = {
   'Aries': 'Cardinal', 'Cancer': 'Cardinal', 'Libra': 'Cardinal', 'Capricorn': 'Cardinal',
   'Taurus': 'Fixed', 'Leo': 'Fixed', 'Scorpio': 'Fixed', 'Aquarius': 'Fixed',
-  'Gemini': 'Mutable', 'Virgo': 'Mutable', 'Sagittarius': 'Mutable', 'Pisces': 'Mutable'
+  'Gemini': 'Mutable', 'Virgo': 'Mutable', 'Sagittarius': 'Mutable', 'Pisces': 'Mutable',
+  'Ophiuchus': 'Mutable',
 };
 
 export const SIGN_QUALITIES: { [key: string]: string[] } = {
@@ -80,7 +83,8 @@ export const SIGN_QUALITIES: { [key: string]: string[] } = {
   'Sagittarius': ['expansive', 'truth-seeking', 'adventurous', 'philosophical'],
   'Capricorn': ['structured', 'ambitious', 'responsible', 'enduring'],
   'Aquarius': ['innovative', 'humanitarian', 'independent', 'visionary'],
-  'Pisces': ['imaginative', 'empathic', 'fluid', 'transcendent']
+  'Pisces': ['imaginative', 'empathic', 'fluid', 'transcendent'],
+  'Ophiuchus': ['integrating', 'threshold-crossing', 'pattern-recognising', 'restorative', 'embodied'],
 };
 
 // ============================================

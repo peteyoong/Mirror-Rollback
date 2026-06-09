@@ -362,13 +362,21 @@ async def get_member_lens_data(user_id: str) -> dict:
                 sign_elements = {
                     "Aries": "Fire", "Taurus": "Earth", "Gemini": "Air", "Cancer": "Water",
                     "Leo": "Fire", "Virgo": "Earth", "Libra": "Air", "Scorpio": "Water",
-                    "Sagittarius": "Fire", "Capricorn": "Earth", "Aquarius": "Air", "Pisces": "Water"
+                    "Sagittarius": "Fire", "Capricorn": "Earth", "Aquarius": "Air", "Pisces": "Water",
+                    # ophiuchus-first-class-content-v1: ether is the 5th
+                    # transcendent element (matches services/ophiuchus_metadata).
+                    "Ophiuchus": "Ether",
                 }
                 sign_modalities = {
                     "Aries": "Cardinal", "Taurus": "Fixed", "Gemini": "Mutable", "Cancer": "Cardinal",
                     "Leo": "Fixed", "Virgo": "Mutable", "Libra": "Cardinal", "Scorpio": "Fixed",
-                    "Sagittarius": "Mutable", "Capricorn": "Cardinal", "Aquarius": "Fixed", "Pisces": "Mutable"
+                    "Sagittarius": "Mutable", "Capricorn": "Cardinal", "Aquarius": "Fixed", "Pisces": "Mutable",
+                    "Ophiuchus": "Mutable",
                 }
+                # Ensure the dominance counter has the Ether bucket so
+                # Ophiuchus planets actually count toward dominance.
+                if "Ether" not in element_counts:
+                    element_counts["Ether"] = 0
 
                 for planet_name, planet_data in planets.items():
                     sign = planet_data.get("sign") if isinstance(planet_data, dict) else planet_data

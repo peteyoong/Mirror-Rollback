@@ -257,6 +257,21 @@ def _strong_pisces_emphasis(astro: Dict[str, Any]) -> int:
     )
 
 
+def _strong_ophiuchus_emphasis(astro: Dict[str, Any]) -> int:
+    """Count of personal planets in Ophiuchus (>= 3 = 'strong').
+
+    ophiuchus-first-class-content-v1. Ophiuchus is NOT a Scorpio cousin —
+    its emphasis reads as integration / threshold-crossing / repair, not
+    Scorpio intensity. Voice deliberately avoids 'chosen one', '13th sign
+    mystery', or 'healer savior' language.
+    """
+    planets = astro.get("planets") or {}
+    return sum(
+        1 for p in _PERSONAL_PLANETS_FOR_SIGN_EMPHASIS
+        if _safe_lower(planets.get(p, {}).get("sign")) == "ophiuchus"
+    )
+
+
 # ---------------------------------------------------------------------------
 # Achievement-as-Stabilization helpers
 # ---------------------------------------------------------------------------

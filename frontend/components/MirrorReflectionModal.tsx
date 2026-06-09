@@ -55,6 +55,7 @@ const SUN_REFRAMES: { [sign: string]: string } = {
   'Capricorn': "Achievement and rest aren't opposites. Sometimes the most productive thing is to pause.",
   'Aquarius': "Being different doesn't require distance. Connection and individuality can coexist.",
   'Pisces': "Boundaries don't block feeling — they can actually create space for deeper presence.",
+  'Ophiuchus': "The pattern you've been carrying is asking to move, not to be re-examined. The threshold isn't a leap — it's a small, repeatable crossing.",
 };
 
 const AUTHORITY_REFRAMES: { [authority: string]: string } = {
@@ -84,6 +85,7 @@ const RISING_QUESTIONS: { [sign: string]: string } = {
   'Capricorn': "What would rest look like if it didn't have to be earned?",
   'Aquarius': "Where might connection be available if you moved closer instead of observing?",
   'Pisces': "What boundaries might help you stay present without absorbing everything?",
+  'Ophiuchus': "What pattern have you understood long enough that it's asking now to be enacted, not explained?",
 };
 
 const PROFILE_QUESTIONS: { [profile: string]: string } = {

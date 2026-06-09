@@ -170,6 +170,17 @@ SIGN_BEHAVIOR = {
                     'a sense of drifting or surrendering'],
         'keyword': 'dissolution'
     },
+    # ophiuchus-first-class-content-v1
+    'Ophiuchus': {
+        'energy': 'integrating',
+        'tone': 'grounded, restorative, threshold-crossing',
+        'behavior': ['Patterns recognised earlier in the loop than usual',
+                     'Less interest in re-explaining; more in finishing',
+                     'Body and decision arriving on the same beat'],
+        'feeling': ['the depth you carry asking to be moved through',
+                    'tension between sitting with it and acting on it'],
+        'keyword': 'integration'
+    },
 }
 
 HOUSE_CONTEXT = {
@@ -463,18 +474,22 @@ def classify_day_energy(
     moon_sign = moon.get('sign', '')
     
     # Determine primary energy
+    # ophiuchus-first-class-content-v1: element sets via central metadata.
+    # Ophiuchus carries element="ether" (5th transcendent element).
     fire_signs = {'Aries', 'Leo', 'Sagittarius'}
     water_signs = {'Cancer', 'Scorpio', 'Pisces'}
     earth_signs = {'Taurus', 'Virgo', 'Capricorn'}
     air_signs = {'Gemini', 'Libra', 'Aquarius'}
-    
-    element_count = {'fire': 0, 'water': 0, 'earth': 0, 'air': 0}
+    ether_signs = {'Ophiuchus'}
+
+    element_count = {'fire': 0, 'water': 0, 'earth': 0, 'air': 0, 'ether': 0}
     for _, data in transit_positions.items():
         s = data['sign']
         if s in fire_signs: element_count['fire'] += 1
         elif s in water_signs: element_count['water'] += 1
         elif s in earth_signs: element_count['earth'] += 1
         elif s in air_signs: element_count['air'] += 1
+        elif s in ether_signs: element_count['ether'] += 1  # Ophiuchus
     
     dominant_element = max(element_count, key=element_count.get)
     
@@ -768,6 +783,11 @@ def _build_headline(layers, top_house, energy) -> str:
                     'Neptune': "Everything is dissolving at the edges. Clarity isn't available — but trust might be.",
                     '_default': "Boundaries are thin today. What drifts in may not all belong to you.",
                 },
+                'Ophiuchus': {
+                    'Pluto': "The pattern wants to be moved through, not just understood. The depth alone isn't enough anymore.",
+                    'Neptune': "What you've been processing keeps asking to be enacted. Today, name the smallest crossing.",
+                    '_default': "A threshold is right in front of you. Today's task is to step across it, not to study it more.",
+                },
             }
             
             sign_headlines = tension_headlines.get(sign, {})
@@ -797,6 +817,7 @@ def _build_headline(layers, top_house, energy) -> str:
                 'Capricorn': "Responsibility is the main event. The pressure to deliver is real and structural.",
                 'Aquarius': "Something wants to break pattern. The status quo feels suffocating.",
                 'Pisces': "The edges are soft today. Intuition is louder than logic, and that's not necessarily wrong.",
+                'Ophiuchus': "Something you've been carrying is asking to be moved through today, not just felt.",
             }
             return pure_headlines.get(sign, f"A massive concentration of {fg['keyword']} energy is active today.")
         else:
@@ -1019,6 +1040,7 @@ def _build_the_move(layers, energy) -> str:
                 'Capricorn': "Distinguish between what you must do and what you think you should do. Drop one 'should.'",
                 'Aquarius': "Before you rebel, ask yourself what you're actually building. Freedom needs a direction.",
                 'Pisces': "Ground yourself in something physical — a walk, a meal, a list. Your body is more reliable than your feelings today.",
+                'Ophiuchus': "Pick the smallest action that turns what you already know into something you do today. The integration moves through small, repeatable crossings.",
             }
             return moves.get(sign, "Focus your energy on the one thing that matters most right now. Let the rest orbit.")
     

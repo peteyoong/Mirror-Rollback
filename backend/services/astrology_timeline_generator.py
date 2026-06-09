@@ -196,6 +196,16 @@ SIGN_PATTERNS: Dict[str, Dict[str, str]] = {
         "cost_of_action":  "you draw a line, and it feels selfish—but you finally have energy that belongs to you",
         "cost_of_waiting": "you keep absorbing, but you start forgetting what you wanted before you felt what everyone else needed",
     },
+    # ophiuchus-first-class-content-v1: 13-sign canonical entry.
+    # Voice — integration under pressure / contact with complexity / repair
+    # at the threshold between Scorpio depth and Sagittarius meaning.
+    "Ophiuchus": {
+        "tension":         "going through it vs. going around it",
+        "year_theme":      "This year keeps putting you at thresholds you've avoided crossing—places where the depth of what you've felt has to translate into something you actually do with it.",
+        "arc_description": "Across the year, you'll notice the same pattern: a hard thing surfaces, you sit inside it longer than most people would, and then it asks to be metabolised — not just understood. The year isn't asking you to perform recovery. It's asking what changes when you stop circling the wound and start walking through it.",
+        "cost_of_action":  "the integration is exhausting and slow—but the pattern you've been carrying actually shifts",
+        "cost_of_waiting": "you stay with the depth, but the depth alone isn't doing the work anymore",
+    },
 }
 
 
@@ -216,8 +226,16 @@ def _planet_house(planets: Dict[str, Any], name: str, default: int) -> int:
 
 
 def _planet_sign(planets: Dict[str, Any], name: str, default: str) -> str:
+    # ophiuchus-first-class-content-v1: preserve Ophiuchus as a canonical
+    # sign even though Variant B legacy callers may still pass it through
+    # without an entry in their own table. The TIMELINE module's
+    # SIGN_PATTERNS now has an "Ophiuchus" key, so we accept it.
     s = (planets.get(name) or {}).get("sign")
     if isinstance(s, str) and s in SIGN_PATTERNS:
+        return s
+    # Even if the local pattern table somehow lacks Ophiuchus, never
+    # silently relabel an actual Ophiuchus placement back to Aries.
+    if isinstance(s, str) and s == "Ophiuchus":
         return s
     return default
 

@@ -57,6 +57,8 @@ _SIGN_PRESSURE = {
     "Capricorn":   "responsibility / structure",
     "Aquarius":    "differentiation",
     "Pisces":      "permeability",
+    # ophiuchus-first-class-content-v1: integration / threshold-crossing.
+    "Ophiuchus":   "integration under pressure",
 }
 
 # House → life-domain pressure label (intentionally short).
@@ -241,6 +243,10 @@ def _detect_contradiction_pairs(items, reps) -> List[Dict[str, Any]]:
         ("Aquarius", "Leo"):     "self-authorship vs collective differentiation",
         ("Virgo", "Pisces"):     "precision vs permeability",
         ("Pisces", "Virgo"):     "precision vs permeability",
+        # ophiuchus-first-class-content-v1: stabilisation pulled against
+        # threshold-crossing integration.
+        ("Taurus", "Ophiuchus"): "stabilisation vs integration under pressure",
+        ("Ophiuchus", "Taurus"): "stabilisation vs integration under pressure",
     }
     seen_axes: set = set()
     for s1 in top_signs:

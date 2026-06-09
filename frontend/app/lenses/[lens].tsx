@@ -184,6 +184,7 @@ const SUN_THEMES: { [sign: string]: string } = {
   'Capricorn': "Structure might feel reassuring right now. You may notice a desire to build something lasting.",
   'Aquarius': "Unconventional thinking might come easily today. You may notice ideas that don't fit familiar patterns.",
   'Pisces': "Boundaries might feel more fluid than usual. You may notice sensitivity to atmosphere and unspoken things.",
+  'Ophiuchus': "Old patterns may surface closer to the body than usual — what you've understood is asking to be acted on, not re-examined.",
 };
 
 // Watch-for keyed by Moon sign - "What to watch for"
@@ -200,6 +201,7 @@ const MOON_WATCHFOR: { [sign: string]: string } = {
   'Capricorn': "Emotional suppression might seem easier. It may help to notice what gets pushed aside for productivity.",
   'Aquarius': "Detachment might feel safer than feeling. It may help to notice when distance is protective versus avoidant.",
   'Pisces': "Absorption of others' emotions might happen. It may help to check which feelings are actually yours.",
+  'Ophiuchus': "Depth alone may feel like it's not doing the work anymore. Small concrete actions may matter more than another round of analysis.",
 };
 
 // Question keyed by Rising sign - "A gentle question"
@@ -216,6 +218,7 @@ const RISING_QUESTIONS: { [sign: string]: string } = {
   'Capricorn': "What might rest look like if it didn't have to be earned first?",
   'Aquarius': "Where might connection be available if you moved closer rather than observing?",
   'Pisces': "What boundaries might help you stay present without absorbing everything around you?",
+  'Ophiuchus': "What pattern have you sat with long enough that it's now asking to be enacted, not explained?",
 };
 
 // Neutral fallbacks when sign data is missing

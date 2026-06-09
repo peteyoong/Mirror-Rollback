@@ -195,6 +195,18 @@ FULL_MOON_BY_SIGN = {
         "action": "Ground yourself physically before making any decisions",
         "theme_line": "What you're feeling may not be entirely yours. Discern before you react."
     },
+    # ophiuchus-first-class-content-v1
+    "Ophiuchus": {
+        "headline": "Full Moon in Ophiuchus — A Pattern Asking to Be Walked Through",
+        "what_it_means": "Something you've sat with long enough wants to be moved, not just understood.",
+        "felt_texture": [
+            "The old pattern feels close to the surface",
+            "Insight arriving as physical heaviness, not relief",
+            "Less interest in re-examining; more in finishing",
+        ],
+        "action": "Pick the smallest action that turns what you know into what you do",
+        "theme_line": "Depth alone isn't doing the work anymore. Integration is."
+    },
 }
 
 # New Moon themed content by zodiac sign
@@ -330,6 +342,18 @@ NEW_MOON_BY_SIGN = {
         ],
         "action": "Trust your intuition more than your logic right now",
         "theme_line": "Something is ending so something new can form. You don't have to understand it yet."
+    },
+    # ophiuchus-first-class-content-v1
+    "Ophiuchus": {
+        "headline": "New Moon in Ophiuchus — Quiet Re-set at the Threshold",
+        "what_it_means": "A small intention is forming in the place where depth meets motion. Not a fresh start — a quieter recommitment to integration.",
+        "felt_texture": [
+            "Less interest in reopening the wound; more in finishing it",
+            "A small, specific change that feels weightier than it looks",
+            "Body asking for the action you've been deferring",
+        ],
+        "action": "Set one micro-intention that you can actually do this lunar cycle",
+        "theme_line": "The threshold isn't a leap — it's a series of small, repeatable crossings."
     },
 }
 

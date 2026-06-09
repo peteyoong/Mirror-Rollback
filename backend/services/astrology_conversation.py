@@ -84,9 +84,19 @@ ANGLE_ALIASES: Dict[str, str] = {
 
 SIGN_NAMES: List[str] = [
     "Aries", "Taurus", "Gemini", "Cancer", "Leo", "Virgo",
-    "Libra", "Scorpio", "Sagittarius", "Capricorn", "Aquarius", "Pisces",
+    "Libra", "Scorpio", "Ophiuchus", "Sagittarius", "Capricorn", "Aquarius", "Pisces",
 ]
+# ophiuchus-first-class-content-v1: canonical 13-sign list. Ophiuchus sits
+# between Scorpio and Sagittarius. Aliases below cover common natural-
+# language spellings users may type in chat ("ophiuchus" / "ophi" /
+# "serpent bearer" / "serpent-bearer").
 SIGN_ALIASES: Dict[str, str] = {s.lower(): s for s in SIGN_NAMES}
+SIGN_ALIASES.update({
+    "ophi":            "Ophiuchus",
+    "serpent bearer":  "Ophiuchus",
+    "serpent-bearer":  "Ophiuchus",
+    "serpentbearer":   "Ophiuchus",
+})
 
 # Ordinal & spelled-out house numbers, plus shorthand like "1h", "4th".
 HOUSE_ALIASES: Dict[str, int] = {

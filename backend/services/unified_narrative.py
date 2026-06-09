@@ -264,7 +264,8 @@ def _get_astro_archetype_link(sun_sign: str, archetype_name: str) -> str:
         'Sagittarius': "Your fire seeks meaning in each change",
         'Capricorn': "Your earth builds toward each new summit",
         'Aquarius': "Your air revolutionizes your path",
-        'Pisces': "Your water dissolves old boundaries"
+        'Pisces': "Your water dissolves old boundaries",
+        'Ophiuchus': "Your integration meets each pattern at the threshold and walks through it",
     }
     return connections.get(sun_sign, "Your energy expresses this pattern in your unique way")
 

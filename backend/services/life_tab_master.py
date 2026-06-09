@@ -209,6 +209,10 @@ _SUN_BEHAVIOUR: Dict[str, Dict[str, str]] = {
     "Pisces":      {"self": "porous, intuitive, feels everything; needs solitude to digest",
                     "relationships": "deeply compassionate; can lose self inside other",
                     "work": "thrives in creative or healing fields; struggles in hard-edge environments"},
+    # ophiuchus-first-class-content-v1: integration / threshold-crossing.
+    "Ophiuchus":   {"self": "carries depth without performing it; tracks patterns in the body; less interested in re-explaining than in finishing",
+                    "relationships": "steady at the threshold; can stay with another's hard material without merging or fleeing; tires of consolation that doesn't move anything",
+                    "work": "thrives where repair and pattern recognition matter; struggles in environments that reward speed over integration"},
 }
 
 

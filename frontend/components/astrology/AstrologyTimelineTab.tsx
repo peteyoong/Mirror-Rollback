@@ -221,6 +221,14 @@ const SIGN_PATTERNS: { [key: string]: PatternData } = {
     costOfAction: 'you draw a line, and it feels selfish—but you finally have energy that belongs to you',
     costOfWaiting: 'you keep absorbing, but you start forgetting what you wanted before you felt what everyone else needed',
   },
+  // ophiuchus-first-class-content-v1
+  'Ophiuchus': {
+    tension: 'going through it vs. going around it',
+    yearTheme: 'This year keeps putting you at thresholds you\'ve avoided crossing—places where the depth of what you\'ve felt has to translate into something you actually do with it.',
+    arcDescription: 'Across the year, you\'ll notice the same pattern: a hard thing surfaces, you sit inside it longer than most people would, and then it asks to be metabolised — not just understood. The year isn\'t asking you to perform recovery. It\'s asking what changes when you stop circling the wound and start walking through it.',
+    costOfAction: 'the integration is exhausting and slow—but the pattern you\'ve been carrying actually shifts',
+    costOfWaiting: 'you stay with the depth, but the depth alone isn\'t doing the work anymore',
+  },
 };
 
 // ============================================

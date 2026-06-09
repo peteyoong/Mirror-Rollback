@@ -78,7 +78,8 @@ const getSunTension = (sign: string): string => {
     'Sagittarius': 'Can become preachy, overcommitted, or escapist.',
     'Capricorn': 'Can become cold, workaholic, or status-obsessed.',
     'Aquarius': 'Can become detached, contrarian, or emotionally unavailable.',
-    'Pisces': 'Can become escapist, boundary-less, or martyred.'
+    'Pisces': 'Can become escapist, boundary-less, or martyred.',
+    'Ophiuchus': 'Can sit too long inside the analysis of a wound; can mistake processing depth for moving through it.'
   };
   return tensions[sign] || 'A shadow aspect that needs awareness.';
 };
@@ -96,7 +97,8 @@ const getSunGift = (sign: string): string => {
     'Sagittarius': 'The gift of meaning-making, expansive vision, infectious optimism.',
     'Capricorn': 'The ability to achieve, structural thinking, responsible leadership.',
     'Aquarius': 'Innovative thinking, humanitarian vision, authentic individuality.',
-    'Pisces': 'Transcendent compassion, creative imagination, spiritual sensitivity.'
+    'Pisces': 'Transcendent compassion, creative imagination, spiritual sensitivity.',
+    'Ophiuchus': 'Steady contact with complexity; the ability to metabolise hard material and turn it into something usable.'
   };
   return gifts[sign] || 'A distinctive life gift.';
 };
@@ -114,7 +116,8 @@ const getMoonTension = (sign: string): string => {
     'Sagittarius': 'Emotional avoidance; optimism that bypasses difficult feelings.',
     'Capricorn': 'Emotional suppression; feelings managed rather than experienced.',
     'Aquarius': 'Emotional detachment; feelings observed rather than inhabited.',
-    'Pisces': 'Emotional absorption; boundaries that let too much in.'
+    'Pisces': 'Emotional absorption; boundaries that let too much in.',
+    'Ophiuchus': 'Emotional patterns ask to be enacted, not just felt; sitting with the feeling can become a way of avoiding the integration.'
   };
   return tensions[sign] || 'An emotional pattern that needs awareness.';
 };
@@ -132,7 +135,8 @@ const getMoonGift = (sign: string): string => {
     'Sagittarius': 'Emotional resilience; hopeful heart; meaningful feeling.',
     'Capricorn': 'Emotional endurance; reliable presence; responsible care.',
     'Aquarius': 'Emotional objectivity; humanitarian feeling; unique sensitivity.',
-    'Pisces': 'Emotional compassion; transcendent empathy; imaginative heart.'
+    'Pisces': 'Emotional compassion; transcendent empathy; imaginative heart.',
+    'Ophiuchus': 'Emotional stamina at the threshold; can stay with another\'s hard material without merging or fleeing.'
   };
   return gifts[sign] || 'A distinctive emotional capacity.';
 };
@@ -150,7 +154,8 @@ const getMoonNeed = (sign: string): string => {
     'Sagittarius': 'meaning, adventure, and philosophical understanding',
     'Capricorn': 'achievement, structure, and respect',
     'Aquarius': 'freedom, intellectual connection, and authenticity',
-    'Pisces': 'transcendence, compassion, and spiritual connection'
+    'Pisces': 'transcendence, compassion, and spiritual connection',
+    'Ophiuchus': 'integration, repair, and small repeatable crossings — not just consolation'
   };
   return needs[sign] || 'emotional attunement';
 };
@@ -168,7 +173,8 @@ const getAscTension = (sign: string): string => {
     'Sagittarius': 'Can come across as preachy or restless when first engaging.',
     'Capricorn': 'Can seem cold or overly serious on first impression.',
     'Aquarius': 'Can appear detached or contrary when first meeting.',
-    'Pisces': 'Can seem vague or spacey in new situations.'
+    'Pisces': 'Can seem vague or spacey in new situations.',
+    'Ophiuchus': 'Can come across as heavier or more weighted than the moment requires; people may project crisis where there is only depth.'
   };
   return tensions[sign] || 'A first-impression pattern that may need awareness.';
 };
@@ -186,7 +192,8 @@ const getAscGift = (sign: string): string => {
     'Sagittarius': 'An optimistic, expansive presence that inspires growth.',
     'Capricorn': 'A capable, authoritative presence that builds respect.',
     'Aquarius': 'An original, innovative presence that challenges norms.',
-    'Pisces': 'A compassionate, intuitive presence that transcends.'
+    'Pisces': 'A compassionate, intuitive presence that transcends.',
+    'Ophiuchus': 'A grounded presence at thresholds — the kind of person hard conversations land safely around.'
   };
   return gifts[sign] || 'A distinctive way of meeting the world.';
 };
@@ -204,7 +211,8 @@ const getMercuryLearningStyle = (sign: string): string => {
     'Sagittarius': 'big picture first, then exploring connections',
     'Capricorn': 'structured progression and practical outcomes',
     'Aquarius': 'innovative approaches and pattern recognition',
-    'Pisces': 'intuitive absorption and imaginative connection'
+    'Pisces': 'intuitive absorption and imaginative connection',
+    'Ophiuchus': 'pattern recognition over surface fact — tracks how things land, repeat, and integrate'
   };
   return styles[sign] || 'varied approaches';
 };
@@ -222,7 +230,8 @@ const getMercuryTension = (sign: string): string => {
     'Sagittarius': 'Can be preachy, over-promise, or lack follow-through.',
     'Capricorn': 'Can be pessimistic, rigid, or overly focused on outcomes.',
     'Aquarius': 'Can be contrarian, detached, or stubborn about unconventional views.',
-    'Pisces': 'Can be vague, confused, or too impressionable.'
+    'Pisces': 'Can be vague, confused, or too impressionable.',
+    'Ophiuchus': 'Can keep re-examining the pattern instead of acting on it; talking about it can become the deferral.'
   };
   return tensions[sign] || 'A communication pattern that needs awareness.';
 };
@@ -240,7 +249,8 @@ const getMercuryGift = (sign: string): string => {
     'Sagittarius': 'Expansive, meaning-making communication that inspires.',
     'Capricorn': 'Strategic, authoritative thinking that achieves.',
     'Aquarius': 'Innovative, original thinking that challenges convention.',
-    'Pisces': 'Imaginative, intuitive communication that transcends.'
+    'Pisces': 'Imaginative, intuitive communication that transcends.',
+    'Ophiuchus': 'integration at the threshold — the pattern asks to be moved through, not re-examined'
   };
   return gifts[sign] || 'A distinctive communication capacity.';
 };
@@ -258,7 +268,8 @@ const getVenusLoveLanguage = (sign: string): string => {
     'Sagittarius': 'shared adventure and philosophical connection',
     'Capricorn': 'commitment, responsibility, and building together',
     'Aquarius': 'intellectual connection and respecting independence',
-    'Pisces': 'imaginative romance and spiritual connection'
+    'Pisces': 'imaginative romance and spiritual connection',
+    'Ophiuchus': 'integration at the threshold — the pattern asks to be moved through, not re-examined'
   };
   return languages[sign] || 'distinctive expressions of care';
 };
@@ -276,7 +287,8 @@ const getVenusTension = (sign: string): string => {
     'Sagittarius': 'Love can prioritize freedom over presence.',
     'Capricorn': 'Love can be conditional, tied to achievement or status.',
     'Aquarius': 'Love can be emotionally distant or afraid of closeness.',
-    'Pisces': 'Love can lose boundaries, becoming sacrifice.'
+    'Pisces': 'Love can lose boundaries, becoming sacrifice.',
+    'Ophiuchus': 'integration at the threshold — the pattern asks to be moved through, not re-examined'
   };
   return tensions[sign] || 'A relational pattern that needs awareness.';
 };
@@ -294,7 +306,8 @@ const getVenusGift = (sign: string): string => {
     'Sagittarius': 'Expansive love that grows through shared meaning.',
     'Capricorn': 'Committed love that builds something lasting.',
     'Aquarius': 'Accepting love that honors individuality.',
-    'Pisces': 'Transcendent love that sees the soul.'
+    'Pisces': 'Transcendent love that sees the soul.',
+    'Ophiuchus': 'integration at the threshold — the pattern asks to be moved through, not re-examined'
   };
   return gifts[sign] || 'A distinctive way of loving.';
 };
@@ -312,7 +325,8 @@ const getMarsAngerStyle = (sign: string): string => {
     'Sagittarius': 'blunt honesty that can be tactless',
     'Capricorn': 'controlled coldness or withholding',
     'Aquarius': 'detached dismissal or sudden rebellion',
-    'Pisces': 'martyrdom or passive aggression'
+    'Pisces': 'martyrdom or passive aggression',
+    'Ophiuchus': 'integration at the threshold — the pattern asks to be moved through, not re-examined'
   };
   return styles[sign] || 'distinctive reactions';
 };
@@ -348,7 +362,8 @@ const getMarsGift = (sign: string): string => {
     'Sagittarius': 'Expansive action that opens new territory.',
     'Capricorn': 'Strategic action that achieves lasting goals.',
     'Aquarius': 'Innovative action that breaks old patterns.',
-    'Pisces': 'Inspired action that serves something greater.'
+    'Pisces': 'Inspired action that serves something greater.',
+    'Ophiuchus': 'integration at the threshold — the pattern asks to be moved through, not re-examined'
   };
   return gifts[sign] || 'A distinctive action capacity.';
 };
@@ -370,7 +385,8 @@ const generateSunMirrorLayer = (sign: string, house?: number): MirrorLayer => {
     'Sagittarius': 'You are someone who seeks meaning. Adventure, philosophy, the big picture—you need to understand why any of this matters.',
     'Capricorn': 'You are someone who achieves. Structure, discipline, long-term thinking—you build things that last.',
     'Aquarius': 'You are someone who breaks patterns. Convention doesn\'t convince you. You need to find your own way.',
-    'Pisces': 'You are someone who transcends. Boundaries blur for you. You feel everything, imagine everything, dissolve into the larger whole.'
+    'Pisces': 'You are someone who transcends. Boundaries blur for you. You feel everything, imagine everything, dissolve into the larger whole.',
+    'Ophiuchus': 'integration at the threshold — the pattern asks to be moved through, not re-examined'
   };
   
   const tensionMap: { [key: string]: string } = {
@@ -430,7 +446,8 @@ const generateSunMirrorLayer = (sign: string, house?: number): MirrorLayer => {
     'Sagittarius': 'Stay with one thing past the point of boredom.',
     'Capricorn': 'Do something with no productive outcome. Call it rest.',
     'Aquarius': 'Agree with someone today—just to see what it feels like.',
-    'Pisces': 'Say "no" to one request. Your needs are real too.'
+    'Pisces': 'Say "no" to one request. Your needs are real too.',
+    'Ophiuchus': 'integration at the threshold — the pattern asks to be moved through, not re-examined'
   };
   
   const reflectionMap: { [key: string]: string } = {
@@ -445,7 +462,8 @@ const generateSunMirrorLayer = (sign: string, house?: number): MirrorLayer => {
     'Sagittarius': 'What are you running from by always running toward?',
     'Capricorn': 'When did ambition become a hiding place?',
     'Aquarius': 'What would change if being different stopped being your identity?',
-    'Pisces': 'Where does your compassion for others turn into abandonment of yourself?'
+    'Pisces': 'Where does your compassion for others turn into abandonment of yourself?',
+    'Ophiuchus': 'integration at the threshold — the pattern asks to be moved through, not re-examined'
   };
 
   const recognitionMap: { [key: string]: string } = {
@@ -461,7 +479,8 @@ const generateSunMirrorLayer = (sign: string, house?: number): MirrorLayer => {
     'Sagittarius': 'You promised something you weren\'t sure you could deliver.',
     'Capricorn': 'You chose work when rest was what you needed.',
     'Aquarius': 'You stayed outside even when you were invited in.',
-    'Pisces': 'You took on a weight that was never yours to carry.'
+    'Pisces': 'You took on a weight that was never yours to carry.',
+    'Ophiuchus': 'integration at the threshold — the pattern asks to be moved through, not re-examined'
   };
   
   return {
@@ -563,7 +582,8 @@ const generateMoonMirrorLayer = (sign: string, house?: number): MirrorLayer => {
     'Sagittarius': 'What sadness have you converted to a story instead of grieving?',
     'Capricorn': 'What would you feel if you let yourself stop achieving?',
     'Aquarius': 'What emotion scares you because it doesn\'t make sense?',
-    'Pisces': 'Where do you end and the world begins?'
+    'Pisces': 'Where do you end and the world begins?',
+    'Ophiuchus': 'integration at the threshold — the pattern asks to be moved through, not re-examined'
   };
 
   const recognitionMap: { [key: string]: string } = {
@@ -606,7 +626,8 @@ const generateAscendantMirrorLayer = (sign: string): MirrorLayer => {
     'Sagittarius': 'You are someone who enters every room like it\'s an opportunity. Optimistic, expansive, ready for adventure.',
     'Capricorn': 'You are someone who enters every room assessing the hierarchy. Serious, capable, quietly in charge.',
     'Aquarius': 'You are someone who enters every room as the individual. Detached, unique, slightly outside.',
-    'Pisces': 'You are someone who enters every room absorbing its essence. Soft, permeable, dreamy.'
+    'Pisces': 'You are someone who enters every room absorbing its essence. Soft, permeable, dreamy.',
+    'Ophiuchus': 'integration at the threshold — the pattern asks to be moved through, not re-examined'
   };
   
   const tensionMap: { [key: string]: string } = {
@@ -636,7 +657,8 @@ const generateAscendantMirrorLayer = (sign: string): MirrorLayer => {
     'Sagittarius': 'When this is working, you expand every conversation. Your optimism is earned, not naive. People feel more possible around you.',
     'Capricorn': 'When this is working, you bring competence to every situation. Your seriousness is respected. People feel they can rely on you.',
     'Aquarius': 'When this is working, you bring originality everywhere. Your difference is refreshing. People feel permission to be weird around you.',
-    'Pisces': 'When this is working, you bring gentleness to every interaction. Your sensitivity is healing. People feel understood around you.'
+    'Pisces': 'When this is working, you bring gentleness to every interaction. Your sensitivity is healing. People feel understood around you.',
+    'Ophiuchus': 'integration at the threshold — the pattern asks to be moved through, not re-examined'
   };
   
   const whereItShowsUpMap: { [key: string]: string[] } = {
@@ -666,7 +688,8 @@ const generateAscendantMirrorLayer = (sign: string): MirrorLayer => {
     'Sagittarius': 'Listen fully without planning your next point.',
     'Capricorn': 'Let yourself seem uncertain about something.',
     'Aquarius': 'Find one thing you genuinely have in common.',
-    'Pisces': 'Be concrete about one thing you want.'
+    'Pisces': 'Be concrete about one thing you want.',
+    'Ophiuchus': 'integration at the threshold — the pattern asks to be moved through, not re-examined'
   };
   
   const reflectionMap: { [key: string]: string } = {
@@ -681,7 +704,8 @@ const generateAscendantMirrorLayer = (sign: string): MirrorLayer => {
     'Sagittarius': 'What depth are you escaping by staying expansive?',
     'Capricorn': 'When did competence become your shield?',
     'Aquarius': 'What are you afraid of in connection?',
-    'Pisces': 'Where did your edges go?'
+    'Pisces': 'Where did your edges go?',
+    'Ophiuchus': 'integration at the threshold — the pattern asks to be moved through, not re-examined'
   };
   
   const recognitionMap: { [key: string]: string } = {
@@ -1087,7 +1111,8 @@ const NODE_REFLECTIONS: { [key: string]: string } = {
   'Sagittarius': 'What might you find if you kept searching?',
   'Capricorn': 'What would you build if it didn\'t have to prove anything?',
   'Aquarius': 'What could belonging look like without losing yourself?',
-  'Pisces': 'What might you find if you let yourself dissolve—just a little?'
+  'Pisces': 'What might you find if you let yourself dissolve—just a little?',
+    'Ophiuchus': 'integration at the threshold — the pattern asks to be moved through, not re-examined'
 };
 
 // Generate the full nodes content
@@ -1372,7 +1397,8 @@ const CHIRON_OVER_IDENTIFICATION: { [key: string]: string } = {
   'Sagittarius': 'When this takes over, you may keep seeking meaning in new places because nothing ever feels like enough.',
   'Capricorn': 'When this takes over, your worth becomes entirely tied to what you\'ve built—and rest feels like failure.',
   'Aquarius': 'When this takes over, you may become so identified with being different that belonging feels like betrayal.',
-  'Pisces': 'When this takes over, boundaries dissolve entirely—and you may lose track of where you end and others begin.'
+  'Pisces': 'When this takes over, boundaries dissolve entirely—and you may lose track of where you end and others begin.',
+    'Ophiuchus': 'integration at the threshold — the pattern asks to be moved through, not re-examined'
 };
 
 // Chiron reflection questions by sign
@@ -1388,7 +1414,8 @@ const CHIRON_REFLECTIONS: { [key: string]: string } = {
   'Sagittarius': 'What if the meaning you\'re looking for is already here?',
   'Capricorn': 'What would you do with your time if your worth wasn\'t tied to output?',
   'Aquarius': 'What might belonging look like if it didn\'t require giving up your difference?',
-  'Pisces': 'Where have you been escaping when you could have been staying?'
+  'Pisces': 'Where have you been escaping when you could have been staying?',
+    'Ophiuchus': 'integration at the threshold — the pattern asks to be moved through, not re-examined'
 };
 
 // Generate the full Chiron content (blending sign + house)

@@ -495,6 +495,47 @@ FULL_MOON_HORIZONS = {
             "question": "What is this month teaching you about staying open without losing yourself?",
         },
     },
+    # ophiuchus-first-class-content-v1: Full Moon in Ophiuchus narrative.
+    # Voice — integration under pressure, repair at the threshold, contact
+    # with complexity. NOT mystical / "13th sign mystery" / chosen-one.
+    "Ophiuchus": {
+        "today": {
+            "headline": "Full Moon in Ophiuchus — A Pattern Surfaces to Be Walked Through",
+            "theme": "Something you've been carrying wants to be metabolised, not just understood",
+            "what_it_means": "A pattern you've sat with long enough is asking to be put through your body today — not analysed further, not consoled, walked through. The depth you've already done isn't the work anymore. The integration is.",
+            "felt_texture": [
+                "The old wound feels closer than usual — and so does the urge to do something about it",
+                "Clarity arriving as physical exhaustion, not insight",
+                "Less interest in explaining what happened; more in finishing it",
+            ],
+            "action": "Pick the smallest concrete action that turns what you know into what you do",
+            "question": "What pattern have you understood long enough that it's now asking to be moved through?",
+        },
+        "week": {
+            "headline": "Full Moon Week — The Same Threshold Keeps Showing Up",
+            "theme": "The doorway you've been standing in front of stays open this week",
+            "what_it_means": "The same threshold keeps appearing in different costumes — a conversation, a body signal, a decision. The week isn't asking you to be brave. It's asking whether the depth you keep cataloguing is going to translate.",
+            "felt_texture": [
+                "Repeated moments where the inner work asks to be enacted",
+                "Tension between sitting with it (familiar) and acting on it (unfamiliar)",
+                "Body indicators — sleep, appetite, breath — registering the held-back motion",
+            ],
+            "action": "Name the threshold once aloud, then take the smallest step across it",
+            "question": "What have you been processing that doesn't need more processing?",
+        },
+        "month": {
+            "headline": "This Month's Arc — Depth Translating into Action",
+            "theme": "A month about closing the gap between what you know and what you do",
+            "what_it_means": "This Full Moon is one peak inside a larger lesson about integration — the part where understanding alone stops being enough. The month is teaching you that the threshold between depth and movement isn't a leap, it's a series of small, repeatable crossings.",
+            "felt_texture": [
+                "Less interest in revisiting the wound; more interest in repair",
+                "Patterns recognised earlier in the loop than usual",
+                "Body and decision arriving on the same beat",
+            ],
+            "action": "By month's end, identify one pattern you've actually moved through — not just named",
+            "question": "What is this month teaching you about the difference between knowing and integrating?",
+        },
+    },
 }
 
 # =============================================================================
@@ -677,9 +718,15 @@ def get_horizon_interpretation(
 
 
 def _get_full_moon_horizon(sign: str, timeframe: str, moon_data: Dict[str, Any]) -> Dict[str, Any]:
-    """Get Full Moon interpretation for specific horizon."""
-    
-    sign_content = FULL_MOON_HORIZONS.get(sign, FULL_MOON_HORIZONS["Aries"])
+    """Get Full Moon interpretation for specific horizon.
+
+    ophiuchus-first-class-content-v1: FULL_MOON_HORIZONS now includes an
+    "Ophiuchus" key. The Aries default below only fires for genuinely
+    unknown sign tokens — never for Ophiuchus.
+    """
+    sign_content = FULL_MOON_HORIZONS.get(sign)
+    if sign_content is None:
+        sign_content = FULL_MOON_HORIZONS["Aries"]
     horizon_content = sign_content.get(timeframe, sign_content["today"])
     
     return {

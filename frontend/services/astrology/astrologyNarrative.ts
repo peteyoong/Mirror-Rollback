@@ -110,7 +110,8 @@ export const getChartSpine = (placements: CorePlacements): string[] => {
     'Sagittarius': 'You often seem optimistic—you may downplay difficulties.',
     'Capricorn': 'You can appear serious—humor might catch you off guard.',
     'Aquarius': 'You may seem detached—though you\'re often observing more than people realize.',
-    'Pisces': 'You often come across as gentle—you tend to pick up on the energy around you.'
+    'Pisces': 'You often come across as gentle—you tend to pick up on the energy around you.',
+    'Ophiuchus': 'You often come across as someone people meet at thresholds—steady around hard material, less easily knocked off balance.',
   };
   if (asc && ascBehaviors[asc]) spine.push(ascBehaviors[asc]);
 
@@ -330,7 +331,8 @@ export const getMoonPhaseContext = (transits: TransitHit[], chartData: FullChart
     'Sagittarius': 'restless optimism',
     'Capricorn': 'emotional reserve',
     'Aquarius': 'detached observation',
-    'Pisces': 'diffuse sensitivity'
+    'Pisces': 'diffuse sensitivity',
+    'Ophiuchus': 'integration at the threshold',
   };
   
   const signPart = signDescriptor[moonSign] || 'shifting moods';

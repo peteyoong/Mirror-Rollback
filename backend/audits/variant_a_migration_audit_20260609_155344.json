@@ -1,0 +1,142 @@
+{
+  "marker": "variant_a_migration_audit_v1",
+  "started_at": "2026-06-09T15:53:44.014315+00:00",
+  "engine_version_target": "midpoint13_variant_a_v1",
+  "engine_version_forensic": "midpoint12_variant_b",
+  "limit": 5,
+  "dry_run": true,
+  "writes_performed": 0,
+  "users_scanned": 6,
+  "users_with_birth_data": 5,
+  "users_skipped_no_birth": 0,
+  "users_changing_sun": 1,
+  "users_changing_moon": 0,
+  "users_changing_mercury": 2,
+  "users_changing_venus": 2,
+  "users_changing_mars": 0,
+  "users_changing_asc": 0,
+  "users_changing_mc": 1,
+  "users_entering_ophiuchus": 1,
+  "users_with_ophiuchus_sun": 0,
+  "users_with_ophiuchus_moon": 0,
+  "ophiuchus_distribution": {
+    "DC": 1,
+    "Uranus": 1
+  },
+  "errors": [],
+  "sample_changes": [
+    {
+      "user_id": "6971c81f2b40fd5ef501d375",
+      "name": "Yoong Weng Hong Peter Andrew",
+      "body_changes": [
+        {
+          "body": "Mercury",
+          "variant_a": "Pisces",
+          "variant_b": "Aquarius",
+          "tropical_longitude": 350.814,
+          "variant_a_degree": 1.52,
+          "variant_b_degree": 24.054
+        },
+        {
+          "body": "Venus",
+          "variant_a": "Pisces",
+          "variant_b": "Aquarius",
+          "tropical_longitude": 350.874,
+          "variant_a_degree": 1.58,
+          "variant_b_degree": 24.114
+        }
+      ],
+      "angle_changes": [],
+      "ophiuchus_bodies": []
+    },
+    {
+      "user_id": "6971c86d2b40fd5ef501d376",
+      "name": "Test User",
+      "body_changes": [
+        {
+          "body": "Sun",
+          "variant_a": "Taurus",
+          "variant_b": "Aries",
+          "tropical_longitude": 54.4965,
+          "variant_a_degree": 3.484,
+          "variant_b_degree": 28.887
+        }
+      ],
+      "angle_changes": [],
+      "ophiuchus_bodies": []
+    },
+    {
+      "user_id": "6971c8ceca59929a2e3e1c1b",
+      "name": "John Doe",
+      "body_changes": [
+        {
+          "body": "Uranus",
+          "variant_a": "Ophiuchus",
+          "variant_b": "Scorpio",
+          "tropical_longitude": 257.9832,
+          "variant_a_degree": 3.275,
+          "variant_b_degree": 16.303
+        },
+        {
+          "body": "Pluto",
+          "variant_a": "Virgo",
+          "variant_b": "Libra",
+          "tropical_longitude": 214.2517,
+          "variant_a_degree": 41.362,
+          "variant_b_degree": 1.572
+        }
+      ],
+      "angle_changes": [
+        {
+          "angle": "dc",
+          "variant_a": "Ophiuchus",
+          "variant_b": "Scorpio",
+          "tropical_longitude": 266.464
+        }
+      ],
+      "ophiuchus_bodies": [
+        "DC",
+        "Uranus"
+      ]
+    },
+    {
+      "user_id": "6971c8f681beab3a8955b255",
+      "name": "Jane Smith",
+      "body_changes": [],
+      "angle_changes": [
+        {
+          "angle": "mc",
+          "variant_a": "Sagittarius",
+          "variant_b": "Capricorn",
+          "tropical_longitude": 298.9338
+        }
+      ],
+      "ophiuchus_bodies": []
+    },
+    {
+      "user_id": "6971cc4381beab3a8955b256",
+      "name": "Yoong Weng Hong Peter Andrew",
+      "body_changes": [
+        {
+          "body": "Mercury",
+          "variant_a": "Pisces",
+          "variant_b": "Aquarius",
+          "tropical_longitude": 350.814,
+          "variant_a_degree": 1.52,
+          "variant_b_degree": 24.054
+        },
+        {
+          "body": "Venus",
+          "variant_a": "Pisces",
+          "variant_b": "Aquarius",
+          "tropical_longitude": 350.874,
+          "variant_a_degree": 1.58,
+          "variant_b_degree": 24.114
+        }
+      ],
+      "angle_changes": [],
+      "ophiuchus_bodies": []
+    }
+  ],
+  "finished_at": "2026-06-09T15:53:44.020541+00:00"
+}

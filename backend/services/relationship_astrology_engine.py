@@ -95,6 +95,10 @@ SIGN_MECHANICS: Dict[str, Dict[str, str]] = {
     "Pisces":     {"element": "water", "mode": "mutable",
                    "drive": "processes through atmosphere, emotional permeability, subtle signals, fusion, sensitivity",
                    "intimacy": "experiences explanation-without-emotional-presence as distance; needs emotional saturation and reassurance"},
+    # ophiuchus-first-class-content-v1
+    "Ophiuchus":  {"element": "ether", "mode": "mutable",
+                   "drive": "metabolises shared difficulty; tracks the pattern as it lives in the body, not the story",
+                   "intimacy": "lands through being met after the depth has been felt; reads consolation-without-movement as the relationship stalling"},
 }
 
 # Outer planets / nodal axis flavour
