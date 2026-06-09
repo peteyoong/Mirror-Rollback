@@ -171,6 +171,54 @@ async def _resolve_target_via_forum_members(
 
 
 # ---------------------------------------------------------------------------
+# Slice A — Spouse auto-promotion when the life-domain is relationship
+# ---------------------------------------------------------------------------
+# When the asker has a stored spouse / wife / husband / partner mapping
+# AND the question is in the relationship life-domain ("marriage",
+# "partnership", "soulmate"…), we promote that target automatically —
+# even if the asker never typed the spouse's name or the word "spouse".
+# This is what makes "Tell me about what my chart says about marriage"
+# become a Pete↔Mel reading instead of a solo Pete reading.
+# ---------------------------------------------------------------------------
+
+_SPOUSE_ROLES = {"spouse", "husband", "wife", "partner"}
+
+
+async def _resolve_spouse_when_relationship_domain(
+    *,
+    db,
+    asker_user_id: str,
+) -> Optional[Dict[str, Any]]:
+    """Return the asker's stored spouse mapping when one exists, else None.
+
+    Caller is responsible for gating this behind a relationship-domain check.
+    """
+    cursor = db.relationship_mappings.find({
+        "asker_user_id":     asker_user_id,
+        "relationship_type": {"$in": list(_SPOUSE_ROLES)},
+    })
+    docs = await cursor.to_list(length=5)
+    if not docs:
+        return None
+    doc = docs[0]
+    target_uid = doc.get("target_user_id")
+    if not target_uid:
+        return None
+    target_user = await db.users.find_one({"_id": ObjectId(target_uid)})
+    target_name = (
+        doc.get("target_name")
+        or (target_user or {}).get("name")
+        or "your partner"
+    )
+    return {
+        "target_user_id": target_uid,
+        "target_name":    target_name,
+        "source":         "spouse_auto_promote",
+        "role_hint":      doc.get("relationship_type") or "spouse",
+    }
+
+
+# ---------------------------------------------------------------------------
 # Phase 2 — Intent classification
 # ---------------------------------------------------------------------------
 
@@ -317,7 +365,24 @@ async def build_relational_orchestrator_payload(
         "relationship_role": None,
         "role_source":       None,
         "context_blocks":    [],
+        "life_domain":       None,
+        "spouse_auto_promoted": False,
+        "layered_block_emitted": False,
     }
+
+    # ── Slice A — life-domain classification (question-intent-router-v1) ──
+    #   This runs the lightweight life-domain classifier so we know if
+    #   the question is about marriage / partnership / career / family /
+    #   spiritual purpose.  This signal is INDEPENDENT of the existing
+    #   astrology-intent classifier below — both fire.
+    try:
+        from services.question_intent_router import classify_question_intent
+        _life_intent = classify_question_intent(message or "")
+        life_domain = _life_intent.get("domain", "general")
+    except Exception as _li_err:  # noqa: BLE001
+        logger.debug(f"[ForumMirrorOrchestrator] life-domain skipped: {_li_err}")
+        life_domain = "general"
+    debug["life_domain"] = life_domain
 
     # ── Phase 1 — Resolve target ──────────────────────────────────────
     resolved: Optional[Dict[str, Any]] = None
@@ -350,6 +415,25 @@ async def build_relational_orchestrator_payload(
     # Priority: explicit_mode_member > alias > name_match
     if not resolved:
         resolved = alias_match or name_match
+
+    # ── Slice A — Spouse auto-promotion ───────────────────────────────
+    #   If the question is in the relationship life-domain AND nothing
+    #   else resolved a target, promote the asker's stored spouse.
+    #   This makes "Tell me about what my chart says about marriage"
+    #   become a layered Pete↔Mel reading instead of a solo Pete read.
+    if not resolved and life_domain == "relationship":
+        try:
+            spouse_match = await _resolve_spouse_when_relationship_domain(
+                db=db, asker_user_id=asker_user_id,
+            )
+            if spouse_match:
+                resolved = spouse_match
+                debug["spouse_auto_promoted"] = True
+        except Exception as _sp_err:  # noqa: BLE001
+            logger.debug(
+                f"[ForumMirrorOrchestrator] spouse auto-promote skipped: {_sp_err}"
+            )
+
     debug["resolved_target"] = resolved
 
     # ── Phase 2 — Intent classification ───────────────────────────────
@@ -384,6 +468,53 @@ async def build_relational_orchestrator_payload(
         f"FORUM MIRROR RELATIONAL ORCHESTRATOR ({BUILD_MARKER})\n"
         f"=========================================================\n"
     )
+
+    # 4.0 — Slice A: LAYERED RELATIONSHIP BLOCK (leads when domain=relationship)
+    #   This is the marriage/partnership fix.  When the life-domain is
+    #   relationship we open the addendum with a strict, layered block
+    #   that names Descendant / 7th house / 7th ruler / Venus / Juno
+    #   BEFORE anything else, and bans opening with Sun / HD / Numerology.
+    if life_domain == "relationship":
+        try:
+            from services.astrology_domain_context import (
+                build_layered_relationship_block,
+            )
+            # Always load asker's chart
+            asker_chart = await db.charts.find_one({"user_id": asker_user_id})
+            asker_user_doc = await db.users.find_one({"_id": ObjectId(asker_user_id)})
+            asker_name = (asker_user_doc or {}).get("name") or "you"
+
+            # Spouse chart (when promoted or otherwise resolved)
+            spouse_chart = None
+            spouse_name = None
+            spouse_role = None
+            if resolved and resolved.get("target_user_id"):
+                spouse_chart = await db.charts.find_one({
+                    "user_id": resolved["target_user_id"],
+                })
+                spouse_name = resolved.get("target_name")
+                spouse_role = resolved.get("role_hint") or "spouse"
+
+            layered = build_layered_relationship_block(
+                asker_chart=asker_chart or {},
+                asker_name=asker_name,
+                spouse_chart=spouse_chart,
+                spouse_name=spouse_name,
+                relationship_role=spouse_role,
+            )
+            if layered:
+                parts.append(layered)
+                debug["layered_block_emitted"] = True
+                debug["context_blocks"].append("layered_relationship_block")
+                logger.info(
+                    f"[ForumMirrorOrchestrator] layered_relationship_block "
+                    f"asker={asker_name!r} spouse={spouse_name!r} "
+                    f"role={spouse_role!r} chars={len(layered)}"
+                )
+        except Exception as _lr_err:  # noqa: BLE001
+            logger.warning(
+                f"[ForumMirrorOrchestrator] layered relationship block failed: {_lr_err}"
+            )
 
     # 4a — resolved-target identity assertion
     if resolved and resolved.get("target_user_id"):
@@ -522,6 +653,9 @@ async def build_relational_orchestrator_payload(
         "role_source":          rel_info.get("relationship_source") if rel_info else None,
         "intent":               intent_data["intent"],
         "house_number":         intent_data["house_number"],
+        "life_domain":          life_domain,
+        "spouse_auto_promoted": debug.get("spouse_auto_promoted", False),
+        "layered_block_emitted": debug.get("layered_block_emitted", False),
         "system_prompt_addendum": addendum,
         "debug":                debug,
     }

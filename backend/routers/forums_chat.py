@@ -309,9 +309,12 @@ def register(
                     f"[ForumMirrorOrchestrator] frame={orchestrator_payload.get('frame')} "
                     f"intent={orchestrator_payload.get('intent')} "
                     f"house={orchestrator_payload.get('house_number')} "
+                    f"life_domain={orchestrator_payload.get('life_domain')!r} "
                     f"target={(orchestrator_payload.get('resolved_target') or {}).get('target_name')!r} "
                     f"role={orchestrator_payload.get('relationship_role')!r} "
-                    f"source={orchestrator_payload.get('role_source')!r}"
+                    f"source={orchestrator_payload.get('role_source')!r} "
+                    f"spouse_auto={orchestrator_payload.get('spouse_auto_promoted')} "
+                    f"layered={orchestrator_payload.get('layered_block_emitted')}"
                 )
             except Exception as _orch_err:  # noqa: BLE001
                 logger.warning(
