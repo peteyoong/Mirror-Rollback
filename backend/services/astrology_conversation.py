@@ -118,6 +118,59 @@ REFERENT_RE = re.compile("|".join(REFERENT_PATTERNS), re.IGNORECASE)
 
 
 # ---------------------------------------------------------------------------
+# 1b.  Defensive cusp parser
+# ---------------------------------------------------------------------------
+#
+# `formatted_cusps` is canonically a list of dicts:
+#     {"house": 1, "cusp": 28.5, "sign": "Cancer", "degree": 28.5,
+#      "formatted": "28°Cancer"}
+#
+# However, legacy / partial / migrated charts may store cusps as a list of
+# strings like "4°Cancer".  Calling `.get("sign")` on a string raises
+# AttributeError, which silently broke the lens-grounding block — the LLM
+# then hallucinated planet-house assignments because it received no cusp
+# context.  This helper normalises every legal shape into a dict so the
+# rest of the indexer can stay simple and never crash.
+# ---------------------------------------------------------------------------
+
+# Regex: leading numeric degrees followed by optional degree symbol and sign name.
+_CUSP_STR_RE = re.compile(
+    r"^\s*(?P<deg>\d+(?:\.\d+)?)\s*[°º]?\s*(?P<sign>[A-Za-z]+)",
+)
+
+def _parse_cusp_entry(cusp: Any) -> Dict[str, Any]:
+    """Coerce a single cusp entry into a dict.  Never raises."""
+    if isinstance(cusp, dict):
+        # Already canonical shape — pass through.  We do NOT mutate.
+        return cusp
+    if isinstance(cusp, str):
+        s = cusp.strip()
+        out: Dict[str, Any] = {"formatted": s}
+        m = _CUSP_STR_RE.match(s)
+        if m:
+            try:
+                out["degree"] = float(m.group("deg"))
+            except Exception:
+                pass
+            raw_sign = m.group("sign").strip().title()
+            # Map to canonical sign name when recognised.
+            if raw_sign in SIGN_NAMES:
+                out["sign"] = raw_sign
+        # Fallback: scan for any sign token in the string (handles forms
+        # like "Cancer 4°" or "4 deg Cancer").
+        if "sign" not in out:
+            low = s.lower()
+            for nm in SIGN_NAMES:
+                if nm.lower() in low:
+                    out["sign"] = nm
+                    break
+        return out
+    # Anything else (None, list, int, ...) → empty dict so downstream
+    # `.get("sign")` returns None instead of crashing.
+    return {}
+
+
+# ---------------------------------------------------------------------------
 # 2.  Chart entity index
 # ---------------------------------------------------------------------------
 
@@ -202,10 +255,12 @@ def build_chart_entity_index(chart: Optional[Dict[str, Any]]) -> Dict[str, Dict[
     cusps = houses.get("formatted_cusps") or []
     if cusps:
         try:
-            asc = cusps[0] if len(cusps) > 0 else None
-            ic = cusps[3] if len(cusps) > 3 else None
-            dsc = cusps[6] if len(cusps) > 6 else None
-            mc = cusps[9] if len(cusps) > 9 else None
+            # Defensive parsing — accept both dict-style cusps and legacy
+            # string-list cusps (e.g. "4°Cancer").  See _parse_cusp_entry.
+            asc = _parse_cusp_entry(cusps[0]) if len(cusps) > 0 else {}
+            ic  = _parse_cusp_entry(cusps[3]) if len(cusps) > 3 else {}
+            dsc = _parse_cusp_entry(cusps[6]) if len(cusps) > 6 else {}
+            mc  = _parse_cusp_entry(cusps[9]) if len(cusps) > 9 else {}
             if asc:
                 index["Ascendant"] = {
                     "kind": "angle", "name": "Ascendant",
@@ -238,7 +293,12 @@ def build_chart_entity_index(chart: Optional[Dict[str, Any]]) -> Dict[str, Dict[
         cusp = None
         if len(cusps) >= h_num:
             cusp = cusps[h_num - 1]
-        sign_on_cusp = (cusp or {}).get("sign")
+        # Defensive: accept dict OR string ("4°Cancer") OR None.
+        # Previously this did `(cusp or {}).get("sign")` which raised
+        # AttributeError on string cusps and broke the entire grounding
+        # block, letting the LLM hallucinate house assignments.
+        cusp_parsed = _parse_cusp_entry(cusp)
+        sign_on_cusp = cusp_parsed.get("sign")
         # Find which planets sit in this house
         tenants = [
             name for name, e in index.items()

@@ -52,7 +52,7 @@ import time
 import traceback
 import uuid
 from datetime import datetime, timezone
-from typing import Dict, List, Optional
+from typing import Any, Dict, List, Optional
 
 from bson import ObjectId
 from fastapi import APIRouter, HTTPException
@@ -741,6 +741,92 @@ SUPPORT STYLE: {v1_support}
                         # Thread is from a different day, clear it
                         await db.user_thread_state.delete_one({"user_id": request.user_id})
                         logger.info(f"[Thread] Cleared stale thread for user {request.user_id} (date mismatch)")
+
+            # ──────────────────────────────────────────────────────────
+            # DOMAIN INTENT ROUTING  —  Mirror Chat v2 Slice A
+            # question-intent-router-v1 + astrology-domain-context-v1
+            # ──────────────────────────────────────────────────────────
+            # When the user's question concerns a specific life-domain
+            # (marriage / partnership, career, family/home, spiritual
+            # purpose), prepend a deterministic "Domain Proof Block"
+            # BEFORE the generic USER CONTEXT block.  This forces the
+            # LLM to lead from the partnership/career/family/spiritual
+            # architecture (7th House, Descendant, Venus, Juno, …)
+            # instead of defaulting to Sun sign / Human Design type /
+            # Numerology life-path / Enneagram.
+            #
+            # Slice A scope:
+            #   • relationship domain is fully populated
+            #   • career / family / spiritual are scaffolded
+            #   • the block only fires when domain != "general"
+            #   • for non-self targets we attempt a lightweight resolve
+            #     via member_chart_resolver; the existing V7 resolver
+            #     downstream still runs for full chart delegation.
+            # Failures are swallowed — the route never breaks because
+            # of intent routing.
+            # ──────────────────────────────────────────────────────────
+            domain_proof_debug: Dict[str, Any] = {
+                "marker": "question-intent-router-v1",
+                "domain": "general",
+                "target": None,
+                "proof_block_emitted": False,
+                "proof_block_chars": 0,
+                "target_chart_swapped": False,
+            }
+            try:
+                from services.question_intent_router import classify_question_intent
+                from services.astrology_domain_context import build_domain_proof_block
+
+                _intent = classify_question_intent(request.message or "")
+                _domain = _intent.get("domain", "general")
+                _target = _intent.get("target")
+                domain_proof_debug["domain"] = _domain
+                domain_proof_debug["target"] = _target
+
+                if _domain != "general" and chart is not None:
+                    _proof_chart = chart
+                    _proof_target_label = (user.get("name") if user else None) or "this person"
+
+                    # Lightweight target resolution — only fires when
+                    # the classifier saw a proper-name target.  The
+                    # downstream V7 resolver inside the astrology
+                    # routing block still runs independently.
+                    if _target and _target != "self":
+                        try:
+                            from services.member_chart_resolver import resolve_target_member
+                            _di_tgt = await resolve_target_member(
+                                db=db,
+                                asker_user_id=request.user_id,
+                                message=request.message or "",
+                                about_person_id=request.about_person_id,
+                            )
+                            if _di_tgt and _di_tgt.get("target_chart"):
+                                _proof_chart = _di_tgt["target_chart"]
+                                _proof_target_label = (
+                                    _di_tgt.get("target_name") or _target
+                                )
+                                domain_proof_debug["target_chart_swapped"] = True
+                        except Exception as _di_res_err:
+                            logger.debug(
+                                f"[DomainIntent] target-resolve skipped: {_di_res_err}"
+                            )
+
+                    _proof_block = build_domain_proof_block(
+                        domain=_domain,
+                        chart=_proof_chart,
+                        target_name=_proof_target_label,
+                    )
+                    if _proof_block:
+                        system_prompt += "\n" + _proof_block
+                        domain_proof_debug["proof_block_emitted"] = True
+                        domain_proof_debug["proof_block_chars"] = len(_proof_block)
+                        logger.info(
+                            f"[DomainIntent] domain={_domain!r} "
+                            f"target={_proof_target_label!r} "
+                            f"chars={len(_proof_block)}"
+                        )
+            except Exception as _di_err:
+                logger.debug(f"[DomainIntent] skipped: {_di_err}")
 
             # Add context
             system_prompt += "\n\n--- USER CONTEXT ---\n" + "\n".join(context_parts)
