@@ -32310,6 +32310,18 @@ async def _safe_run_migrations():
     except Exception as e:
         logger.error(f"[Migration] Background migration failed (non-fatal): {e}")
 
+    # ---------------------------------------------------------------
+    # TEMPORARY — Variant A Production Migration Startup Hook
+    # build marker: variant-a-prod-migration-startup-hook-v1
+    # Runs ONLY when env var RUN_VARIANT_A_MIGRATION == VARIANT_A_PHASE_5
+    # Idempotent + safety-gated. Remove after production migration.
+    # ---------------------------------------------------------------
+    try:
+        from routers.variant_a_startup_hook import run as _variant_a_run
+        await _variant_a_run(db)
+    except Exception as e:
+        logger.error(f"[Variant A Startup Hook] failed (non-fatal): {e}")
+
 
 # ---------------------------------------------------------------------------
 # Variant-A migration guard
