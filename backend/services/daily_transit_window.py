@@ -169,6 +169,13 @@ ZODIAC_SIGNS = [
     'Sagittarius', 'Capricorn', 'Aquarius', 'Pisces'
 ]
 
+# Variant A canonical 13-sign list (Ophiuchus between Scorpio and Sagittarius).
+ZODIAC_SIGNS_13 = [
+    'Aries', 'Taurus', 'Gemini', 'Cancer',
+    'Leo', 'Virgo', 'Libra', 'Scorpio', 'Ophiuchus',
+    'Sagittarius', 'Capricorn', 'Aquarius', 'Pisces'
+]
+
 def longitude_to_sign(longitude: float) -> str:
     """Convert longitude to zodiac sign name.
 
@@ -183,13 +190,27 @@ def longitude_to_sign(longitude: float) -> str:
 
 
 def sign_to_index(sign: str) -> int:
-    """Get zodiac sign index (0-11)."""
-    return ZODIAC_SIGNS.index(sign)
+    """Get zodiac sign index. Ophiuchus-safe: returns 12 for Ophiuchus
+    (outside the legacy 0-11 range) — callers must handle the extra
+    index when computing equal-30° boundaries.
+    """
+    if sign == 'Ophiuchus':
+        return ZODIAC_SIGNS_13.index(sign)
+    try:
+        return ZODIAC_SIGNS.index(sign)
+    except ValueError:
+        return ZODIAC_SIGNS_13.index(sign)
 
 
 def get_sign_boundary(sign: str) -> float:
-    """Get the starting longitude of a zodiac sign."""
-    return sign_to_index(sign) * 30.0
+    """Get the starting longitude of a zodiac sign (rough 30° equal grid).
+
+    NOTE: This is only correct for the uniform_30 model. For Variant A's
+    non-uniform boundaries the canonical engine should be used instead.
+    """
+    idx = sign_to_index(sign)
+    # Cap at 11 so we don't ask for an "Ophiuchus boundary" in equal-30 math.
+    return min(idx, 11) * 30.0
 
 
 # =============================================================================

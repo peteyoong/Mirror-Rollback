@@ -75,6 +75,11 @@ SIGN_ELEMENT = {
     "Cancer": "water", "Scorpio": "water", "Pisces": "water",
 }
 
+# Variant A canonical: ensure Ophiuchus is a first-class sign.
+from services.ophiuchus_metadata import patch_element_map as _patch_e, patch_modality_map as _patch_m
+_patch_e(SIGN_ELEMENT)
+_patch_m(SIGN_MODALITY)
+
 ELEMENT_MEANING = {
     "fire": "action, will, expression",
     "earth": "structure, form, manifestation",

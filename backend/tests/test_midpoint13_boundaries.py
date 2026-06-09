@@ -90,15 +90,24 @@ def test_compare_flags_ophiuchus_for_late_scorpio_longitudes():
     assert r["current_sign"] != "Ophiuchus"
     assert r["match"] is False
 
-def test_production_sign_attribution_module_unchanged():
-    """Defensive check that the forensic module did not patch production."""
+def test_production_sign_attribution_module_canonical_variant_a():
+    """After the Variant-A migration (midpoint13_variant_a_v1) the canonical
+    default is Variant A. The MODE_TRUE_SIDEREAL_MIDPOINT alias is kept for
+    backwards compat and points at Variant B (the forensic engine).
+    """
     from calculations import sign_attribution
-    assert sign_attribution.DEFAULT_MODE == sign_attribution.MODE_TRUE_SIDEREAL_MIDPOINT
-    # And that the production attribute_sign for 110.51° still returns the
-    # Variant-B "Gemini" answer it did before.
-    out = sign_attribution.attribute_sign(110.51,
-                                          mode=sign_attribution.MODE_TRUE_SIDEREAL_MIDPOINT)
-    assert out["sign"] == "Gemini"
+    assert sign_attribution.DEFAULT_MODE == sign_attribution.MODE_MIDPOINT13_VARIANT_A
+    # Variant B still returns the "Gemini" answer at 110.51° (no math change).
+    out_b = sign_attribution.attribute_sign(
+        110.51, mode=sign_attribution.MODE_MIDPOINT12_VARIANT_B,
+    )
+    assert out_b["sign"] == "Gemini"
+    # Same longitude under Variant A may differ — verify it returns A's
+    # engine_version stamp regardless of label.
+    out_a = sign_attribution.attribute_sign(
+        110.51, mode=sign_attribution.MODE_MIDPOINT13_VARIANT_A,
+    )
+    assert out_a["engine_version"] == sign_attribution.ENGINE_VERSION_VARIANT_A
 
 
 if __name__ == "__main__":

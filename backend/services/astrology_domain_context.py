@@ -11,8 +11,13 @@ _RULERS = {  # traditional rulers — used for 7th-house ruler lookup
     "Cancer": "Moon", "Leo": "Sun", "Virgo": "Mercury",
     "Libra": "Venus", "Scorpio": "Mars", "Sagittarius": "Jupiter",
     "Capricorn": "Saturn", "Aquarius": "Saturn", "Pisces": "Jupiter",
-    "Ophiuchus": "Jupiter",  # forensic placeholder; not in production output
 }
+# Variant A canonical (midpoint13_variant_a_v1): Ophiuchus is first-class.
+try:
+    from services.ophiuchus_metadata import patch_ruler_map as _patch_r
+    _patch_r(_RULERS)
+except Exception:
+    _RULERS["Ophiuchus"] = "Chiron"
 
 
 def _planets_in_house(planets: Dict[str, Dict], house_num: int) -> List[str]:

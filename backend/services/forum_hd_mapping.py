@@ -590,6 +590,11 @@ MODALITY_MAP = {
     "Gemini": "mutable", "Virgo": "mutable", "Sagittarius": "mutable", "Pisces": "mutable",
 }
 
+# Variant A canonical: ensure Ophiuchus has an element + modality entry.
+from services.ophiuchus_metadata import patch_element_map as _patch_e, patch_modality_map as _patch_m
+_patch_e(ELEMENT_MAP)
+_patch_m(MODALITY_MAP)
+
 # Compatible elements for attraction
 ELEMENT_ATTRACTION = {
     ("fire", "air"): True, ("air", "fire"): True,

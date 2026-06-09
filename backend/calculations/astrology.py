@@ -109,9 +109,18 @@ PLANETS = {
     'Chiron': swe.CHIRON,  # Wound/Healer point
 }
 
+# 12-sign legacy list (kept for back-compat; do NOT use for sign_index lookup
+# in Variant A mode — use ZODIAC_SIGNS_13 / get_zodiac_signs(mode) below).
 ZODIAC_SIGNS = [
     'Aries', 'Taurus', 'Gemini', 'Cancer',
     'Leo', 'Virgo', 'Libra', 'Scorpio',
+    'Sagittarius', 'Capricorn', 'Aquarius', 'Pisces'
+]
+
+# 13-sign canonical list — Ophiuchus inserted between Scorpio and Sagittarius.
+ZODIAC_SIGNS_13 = [
+    'Aries', 'Taurus', 'Gemini', 'Cancer',
+    'Leo', 'Virgo', 'Libra', 'Scorpio', 'Ophiuchus',
     'Sagittarius', 'Capricorn', 'Aquarius', 'Pisces'
 ]
 
@@ -192,7 +201,7 @@ def longitude_to_sign_degree(longitude: float, tropical_longitude: Optional[floa
     longitude = normalize_degrees(longitude)
     mode = DEFAULT_MODE
     
-    if mode == MODE_TRUE_SIDEREAL_MIDPOINT:
+    if mode == MODE_TRUE_SIDEREAL_MIDPOINT or mode == "midpoint13_variant_a":
         # Midpoint attribution operates on TROPICAL longitude.
         # Reconstruct tropical from sidereal if not supplied.
         trop = (
@@ -201,10 +210,16 @@ def longitude_to_sign_degree(longitude: float, tropical_longitude: Optional[floa
             else normalize_degrees(longitude + DEFAULT_AYANAMSA)
         )
         r = attribute_sign(trop, mode=mode)
+        # Variant A may return "Ophiuchus" — use the 13-sign list so
+        # downstream code that uses sign_index never blows up.
+        signs_list = ZODIAC_SIGNS_13 if r["sign"] in ZODIAC_SIGNS_13 and r["sign"] not in ZODIAC_SIGNS else ZODIAC_SIGNS
         try:
-            sign_idx = ZODIAC_SIGNS.index(r["sign"])
+            sign_idx = signs_list.index(r["sign"])
         except ValueError:
-            sign_idx = 0
+            try:
+                sign_idx = ZODIAC_SIGNS_13.index(r["sign"])
+            except ValueError:
+                sign_idx = 0
         deg = r["degree_within_sign"]
         return {
             "sign_index": sign_idx,
@@ -947,26 +962,76 @@ def get_full_natal_chart(
         raise ComputeIntegrityError(compute_errors, partial_data)
     
     # =========================================================================
+    # ENGINE VERSION STAMP
+    # =========================================================================
+    # Every chart output is self-describing. The canonical engine is
+    # midpoint13_variant_a_v1 (13-sign Ophiuchus-separate). Variant B
+    # (12-sign Ophiuchus-merged) is computed and stored alongside as a
+    # forensic / rollback payload — never exposed in UI.
+    from calculations.sign_attribution import (
+        ASTROLOGY_ENGINE_VERSION,
+        ENGINE_VERSION_VARIANT_A,
+        ENGINE_VERSION_VARIANT_B,
+        attribute_sign_midpoint12_variant_b,
+    )
+
+    # Dual-compute Variant B sign labels for forensic payload (planets + angles).
+    # Houses are house-system-driven (Equal/Placidus) so they remain unchanged
+    # between Variant A and Variant B — only the sign label can differ.
+    forensic_variant_b: Dict[str, Any] = {
+        "engine_version": ENGINE_VERSION_VARIANT_B,
+        "planets":        {},
+        "angles":         {},
+    }
+    try:
+        for pname, pdata in planets.items():
+            trop = pdata.get("tropical_longitude")
+            if trop is None:
+                continue
+            r = attribute_sign_midpoint12_variant_b(trop)
+            forensic_variant_b["planets"][pname] = {
+                "sign":               r["sign"],
+                "degree_within_sign": r["degree_within_sign"],
+            }
+        for aname, adata in angles.items():
+            trop = adata.get("tropical_longitude") if isinstance(adata, dict) else None
+            if trop is None and isinstance(adata, dict) and adata.get("longitude") is not None:
+                trop = normalize_degrees(adata["longitude"] + svp_degrees)
+            if trop is None:
+                continue
+            r = attribute_sign_midpoint12_variant_b(trop)
+            forensic_variant_b["angles"][aname] = {
+                "sign":               r["sign"],
+                "degree_within_sign": r["degree_within_sign"],
+            }
+    except Exception:
+        # Forensic block must never block production payload.
+        pass
+
+    # =========================================================================
     # BUILD FINAL PAYLOAD WITH METADATA
     # =========================================================================
     return {
+        # Top-level engine_version stamp (single source of truth — every
+        # caller reads this when deciding whether a chart is stale).
+        'astrology_engine_version': ASTROLOGY_ENGINE_VERSION,
+
         # Metadata block (includes node_mode as required)
         'metadata': {
             'node_mode': node_mode,
             # house-system-source-of-truth-v1 metadata fix (2026-06-07):
             # Stamp the ACTUAL house_system that was used to compute this chart.
-            # Previously this was hard-coded "Equal" so charts requested with
-            # explicit house_system="Placidus" were silently mislabelled.
             'house_system': house_system,
             'sidereal_mode': final_settings['mode'],
             'svp_degrees': svp_degrees,
             'computation_version': 'mirror-deterministic-v1',
+            'astrology_engine_version': ASTROLOGY_ENGINE_VERSION,
             'julian_day': jd,
             'input_datetime_utc': birth_datetime.isoformat() if hasattr(birth_datetime, 'isoformat') else str(birth_datetime),
             'coordinates': {'lat': lat, 'lon': lon},
         },
-        
-        # Core chart data
+
+        # Core chart data (CANONICAL — Variant A, 13 signs)
         'planets': planets,
         'nodes': nodes,
         'angles': angles,
@@ -981,7 +1046,11 @@ def get_full_natal_chart(
         },
         'aspects': aspects,
         'sect': sect,
-        
+
+        # FORENSIC payload — Variant B sign labels for the same chart.
+        # UI must NEVER display this. Used for rollback + audit only.
+        'forensic_variant_b': forensic_variant_b,
+
         # Legacy compatibility fields
         'sidereal_settings': {
             **final_settings,

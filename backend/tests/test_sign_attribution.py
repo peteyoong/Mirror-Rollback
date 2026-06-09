@@ -187,17 +187,24 @@ def test_midpoint_boundary_table_tiles_exactly():
 
 
 # =============================================================================
-# Requirement 9 — router preserves default (uniform_30)
+# Requirement 9 — router default = Variant A (canonical), unknown mode → Variant A.
+# (Build: midpoint13-variant-a-canonical-v1)
+# Previously the default was uniform_30, then Variant B (midpoint12); the
+# canonical default is now Variant A (midpoint13_variant_a).
 # =============================================================================
-def test_router_default_is_uniform():
+def test_router_default_is_variant_a():
     r = attribute_sign(MEL["ASC"])
-    _assert_eq(r["sign"], "Gemini", "default router should be uniform_30")
-    _assert_eq(r["attribution_mode"], MODE_UNIFORM_30, "default attribution_mode")
+    _assert_eq(r["sign"], "Cancer", "default router should be Variant A — Mel ASC")
+    # attribution_mode comes from the Variant A label
+    from calculations.sign_attribution import MIDPOINT_MODEL_NAME_VARIANT_A
+    _assert_eq(r["attribution_mode"], MIDPOINT_MODEL_NAME_VARIANT_A,
+               "default attribution_mode = Variant A label")
 
 
-def test_router_unknown_mode_falls_back_to_uniform():
+def test_router_unknown_mode_falls_back_to_variant_a():
     r = attribute_sign(MEL["ASC"], mode="not_a_real_mode")
-    _assert_eq(r["sign"], "Gemini", "unknown mode should fall back to uniform_30")
+    _assert_eq(r["sign"], "Cancer",
+               "unknown mode should fall back to canonical Variant A")
 
 
 def test_router_explicit_midpoint():

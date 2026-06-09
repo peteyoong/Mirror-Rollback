@@ -139,6 +139,13 @@ SIGN_RULER: Dict[str, str] = {
     "Pisces":      "Neptune",
 }
 
+# Variant A canonical: ensure Ophiuchus is a first-class sign (single source).
+try:
+    from services.ophiuchus_metadata import patch_ruler_map as _patch_r
+    _patch_r(SIGN_RULER)
+except Exception:
+    pass
+
 # Outer planets whose hard aspects to the house ruler create
 # destabilization patterns.
 _OUTER_PLANETS = ("Uranus", "Neptune", "Pluto", "Saturn")

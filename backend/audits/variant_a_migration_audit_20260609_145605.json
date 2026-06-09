@@ -1,0 +1,292 @@
+{
+  "marker": "variant_a_migration_audit_v1",
+  "started_at": "2026-06-09T14:56:05.139485+00:00",
+  "engine_version_target": "midpoint13_variant_a_v1",
+  "engine_version_forensic": "midpoint12_variant_b",
+  "limit": 0,
+  "dry_run": true,
+  "writes_performed": 0,
+  "users_scanned": 171,
+  "users_with_birth_data": 168,
+  "users_skipped_no_birth": 3,
+  "users_changing_sun": 14,
+  "users_changing_moon": 20,
+  "users_changing_mercury": 33,
+  "users_changing_venus": 26,
+  "users_changing_mars": 6,
+  "users_changing_asc": 20,
+  "users_changing_mc": 12,
+  "users_entering_ophiuchus": 35,
+  "users_with_ophiuchus_sun": 1,
+  "users_with_ophiuchus_moon": 3,
+  "ophiuchus_distribution": {
+    "DC": 4,
+    "Uranus": 6,
+    "IC": 6,
+    "Neptune": 4,
+    "MC": 4,
+    "Saturn": 8,
+    "Mercury": 3,
+    "Moon": 3,
+    "ASC": 2,
+    "Venus": 1,
+    "Sun": 1,
+    "Mars": 1,
+    "Pluto": 1
+  },
+  "errors": [],
+  "sample_changes": [
+    {
+      "user_id": "6971c81f2b40fd5ef501d375",
+      "name": "Yoong Weng Hong Peter Andrew",
+      "body_changes": [
+        {
+          "body": "Mercury",
+          "variant_a": "Pisces",
+          "variant_b": "Aquarius",
+          "tropical_longitude": 350.814,
+          "variant_a_degree": 1.52,
+          "variant_b_degree": 24.054
+        },
+        {
+          "body": "Venus",
+          "variant_a": "Pisces",
+          "variant_b": "Aquarius",
+          "tropical_longitude": 350.874,
+          "variant_a_degree": 1.58,
+          "variant_b_degree": 24.114
+        }
+      ],
+      "angle_changes": [],
+      "ophiuchus_bodies": []
+    },
+    {
+      "user_id": "6971c86d2b40fd5ef501d376",
+      "name": "Test User",
+      "body_changes": [
+        {
+          "body": "Sun",
+          "variant_a": "Taurus",
+          "variant_b": "Aries",
+          "tropical_longitude": 54.4965,
+          "variant_a_degree": 3.484,
+          "variant_b_degree": 28.887
+        }
+      ],
+      "angle_changes": [],
+      "ophiuchus_bodies": []
+    },
+    {
+      "user_id": "6971c8ceca59929a2e3e1c1b",
+      "name": "John Doe",
+      "body_changes": [
+        {
+          "body": "Uranus",
+          "variant_a": "Ophiuchus",
+          "variant_b": "Scorpio",
+          "tropical_longitude": 257.9832,
+          "variant_a_degree": 3.275,
+          "variant_b_degree": 16.303
+        },
+        {
+          "body": "Pluto",
+          "variant_a": "Virgo",
+          "variant_b": "Libra",
+          "tropical_longitude": 214.2517,
+          "variant_a_degree": 41.362,
+          "variant_b_degree": 1.572
+        }
+      ],
+      "angle_changes": [
+        {
+          "angle": "dc",
+          "variant_a": "Ophiuchus",
+          "variant_b": "Scorpio",
+          "tropical_longitude": 266.464
+        }
+      ],
+      "ophiuchus_bodies": [
+        "DC",
+        "Uranus"
+      ]
+    },
+    {
+      "user_id": "6971c8f681beab3a8955b255",
+      "name": "Jane Smith",
+      "body_changes": [],
+      "angle_changes": [
+        {
+          "angle": "mc",
+          "variant_a": "Sagittarius",
+          "variant_b": "Capricorn",
+          "tropical_longitude": 298.9338
+        }
+      ],
+      "ophiuchus_bodies": []
+    },
+    {
+      "user_id": "6971cc4381beab3a8955b256",
+      "name": "Yoong Weng Hong Peter Andrew",
+      "body_changes": [
+        {
+          "body": "Mercury",
+          "variant_a": "Pisces",
+          "variant_b": "Aquarius",
+          "tropical_longitude": 350.814,
+          "variant_a_degree": 1.52,
+          "variant_b_degree": 24.054
+        },
+        {
+          "body": "Venus",
+          "variant_a": "Pisces",
+          "variant_b": "Aquarius",
+          "tropical_longitude": 350.874,
+          "variant_a_degree": 1.58,
+          "variant_b_degree": 24.114
+        }
+      ],
+      "angle_changes": [],
+      "ophiuchus_bodies": []
+    },
+    {
+      "user_id": "697c69de3a1efea080939120",
+      "name": "Test Fresh User",
+      "body_changes": [],
+      "angle_changes": [
+        {
+          "angle": "mc",
+          "variant_a": "Taurus",
+          "variant_b": "Aries",
+          "tropical_longitude": 55.6351
+        }
+      ],
+      "ophiuchus_bodies": []
+    },
+    {
+      "user_id": "697d572a48b93ef590dbec0b",
+      "name": "User1",
+      "body_changes": [
+        {
+          "body": "Mercury",
+          "variant_a": "Pisces",
+          "variant_b": "Aquarius",
+          "tropical_longitude": 350.1151,
+          "variant_a_degree": 0.821,
+          "variant_b_degree": 23.355
+        },
+        {
+          "body": "Venus",
+          "variant_a": "Pisces",
+          "variant_b": "Aquarius",
+          "tropical_longitude": 350.3306,
+          "variant_a_degree": 1.037,
+          "variant_b_degree": 23.571
+        }
+      ],
+      "angle_changes": [],
+      "ophiuchus_bodies": []
+    },
+    {
+      "user_id": "697ec6ffad4b18f75bf42615",
+      "name": "Debug Test User",
+      "body_changes": [
+        {
+          "body": "Mars",
+          "variant_a": "Gemini",
+          "variant_b": "Cancer",
+          "tropical_longitude": 117.0448,
+          "variant_a_degree": 29.174,
+          "variant_b_degree": 0.755
+        }
+      ],
+      "angle_changes": [
+        {
+          "angle": "asc",
+          "variant_a": "Virgo",
+          "variant_b": "Leo",
+          "tropical_longitude": 173.4989
+        },
+        {
+          "angle": "dc",
+          "variant_a": "Pisces",
+          "variant_b": "Aquarius",
+          "tropical_longitude": 353.4989
+        },
+        {
+          "angle": "ic",
+          "variant_a": "Ophiuchus",
+          "variant_b": "Scorpio",
+          "tropical_longitude": 262.4759
+        }
+      ],
+      "ophiuchus_bodies": [
+        "IC"
+      ]
+    },
+    {
+      "user_id": "697ec826ad4b18f75bf42616",
+      "name": "Mel",
+      "body_changes": [
+        {
+          "body": "Venus",
+          "variant_a": "Leo",
+          "variant_b": "Cancer",
+          "tropical_longitude": 136.3567,
+          "variant_a_degree": 1.883,
+          "variant_b_degree": 20.067
+        },
+        {
+          "body": "Neptune",
+          "variant_a": "Ophiuchus",
+          "variant_b": "Scorpio",
+          "tropical_longitude": 262.7481,
+          "variant_a_degree": 8.04,
+          "variant_b_degree": 21.068
+        }
+      ],
+      "angle_changes": [
+        {
+          "angle": "dc",
+          "variant_a": "Taurus",
+          "variant_b": "Aries",
+          "tropical_longitude": 56.1434
+        }
+      ],
+      "ophiuchus_bodies": [
+        "Neptune"
+      ]
+    },
+    {
+      "user_id": "697ee14bceedc541fa3ac85d",
+      "name": "Pete",
+      "body_changes": [
+        {
+          "body": "Mercury",
+          "variant_a": "Pisces",
+          "variant_b": "Aquarius",
+          "tropical_longitude": 349.6554,
+          "variant_a_degree": 0.361,
+          "variant_b_degree": 22.895
+        },
+        {
+          "body": "Venus",
+          "variant_a": "Pisces",
+          "variant_b": "Aquarius",
+          "tropical_longitude": 349.9712,
+          "variant_a_degree": 0.677,
+          "variant_b_degree": 23.211
+        }
+      ],
+      "angle_changes": [
+        {
+          "angle": "ic",
+          "variant_a": "Pisces",
+          "variant_b": "Aries",
+          "tropical_longitude": 29.1308
+        }
+      ],
+      "ophiuchus_bodies": []
+    }
+  ],
+  "finished_at": "2026-06-09T14:56:05.228863+00:00"
+}
