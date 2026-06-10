@@ -205,6 +205,85 @@ router = APIRouter(prefix="/api/admin", tags=["admin-variant-a-migration"])
 
 
 # ---------------------------------------------------------------------
+# 0) NO-AUTH READ-ONLY: build & deployed-state proof
+# ---------------------------------------------------------------------
+@router.get("/build-info")
+async def build_info():
+    """Returns aggregate facts proving (or disproving) which commit is
+    actually live on this pod. Returns only counts + booleans — no PII,
+    no chart contents, no user-identifiable data. Safe to expose without
+    auth for the duration of the migration window."""
+    # Try to import the startup hook module to confirm it exists.
+    startup_hook_marker = "not_imported"
+    startup_hook_imported = False
+    try:
+        from routers import variant_a_startup_hook as _vah   # noqa: PLC0415
+        startup_hook_marker = getattr(_vah, "BUILD_MARKER", "imported_no_marker")
+        startup_hook_imported = True
+    except Exception:  # noqa: BLE001
+        pass
+
+    # Env-flag presence (do not echo a real token; just a state label).
+    flag_value = os.environ.get("RUN_VARIANT_A_MIGRATION")
+    if flag_value is None:
+        flag_state = "unset"
+    elif flag_value == "VARIANT_A_PHASE_5":
+        flag_state = "set"
+    else:
+        flag_state = "set_wrong_value"
+
+    # DB-side counts (read-only).
+    if _db is None:
+        return JSONResponse(
+            content={
+                "build_markers": {
+                    "admin_module":   ROUTE_BUILD_MARKER,
+                    "startup_hook":   startup_hook_marker,
+                },
+                "startup_hook_imported":          startup_hook_imported,
+                "env_flag_run_variant_a":         flag_state,
+                "error":                          "MONGO_NOT_CONFIGURED",
+                "server_time_utc":                datetime.now(timezone.utc).isoformat(),
+            },
+            headers={"Cache-Control": "no-store"},
+        )
+
+    mongo_url   = os.environ.get("MONGO_URL")
+    db_name     = os.environ.get("DB_NAME")
+    host_info   = _redact_mongo_host(mongo_url)
+    looks_pre   = _looks_like_preview_db(db_name, host_info)
+
+    charts_total = await _db.charts.count_documents({})
+    engine_dist  = await _engine_version_distribution(_db)
+    migrated_n   = await _db.charts.count_documents({
+        "migration_marker": MIGRATION_MARKER,
+    })
+    forensic_n   = await _db.charts.count_documents({
+        "astrology.forensic_variant_b": {"$exists": True},
+    })
+
+    return JSONResponse(
+        content={
+            "build_markers": {
+                "admin_module":   ROUTE_BUILD_MARKER,
+                "startup_hook":   startup_hook_marker,
+            },
+            "startup_hook_imported":           startup_hook_imported,
+            "env_flag_run_variant_a":          flag_state,
+            "migration_marker_chart_count":   migrated_n,
+            "forensic_variant_b_chart_count": forensic_n,
+            "engine_version_distribution":    engine_dist,
+            "charts_total":                   charts_total,
+            "db_name":                        db_name,
+            "mongo_host_redacted":            host_info,
+            "looks_like_preview":             looks_pre,
+            "server_time_utc":                datetime.now(timezone.utc).isoformat(),
+        },
+        headers={"Cache-Control": "no-store"},
+    )
+
+
+# ---------------------------------------------------------------------
 # 1) READ-ONLY: DB identity + counts
 # ---------------------------------------------------------------------
 @router.get("/migration-info")
