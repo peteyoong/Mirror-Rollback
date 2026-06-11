@@ -63,13 +63,13 @@ async def emit_shadow_receipt(
     t0 = time.perf_counter()
     try:
         frame = _derive_frame(lens, life_domain, about_person_id)
-        envelope = classify_intent_v2(
-            message=message or "",
-            active_frame=frame,
-            current_target_id=about_person_id,
-        )
 
+        # Resolve target FIRST so we can feed its role back into the
+        # intent classifier (lets "What enneagram pattern does Mel
+        # show up with?" bias toward relationship via role=partner).
         rel = None
+        resolved_target_id = about_person_id
+        resolved_role: Optional[str] = None
         if about_person_id or saved_people:
             try:
                 rel_resolved = resolve_relationship_context(
@@ -80,8 +80,17 @@ async def emit_shadow_receipt(
                     saved_people=saved_people or [],
                 )
                 rel = rel_resolved.to_dict()
+                resolved_target_id = rel_resolved.target or about_person_id
+                resolved_role = rel_resolved.role
             except Exception as e:
                 log.warning(f"[Shadow] relationship_router_v2 failed: {e!r}")
+
+        envelope = classify_intent_v2(
+            message=message or "",
+            active_frame=frame,
+            current_target_id=resolved_target_id,
+            relationship_role=resolved_role,
+        )
 
         envd = envelope.to_dict()
         # Simulated module-invocation set — real wiring lands in B3.

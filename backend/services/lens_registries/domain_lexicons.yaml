@@ -14,6 +14,143 @@ identity:
     - {p: "true self",         w: 0.85}
     - {p: "sense of self",     w: 0.8}
     - {p: "feel like myself",  w: 0.7}
+    - {p: "how am i showing up", w: 0.7}
+    - {p: "showing up as",     w: 0.45}
+
+    # --- B1.3 lens-jargon: ASTROLOGY (self-inquiry catchall) ---
+    - {p: "my chart",          w: 0.75}
+    - {p: "my birth chart",    w: 0.9}
+    - {p: "my natal chart",    w: 0.9}
+    - {p: "natal chart",       w: 0.6}
+    - {p: "birth chart",       w: 0.6}
+    - {p: "my astrology",      w: 0.85}
+    - {p: "tell me about my",  w: 0.45}
+    - {p: "what's my",         w: 0.35}
+    - {p: "my sun",            w: 0.65}
+    - {p: "my moon",           w: 0.65}
+    - {p: "my rising",         w: 0.7}
+    - {p: "my ascendant",      w: 0.7}
+    - {p: "my mercury",        w: 0.6}
+    - {p: "my venus",          w: 0.6}
+    - {p: "my mars",           w: 0.6}
+    - {p: "my jupiter",        w: 0.6}
+    - {p: "my saturn",         w: 0.6}
+    - {p: "my uranus",         w: 0.6}
+    - {p: "my neptune",        w: 0.6}
+    - {p: "my pluto",          w: 0.6}
+    - {p: "my chiron",         w: 0.6}
+    - {p: "my north node",     w: 0.7}
+    - {p: "my south node",     w: 0.65}
+    - {p: "my nodes",          w: 0.65}
+    - {p: "my sun sign",       w: 0.85}
+    - {p: "my moon sign",      w: 0.85}
+    - {p: "my rising sign",    w: 0.85}
+    - {p: "my big three",      w: 0.85}
+    - {p: "saturn return",     w: 0.65}
+    - {p: "jupiter return",    w: 0.5}
+    - {p: "my transits",       w: 0.7}
+    - {p: "my current transits", w: 0.85}
+    - {p: "transits doing",    w: 0.6}
+    - {p: "incarnation cross", w: 0.8}
+    - {p: "my incarnation cross", w: 0.95}
+    - {p: "my aspects",        w: 0.55}
+
+    # --- B1.3 lens-jargon: HUMAN DESIGN (self-inquiry catchall) ---
+    - {p: "my human design",   w: 0.9}
+    - {p: "human design type", w: 0.85}
+    - {p: "hd type",           w: 0.7}
+    - {p: "my type",           w: 0.55}
+    - {p: "my profile",        w: 0.7}
+    - {p: "my authority",      w: 0.75}
+    - {p: "my strategy",       w: 0.65}
+    - {p: "my aura",           w: 0.55}
+    - {p: "my channels",       w: 0.7}
+    - {p: "my gates",          w: 0.65}
+    - {p: "my centers",        w: 0.65}
+    - {p: "manifestor",        w: 0.55}
+    - {p: "generator",         w: 0.45}
+    - {p: "projector",         w: 0.55}
+    - {p: "reflector",         w: 0.6}
+    - {p: "manifesting generator", w: 0.65}
+    - {p: "mangen",            w: 0.65}
+    - {p: "splenic authority", w: 0.8}
+    - {p: "emotional authority", w: 0.8}
+    - {p: "sacral authority",  w: 0.8}
+    - {p: "self-projected",    w: 0.7}
+    - {p: "ego authority",     w: 0.7}
+    - {p: "wait to respond",   w: 0.55}
+    - {p: "wait for invitation", w: 0.65}
+    - {p: "not-self",          w: 0.7}
+    - {p: "not self theme",    w: 0.85}
+    - {p: "deconditioning",    w: 0.7}
+    - {p: "my signature",      w: 0.55}
+    - {p: "my throat",         w: 0.55}
+    - {p: "defined throat",    w: 0.65}
+    - {p: "undefined throat",  w: 0.65}
+    - {p: "my sacral",         w: 0.6}
+    - {p: "my g center",       w: 0.7}
+    - {p: "my heart center",   w: 0.55}
+    - {p: "5/1 profile",       w: 0.85}
+    - {p: "1/3 profile",       w: 0.85}
+    - {p: "2/4 profile",       w: 0.85}
+    - {p: "3/5 profile",       w: 0.85}
+    - {p: "4/6 profile",       w: 0.85}
+    - {p: "5/2 profile",       w: 0.85}
+    - {p: "6/2 profile",       w: 0.85}
+    - {p: "6/3 profile",       w: 0.85}
+
+    # --- B1.3 lens-jargon: ENNEAGRAM (self-inquiry catchall) ---
+    - {p: "my enneagram",      w: 0.9}
+    - {p: "enneagram type",    w: 0.8}
+    - {p: "enneagram pattern", w: 0.7}
+    - {p: "my tritype",        w: 0.85}
+    - {p: "my wing",           w: 0.7}
+    - {p: "stress arrow",      w: 0.7}
+    - {p: "growth arrow",      w: 0.7}
+    - {p: "integration point", w: 0.75}
+    - {p: "disintegration",    w: 0.75}
+    - {p: "type 1",            w: 0.5}
+    - {p: "type 2",            w: 0.5}
+    - {p: "type 3",            w: 0.5}
+    - {p: "type 4",            w: 0.5}
+    - {p: "type 5",            w: 0.5}
+    - {p: "type 6",            w: 0.5}
+    - {p: "type 7",            w: 0.5}
+    - {p: "type 8",            w: 0.5}
+    - {p: "type 9",            w: 0.5}
+    - {p: "1w2",               w: 0.65}
+    - {p: "2w1",               w: 0.65}
+    - {p: "2w3",               w: 0.65}
+    - {p: "3w2",               w: 0.65}
+    - {p: "3w4",               w: 0.65}
+    - {p: "4w3",               w: 0.65}
+    - {p: "4w5",               w: 0.65}
+    - {p: "5w4",               w: 0.65}
+    - {p: "5w6",               w: 0.65}
+    - {p: "6w5",               w: 0.65}
+    - {p: "6w7",               w: 0.65}
+    - {p: "7w6",               w: 0.65}
+    - {p: "7w8",               w: 0.65}
+    - {p: "8w7",               w: 0.65}
+    - {p: "8w9",               w: 0.65}
+    - {p: "9w1",               w: 0.65}
+    - {p: "9w8",               w: 0.65}
+
+    # --- B1.3 lens-jargon: NUMEROLOGY / BAZI (self-inquiry catchall) ---
+    - {p: "my life path",      w: 0.85}
+    - {p: "life path number",  w: 0.85}
+    - {p: "my expression",     w: 0.6}
+    - {p: "my destiny number", w: 0.85}
+    - {p: "soul urge",         w: 0.7}
+    - {p: "my soul urge",      w: 0.85}
+    - {p: "personality number",w: 0.7}
+    - {p: "my bazi",           w: 0.9}
+    - {p: "bazi chart",        w: 0.85}
+    - {p: "day master",        w: 0.75}
+    - {p: "my day master",     w: 0.9}
+    - {p: "four pillars",      w: 0.7}
+    - {p: "gene keys",         w: 0.7}
+    - {p: "my gene keys",      w: 0.9}
 
 relationship:
   phrases:
@@ -44,6 +181,30 @@ relationship:
     - {p: "still aligned",     w: 0.5}
     - {p: "are we still",      w: 0.6}
 
+    # --- B1.3 lens-jargon: relationship-specific lens cues ---
+    - {p: "my 7th house",      w: 0.9}
+    - {p: "7th house",         w: 0.7}
+    - {p: "seventh house",     w: 0.75}
+    - {p: "my 5th house",      w: 0.6}
+    - {p: "composite chart",   w: 0.85}
+    - {p: "our composite",     w: 0.9}
+    - {p: "synastry",          w: 0.85}
+    - {p: "our synastry",      w: 0.95}
+    - {p: "compatibility",     w: 0.7}
+    - {p: "marriage",          w: 0.7}
+    - {p: "about marriage",    w: 0.85}
+    - {p: "channels do",       w: 0.55}
+    - {p: "channels we share", w: 0.7}
+    - {p: "we share",          w: 0.5}
+    - {p: "mel's",             w: 0.85}
+    - {p: "does mel",          w: 0.7}
+    - {p: "tell me about mel", w: 0.85}
+    - {p: "about mel",         w: 0.6}
+    - {p: "how does mel",      w: 0.75}
+    - {p: "what mel",          w: 0.55}
+    - {p: "with my wife",      w: 0.95}
+    - {p: "with my husband",   w: 0.95}
+
 family:
   phrases:
     - {p: "my mum",      w: 0.95}
@@ -58,6 +219,11 @@ family:
     - {p: "my family",   w: 0.9}
     - {p: "in-laws",     w: 0.7}
     - {p: "driving me up the wall", w: 0.3}  # texture; not a primary signal
+    - {p: "my 4th house",      w: 0.9}
+    - {p: "4th house",         w: 0.65}
+    - {p: "fourth house",      w: 0.7}
+    - {p: "my roots",          w: 0.55}
+    - {p: "ancestral",         w: 0.6}
 
 parenting:
   phrases:
@@ -71,6 +237,9 @@ parenting:
     - {p: "my teen",        w: 0.9}
     - {p: "shutting down",  w: 0.4}
     - {p: "school",         w: 0.35}
+    - {p: "my chart say about kids", w: 0.85}
+    - {p: "about my kids",  w: 0.7}
+    - {p: "about my child", w: 0.7}
 
 career:
   phrases:
@@ -108,6 +277,14 @@ career:
     - {p: "my own company",   w: 0.75}
     - {p: "the right role",   w: 0.7}
     - {p: "right role",       w: 0.55}
+    - {p: "my 10th house",    w: 0.9}
+    - {p: "10th house",       w: 0.65}
+    - {p: "tenth house",      w: 0.7}
+    - {p: "my midheaven",     w: 0.85}
+    - {p: "midheaven",        w: 0.6}
+    - {p: "my mc",            w: 0.6}
+    - {p: "about my career",  w: 0.95}
+    - {p: "about my work",    w: 0.85}
 
 work:
   phrases:
@@ -174,6 +351,10 @@ money:
     - {p: "burn rate",     w: 0.85}
     - {p: "cut headcount", w: 0.6}
     - {p: "tight runway",  w: 0.95}
+    - {p: "my 2nd house",  w: 0.9}
+    - {p: "2nd house",     w: 0.65}
+    - {p: "second house",  w: 0.7}
+    - {p: "my values",     w: 0.4}
 
 purpose:
   phrases:
@@ -222,6 +403,9 @@ health:
     - {p: "feel so heavy", w: 0.55}
     - {p: "burned out",    w: 0.85}
     - {p: "burnout",       w: 0.85}
+    - {p: "my 6th house",  w: 0.7}
+    - {p: "6th house",     w: 0.5}
+    - {p: "my chiron heal",w: 0.55}
 
 growth:
   phrases:
@@ -236,6 +420,14 @@ growth:
     - {p: "work on myself",   w: 0.8}
     - {p: "keep showing up",  w: 0.45}
     - {p: "shadow work",      w: 0.85}
+    - {p: "my pluto transit", w: 0.85}
+    - {p: "current transits", w: 0.55}
+    - {p: "transits",         w: 0.2}
+    - {p: "this transit",     w: 0.5}
+    - {p: "solar return",     w: 0.55}
+    - {p: "lunar return",     w: 0.55}
+    - {p: "current astrology", w: 0.55}
+    - {p: "my evolution",     w: 0.75}
 
 life_direction:
   phrases:

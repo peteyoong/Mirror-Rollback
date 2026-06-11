@@ -138,16 +138,30 @@ def register(
                     make_request_id as _b1_make_request_id,
                 )
                 _b1_request_id = _b1_make_request_id()
-                _asyncio_b1.create_task(_b1_emit_shadow_receipt(
-                    db=db,
-                    request_id=_b1_request_id,
-                    user_id=request.user_id,
-                    message=request.message,
-                    lens=request.lens,
-                    about_person_id=getattr(request, "about_person_id", None),
-                    life_domain=getattr(request, "life_domain", None),
-                    saved_people=None,
-                ))
+
+                async def _b1_load_saved_people() -> list:
+                    try:
+                        doc = await db["people"].find_one({"user_id": request.user_id})
+                        if doc and isinstance(doc.get("people"), list):
+                            return doc["people"]
+                    except Exception:
+                        pass
+                    return []
+
+                async def _b1_run_shadow():
+                    saved = await _b1_load_saved_people()
+                    await _b1_emit_shadow_receipt(
+                        db=db,
+                        request_id=_b1_request_id,
+                        user_id=request.user_id,
+                        message=request.message,
+                        lens=request.lens,
+                        about_person_id=getattr(request, "about_person_id", None),
+                        life_domain=getattr(request, "life_domain", None),
+                        saved_people=saved,
+                    )
+
+                _asyncio_b1.create_task(_b1_run_shadow())
             except Exception as _b1_shadow_exc:
                 logger.warning(f"[MIRROR_CHAT] B1 shadow hook scheduling failed: {_b1_shadow_exc!r}")
             # ===== End Slice B1 shadow hook =====

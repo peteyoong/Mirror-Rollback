@@ -1,0 +1,150 @@
+# Lens-jargon regression suite for intent_router_v2 (Slice B1.3).
+# Targets astrology / human design / enneagram / numerology / bazi
+# terminology that real users use.  Routing rule:
+#   * generic "my X" lens jargon → identity (self-inquiry through a lens)
+#   * specific house numbers / relationship jargon override → relationship/career/family/money
+#   * partner-name + lens jargon → relationship via role-bias path
+# Ids prefixed `LJ`.
+
+# --- ASTROLOGY: self-inquiry ---
+- id: LJ1
+  message: "Tell me about my Saturn return"
+  active_frame: self
+  expected_primary: identity
+  expected_secondary_in: [growth, life_direction]
+
+- id: LJ2
+  message: "What's my Sun sign all about?"
+  active_frame: self
+  expected_primary: identity
+
+- id: LJ3
+  message: "Tell me about my chart"
+  active_frame: self
+  expected_primary: identity
+
+- id: LJ4
+  message: "What does my rising sign say?"
+  active_frame: self
+  expected_primary: identity
+
+- id: LJ5
+  message: "What are my current transits doing to me?"
+  active_frame: self
+  expected_primary: identity
+  expected_secondary_in: [growth, life_direction]
+
+# --- ASTROLOGY: house overrides ---
+- id: LJ6
+  message: "What's my 7th house about?"
+  active_frame: self
+  expected_primary: relationship
+
+- id: LJ7
+  message: "What does my 10th house tell me about my path?"
+  active_frame: self
+  expected_primary: career
+
+- id: LJ8
+  message: "Tell me about my 4th house"
+  active_frame: self
+  expected_primary: family
+
+- id: LJ9
+  message: "What's my 2nd house showing about money?"
+  active_frame: self
+  expected_primary: money
+
+- id: LJ10
+  message: "Tell me about my Midheaven"
+  active_frame: self
+  expected_primary: career
+
+- id: LJ11
+  message: "Tell me about what my chart says about marriage"
+  active_frame: self
+  expected_primary: relationship
+
+# --- HUMAN DESIGN ---
+- id: LJ12
+  message: "What is my Human Design type?"
+  active_frame: self
+  expected_primary: identity
+
+- id: LJ13
+  message: "I'm a 5/1 manifestor — what does that mean?"
+  active_frame: self
+  expected_primary: identity
+
+- id: LJ14
+  message: "What's my authority telling me right now?"
+  active_frame: self
+  expected_primary: identity
+  expected_secondary_in: [growth]
+
+- id: LJ15
+  message: "What human design channels do Mel and I share?"
+  active_frame: self
+  relationship_role: partner
+  expected_primary: relationship
+
+- id: LJ16
+  message: "Tell me about my incarnation cross"
+  active_frame: self
+  expected_primary: identity
+
+# --- ENNEAGRAM ---
+- id: LJ17
+  message: "What's my enneagram type really showing me?"
+  active_frame: self
+  expected_primary: identity
+
+- id: LJ18
+  message: "What enneagram pattern does Mel show up with?"
+  active_frame: self
+  relationship_role: partner
+  expected_primary: relationship
+
+- id: LJ19
+  message: "I'm a 4w5 — how do I work with that?"
+  active_frame: self
+  expected_primary: identity
+
+# --- NUMEROLOGY / BAZI / GENE KEYS ---
+- id: LJ20
+  message: "What's my life path number?"
+  active_frame: self
+  expected_primary: identity
+
+- id: LJ21
+  message: "Tell me about my Bazi day master"
+  active_frame: self
+  expected_primary: identity
+
+- id: LJ22
+  message: "What do my gene keys say about my purpose?"
+  active_frame: self
+  expected_primary: identity
+  expected_secondary_in: [purpose]
+
+# --- MIXED: lens jargon about a partner (relationship_router catches name) ---
+- id: LJ23
+  message: "How does Mel process conflict?"
+  active_frame: self
+  current_target_id: mel
+  relationship_role: partner
+  expected_primary: relationship
+
+- id: LJ24
+  message: "Tell me about Mel's 4th house and how it maps to me"
+  active_frame: self
+  current_target_id: mel
+  relationship_role: partner
+  expected_primary: relationship
+
+- id: LJ25
+  message: "Why do Mel and I fight sometimes?"
+  active_frame: self
+  current_target_id: mel
+  relationship_role: partner
+  expected_primary: relationship
