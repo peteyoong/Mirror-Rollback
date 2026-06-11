@@ -129,6 +129,29 @@ def register(
             )
 
         try:
+            # ===== Slice B1: Intent Router V2 shadow-mode hook (emit-only) =====
+            # Fire-and-forget; never raises into the user-visible flow.
+            try:
+                import asyncio as _asyncio_b1
+                from services.mirror_chat_shadow import (
+                    emit_shadow_receipt as _b1_emit_shadow_receipt,
+                    make_request_id as _b1_make_request_id,
+                )
+                _b1_request_id = _b1_make_request_id()
+                _asyncio_b1.create_task(_b1_emit_shadow_receipt(
+                    db=db,
+                    request_id=_b1_request_id,
+                    user_id=request.user_id,
+                    message=request.message,
+                    lens=request.lens,
+                    about_person_id=getattr(request, "about_person_id", None),
+                    life_domain=getattr(request, "life_domain", None),
+                    saved_people=None,
+                ))
+            except Exception as _b1_shadow_exc:
+                logger.warning(f"[MIRROR_CHAT] B1 shadow hook scheduling failed: {_b1_shadow_exc!r}")
+            # ===== End Slice B1 shadow hook =====
+
             if not EMERGENT_LLM_KEY:
                 logger.error("[MIRROR_CHAT] EMERGENT_LLM_KEY not configured!")
                 raise HTTPException(status_code=500, detail="AI service not configured")

@@ -1,0 +1,128 @@
+# Relationship / Forum / Member / Between-You-Today regression suite for
+# intent_router_v2.  These surfaces are the highest-risk in production
+# because they combine frame + target + domain in one routing decision.
+# Ids prefixed `RF`.
+
+# --- Self frame, partner target (Mel-style) ---
+- id: RF1
+  message: "What's happening between Mel and me today?"
+  active_frame: self
+  current_target_id: mel
+  relationship_role: partner
+  expected_primary: relationship
+
+- id: RF2
+  message: "How can I show up better with my partner this week?"
+  active_frame: self
+  relationship_role: partner
+  expected_primary: relationship
+
+- id: RF3
+  message: "We keep having the same fight."
+  active_frame: self
+  current_target_id: mel
+  relationship_role: partner
+  expected_primary: relationship
+  expected_secondary_in: [growth, family]
+
+- id: RF4
+  message: "Why does my partner pull away when I'm stressed?"
+  active_frame: self
+  relationship_role: partner
+  expected_primary: relationship
+
+# --- Family roles ---
+- id: RF5
+  message: "My mum keeps overstepping with the kids."
+  active_frame: self
+  relationship_role: parent
+  expected_primary: family
+  expected_secondary_in: [parenting, relationship]
+
+- id: RF6
+  message: "My son keeps shutting down."
+  active_frame: self
+  relationship_role: child
+  expected_primary: parenting
+
+- id: RF7
+  message: "How do I parent my teen without losing him?"
+  active_frame: self
+  relationship_role: child
+  expected_primary: parenting
+
+# --- Forum frame: group dynamics ---
+- id: RF8
+  message: "What's our forum's pattern this week?"
+  active_frame: forum
+  expected_primary: relationship
+
+- id: RF9
+  message: "Where is the group stuck right now?"
+  active_frame: forum
+  expected_primary: relationship
+  expected_secondary_in: [growth]
+
+- id: RF10
+  message: "How is the group field affecting me today?"
+  active_frame: forum
+  expected_primary: relationship
+  expected_secondary_in: [growth, identity]
+
+# --- Member frame: someone-else focus ---
+- id: RF11
+  message: "Is Pete in his role properly?"
+  active_frame: member
+  current_target_id: pete
+  expected_primary: career
+
+- id: RF12
+  message: "What's blocking Pete this week?"
+  active_frame: member
+  current_target_id: pete
+  expected_primary: career
+  expected_secondary_in: [work, growth]
+
+- id: RF13
+  message: "How is she showing up as a leader?"
+  active_frame: member
+  current_target_id: pete
+  relationship_role: colleague
+  expected_primary: leadership
+  expected_secondary_in: [career, work]
+
+- id: RF14
+  message: "What does this member need from me right now?"
+  active_frame: member
+  current_target_id: pete
+  expected_primary: relationship
+  expected_secondary_in: [career, leadership]
+
+# --- Mixed: relational + life direction ---
+- id: RF15
+  message: "Should I take the job Mel and I have been talking about?"
+  active_frame: self
+  current_target_id: mel
+  relationship_role: partner
+  expected_primary: career
+  expected_secondary_in: [life_direction, relationship]
+
+- id: RF16
+  message: "Between us — are we still aligned on what we want?"
+  active_frame: self
+  relationship_role: partner
+  expected_primary: relationship
+  expected_secondary_in: [life_direction, purpose]
+
+# --- Edge: ambiguous / low-signal ---
+- id: RF17
+  message: "hey"
+  active_frame: self
+  expected_primary: general
+  expected_max_confidence: 0.05
+
+- id: RF18
+  message: "thanks for that"
+  active_frame: self
+  expected_primary: general
+  expected_max_confidence: 0.10

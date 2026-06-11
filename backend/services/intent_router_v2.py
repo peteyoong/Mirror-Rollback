@@ -1,10 +1,23 @@
 """intent_router_v2 — Mirror Chat V2 Slice B1 (SHADOW MODE).
 
-Non-breaking by design. Runs in parallel with legacy routers when
-INTENT_ROUTER_V2_SHADOW=true; output is logged to the receipts collection
-but MUST NOT influence the user-visible response.
+B1.1 + B1.2 calibration pass.
 
-The production cutover happens in Slice B2 by flipping a separate flag.
+Key changes vs initial draft:
+  * Replaced 13-way softmax confidence with a two-signal model:
+        signal_strength = raw top score (clamped 0–1)
+        margin          = (top - second) / (top + second)
+        confidence      = signal_strength * (0.5 + 0.5 * margin)
+  * Low-confidence fallback now uses raw signal_strength (not post-softmax
+    probability) so a single phrase hit (w=0.85) is no longer collapsed to
+    “general”.
+  * Frame bias for `member` now boosts career/work (was empty).
+  * Frame bias for `forum` boosts relationship harder + adds family/parenting.
+  * Role bias values increased (was 0.10–0.20, now 0.30–0.50).
+  * New target_active_bonus: when current_target_id is set, add a base bonus
+    to the role-relevant domain so the router knows the user is in a
+    relational context.
+
+Non-breaking by design.  Shadow only until B2.
 """
 from __future__ import annotations
 
@@ -12,7 +25,7 @@ import os, re, math, logging
 from dataclasses import dataclass, field, asdict
 from datetime import datetime, timezone as dt_tz
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Tuple
 
 try:
     import yaml
@@ -20,7 +33,7 @@ except ImportError:
     yaml = None
 
 log = logging.getLogger("intent_router_v2")
-ROUTER_VERSION = "intent_router_v2.0.0"
+ROUTER_VERSION = "intent_router_v2.1.0"
 _LEXICON_PATH = Path(__file__).parent / "lens_registries" / "domain_lexicons.yaml"
 _LEXICON_CACHE: Optional[Dict[str, List[Dict[str, Any]]]] = None
 
@@ -46,26 +59,47 @@ LENS_WEIGHTS_PER_DOMAIN: Dict[str, Dict[str, float]] = {
     "life_direction": {"astrology": 0.9, "human_design": 0.8, "enneagram": 0.7, "numerology": 0.5, "relationship": 0.2, "timeline": 1.0},
 }
 
+# B1.2 — tuned frame biases.
+# Member/forum frames *strongly* shift the prior toward the inter-personal
+# or operational stack, because the user has already declared they're
+# discussing someone else.  These are added *raw* to the lexicon score.
 FRAME_BIAS: Dict[str, Dict[str, float]] = {
-    "forum":   {"relationship": 0.10, "growth": 0.05},
-    "reflect": {"identity": 0.10, "growth": 0.10},
-    "member":  {"relationship": 0.15},
+    "forum":   {"relationship": 0.45, "family": 0.10, "growth": 0.05},
+    "member":  {"career": 0.40, "work": 0.20, "relationship": 0.15, "identity": 0.10},
+    "reflect": {"identity": 0.20, "growth": 0.15, "purpose": 0.10},
     "self":    {},
 }
 
+# B1.2 — role biases significantly boosted.  These are tightly tied to
+# real saved-people roles and should outweigh stray phrase hits.
 ROLE_BIAS: Dict[str, Dict[str, float]] = {
-    "parent":  {"family": 0.20},
-    "child":   {"parenting": 0.20, "family": 0.10},
-    "sibling": {"family": 0.15},
-    "partner": {"relationship": 0.20},
-    "friend":  {"relationship": 0.10},
-    "colleague": {"work": 0.15},
+    "parent":    {"family": 0.50, "growth": 0.05},
+    "child":     {"parenting": 0.55, "family": 0.15},
+    "sibling":   {"family": 0.45},
+    "partner":   {"relationship": 0.55, "family": 0.10},
+    "spouse":    {"relationship": 0.55, "family": 0.10},
+    "friend":    {"relationship": 0.35},
+    "colleague": {"work": 0.40, "career": 0.15},
+    "boss":      {"career": 0.40, "work": 0.20, "leadership": 0.10},
+    "mentor":    {"growth": 0.30, "career": 0.10, "purpose": 0.10},
+    "ex":        {"relationship": 0.50, "growth": 0.10},
 }
+
+# When current_target_id is set we know the user is in a relational
+# context.  Boost the role-implied domain.  Falls back to relationship if
+# role is unknown.
+TARGET_ACTIVE_BONUS = 0.20
 
 TIMELINE_TRIGGERS_PER_DOMAIN = {
     "career", "work", "life_direction", "growth", "parenting",
     "money", "health",
 }
+
+# Calibration knobs (B1.1)
+SIGNAL_FLOOR_GENERAL = 0.20    # below this raw top score → “general”
+SIGNAL_FLOOR_AMBIGUOUS = 0.40  # below this and margin<0.10 → still general
+MARGIN_AMBIGUOUS = 0.10        # below this we keep primary but force secondary
+MARGIN_STRONG = 0.45           # at/above this we *don't* return a secondary
 
 
 def _load_lexicon() -> Dict[str, List[Dict[str, Any]]]:
@@ -85,11 +119,19 @@ def _load_lexicon() -> Dict[str, List[Dict[str, Any]]]:
     return out
 
 
+def reset_lexicon_cache() -> None:
+    """Test/dev helper — forces a reload from disk on next classify call."""
+    global _LEXICON_CACHE
+    _LEXICON_CACHE = None
+
+
 @dataclass
 class IntentEnvelope:
     primary_domain: str
     secondary_domains: List[str]
     confidence: float
+    signal_strength: float
+    margin: float
     relationship_relevant: bool
     timeline_relevant: bool
     lens_priority: List[str]
@@ -103,7 +145,7 @@ class IntentEnvelope:
         return asdict(self)
 
 
-def _phrase_score(text: str, phrases: List[Dict[str, Any]]) -> tuple[float, List[str]]:
+def _phrase_score(text: str, phrases: List[Dict[str, Any]]) -> Tuple[float, List[str]]:
     text_low = " " + text.lower() + " "
     score = 0.0
     matched: List[str] = []
@@ -115,18 +157,33 @@ def _phrase_score(text: str, phrases: List[Dict[str, Any]]) -> tuple[float, List
     return score, matched
 
 
-def _softmax(scores: Dict[str, float]) -> Dict[str, float]:
-    if not scores:
-        return {}
-    mx = max(scores.values())
-    exps = {k: math.exp(v - mx) for k, v in scores.items()}
-    s = sum(exps.values()) or 1.0
-    return {k: v / s for k, v in exps.items()}
-
-
 def _lens_priority_for(domain: str) -> List[str]:
     weights = LENS_WEIGHTS_PER_DOMAIN.get(domain, {})
     return [k for k, _ in sorted(weights.items(), key=lambda kv: -kv[1])]
+
+
+def _general_envelope(
+    *, frame: str, target_id: Optional[str], reason: str,
+    raw_scores: Dict[str, float],
+    matched: Dict[str, List[str]],
+) -> IntentEnvelope:
+    return IntentEnvelope(
+        primary_domain="general",
+        secondary_domains=[],
+        confidence=0.0,
+        signal_strength=round(max(raw_scores.values()) if raw_scores else 0.0, 4),
+        margin=0.0,
+        relationship_relevant=bool(target_id) or frame in ("forum", "member"),
+        timeline_relevant=False,
+        lens_priority=["cross_lens_atoms"],
+        frame_resolved=frame,
+        target_resolved=target_id,
+        evidence={
+            "matched_phrases": matched,
+            "raw_scores": {k: round(v, 4) for k, v in raw_scores.items()},
+            "fallback_reason": reason,
+        },
+    )
 
 
 def classify_intent_v2(
@@ -151,12 +208,12 @@ def classify_intent_v2(
         if matched:
             phrase_evidence[dom] = matched
 
-    # 2. History bias (light Laplace smoothing on last 3 user turns)
+    # 2. History bias (last 3 user turns).  Capped to avoid runaway drift.
     hist_bias: Dict[str, float] = {d: 0.0 for d in DOMAINS}
     for turn in (history or [])[-3:]:
         prev = turn.get("domain")
         if prev in hist_bias:
-            hist_bias[prev] += 0.15
+            hist_bias[prev] += 0.10
     for d in DOMAINS:
         raw_scores[d] += hist_bias[d]
 
@@ -164,80 +221,99 @@ def classify_intent_v2(
     for d, bonus in (FRAME_BIAS.get(active_frame) or {}).items():
         raw_scores[d] = raw_scores.get(d, 0.0) + bonus
 
-    # 4. Role bias (target relationship)
-    if relationship_role:
-        for d, bonus in (ROLE_BIAS.get(relationship_role.lower()) or {}).items():
-            raw_scores[d] = raw_scores.get(d, 0.0) + bonus
+    # 4. Role bias
+    role_lc = (relationship_role or "").lower()
+    for d, bonus in (ROLE_BIAS.get(role_lc) or {}).items():
+        raw_scores[d] = raw_scores.get(d, 0.0) + bonus
 
-    # 5. Aggregate
-    probs = _softmax(raw_scores)
-    ranked = sorted(probs.items(), key=lambda kv: -kv[1])
-    top, top_p = ranked[0]
-    second, second_p = ranked[1] if len(ranked) > 1 else ("general", 0.0)
-    confidence = round(top_p - second_p, 4)
+    # 5. Target-active bonus — when the user is clearly talking about
+    #    someone they have saved, push the role-relevant domain.  Falls
+    #    back to “relationship” when role is unknown.
+    if current_target_id:
+        if role_lc and ROLE_BIAS.get(role_lc):
+            # boost the top domain in that role's bias map
+            primary_dom = max(ROLE_BIAS[role_lc].items(), key=lambda kv: kv[1])[0]
+            raw_scores[primary_dom] = raw_scores.get(primary_dom, 0.0) + TARGET_ACTIVE_BONUS
+        else:
+            raw_scores["relationship"] = raw_scores.get("relationship", 0.0) + TARGET_ACTIVE_BONUS
 
-    # If everything is zero (no phrase match, no bias) → fall back to general
-    if max(raw_scores.values()) <= 0.0:
-        return IntentEnvelope(
-            primary_domain="general",
-            secondary_domains=[],
-            confidence=0.0,
-            relationship_relevant=bool(current_target_id),
-            timeline_relevant=False,
-            lens_priority=["cross_lens_atoms"],
-            frame_resolved=active_frame,
-            target_resolved=current_target_id,
-            evidence={
-                "matched_phrases": [],
-                "raw_scores": raw_scores,
-                "fallback_reason": "no_signal",
-            },
-        )
+    # 6. Rank by raw score (no softmax)
+    ranked = sorted(raw_scores.items(), key=lambda kv: -kv[1])
+    top, top_score = ranked[0]
+    second, second_score = ranked[1] if len(ranked) > 1 else ("general", 0.0)
 
-    # Confidence buckets
-    if confidence >= 0.10:
-        secondary = [second] if (top_p - second_p) < 0.20 and second_p > 0.05 else []
+    # If no signal anywhere → general (no_signal).
+    if top_score <= 0.0:
+        return _general_envelope(frame=active_frame, target_id=current_target_id,
+                                 reason="no_signal",
+                                 raw_scores=raw_scores, matched=phrase_evidence)
+
+    # If signal too weak → general (low_signal).  This is the *real*
+    # fallback gate, replacing the broken post-softmax one.
+    if top_score < SIGNAL_FLOOR_GENERAL:
+        return _general_envelope(frame=active_frame, target_id=current_target_id,
+                                 reason="low_signal",
+                                 raw_scores=raw_scores, matched=phrase_evidence)
+
+    # margin in [0,1] — how decisive is top vs second.
+    denom = top_score + second_score
+    margin = (top_score - second_score) / denom if denom > 0 else 1.0
+    signal_strength = min(top_score, 1.0)
+    confidence = round(signal_strength * (0.5 + 0.5 * margin), 4)
+
+    # ambiguous: weak signal AND tight margin → still general
+    if top_score < SIGNAL_FLOOR_AMBIGUOUS and margin < MARGIN_AMBIGUOUS:
+        env = _general_envelope(frame=active_frame, target_id=current_target_id,
+                                reason="weak_ambiguous",
+                                raw_scores=raw_scores, matched=phrase_evidence)
+        env.signal_strength = round(signal_strength, 4)
+        env.margin = round(margin, 4)
+        return env
+
+    # secondary domain rules
+    if margin < MARGIN_STRONG and second_score > 0:
+        secondary = [second]
     else:
-        secondary = [second] if second_p > 0.05 else []
+        secondary = []
 
-    # Low confidence → bias to general for the primary, keep evidence
-    fallback_reason = None
-    if top_p < 0.30 and confidence < 0.05:
-        primary = "general"
-        fallback_reason = "low_confidence"
-        lens_priority = ["cross_lens_atoms"]
-    else:
-        primary = top
-        lens_priority = _lens_priority_for(primary)
-
+    lens_priority = _lens_priority_for(top)
     relationship_relevant = (
-        primary in ("relationship", "family", "parenting")
+        top in ("relationship", "family", "parenting")
         or bool(current_target_id)
         or active_frame in ("forum", "member")
     )
-    timeline_relevant = primary in TIMELINE_TRIGGERS_PER_DOMAIN
+    timeline_relevant = top in TIMELINE_TRIGGERS_PER_DOMAIN
 
-    env = IntentEnvelope(
-        primary_domain=primary,
+    return IntentEnvelope(
+        primary_domain=top,
         secondary_domains=secondary,
         confidence=confidence,
+        signal_strength=round(signal_strength, 4),
+        margin=round(margin, 4),
         relationship_relevant=relationship_relevant,
         timeline_relevant=timeline_relevant,
         lens_priority=lens_priority,
         frame_resolved=active_frame,
         target_resolved=current_target_id,
         evidence={
-            "matched_phrases":  phrase_evidence,
-            "raw_scores":       {k: round(v, 4) for k, v in raw_scores.items()},
-            "probabilities":    {k: round(v, 4) for k, v in probs.items()},
-            "history_bias":     {k: round(v, 4) for k, v in hist_bias.items() if v},
+            "matched_phrases":     phrase_evidence,
+            "raw_scores":          {k: round(v, 4) for k, v in raw_scores.items()},
+            "history_bias":        {k: round(v, 4) for k, v in hist_bias.items() if v},
             "frame_bias_applied":  FRAME_BIAS.get(active_frame, {}),
-            "role_bias_applied":   ROLE_BIAS.get((relationship_role or "").lower(), {}),
-            "fallback_reason":  fallback_reason,
+            "role_bias_applied":   ROLE_BIAS.get(role_lc, {}),
+            "target_active_bonus": TARGET_ACTIVE_BONUS if current_target_id else 0.0,
+            "top_score":           round(top_score, 4),
+            "second":              second,
+            "second_score":        round(second_score, 4),
+            "fallback_reason":     None,
         },
     )
-    return env
 
 
 def shadow_mode_enabled() -> bool:
     return os.environ.get("INTENT_ROUTER_V2_SHADOW", "true").lower() in ("1", "true", "yes")
+
+
+def cutover_enabled() -> bool:
+    """B2 will flip this; B1 keeps it false."""
+    return os.environ.get("INTENT_ROUTER_V2_CUTOVER", "false").lower() in ("1", "true", "yes")

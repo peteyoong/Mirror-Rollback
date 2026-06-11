@@ -1,0 +1,92 @@
+# Founder / operator benchmark suite for intent_router_v2.
+# Targets the highest-value real-world surfaces for Pete (and any founder
+# using Mirror): hiring, fundraising, scaling, delegation, role identity,
+# strategic decisions, burnout, mission/purpose tension.
+# Ids prefixed `F` to differentiate from the base golden set.
+
+- id: F1
+  message: "Should I let go of my head of product?"
+  active_frame: self
+  relationship_role: colleague
+  expected_primary: career
+  expected_secondary_in: [leadership, life_direction]
+
+- id: F2
+  message: "How do I lead my team better right now?"
+  active_frame: self
+  expected_primary: leadership
+
+- id: F3
+  message: "What's my leadership style supposed to look like at this stage?"
+  active_frame: self
+  expected_primary: leadership
+
+- id: F4
+  message: "Should I stay as CEO or hand it off?"
+  active_frame: self
+  expected_primary: life_direction
+  expected_secondary_in: [career, leadership]
+
+- id: F5
+  message: "Am I in the right role at my own company?"
+  active_frame: self
+  expected_primary: career
+  expected_secondary_in: [identity, purpose]
+
+- id: F6
+  message: "My runway is tight — do I cut headcount or push fundraising harder?"
+  active_frame: self
+  expected_primary: money
+  expected_secondary_in: [career, leadership]
+
+- id: F7
+  message: "I keep delegating but nothing actually leaves my plate."
+  active_frame: self
+  expected_primary: leadership
+
+- id: F8
+  message: "Is my startup actually aligned with my mission?"
+  active_frame: self
+  expected_primary: purpose
+  expected_secondary_in: [career, life_direction]
+
+- id: F9
+  message: "I'm completely burned out — what's underneath this?"
+  active_frame: self
+  expected_primary: health
+  expected_secondary_in: [growth, purpose]
+
+- id: F10
+  message: "Should I take this acquisition offer or keep building?"
+  active_frame: self
+  expected_primary: life_direction
+  expected_secondary_in: [money, career]
+
+- id: F11
+  message: "My team feels disconnected from the bigger picture."
+  active_frame: self
+  expected_primary: leadership
+  expected_secondary_in: [purpose, work]
+
+- id: F12
+  message: "How do I stop micromanaging?"
+  active_frame: self
+  expected_primary: leadership
+  expected_secondary_in: [growth]
+
+- id: F13
+  message: "What's my real calling underneath all this work I'm doing?"
+  active_frame: self
+  expected_primary: purpose
+
+- id: F14
+  message: "Am I building the right company or just busy?"
+  active_frame: self
+  expected_primary: purpose
+  expected_secondary_in: [career, life_direction]
+
+- id: F15
+  message: "I have to fire someone today and it's eating me alive."
+  active_frame: self
+  expected_primary: leadership
+  expected_secondary_in: [career, work]

@@ -1,33 +1,53 @@
-# Domain lexicons for intent_router_v2 (Slice B1, shadow mode).
-# Phrase weights tuned conservatively; embedding layer can override later.
-# Lower-cased, substring/regex matching. Multi-word phrases score higher than single tokens.
+# Domain lexicons for intent_router_v2 (Slice B1.2).
+# Phrase weights tuned conservatively; calibration is done by the router,
+# not by inflating weights here.  Lower-cased, substring matching.
+# Multi-word phrases score higher than single tokens.
 
 identity:
   phrases:
-    - {p: "who am i",       w: 0.9}
-    - {p: "core self",      w: 0.7}
-    - {p: "real me",        w: 0.8}
-    - {p: "my identity",    w: 0.8}
-    - {p: "who i really am",w: 0.9}
+    - {p: "who am i",          w: 0.95}
+    - {p: "core self",         w: 0.7}
+    - {p: "real me",           w: 0.8}
+    - {p: "my identity",       w: 0.85}
+    - {p: "who i really am",   w: 0.95}
+    - {p: "when no one",       w: 0.5}
+    - {p: "true self",         w: 0.85}
+    - {p: "sense of self",     w: 0.8}
+    - {p: "feel like myself",  w: 0.7}
 
 relationship:
   phrases:
-    - {p: "between us",    w: 0.95}
-    - {p: "between you",   w: 0.85}
-    - {p: " we ",          w: 0.4}
-    - {p: " us ",          w: 0.4}
-    - {p: "my partner",    w: 0.95}
-    - {p: "with mel",      w: 0.9}
-    - {p: "my wife",       w: 0.95}
-    - {p: "my husband",    w: 0.95}
-    - {p: "my girlfriend", w: 0.9}
-    - {p: "my boyfriend",  w: 0.9}
-    - {p: "our relationship", w: 0.95}
-    - {p: "us today",      w: 0.95}
+    - {p: "between us",        w: 0.95}
+    - {p: "between you",       w: 0.85}
+    - {p: "between mel",       w: 0.9}
+    - {p: " we ",              w: 0.4}
+    - {p: " us ",              w: 0.4}
+    - {p: "my partner",        w: 0.95}
+    - {p: "with mel",          w: 0.9}
+    - {p: "my wife",           w: 0.95}
+    - {p: "my husband",        w: 0.95}
+    - {p: "my girlfriend",     w: 0.9}
+    - {p: "my boyfriend",      w: 0.9}
+    - {p: "our relationship",  w: 0.95}
+    - {p: "us today",          w: 0.95}
+    - {p: "and me today",      w: 0.7}
+    - {p: "between",           w: 0.25}
+    - {p: "our forum",         w: 0.65}
+    - {p: "our group",         w: 0.55}
+    - {p: "the group",         w: 0.6}
+    - {p: "our team",          w: 0.45}
+    - {p: "forum's pattern",   w: 0.7}
+    - {p: "group pattern",     w: 0.6}
+    - {p: "with my partner",   w: 0.95}
+    - {p: "this member",       w: 0.6}
+    - {p: "need from me",      w: 0.5}
+    - {p: "still aligned",     w: 0.5}
+    - {p: "are we still",      w: 0.6}
 
 family:
   phrases:
     - {p: "my mum",      w: 0.95}
+    - {p: "my mom",      w: 0.95}
     - {p: "my mother",   w: 0.95}
     - {p: "my dad",      w: 0.95}
     - {p: "my father",   w: 0.95}
@@ -35,106 +55,207 @@ family:
     - {p: "my brother",  w: 0.9}
     - {p: "my parents",  w: 0.9}
     - {p: "my siblings", w: 0.9}
+    - {p: "my family",   w: 0.9}
+    - {p: "in-laws",     w: 0.7}
+    - {p: "driving me up the wall", w: 0.3}  # texture; not a primary signal
 
 parenting:
   phrases:
-    - {p: "my child",     w: 0.95}
-    - {p: "my son",       w: 0.95}
-    - {p: "my daughter",  w: 0.95}
-    - {p: "my kid",       w: 0.95}
-    - {p: "my kids",      w: 0.95}
-    - {p: "raising",      w: 0.6}
-    - {p: "discipline",   w: 0.5}
-    - {p: "school",       w: 0.4}
+    - {p: "my child",       w: 0.95}
+    - {p: "my son",         w: 0.95}
+    - {p: "my daughter",    w: 0.95}
+    - {p: "my kid",         w: 0.95}
+    - {p: "my kids",        w: 0.95}
+    - {p: "raising",        w: 0.6}
+    - {p: "discipline",     w: 0.5}
+    - {p: "my teen",        w: 0.9}
+    - {p: "shutting down",  w: 0.4}
+    - {p: "school",         w: 0.35}
 
 career:
   phrases:
-    - {p: "my career",    w: 0.95}
-    - {p: "my job",       w: 0.9}
-    - {p: "promotion",    w: 0.85}
-    - {p: "new role",     w: 0.8}
-    - {p: "this role",    w: 0.6}
-    - {p: "my boss",      w: 0.6}
-    - {p: "company",      w: 0.4}
-    - {p: "workplace",    w: 0.7}
-    - {p: "career path",  w: 0.95}
+    - {p: "my career",        w: 0.95}
+    - {p: "my job",           w: 0.9}
+    - {p: "the job",          w: 0.65}
+    - {p: "take the job",     w: 0.9}
+    - {p: "promotion",        w: 0.85}
+    - {p: "take the promotion", w: 0.95}
+    - {p: "the promotion",    w: 0.8}
+    - {p: "new role",         w: 0.8}
+    - {p: "this role",        w: 0.6}
+    - {p: "in his role",      w: 0.75}
+    - {p: "in her role",      w: 0.75}
+    - {p: "in their role",    w: 0.75}
+    - {p: "his role",         w: 0.5}
+    - {p: "her role",         w: 0.5}
+    - {p: "my boss",          w: 0.6}
+    - {p: "workplace",        w: 0.7}
+    - {p: "career path",      w: 0.95}
+    - {p: "this company",     w: 0.55}
+    - {p: "my role",          w: 0.7}
+    - {p: "founder",          w: 0.7}
+    - {p: "as the founder",   w: 0.85}
+    - {p: "as a founder",     w: 0.85}
+    - {p: "hiring",           w: 0.55}
+    - {p: "fired",            w: 0.5}
+    - {p: "fundraise",        w: 0.8}
+    - {p: "fundraising",      w: 0.8}
+    - {p: "my startup",       w: 0.85}
+    - {p: "product launch",   w: 0.55}
+    - {p: "head of",          w: 0.5}
+    - {p: "head of product",  w: 0.7}
+    - {p: "head of engineering", w: 0.7}
+    - {p: "my own company",   w: 0.75}
+    - {p: "the right role",   w: 0.7}
+    - {p: "right role",       w: 0.55}
 
 work:
   phrases:
-    - {p: "my team",      w: 0.8}
-    - {p: "deadline",     w: 0.8}
-    - {p: "this task",    w: 0.7}
-    - {p: "project",      w: 0.5}
-    - {p: "meetings",     w: 0.6}
-    - {p: "workload",     w: 0.8}
+    - {p: "my team",          w: 0.55}
+    - {p: "deadline",         w: 0.8}
+    - {p: "this task",        w: 0.7}
+    - {p: "project",          w: 0.45}
+    - {p: "meetings",         w: 0.6}
+    - {p: "workload",         w: 0.8}
+    - {p: "at work",          w: 0.65}
+    - {p: "task list",        w: 0.7}
+    - {p: "sprint",           w: 0.5}
+    - {p: "deliverable",      w: 0.6}
 
 leadership:
   phrases:
-    - {p: "how to lead",  w: 0.95}
-    - {p: "my vision",    w: 0.8}
-    - {p: "as a leader",  w: 0.95}
-    - {p: "my decision",  w: 0.5}
-    - {p: "deciding",     w: 0.5}
-    - {p: "strategy",     w: 0.5}
+    - {p: "how to lead",      w: 0.95}
+    - {p: "how do i lead",    w: 0.95}
+    - {p: "lead my team",     w: 0.95}
+    - {p: "lead the team",    w: 0.9}
+    - {p: "lead my",          w: 0.6}
+    - {p: "my vision",        w: 0.8}
+    - {p: "as a leader",      w: 0.95}
+    - {p: "as the leader",    w: 0.95}
+    - {p: "my decision",      w: 0.5}
+    - {p: "deciding",         w: 0.45}
+    - {p: "strategy",         w: 0.5}
+    - {p: "delegate",         w: 0.7}
+    - {p: "delegating",       w: 0.75}
+    - {p: "delegation",       w: 0.75}
+    - {p: "build my team",    w: 0.85}
+    - {p: "my leadership",    w: 0.95}
+    - {p: "leadership style", w: 0.95}
+    - {p: "micromanage",      w: 0.85}
+    - {p: "micromanaging",    w: 0.85}
+    - {p: "fire someone",     w: 0.7}
+    - {p: "hire someone",     w: 0.55}
+    - {p: "let someone go",   w: 0.75}
+    - {p: "let go of",        w: 0.55}
+    - {p: "my team feels",    w: 0.75}
+    - {p: "my team is",       w: 0.5}
+    - {p: "team feels",       w: 0.6}
+    - {p: "stop micromanaging", w: 0.95}
+    - {p: "eating me alive",  w: 0.3}
+    - {p: "ceo",              w: 0.45}
+    - {p: "as ceo",           w: 0.8}
 
 money:
   phrases:
-    - {p: "money",       w: 0.85}
-    - {p: "salary",      w: 0.95}
-    - {p: "wealth",      w: 0.9}
-    - {p: "investment",  w: 0.9}
-    - {p: "invest",      w: 0.7}
-    - {p: "finances",    w: 0.95}
-    - {p: "my budget",   w: 0.95}
-    - {p: "income",      w: 0.9}
+    - {p: "money",         w: 0.85}
+    - {p: "salary",        w: 0.95}
+    - {p: "wealth",        w: 0.9}
+    - {p: "investment",    w: 0.9}
+    - {p: "invest",        w: 0.7}
+    - {p: "finances",      w: 0.95}
+    - {p: "my budget",     w: 0.95}
+    - {p: "income",        w: 0.9}
+    - {p: "impulse",       w: 0.4}
+    - {p: "savings",       w: 0.85}
+    - {p: "debt",          w: 0.8}
+    - {p: "losing money",  w: 0.95}
+    - {p: "financial",     w: 0.7}
+    - {p: "runway",        w: 0.9}
+    - {p: "burn rate",     w: 0.85}
+    - {p: "cut headcount", w: 0.6}
+    - {p: "tight runway",  w: 0.95}
 
 purpose:
   phrases:
-    - {p: "my purpose",  w: 0.95}
-    - {p: "meaning",     w: 0.7}
-    - {p: "calling",     w: 0.85}
-    - {p: "my soul",     w: 0.75}
-    - {p: "why am i here", w: 0.95}
-    - {p: "what am i for", w: 0.95}
+    - {p: "my purpose",     w: 0.95}
+    - {p: "meaning",        w: 0.65}
+    - {p: "calling",        w: 0.85}
+    - {p: "my soul",        w: 0.7}
+    - {p: "why am i here",  w: 0.95}
+    - {p: "what am i for",  w: 0.95}
+    - {p: "what am i meant",w: 0.9}
+    - {p: "my mission",     w: 0.9}
+    - {p: "the bigger picture", w: 0.5}
+    - {p: "right company",  w: 0.7}
+    - {p: "building the right", w: 0.75}
+    - {p: "just busy",      w: 0.5}
+    - {p: "the right thing",w: 0.55}
+    - {p: "aligned with my mission", w: 0.95}
+    - {p: "my real calling",w: 0.95}
+    - {p: "real calling",   w: 0.9}
 
 spirituality:
   phrases:
-    - {p: "spirit",      w: 0.7}
-    - {p: "divine",      w: 0.85}
-    - {p: "god",         w: 0.6}
-    - {p: "meditation",  w: 0.85}
-    - {p: "my soul",     w: 0.6}
-    - {p: "awakening",   w: 0.85}
-    - {p: "sacred",      w: 0.7}
+    - {p: "spirit",        w: 0.7}
+    - {p: "divine",        w: 0.85}
+    - {p: "god",           w: 0.6}
+    - {p: "meditation",    w: 0.85}
+    - {p: "meditate",      w: 0.8}
+    - {p: "awakening",     w: 0.85}
+    - {p: "sacred",        w: 0.7}
+    - {p: "disconnected from spirit", w: 0.95}
+    - {p: "the universe",  w: 0.65}
+    - {p: "my faith",      w: 0.8}
+    - {p: "prayer",        w: 0.75}
 
 health:
   phrases:
-    - {p: "my body",     w: 0.85}
-    - {p: "tired",       w: 0.5}
-    - {p: "exhausted",   w: 0.7}
-    - {p: "sleep",       w: 0.6}
-    - {p: "energy",      w: 0.4}
-    - {p: "my health",   w: 0.95}
-    - {p: "sick",        w: 0.7}
-    - {p: "crashing",    w: 0.6}
+    - {p: "my body",       w: 0.85}
+    - {p: "tired",         w: 0.5}
+    - {p: "exhausted",     w: 0.7}
+    - {p: "sleep",         w: 0.6}
+    - {p: "energy",        w: 0.4}
+    - {p: "my health",     w: 0.95}
+    - {p: "sick",          w: 0.7}
+    - {p: "crashing",      w: 0.55}
+    - {p: "body feel",     w: 0.7}
+    - {p: "feel so heavy", w: 0.55}
+    - {p: "burned out",    w: 0.85}
+    - {p: "burnout",       w: 0.85}
 
 growth:
   phrases:
-    - {p: "stuck",       w: 0.7}
-    - {p: "i want to grow", w: 0.85}
-    - {p: "keep growing",   w: 0.7}
-    - {p: "evolve",      w: 0.7}
-    - {p: "transform",   w: 0.7}
-    - {p: "changing",    w: 0.4}
-    - {p: "breakthrough",w: 0.7}
+    - {p: "stuck",            w: 0.7}
+    - {p: "i want to grow",   w: 0.85}
+    - {p: "keep growing",     w: 0.7}
+    - {p: "evolve",           w: 0.7}
+    - {p: "transform",        w: 0.7}
+    - {p: "changing",         w: 0.35}
+    - {p: "breakthrough",     w: 0.75}
+    - {p: "past this stuck",  w: 0.85}
+    - {p: "work on myself",   w: 0.8}
+    - {p: "keep showing up",  w: 0.45}
+    - {p: "shadow work",      w: 0.85}
 
 life_direction:
   phrases:
-    - {p: "what's next",   w: 0.85}
-    - {p: "should i stay", w: 0.95}
-    - {p: "should i go",   w: 0.85}
-    - {p: "should i leave",w: 0.95}
-    - {p: "should i take", w: 0.7}
-    - {p: "fork in the road", w: 0.95}
-    - {p: "crossroads",    w: 0.85}
-    - {p: "next step",     w: 0.7}
+    - {p: "what's next",       w: 0.85}
+    - {p: "should i stay",     w: 0.95}
+    - {p: "should i go",       w: 0.85}
+    - {p: "should i leave",    w: 0.95}
+    - {p: "should i take",     w: 0.55}
+    - {p: "fork in the road",  w: 0.95}
+    - {p: "crossroads",        w: 0.85}
+    - {p: "next step",         w: 0.7}
+    - {p: "big decision",      w: 0.75}
+    - {p: "or start something",w: 0.35}
+    - {p: "start something new", w: 0.5}
+    - {p: "new chapter",       w: 0.8}
+    - {p: "pivot",             w: 0.55}
+    - {p: "in this company or", w: 0.7}
+    - {p: "or leave",          w: 0.55}
+    - {p: "stay or go",        w: 0.9}
+    - {p: "stay as ceo",       w: 0.6}
+    - {p: "hand it off",       w: 0.55}
+    - {p: "acquisition offer", w: 0.75}
+    - {p: "keep building",     w: 0.5}

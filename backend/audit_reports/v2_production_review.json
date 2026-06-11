@@ -1,0 +1,835 @@
+{
+  "generated_at": "2026-06-11T18:35:14.585584+00:00",
+  "sample_size": 30,
+  "sources": {
+    "chat_history": 3,
+    "forum_chat_messages": 27
+  },
+  "v2_domain_counts": {
+    "general": 18,
+    "growth": 1,
+    "career": 3,
+    "relationship": 8
+  },
+  "routing_status_counts": {
+    "WARNING": 22,
+    "PASS": 8
+  },
+  "relationship_relevant_pct": 0.3667,
+  "avg_signal_strength": 0.22,
+  "avg_confidence": 0.1806,
+  "rows": [
+    {
+      "#": 1,
+      "source": "chat_history",
+      "timestamp": "2026-06-04 02:02:26.103000",
+      "frame": "self",
+      "target_id": null,
+      "text": "Tell me about my Saturn return",
+      "v2_primary": "general",
+      "v2_secondary": [],
+      "v2_signal": 0.0,
+      "v2_margin": 0.0,
+      "v2_confidence": 0.0,
+      "v2_lens_priority": [
+        "cross_lens_atoms"
+      ],
+      "v2_relationship_relevant": false,
+      "v2_timeline_relevant": false,
+      "v2_target_resolved": null,
+      "v2_resolution_path": [
+        "none"
+      ],
+      "routing_status": "WARNING",
+      "retrieval_status": "PASS",
+      "legacy_guess": "unknown",
+      "fallback_reason": "no_signal"
+    },
+    {
+      "#": 2,
+      "source": "chat_history",
+      "timestamp": "2026-01-22 07:57:04.079000",
+      "frame": "self",
+      "target_id": null,
+      "text": "I feel stuck lately",
+      "v2_primary": "growth",
+      "v2_secondary": [],
+      "v2_signal": 0.7,
+      "v2_margin": 1.0,
+      "v2_confidence": 0.7,
+      "v2_lens_priority": [
+        "enneagram",
+        "timeline",
+        "human_design"
+      ],
+      "v2_relationship_relevant": false,
+      "v2_timeline_relevant": true,
+      "v2_target_resolved": null,
+      "v2_resolution_path": [
+        "none"
+      ],
+      "routing_status": "PASS",
+      "retrieval_status": "PASS",
+      "legacy_guess": "growth?",
+      "fallback_reason": null
+    },
+    {
+      "#": 3,
+      "source": "chat_history",
+      "timestamp": "2026-01-22 07:57:20.072000",
+      "frame": "self",
+      "target_id": null,
+      "text": "What is my Human Design type?",
+      "v2_primary": "general",
+      "v2_secondary": [],
+      "v2_signal": 0.0,
+      "v2_margin": 0.0,
+      "v2_confidence": 0.0,
+      "v2_lens_priority": [
+        "cross_lens_atoms"
+      ],
+      "v2_relationship_relevant": false,
+      "v2_timeline_relevant": false,
+      "v2_target_resolved": null,
+      "v2_resolution_path": [
+        "none"
+      ],
+      "routing_status": "WARNING",
+      "retrieval_status": "PASS",
+      "legacy_guess": "unknown",
+      "fallback_reason": "no_signal"
+    },
+    {
+      "#": 4,
+      "source": "forum_chat_messages",
+      "timestamp": "2026-06-09 08:48:40.397000",
+      "frame": "self",
+      "target_id": null,
+      "text": "Tell me about what my chart says about marriage",
+      "v2_primary": "general",
+      "v2_secondary": [],
+      "v2_signal": 0.0,
+      "v2_margin": 0.0,
+      "v2_confidence": 0.0,
+      "v2_lens_priority": [
+        "cross_lens_atoms"
+      ],
+      "v2_relationship_relevant": false,
+      "v2_timeline_relevant": false,
+      "v2_target_resolved": null,
+      "v2_resolution_path": [
+        "none"
+      ],
+      "routing_status": "WARNING",
+      "retrieval_status": "PASS",
+      "legacy_guess": "unknown",
+      "fallback_reason": "no_signal"
+    },
+    {
+      "#": 5,
+      "source": "forum_chat_messages",
+      "timestamp": "2026-06-09 08:46:13.820000",
+      "frame": "self",
+      "target_id": null,
+      "text": "Tell me about what my chart says about marriage",
+      "v2_primary": "general",
+      "v2_secondary": [],
+      "v2_signal": 0.0,
+      "v2_margin": 0.0,
+      "v2_confidence": 0.0,
+      "v2_lens_priority": [
+        "cross_lens_atoms"
+      ],
+      "v2_relationship_relevant": false,
+      "v2_timeline_relevant": false,
+      "v2_target_resolved": null,
+      "v2_resolution_path": [
+        "none"
+      ],
+      "routing_status": "WARNING",
+      "retrieval_status": "PASS",
+      "legacy_guess": "unknown",
+      "fallback_reason": "no_signal"
+    },
+    {
+      "#": 6,
+      "source": "forum_chat_messages",
+      "timestamp": "2026-05-31 04:40:08.786000",
+      "frame": "self",
+      "target_id": null,
+      "text": "What's my 7th house about?",
+      "v2_primary": "general",
+      "v2_secondary": [],
+      "v2_signal": 0.0,
+      "v2_margin": 0.0,
+      "v2_confidence": 0.0,
+      "v2_lens_priority": [
+        "cross_lens_atoms"
+      ],
+      "v2_relationship_relevant": false,
+      "v2_timeline_relevant": false,
+      "v2_target_resolved": null,
+      "v2_resolution_path": [
+        "none"
+      ],
+      "routing_status": "WARNING",
+      "retrieval_status": "PASS",
+      "legacy_guess": "unknown",
+      "fallback_reason": "no_signal"
+    },
+    {
+      "#": 7,
+      "source": "forum_chat_messages",
+      "timestamp": "2026-05-31 04:40:03.409000",
+      "frame": "member",
+      "target_id": "697ec826ad4b18f75bf42616",
+      "text": "Tell me about her 4th house",
+      "v2_primary": "career",
+      "v2_secondary": [
+        "relationship"
+      ],
+      "v2_signal": 0.4,
+      "v2_margin": 0.0667,
+      "v2_confidence": 0.2133,
+      "v2_lens_priority": [
+        "astrology",
+        "timeline",
+        "human_design"
+      ],
+      "v2_relationship_relevant": true,
+      "v2_timeline_relevant": true,
+      "v2_target_resolved": "697ec826ad4b18f75bf42616",
+      "v2_resolution_path": [
+        "explicit_target_id"
+      ],
+      "routing_status": "WARNING",
+      "retrieval_status": "PASS",
+      "legacy_guess": "unknown",
+      "fallback_reason": null
+    },
+    {
+      "#": 8,
+      "source": "forum_chat_messages",
+      "timestamp": "2026-05-31 04:39:57.764000",
+      "frame": "self",
+      "target_id": null,
+      "text": "What enneagram pattern does Mel show up with?",
+      "v2_primary": "general",
+      "v2_secondary": [],
+      "v2_signal": 0.0,
+      "v2_margin": 0.0,
+      "v2_confidence": 0.0,
+      "v2_lens_priority": [
+        "cross_lens_atoms"
+      ],
+      "v2_relationship_relevant": false,
+      "v2_timeline_relevant": false,
+      "v2_target_resolved": null,
+      "v2_resolution_path": [
+        "none"
+      ],
+      "routing_status": "WARNING",
+      "retrieval_status": "PASS",
+      "legacy_guess": "unknown",
+      "fallback_reason": "no_signal"
+    },
+    {
+      "#": 9,
+      "source": "forum_chat_messages",
+      "timestamp": "2026-05-31 04:39:51.698000",
+      "frame": "self",
+      "target_id": null,
+      "text": "What human design channels do Mel and I share?",
+      "v2_primary": "general",
+      "v2_secondary": [],
+      "v2_signal": 0.0,
+      "v2_margin": 0.0,
+      "v2_confidence": 0.0,
+      "v2_lens_priority": [
+        "cross_lens_atoms"
+      ],
+      "v2_relationship_relevant": false,
+      "v2_timeline_relevant": false,
+      "v2_target_resolved": null,
+      "v2_resolution_path": [
+        "none"
+      ],
+      "routing_status": "WARNING",
+      "retrieval_status": "PASS",
+      "legacy_guess": "unknown",
+      "fallback_reason": "no_signal"
+    },
+    {
+      "#": 10,
+      "source": "forum_chat_messages",
+      "timestamp": "2026-05-31 04:39:45.790000",
+      "frame": "forum",
+      "target_id": null,
+      "text": "What themes are emerging in our forum?",
+      "v2_primary": "relationship",
+      "v2_secondary": [],
+      "v2_signal": 1.0,
+      "v2_margin": 0.8333,
+      "v2_confidence": 0.9167,
+      "v2_lens_priority": [
+        "relationship",
+        "astrology",
+        "human_design"
+      ],
+      "v2_relationship_relevant": true,
+      "v2_timeline_relevant": false,
+      "v2_target_resolved": null,
+      "v2_resolution_path": [
+        "none"
+      ],
+      "routing_status": "PASS",
+      "retrieval_status": "PASS",
+      "legacy_guess": "unknown",
+      "fallback_reason": null
+    },
+    {
+      "#": 11,
+      "source": "forum_chat_messages",
+      "timestamp": "2026-05-31 04:39:40.047000",
+      "frame": "self",
+      "target_id": null,
+      "text": "Tell me about my wife's Saturn placement",
+      "v2_primary": "relationship",
+      "v2_secondary": [],
+      "v2_signal": 0.95,
+      "v2_margin": 1.0,
+      "v2_confidence": 0.95,
+      "v2_lens_priority": [
+        "relationship",
+        "astrology",
+        "human_design"
+      ],
+      "v2_relationship_relevant": true,
+      "v2_timeline_relevant": false,
+      "v2_target_resolved": null,
+      "v2_resolution_path": [
+        "none"
+      ],
+      "routing_status": "PASS",
+      "retrieval_status": "PASS",
+      "legacy_guess": "relationship?",
+      "fallback_reason": null
+    },
+    {
+      "#": 12,
+      "source": "forum_chat_messages",
+      "timestamp": "2026-05-31 04:39:34.498000",
+      "frame": "self",
+      "target_id": null,
+      "text": "How does Mel process conflict?",
+      "v2_primary": "general",
+      "v2_secondary": [],
+      "v2_signal": 0.0,
+      "v2_margin": 0.0,
+      "v2_confidence": 0.0,
+      "v2_lens_priority": [
+        "cross_lens_atoms"
+      ],
+      "v2_relationship_relevant": false,
+      "v2_timeline_relevant": false,
+      "v2_target_resolved": null,
+      "v2_resolution_path": [
+        "none"
+      ],
+      "routing_status": "WARNING",
+      "retrieval_status": "PASS",
+      "legacy_guess": "unknown",
+      "fallback_reason": "no_signal"
+    },
+    {
+      "#": 13,
+      "source": "forum_chat_messages",
+      "timestamp": "2026-05-31 04:39:28.720000",
+      "frame": "self",
+      "target_id": null,
+      "text": "What does Mel need from me right now?",
+      "v2_primary": "relationship",
+      "v2_secondary": [],
+      "v2_signal": 0.5,
+      "v2_margin": 1.0,
+      "v2_confidence": 0.5,
+      "v2_lens_priority": [
+        "relationship",
+        "astrology",
+        "human_design"
+      ],
+      "v2_relationship_relevant": true,
+      "v2_timeline_relevant": false,
+      "v2_target_resolved": null,
+      "v2_resolution_path": [
+        "none"
+      ],
+      "routing_status": "PASS",
+      "retrieval_status": "PASS",
+      "legacy_guess": "unknown",
+      "fallback_reason": null
+    },
+    {
+      "#": 14,
+      "source": "forum_chat_messages",
+      "timestamp": "2026-05-31 04:39:23.167000",
+      "frame": "self",
+      "target_id": null,
+      "text": "Why do Mel and I fight sometimes?",
+      "v2_primary": "general",
+      "v2_secondary": [],
+      "v2_signal": 0.0,
+      "v2_margin": 0.0,
+      "v2_confidence": 0.0,
+      "v2_lens_priority": [
+        "cross_lens_atoms"
+      ],
+      "v2_relationship_relevant": false,
+      "v2_timeline_relevant": false,
+      "v2_target_resolved": null,
+      "v2_resolution_path": [
+        "none"
+      ],
+      "routing_status": "WARNING",
+      "retrieval_status": "PASS",
+      "legacy_guess": "unknown",
+      "fallback_reason": "no_signal"
+    },
+    {
+      "#": 15,
+      "source": "forum_chat_messages",
+      "timestamp": "2026-05-31 04:38:58.544000",
+      "frame": "self",
+      "target_id": null,
+      "text": "Tell me about Mel's 4th house and how does that map to me?",
+      "v2_primary": "general",
+      "v2_secondary": [],
+      "v2_signal": 0.0,
+      "v2_margin": 0.0,
+      "v2_confidence": 0.0,
+      "v2_lens_priority": [
+        "cross_lens_atoms"
+      ],
+      "v2_relationship_relevant": false,
+      "v2_timeline_relevant": false,
+      "v2_target_resolved": null,
+      "v2_resolution_path": [
+        "none"
+      ],
+      "routing_status": "WARNING",
+      "retrieval_status": "PASS",
+      "legacy_guess": "unknown",
+      "fallback_reason": "no_signal"
+    },
+    {
+      "#": 16,
+      "source": "forum_chat_messages",
+      "timestamp": "2026-05-31 04:37:58.755000",
+      "frame": "self",
+      "target_id": null,
+      "text": "Tell me about Mel's 4th house and how does that map to me?",
+      "v2_primary": "general",
+      "v2_secondary": [],
+      "v2_signal": 0.0,
+      "v2_margin": 0.0,
+      "v2_confidence": 0.0,
+      "v2_lens_priority": [
+        "cross_lens_atoms"
+      ],
+      "v2_relationship_relevant": false,
+      "v2_timeline_relevant": false,
+      "v2_target_resolved": null,
+      "v2_resolution_path": [
+        "none"
+      ],
+      "routing_status": "WARNING",
+      "retrieval_status": "PASS",
+      "legacy_guess": "unknown",
+      "fallback_reason": "no_signal"
+    },
+    {
+      "#": 17,
+      "source": "forum_chat_messages",
+      "timestamp": "2026-05-31 04:36:54.826000",
+      "frame": "self",
+      "target_id": null,
+      "text": "Tell me about Mel's 4th house and how does that map to me?",
+      "v2_primary": "general",
+      "v2_secondary": [],
+      "v2_signal": 0.0,
+      "v2_margin": 0.0,
+      "v2_confidence": 0.0,
+      "v2_lens_priority": [
+        "cross_lens_atoms"
+      ],
+      "v2_relationship_relevant": false,
+      "v2_timeline_relevant": false,
+      "v2_target_resolved": null,
+      "v2_resolution_path": [
+        "none"
+      ],
+      "routing_status": "WARNING",
+      "retrieval_status": "PASS",
+      "legacy_guess": "unknown",
+      "fallback_reason": "no_signal"
+    },
+    {
+      "#": 18,
+      "source": "forum_chat_messages",
+      "timestamp": "2026-05-28 09:29:28.898000",
+      "frame": "self",
+      "target_id": null,
+      "text": "Can you tell me about Mel\u2019s 4th house please?",
+      "v2_primary": "general",
+      "v2_secondary": [],
+      "v2_signal": 0.0,
+      "v2_margin": 0.0,
+      "v2_confidence": 0.0,
+      "v2_lens_priority": [
+        "cross_lens_atoms"
+      ],
+      "v2_relationship_relevant": false,
+      "v2_timeline_relevant": false,
+      "v2_target_resolved": null,
+      "v2_resolution_path": [
+        "none"
+      ],
+      "routing_status": "WARNING",
+      "retrieval_status": "PASS",
+      "legacy_guess": "unknown",
+      "fallback_reason": "no_signal"
+    },
+    {
+      "#": 19,
+      "source": "forum_chat_messages",
+      "timestamp": "2026-05-28 08:49:07.358000",
+      "frame": "self",
+      "target_id": null,
+      "text": "Tell me about Mel\u2019s 4th house",
+      "v2_primary": "general",
+      "v2_secondary": [],
+      "v2_signal": 0.0,
+      "v2_margin": 0.0,
+      "v2_confidence": 0.0,
+      "v2_lens_priority": [
+        "cross_lens_atoms"
+      ],
+      "v2_relationship_relevant": false,
+      "v2_timeline_relevant": false,
+      "v2_target_resolved": null,
+      "v2_resolution_path": [
+        "none"
+      ],
+      "routing_status": "WARNING",
+      "retrieval_status": "PASS",
+      "legacy_guess": "unknown",
+      "fallback_reason": "no_signal"
+    },
+    {
+      "#": 20,
+      "source": "forum_chat_messages",
+      "timestamp": "2026-05-28 06:28:20.132000",
+      "frame": "self",
+      "target_id": null,
+      "text": "Tell me about Mel\u2019s 4th house",
+      "v2_primary": "general",
+      "v2_secondary": [],
+      "v2_signal": 0.0,
+      "v2_margin": 0.0,
+      "v2_confidence": 0.0,
+      "v2_lens_priority": [
+        "cross_lens_atoms"
+      ],
+      "v2_relationship_relevant": false,
+      "v2_timeline_relevant": false,
+      "v2_target_resolved": null,
+      "v2_resolution_path": [
+        "none"
+      ],
+      "routing_status": "WARNING",
+      "retrieval_status": "PASS",
+      "legacy_guess": "unknown",
+      "fallback_reason": "no_signal"
+    },
+    {
+      "#": 21,
+      "source": "forum_chat_messages",
+      "timestamp": "2026-05-20 06:53:06.755000",
+      "frame": "forum",
+      "target_id": null,
+      "text": "RL probe 1.",
+      "v2_primary": "relationship",
+      "v2_secondary": [],
+      "v2_signal": 0.45,
+      "v2_margin": 0.6364,
+      "v2_confidence": 0.3682,
+      "v2_lens_priority": [
+        "relationship",
+        "astrology",
+        "human_design"
+      ],
+      "v2_relationship_relevant": true,
+      "v2_timeline_relevant": false,
+      "v2_target_resolved": null,
+      "v2_resolution_path": [
+        "none"
+      ],
+      "routing_status": "PASS",
+      "retrieval_status": "PASS",
+      "legacy_guess": "unknown",
+      "fallback_reason": null
+    },
+    {
+      "#": 22,
+      "source": "forum_chat_messages",
+      "timestamp": "2026-05-20 06:53:00.554000",
+      "frame": "member",
+      "target_id": "697ec826ad4b18f75bf42616",
+      "text": "Reflection test (member).",
+      "v2_primary": "career",
+      "v2_secondary": [
+        "relationship"
+      ],
+      "v2_signal": 0.4,
+      "v2_margin": 0.0667,
+      "v2_confidence": 0.2133,
+      "v2_lens_priority": [
+        "astrology",
+        "timeline",
+        "human_design"
+      ],
+      "v2_relationship_relevant": true,
+      "v2_timeline_relevant": true,
+      "v2_target_resolved": "697ec826ad4b18f75bf42616",
+      "v2_resolution_path": [
+        "explicit_target_id"
+      ],
+      "routing_status": "WARNING",
+      "retrieval_status": "PASS",
+      "legacy_guess": "unknown",
+      "fallback_reason": null
+    },
+    {
+      "#": 23,
+      "source": "forum_chat_messages",
+      "timestamp": "2026-05-20 06:52:54.018000",
+      "frame": "self",
+      "target_id": null,
+      "text": "Reflection test (self).",
+      "v2_primary": "general",
+      "v2_secondary": [],
+      "v2_signal": 0.0,
+      "v2_margin": 0.0,
+      "v2_confidence": 0.0,
+      "v2_lens_priority": [
+        "cross_lens_atoms"
+      ],
+      "v2_relationship_relevant": false,
+      "v2_timeline_relevant": false,
+      "v2_target_resolved": null,
+      "v2_resolution_path": [
+        "none"
+      ],
+      "routing_status": "WARNING",
+      "retrieval_status": "PASS",
+      "legacy_guess": "unknown",
+      "fallback_reason": "no_signal"
+    },
+    {
+      "#": 24,
+      "source": "forum_chat_messages",
+      "timestamp": "2026-05-20 06:52:47.584000",
+      "frame": "forum",
+      "target_id": null,
+      "text": "Reflection test (forum).",
+      "v2_primary": "relationship",
+      "v2_secondary": [],
+      "v2_signal": 0.45,
+      "v2_margin": 0.6364,
+      "v2_confidence": 0.3682,
+      "v2_lens_priority": [
+        "relationship",
+        "astrology",
+        "human_design"
+      ],
+      "v2_relationship_relevant": true,
+      "v2_timeline_relevant": false,
+      "v2_target_resolved": null,
+      "v2_resolution_path": [
+        "none"
+      ],
+      "routing_status": "PASS",
+      "retrieval_status": "PASS",
+      "legacy_guess": "unknown",
+      "fallback_reason": null
+    },
+    {
+      "#": 25,
+      "source": "forum_chat_messages",
+      "timestamp": "2026-05-20 06:51:19.087000",
+      "frame": "forum",
+      "target_id": null,
+      "text": "RL probe 1.",
+      "v2_primary": "relationship",
+      "v2_secondary": [],
+      "v2_signal": 0.45,
+      "v2_margin": 0.6364,
+      "v2_confidence": 0.3682,
+      "v2_lens_priority": [
+        "relationship",
+        "astrology",
+        "human_design"
+      ],
+      "v2_relationship_relevant": true,
+      "v2_timeline_relevant": false,
+      "v2_target_resolved": null,
+      "v2_resolution_path": [
+        "none"
+      ],
+      "routing_status": "PASS",
+      "retrieval_status": "PASS",
+      "legacy_guess": "unknown",
+      "fallback_reason": null
+    },
+    {
+      "#": 26,
+      "source": "forum_chat_messages",
+      "timestamp": "2026-05-20 06:51:12.541000",
+      "frame": "member",
+      "target_id": "697ec826ad4b18f75bf42616",
+      "text": "Reflection test (member).",
+      "v2_primary": "career",
+      "v2_secondary": [
+        "relationship"
+      ],
+      "v2_signal": 0.4,
+      "v2_margin": 0.0667,
+      "v2_confidence": 0.2133,
+      "v2_lens_priority": [
+        "astrology",
+        "timeline",
+        "human_design"
+      ],
+      "v2_relationship_relevant": true,
+      "v2_timeline_relevant": true,
+      "v2_target_resolved": "697ec826ad4b18f75bf42616",
+      "v2_resolution_path": [
+        "explicit_target_id"
+      ],
+      "routing_status": "WARNING",
+      "retrieval_status": "PASS",
+      "legacy_guess": "unknown",
+      "fallback_reason": null
+    },
+    {
+      "#": 27,
+      "source": "forum_chat_messages",
+      "timestamp": "2026-05-20 06:51:04.949000",
+      "frame": "self",
+      "target_id": null,
+      "text": "Reflection test (self).",
+      "v2_primary": "general",
+      "v2_secondary": [],
+      "v2_signal": 0.0,
+      "v2_margin": 0.0,
+      "v2_confidence": 0.0,
+      "v2_lens_priority": [
+        "cross_lens_atoms"
+      ],
+      "v2_relationship_relevant": false,
+      "v2_timeline_relevant": false,
+      "v2_target_resolved": null,
+      "v2_resolution_path": [
+        "none"
+      ],
+      "routing_status": "WARNING",
+      "retrieval_status": "PASS",
+      "legacy_guess": "unknown",
+      "fallback_reason": "no_signal"
+    },
+    {
+      "#": 28,
+      "source": "forum_chat_messages",
+      "timestamp": "2026-05-20 06:50:58.845000",
+      "frame": "forum",
+      "target_id": null,
+      "text": "Reflection test (forum).",
+      "v2_primary": "relationship",
+      "v2_secondary": [],
+      "v2_signal": 0.45,
+      "v2_margin": 0.6364,
+      "v2_confidence": 0.3682,
+      "v2_lens_priority": [
+        "relationship",
+        "astrology",
+        "human_design"
+      ],
+      "v2_relationship_relevant": true,
+      "v2_timeline_relevant": false,
+      "v2_target_resolved": null,
+      "v2_resolution_path": [
+        "none"
+      ],
+      "routing_status": "PASS",
+      "retrieval_status": "PASS",
+      "legacy_guess": "unknown",
+      "fallback_reason": null
+    },
+    {
+      "#": 29,
+      "source": "forum_chat_messages",
+      "timestamp": "2026-05-20 04:26:26.584000",
+      "frame": "self",
+      "target_id": null,
+      "text": "how am I showing up?",
+      "v2_primary": "general",
+      "v2_secondary": [],
+      "v2_signal": 0.0,
+      "v2_margin": 0.0,
+      "v2_confidence": 0.0,
+      "v2_lens_priority": [
+        "cross_lens_atoms"
+      ],
+      "v2_relationship_relevant": false,
+      "v2_timeline_relevant": false,
+      "v2_target_resolved": null,
+      "v2_resolution_path": [
+        "none"
+      ],
+      "routing_status": "WARNING",
+      "retrieval_status": "PASS",
+      "legacy_guess": "unknown",
+      "fallback_reason": "no_signal"
+    },
+    {
+      "#": 30,
+      "source": "forum_chat_messages",
+      "timestamp": "2026-05-20 04:26:15.870000",
+      "frame": "forum",
+      "target_id": null,
+      "text": "What's the energy of this forum?",
+      "v2_primary": "relationship",
+      "v2_secondary": [
+        "health"
+      ],
+      "v2_signal": 0.45,
+      "v2_margin": 0.0588,
+      "v2_confidence": 0.2382,
+      "v2_lens_priority": [
+        "relationship",
+        "astrology",
+        "human_design"
+      ],
+      "v2_relationship_relevant": true,
+      "v2_timeline_relevant": false,
+      "v2_target_resolved": null,
+      "v2_resolution_path": [
+        "none"
+      ],
+      "routing_status": "WARNING",
+      "retrieval_status": "PASS",
+      "legacy_guess": "unknown",
+      "fallback_reason": null
+    }
+  ]
+}

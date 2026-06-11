@@ -130,12 +130,16 @@ def run_pass(cases: List[Dict[str, Any]], *, use_embeddings: bool) -> Dict[str, 
             "predicted": predicted,
             "secondary": secondary,
             "confidence": confidence,
+            "signal_strength": envd.get("signal_strength", 0.0),
+            "margin": envd.get("margin", 0.0),
             "top1_hit": top1_hit,
             "top2_hit": top2_hit,
             "secondary_check": secondary_check,
             "confidence_ok": confidence_ok,
             "latency_ms": round(dt_ms, 3),
-            "receipt_status": receipt["validation_status"],
+            "retrieval_status": receipt.get("retrieval_status", receipt["validation_status"]),
+            "routing_status": receipt.get("routing_status", "n/a"),
+            "fallback_reason": (envd.get("evidence") or {}).get("fallback_reason"),
         })
 
     total = len(results) or 1
@@ -155,7 +159,26 @@ def run_pass(cases: List[Dict[str, Any]], *, use_embeddings: bool) -> Dict[str, 
                 "predicted": r["predicted"],
                 "secondary": r["secondary"],
                 "confidence": r["confidence"],
+                "signal_strength": r["signal_strength"],
+                "margin": r["margin"],
+                "fallback_reason": r["fallback_reason"],
             })
+
+    # Confidence distribution histogram (buckets of 0.10)
+    buckets = [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
+    conf_hist: Dict[str, int] = {}
+    signal_hist: Dict[str, int] = {}
+    for i in range(len(buckets) - 1):
+        lo, hi = buckets[i], buckets[i + 1]
+        key = f"{lo:.1f}-{hi:.1f}"
+        conf_hist[key] = sum(1 for r in results if lo <= r["confidence"] < hi or
+                             (hi == 1.0 and r["confidence"] >= 1.0))
+        signal_hist[key] = sum(1 for r in results if lo <= r["signal_strength"] < hi or
+                               (hi == 1.0 and r["signal_strength"] >= 1.0))
+
+    # Routing status breakdown
+    routing_counts: Counter = Counter(r["routing_status"] for r in results)
+    retrieval_counts: Counter = Counter(r["retrieval_status"] for r in results)
 
     summary = {
         "router_version": ROUTER_VERSION,
@@ -179,8 +202,12 @@ def run_pass(cases: List[Dict[str, Any]], *, use_embeddings: bool) -> Dict[str, 
             if latencies_ms else 0,
             "max": round(max(latencies_ms), 3) if latencies_ms else 0,
         },
-        "receipt_status_counts": dict(receipt_status_counts),
-        "receipt_pass_rate": round(receipt_status_counts.get("PASS", 0) / total, 4),
+        "retrieval_status_counts": dict(retrieval_counts),
+        "routing_status_counts": dict(routing_counts),
+        "retrieval_pass_rate": round(retrieval_counts.get("PASS", 0) / total, 4),
+        "routing_pass_rate": round(routing_counts.get("PASS", 0) / total, 4),
+        "confidence_distribution": conf_hist,
+        "signal_distribution": signal_hist,
         "per_domain_misses": dict(per_domain_misses),
         "confusion_matrix": {
             exp: dict(cnts) for exp, cnts in confusion.items()
@@ -235,11 +262,23 @@ def render(report: Dict[str, Any]) -> None:
     if sec["checked"]:
         print(f"Secondary check:  {sec['ok']}/{sec['checked']} "
               f"({sec['accuracy']*100:.2f}%)")
-    print(f"Receipt status:   {report['receipt_status_counts']}")
-    print(f"Receipt PASS:     {report['receipt_pass_rate']*100:.2f}%")
+    print(f"Retrieval status: {report['retrieval_status_counts']} "
+          f"(PASS rate {report['retrieval_pass_rate']*100:.2f}%)")
+    print(f"Routing status:   {report['routing_status_counts']} "
+          f"(PASS rate {report['routing_pass_rate']*100:.2f}%)")
     print(f"Latency (ms):     mean={report['latency_ms']['mean']}  "
           f"p50={report['latency_ms']['p50']}  "
           f"p95={report['latency_ms']['p95']}  max={report['latency_ms']['max']}")
+
+    print("\nConfidence distribution:")
+    for k, v in report["confidence_distribution"].items():
+        bar = "#" * v
+        print(f"  conf  {k}: {v:3d} {bar}")
+    print("\nSignal strength distribution:")
+    for k, v in report["signal_distribution"].items():
+        bar = "#" * v
+        print(f"  sig   {k}: {v:3d} {bar}")
+
     cg = report["confidence_gate"]
     if cg["failed"]:
         print(f"\nConfidence-gate failures: {cg['failed']}")
@@ -252,7 +291,8 @@ def render(report: Dict[str, Any]) -> None:
             print(f"  {dom}: {len(misses)} miss(es)")
             for m in misses:
                 print(f"     id={m['id']} → predicted={m['predicted']}, "
-                      f"conf={m['confidence']}, msg={m['message']!r}")
+                      f"sig={m['signal_strength']}, margin={m['margin']}, "
+                      f"fb={m['fallback_reason']}, msg={m['message']!r}")
     if report["low_confidence_cases"]:
         print_section("Low-confidence non-general predictions")
         for lc in report["low_confidence_cases"]:
@@ -262,24 +302,54 @@ def render(report: Dict[str, Any]) -> None:
 
 def main() -> int:
     ap = argparse.ArgumentParser()
-    ap.add_argument("--golden", default=str(GOLDEN_PATH))
+    ap.add_argument("--golden", default=str(GOLDEN_PATH),
+                    help="comma-separated list of golden-set yaml files")
     ap.add_argument("--json-out", default=None,
                     help="optional path to write the full JSON report")
     ap.add_argument("--skip-embeddings", action="store_true",
                     help="run only the offline pass")
     args = ap.parse_args()
 
-    cases = load_cases(Path(args.golden))
-    if not cases:
-        print("No cases found in golden set", file=sys.stderr)
+    suite_files = [Path(p.strip()) for p in args.golden.split(",") if p.strip()]
+    all_cases: List[Dict[str, Any]] = []
+    for sf in suite_files:
+        cases = load_cases(sf)
+        if not cases:
+            print(f"warn: no cases in {sf}", file=sys.stderr)
+            continue
+        # tag each case with suite name
+        suite_name = sf.stem
+        for c in cases:
+            c.setdefault("suite", suite_name)
+        all_cases.extend(cases)
+        print(f"  Loaded {len(cases):>3} case(s) from {sf.name}")
+
+    if not all_cases:
+        print("No cases found in any golden set", file=sys.stderr)
         return 2
 
-    p1 = run_pass(cases, use_embeddings=False)
+    p1 = run_pass(all_cases, use_embeddings=False)
     render(p1)
+
+    # Per-suite breakdown
+    by_suite: Dict[str, List[Dict[str, Any]]] = defaultdict(list)
+    for r in p1["results"]:
+        suite = next((c.get("suite") for c in all_cases if c.get("id") == r["id"]), "default")
+        by_suite[suite].append(r)
+    if len(by_suite) > 1:
+        print_section("Per-suite accuracy")
+        for suite, rows in by_suite.items():
+            t1 = sum(1 for r in rows if r["top1_hit"]) / len(rows)
+            t2 = sum(1 for r in rows if r["top2_hit"]) / len(rows)
+            ret_pass = sum(1 for r in rows if r["retrieval_status"] == "PASS") / len(rows)
+            rou_pass = sum(1 for r in rows if r["routing_status"] == "PASS") / len(rows)
+            print(f"  {suite:<32} n={len(rows):>3}  top1={t1*100:5.1f}%  "
+                  f"top2={t2*100:5.1f}%  retrieval_pass={ret_pass*100:5.1f}%  "
+                  f"routing_pass={rou_pass*100:5.1f}%")
 
     full = {"offline": p1}
     if not args.skip_embeddings:
-        p2 = run_pass(cases, use_embeddings=True)
+        p2 = run_pass(all_cases, use_embeddings=True)
         render(p2)
         full["embeddings"] = p2
         delta = diff_passes(p1, p2)
@@ -293,7 +363,7 @@ def main() -> int:
             json.dump(full, f, indent=2, default=str)
         print(f"\nJSON report written → {args.json_out}")
 
-    # Exit non-zero only if Pass-1 top-1 falls below 0.6 (sanity floor)
+    # Exit non-zero if Pass-1 top-1 < 0.6 (sanity floor)
     return 0 if p1["top1_accuracy"] >= 0.6 else 1
 
 
