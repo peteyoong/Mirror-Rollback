@@ -1,0 +1,41 @@
+# Missing-target / unresolved-name fallback coverage (B2 readiness).
+# These cases verify the relationship_router_v2 missing-target behaviour:
+#   * named person not in saved_people → emit `target_unresolved` + suggested_name
+#   * do NOT silently downgrade
+#   * proposed_action stays in receipt only (no user-facing CTA)
+
+- id: MT1
+  message: "How does Sarah show up at work?"
+  active_frame: self
+  expected_unresolved_name: Sarah
+  expected_primary: career  # work-frame, no role hint
+  expected_target_resolved: null
+
+- id: MT2
+  message: "Tell me about my husband's Saturn return"
+  active_frame: self
+  relationship_role: spouse
+  expected_unresolved_name: null  # no proper name, only role
+  expected_primary: relationship
+  expected_target_resolved: null
+
+- id: MT3
+  message: "What's going on between Alex and me?"
+  active_frame: self
+  expected_unresolved_name: Alex
+  expected_primary: relationship  # "between * and me" pattern + capitalised name
+  expected_target_resolved: null
+
+- id: MT4
+  message: "How is Jordan handling the new role?"
+  active_frame: self
+  expected_unresolved_name: Jordan
+  expected_primary: career
+  expected_target_resolved: null
+
+- id: MT5
+  message: "Tell me about Pete's 4th house"
+  active_frame: self
+  expected_unresolved_name: Pete
+  expected_primary: relationship  # 4th house jargon; Pete unresolved
+  expected_target_resolved: null

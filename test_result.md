@@ -25870,3 +25870,84 @@ agent_communication:
         /api/admin/map-relationship was used to seed Pete↔Mel=spouse.
         Please run the 5 scenarios above. Credentials in
         /app/memory/test_credentials.md.
+
+
+backend:
+  - task: "Slice B2 — Missing-Target Fallback (receipt-only)"
+    implemented: true
+    working: "NA"
+    file: "backend/services/relationship_router_v2.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: |
+          Added missing-target fallback to relationship_router_v2.  When a
+          proper-name candidate is detected in user_message but doesn't
+          match any saved_people entry, we emit:
+            - target_unresolved_name: <name>
+            - missing_data: includes "target_unresolved"
+            - proposed_action: {type:"add_to_circle", suggested_name,
+                                reason, source_text, confidence}
+          retrieval_validation_v1 (v1.2.0) now surfaces these into the
+          receipt as: target_resolved, target_unresolved_name,
+          target_resolution_status, proposed_action.  ALL receipt-only —
+          no API/UI surfacing and no relationship-role inference.
+          
+          Coverage: 7 new pytest cases pass; full B1.3-validated golden
+          set (golden_set + founder + lens_jargon + relationship_forum,
+          n=73) remains at 100% top-1, 100% top-2, 100% retrieval PASS.
+          
+          NOT YET tested by testing_agent — backend changes are scoped to
+          shadow-mode pipeline and replay tooling only; no API contract
+          changes; INTENT_ROUTER_V2_CUTOVER remains false.
+
+  - task: "Slice B2 — Replay Runner & Readiness Report"
+    implemented: true
+    working: "NA"
+    file: "backend/tools/b2_replay_runner.py, backend/tools/b2_readiness_report.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: |
+          Two new offline tools:
+            - tools/b2_replay_runner.py: pulls 90-day real messages from
+              chat_history + forum_chat_messages + forum_mirror_chat_messages,
+              supplements with synth slice of golden_set_pete_mel_historical,
+              runs every case through the V2 shadow stack, writes
+              audit_reports/B2_REPLAY_RESULTS.json + B2_REPLAY_SAMPLES.md
+            - tools/b2_readiness_report.py: aggregates replay + benchmark
+              + live mirror_chat_retrieval_receipts and writes
+              audit_reports/B2_READINESS_REPORT.{md,json}
+          
+          Current readiness scorecard (REAL n=49, SYNTH n=40):
+            * Golden-set top-1 (validated suites):   100.00% on n=73  PASS
+            * Retrieval receipt coverage:            100.00%          PASS
+            * Target resolution (proposed_action):    26.53% (REAL)   PASS
+            * False-positive relationship (REAL):      2.04%          PASS
+            * Forum/member ambiguity (REAL):          88.46% (advis.) PASS
+            * Shadow telemetry window complete:      n=3 receipts     FAIL
+            * Manual review complete:                 PENDING_OPERATOR
+          
+          Recommendation: CONDITIONAL_GO (capped by shadow telemetry
+          window ending 2026-06-14).  No hard regressions.
+
+agent_communication:
+  - agent: "main"
+    message: |
+      Track 1 Slice B2 Validation Pack complete.  Artifacts written to
+      /app/backend/audit_reports/:
+        * B2_READINESS_REPORT.md  (canonical artifact)
+        * B2_READINESS_REPORT.json
+        * B2_REPLAY_RESULTS.json
+        * B2_REPLAY_SAMPLES.md
+      
+      Recommendation: CONDITIONAL_GO — all hard gates PASS; only
+      "shadow telemetry window complete" fails (expected, window ends
+      2026-06-14).  No production code paths altered; INTENT_ROUTER_V2_CUTOVER
+      remains false.  Proposed_action payloads are receipt-only.

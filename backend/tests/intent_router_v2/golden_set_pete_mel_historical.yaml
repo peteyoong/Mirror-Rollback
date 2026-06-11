@@ -1,0 +1,84 @@
+# Pete/Mel Historical Regression Suite (B2 readiness).
+# Source: REAL = mined from chat_history + forum_chat_messages collections
+#         SYNTH = hand-crafted in the same voice / archetype for coverage
+# Each case has `source` and `category` for sliceable reporting.
+
+# ====================== REAL (n=27, anonymised user_id hashes) ======================
+
+- {id: H1,  source: real,  category: astrology,    message: "Tell me about my Saturn return", active_frame: self, expected_primary: identity, expected_secondary_in: [growth, life_direction]}
+- {id: H2,  source: real,  category: growth,       message: "I feel stuck lately",            active_frame: self, expected_primary: growth}
+- {id: H3,  source: real,  category: human_design, message: "What is my Human Design type?",  active_frame: self, expected_primary: identity}
+- {id: H4,  source: real,  category: astrology,    message: "Tell me about what my chart says about marriage", active_frame: self, expected_primary: relationship}
+- {id: H5,  source: real,  category: astrology,    message: "What's my 7th house about?",      active_frame: self, expected_primary: relationship}
+- {id: H6,  source: real,  category: member_lens,  message: "Tell me about her 4th house",     active_frame: member, current_target_id: tgt1, relationship_role: colleague, expected_primary: family}
+- {id: H7,  source: real,  category: cross_lens,   message: "What enneagram pattern does Mel show up with?", active_frame: self, relationship_role: partner, expected_primary: relationship}
+- {id: H8,  source: real,  category: cross_lens,   message: "What human design channels do Mel and I share?", active_frame: self, relationship_role: partner, expected_primary: relationship}
+- {id: H9,  source: real,  category: forum,        message: "What themes are emerging in our forum?", active_frame: forum, expected_primary: relationship}
+- {id: H10, source: real,  category: astrology,    message: "Tell me about my wife's Saturn placement", active_frame: self, relationship_role: partner, expected_primary: relationship}
+- {id: H11, source: real,  category: relationship, message: "How does Mel process conflict?",  active_frame: self, relationship_role: partner, expected_primary: relationship}
+- {id: H12, source: real,  category: relationship, message: "What does Mel need from me right now?", active_frame: self, relationship_role: partner, expected_primary: relationship}
+- {id: H13, source: real,  category: relationship, message: "Why do Mel and I fight sometimes?", active_frame: self, relationship_role: partner, expected_primary: relationship}
+- {id: H14, source: real,  category: cross_lens,   message: "Tell me about Mel's 4th house and how does that map to me?", active_frame: self, relationship_role: partner, expected_primary: relationship}
+- {id: H15, source: real,  category: cross_lens,   message: "Can you tell me about Mel's 4th house please?", active_frame: self, relationship_role: partner, expected_primary: relationship}
+- {id: H16, source: real,  category: cross_lens,   message: "Tell me about Mel's 4th house",   active_frame: self, relationship_role: partner, expected_primary: relationship}
+- {id: H17, source: real,  category: ambiguous,    message: "RL probe 1.",                      active_frame: forum, expected_primary: general, expected_max_confidence: 0.20}
+- {id: H18, source: real,  category: ambiguous,    message: "Reflection test (member).",        active_frame: member, current_target_id: tgt1, expected_primary: general, expected_max_confidence: 0.20}
+- {id: H19, source: real,  category: ambiguous,    message: "Reflection test (self).",          active_frame: self, expected_primary: general, expected_max_confidence: 0.20}
+- {id: H20, source: real,  category: ambiguous,    message: "Reflection test (forum).",         active_frame: forum, expected_primary: general, expected_max_confidence: 0.40}  # forum frame adds relationship bias
+- {id: H21, source: real,  category: identity,     message: "how am I showing up?",             active_frame: self, expected_primary: identity}
+- {id: H22, source: real,  category: forum,        message: "What's the energy of this forum?", active_frame: forum, expected_primary: relationship}
+- {id: H23, source: real,  category: ambiguous,    message: "again",                            active_frame: self, expected_primary: general, expected_max_confidence: 0.10}
+- {id: H24, source: real,  category: identity,     message: "How might my lenses influence how I show up in this forum?", active_frame: self, expected_primary: identity}
+- {id: H25, source: real,  category: identity,     message: "How do I naturally show up in group settings?", active_frame: self, expected_primary: identity}
+- {id: H26, source: real,  category: forum,        message: "What strengths does this group composition bring?", active_frame: forum, expected_primary: relationship}
+- {id: H27, source: real,  category: forum,        message: "What themes seem to be emerging in our forum?", active_frame: forum, expected_primary: relationship}
+
+# ====================== SYNTH (n=40, Pete/Mel archetype voice) ======================
+# --- Leadership ---
+- {id: H28, source: synth, category: leadership,   message: "How do I lead my engineering team through this transition?", active_frame: self, expected_primary: leadership}
+- {id: H29, source: synth, category: leadership,   message: "Should I delegate the Q3 product decisions to my VP?", active_frame: self, expected_primary: leadership}
+- {id: H30, source: synth, category: leadership,   message: "My team is stuck in execution mode — how do I lift them out?", active_frame: self, expected_primary: leadership}
+- {id: H31, source: synth, category: leadership,   message: "I feel like a bad CEO when I can't see the path forward", active_frame: self, expected_primary: leadership}
+- {id: H32, source: synth, category: leadership,   message: "How do I have the firing conversation today?", active_frame: self, expected_primary: leadership}
+- {id: H33, source: synth, category: leadership,   message: "What's blocking me from being the leader my team needs?", active_frame: self, expected_primary: leadership}
+- {id: H34, source: synth, category: leadership,   message: "How do I scale myself as the company grows?", active_frame: self, expected_primary: leadership}
+- {id: H35, source: synth, category: leadership,   message: "Am I micromanaging my head of product?", active_frame: self, expected_primary: leadership}
+# --- Career ---
+- {id: H36, source: synth, category: career,       message: "Should I take this VP role at the bigger company?", active_frame: self, expected_primary: career, expected_secondary_in: [life_direction]}
+- {id: H37, source: synth, category: career,       message: "Am I in the right role at my own company?", active_frame: self, expected_primary: career}
+- {id: H38, source: synth, category: career,       message: "Should I make a career path change at 42?", active_frame: self, expected_primary: career, expected_secondary_in: [life_direction]}
+- {id: H39, source: synth, category: career,       message: "What does my chart say about my career direction?", active_frame: self, expected_primary: career}
+- {id: H40, source: synth, category: career,       message: "My MC is in Capricorn — what does that mean for work?", active_frame: self, expected_primary: career}
+- {id: H41, source: synth, category: career,       message: "Is being a founder still my role here?", active_frame: self, expected_primary: career}
+# --- Money ---
+- {id: H42, source: synth, category: money,        message: "How do I think about our family finances right now?", active_frame: self, expected_primary: money}
+- {id: H43, source: synth, category: money,        message: "Should I take less salary to extend runway?", active_frame: self, expected_primary: money, expected_secondary_in: [career]}
+- {id: H44, source: synth, category: money,        message: "What does my 2nd house say about wealth?", active_frame: self, expected_primary: money}
+- {id: H45, source: synth, category: money,        message: "Am I being smart with money or scared with money?", active_frame: self, expected_primary: money}
+# --- Purpose ---
+- {id: H46, source: synth, category: purpose,      message: "What's my real calling — the startup or something deeper?", active_frame: self, expected_primary: purpose, expected_secondary_in: [life_direction, career]}
+- {id: H47, source: synth, category: purpose,      message: "What am I actually here to do?", active_frame: self, expected_primary: purpose}
+- {id: H48, source: synth, category: purpose,      message: "Is the work I'm doing aligned with my soul?", active_frame: self, expected_primary: purpose}
+- {id: H49, source: synth, category: purpose,      message: "Why do I keep feeling like I'm meant for more?", active_frame: self, expected_primary: purpose}
+# --- Timeline ---
+- {id: H50, source: synth, category: timeline,     message: "What's the timing on this next pivot?", active_frame: self, expected_primary: life_direction}
+- {id: H51, source: synth, category: timeline,     message: "Is now the right window to fundraise?", active_frame: self, expected_primary: money, expected_secondary_in: [career, life_direction]}
+- {id: H52, source: synth, category: timeline,     message: "What season am I in right now?", active_frame: self, expected_primary: growth}
+- {id: H53, source: synth, category: timeline,     message: "When does this current cycle end?", active_frame: self, expected_primary: growth}
+# --- Relationship ---
+- {id: H54, source: synth, category: relationship, message: "How can Mel and I deepen our connection?", active_frame: self, relationship_role: partner, expected_primary: relationship}
+- {id: H55, source: synth, category: relationship, message: "What's the friction in my marriage really about?", active_frame: self, relationship_role: partner, expected_primary: relationship}
+- {id: H56, source: synth, category: relationship, message: "How do I support Mel through her current chapter?", active_frame: self, relationship_role: partner, expected_primary: relationship}
+- {id: H57, source: synth, category: relationship, message: "Why does Mel feel distant lately?", active_frame: self, relationship_role: partner, expected_primary: relationship}
+- {id: H58, source: synth, category: relationship, message: "How does my Venus square Mel's Saturn play out?", active_frame: self, relationship_role: partner, expected_primary: relationship}
+# --- Forum/Member ---
+- {id: H59, source: synth, category: forum,        message: "What pattern is showing up in our forum this week?", active_frame: forum, expected_primary: relationship}
+- {id: H60, source: synth, category: forum,        message: "Which member needs the most space right now?", active_frame: forum, expected_primary: relationship}
+- {id: H61, source: synth, category: member_lens,  message: "What is Pete's deepest gift to this group?", active_frame: member, current_target_id: tgt-pete, relationship_role: colleague, expected_primary: identity, expected_secondary_in: [relationship, career]}
+- {id: H62, source: synth, category: member_lens,  message: "How is Sarah holding back in her role?", active_frame: member, current_target_id: tgt-sarah, relationship_role: colleague, expected_primary: career, expected_secondary_in: [work, leadership]}
+# --- Cross-lens ---
+- {id: H63, source: synth, category: cross_lens,   message: "How do my Human Design and Enneagram point me toward the same growth?", active_frame: self, expected_primary: identity, expected_secondary_in: [growth]}
+- {id: H64, source: synth, category: cross_lens,   message: "What does my chart and HD type say about my burnout pattern?", active_frame: self, expected_primary: identity, expected_secondary_in: [health, growth]}
+- {id: H65, source: synth, category: cross_lens,   message: "How do my Saturn return and Enneagram 8 intersect?", active_frame: self, expected_primary: identity}
+- {id: H66, source: synth, category: cross_lens,   message: "Cross-check: what do all my lenses say about leadership?", active_frame: self, expected_primary: leadership}
+- {id: H67, source: synth, category: cross_lens,   message: "What patterns appear across my astrology, HD, and Enneagram about money?", active_frame: self, expected_primary: money}

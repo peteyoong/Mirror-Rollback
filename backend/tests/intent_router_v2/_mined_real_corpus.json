@@ -1,0 +1,191 @@
+[
+  {
+    "source": "chat_history",
+    "user_id_hash": "a9b960b9",
+    "frame": "self",
+    "target_id": null,
+    "text": "Tell me about my Saturn return"
+  },
+  {
+    "source": "chat_history",
+    "user_id_hash": "1c9d0bdb",
+    "frame": "self",
+    "target_id": null,
+    "text": "I feel stuck lately"
+  },
+  {
+    "source": "chat_history",
+    "user_id_hash": "1c9d0bdb",
+    "frame": "self",
+    "target_id": null,
+    "text": "What is my Human Design type?"
+  },
+  {
+    "source": "forum_chat_messages",
+    "user_id_hash": "a9b960b9",
+    "frame": "self",
+    "target_id": null,
+    "text": "Tell me about what my chart says about marriage"
+  },
+  {
+    "source": "forum_chat_messages",
+    "user_id_hash": "a9b960b9",
+    "frame": "self",
+    "target_id": null,
+    "text": "What's my 7th house about?"
+  },
+  {
+    "source": "forum_chat_messages",
+    "user_id_hash": "a9b960b9",
+    "frame": "member",
+    "target_id": "697ec826ad4b18f75bf42616",
+    "text": "Tell me about her 4th house"
+  },
+  {
+    "source": "forum_chat_messages",
+    "user_id_hash": "a9b960b9",
+    "frame": "self",
+    "target_id": null,
+    "text": "What enneagram pattern does Mel show up with?"
+  },
+  {
+    "source": "forum_chat_messages",
+    "user_id_hash": "a9b960b9",
+    "frame": "self",
+    "target_id": null,
+    "text": "What human design channels do Mel and I share?"
+  },
+  {
+    "source": "forum_chat_messages",
+    "user_id_hash": "a9b960b9",
+    "frame": "forum",
+    "target_id": null,
+    "text": "What themes are emerging in our forum?"
+  },
+  {
+    "source": "forum_chat_messages",
+    "user_id_hash": "a9b960b9",
+    "frame": "self",
+    "target_id": null,
+    "text": "Tell me about my wife's Saturn placement"
+  },
+  {
+    "source": "forum_chat_messages",
+    "user_id_hash": "a9b960b9",
+    "frame": "self",
+    "target_id": null,
+    "text": "How does Mel process conflict?"
+  },
+  {
+    "source": "forum_chat_messages",
+    "user_id_hash": "a9b960b9",
+    "frame": "self",
+    "target_id": null,
+    "text": "What does Mel need from me right now?"
+  },
+  {
+    "source": "forum_chat_messages",
+    "user_id_hash": "a9b960b9",
+    "frame": "self",
+    "target_id": null,
+    "text": "Why do Mel and I fight sometimes?"
+  },
+  {
+    "source": "forum_chat_messages",
+    "user_id_hash": "a9b960b9",
+    "frame": "self",
+    "target_id": null,
+    "text": "Tell me about Mel's 4th house and how does that map to me?"
+  },
+  {
+    "source": "forum_chat_messages",
+    "user_id_hash": "a9b960b9",
+    "frame": "self",
+    "target_id": null,
+    "text": "Can you tell me about Mel\u2019s 4th house please?"
+  },
+  {
+    "source": "forum_chat_messages",
+    "user_id_hash": "a9b960b9",
+    "frame": "self",
+    "target_id": null,
+    "text": "Tell me about Mel\u2019s 4th house"
+  },
+  {
+    "source": "forum_chat_messages",
+    "user_id_hash": "a9b960b9",
+    "frame": "forum",
+    "target_id": null,
+    "text": "RL probe 1."
+  },
+  {
+    "source": "forum_chat_messages",
+    "user_id_hash": "a9b960b9",
+    "frame": "member",
+    "target_id": "697ec826ad4b18f75bf42616",
+    "text": "Reflection test (member)."
+  },
+  {
+    "source": "forum_chat_messages",
+    "user_id_hash": "a9b960b9",
+    "frame": "self",
+    "target_id": null,
+    "text": "Reflection test (self)."
+  },
+  {
+    "source": "forum_chat_messages",
+    "user_id_hash": "a9b960b9",
+    "frame": "forum",
+    "target_id": null,
+    "text": "Reflection test (forum)."
+  },
+  {
+    "source": "forum_chat_messages",
+    "user_id_hash": "a9b960b9",
+    "frame": "self",
+    "target_id": null,
+    "text": "how am I showing up?"
+  },
+  {
+    "source": "forum_chat_messages",
+    "user_id_hash": "a9b960b9",
+    "frame": "forum",
+    "target_id": null,
+    "text": "What's the energy of this forum?"
+  },
+  {
+    "source": "forum_chat_messages",
+    "user_id_hash": "a9b960b9",
+    "frame": "self",
+    "target_id": null,
+    "text": "again"
+  },
+  {
+    "source": "forum_chat_messages",
+    "user_id_hash": "a9b960b9",
+    "frame": "self",
+    "target_id": null,
+    "text": "How might my lenses influence how I show up in this forum?"
+  },
+  {
+    "source": "forum_chat_messages",
+    "user_id_hash": "89929cb0",
+    "frame": "self",
+    "target_id": null,
+    "text": "How do I naturally show up in group settings?"
+  },
+  {
+    "source": "forum_chat_messages",
+    "user_id_hash": "89929cb0",
+    "frame": "forum",
+    "target_id": null,
+    "text": "What strengths does this group composition bring?"
+  },
+  {
+    "source": "forum_chat_messages",
+    "user_id_hash": "89929cb0",
+    "frame": "forum",
+    "target_id": null,
+    "text": "What themes seem to be emerging in our forum?"
+  }
+]

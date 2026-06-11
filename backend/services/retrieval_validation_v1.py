@@ -11,13 +11,16 @@ on first write) with a 30-day TTL.  Emit-only; never blocks a response.
 """
 from __future__ import annotations
 
-import os, uuid, hashlib, logging
+import os
+import uuid
+import hashlib
+import logging
 from datetime import datetime, timezone as dt_tz
 from typing import Any, Dict, List, Optional
 
 log = logging.getLogger("retrieval_validation_v1")
 RECEIPTS_COLLECTION = "mirror_chat_retrieval_receipts"
-VALIDATOR_VERSION = "retrieval_validation_v1.1.0"
+VALIDATOR_VERSION = "retrieval_validation_v1.2.0"
 
 _MANDATORY_MODULES_PER_DOMAIN: Dict[str, List[str]] = {
     "relationship":   ["relationship_resolver", "relationship_field", "relationship_astrology_engine", "relationship_3layer"],
@@ -102,6 +105,20 @@ def build_receipt(
     retrieval_status, missing, empties = _retrieval_status(needed, modules_invoked, payloads)
     routing_status, routing_reasons = _routing_status(intent_envelope)
 
+    # B2 additions — surface missing-target telemetry into the receipt.
+    # Receipt-only; never returned to the live API/UI.
+    rel = relationship_resolution or {}
+    target_resolved = rel.get("target")
+    target_unresolved_name = rel.get("target_unresolved_name")
+    proposed_action = rel.get("proposed_action")
+    rel_missing = rel.get("missing_data") or []
+    target_resolution_status = (
+        "RESOLVED" if target_resolved
+        else ("UNRESOLVED_NAMED" if target_unresolved_name
+              else ("UNRESOLVED_NO_NAME" if "forum_target_unresolved" in rel_missing
+                    else "NOT_APPLICABLE"))
+    )
+
     # Top-level `validation_status` mirrors retrieval (that's the user-
     # facing “did we actually retrieve the right stuff” gate).
     receipt = {
@@ -133,6 +150,11 @@ def build_receipt(
         "signal_strength": intent_envelope.get("signal_strength"),
         "margin": intent_envelope.get("margin"),
         "confidence": intent_envelope.get("confidence"),
+        # B2 target-resolution telemetry — RECEIPT-ONLY (no UI surfacing).
+        "target_resolved": target_resolved,
+        "target_unresolved_name": target_unresolved_name,
+        "target_resolution_status": target_resolution_status,
+        "proposed_action": proposed_action,
         "computed_at": datetime.now(dt_tz.utc).isoformat(),
     }
     return receipt

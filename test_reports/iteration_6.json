@@ -1,0 +1,60 @@
+{
+  "summary": "B2 Mirror Chat V2 missing-target validation — 3/4 backend integration tests PASS, 1 CRITICAL integration bug found. Health OK. Live POST /api/mirror/chat is unaffected (200 on all three scenarios, no new B2 fields leaked into the response body). Receipt collection writes correctly when an explicit about_person_id is supplied (target_resolution_status=RESOLVED) and correctly does NOT false-fire on a no-proper-name message. HOWEVER the headline B2 guarantee — that a chat message containing a NEW proper name produces a receipt with target_unresolved_name and proposed_action.type='add_to_circle' — FAILS end-to-end for Pete (and by extension any user whose saved_people live in db.saved_people rather than db.people).",
+  "rca_of_issue": "Two compounding root causes prevent the missing-target fallback from ever running through the live shadow pipeline:\n\n1) /app/backend/routers/mirror_chat.py:144 — `_b1_load_saved_people` queries `db[\"people\"]` (legacy collection). The canonical saved-people store is `db.saved_people` (used by services/saved_people.py, services/member_chart_resolver.py, services/relationship_resolver.py, services/mirror_chat_pipeline.py, services/home_insight_v6.py). Pete has 9 docs in db.saved_people and 0 in db.people, so saved_people=[] reaches the shadow glue.\n\n2) /app/backend/services/mirror_chat_shadow.py:73 — `if about_person_id or saved_people:` gates the call to `resolve_relationship_context`. When both are falsy the router is NEVER invoked, so the new missing-target fallback (relationship_router_v2.py lines 235-266) has no opportunity to fire. The persisted receipt has `relationship_resolution: null` and `target_resolution_status: 'NOT_APPLICABLE'` even when the message contains a clearly-unresolved proper name.\n\nReproduction: POST /api/mirror/chat with {user_id: '697f0c6abf35c0528ff06954', message: 'How does Sarah show up at work?'} → 200 OK, but the receipt for that request has target_unresolved_name=null, proposed_action=null, target_resolution_status='NOT_APPLICABLE'. The relationship_router_v2 unit tests still pass (7/7) because they call resolve_relationship_context directly; only the integration path is broken.\n\nMitigation (for main agent):\n  a) In services/mirror_chat_shadow.py drop the `if about_person_id or saved_people:` gate — always call resolve_relationship_context so the proper-name fallback can fire even with empty saved_people. (Or, equivalently, also call it when message contains capitalised tokens.)\n  b) In routers/mirror_chat.py change `_b1_load_saved_people` to read from `db.saved_people` (collection used everywhere else). Map the docs to the {id, name, role, closeness, weight} shape that relationship_router_v2 expects.\n  c) After (a) and (b), re-run /app/backend/tests/test_b2_mirror_chat_shadow.py — test_mirror_chat_unresolved_named_sarah should pass.",
+  "backend_issues": {
+    "critical": [
+      {
+        "endpoint": "POST /api/mirror/chat (shadow path)",
+        "issue": "B2 missing-target fallback never fires end-to-end. routers/mirror_chat.py:144 reads legacy db['people'] (empty for canonical users), and services/mirror_chat_shadow.py:73 only calls resolve_relationship_context when about_person_id or saved_people is truthy. Net effect: receipts for messages mentioning a new proper name have relationship_resolution=null and target_resolution_status='NOT_APPLICABLE'. The promised target_unresolved_name / proposed_action telemetry is silent.",
+        "priority": "CRITICAL"
+      }
+    ],
+    "minor": [
+      {
+        "endpoint": "POST /api/mirror/chat",
+        "issue": "Live response is unchanged ✓ but on the explicit-target path the receipt records missing_data=['target_not_in_saved_people'] AND target_resolution_status='RESOLVED' simultaneously — slightly contradictory telemetry when about_person_id refers to a person the shadow loader can't see. Will resolve naturally once the saved_people collection bug above is fixed."
+      }
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [],
+    "react_native_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_b2_mirror_chat_shadow.py (4 integration tests)",
+    "/app/test_reports/pytest/b2_mirror_chat_shadow.xml",
+    "/app/backend/tests/test_relationship_router_v2_missing_target.py (7/7 unit tests still pass)"
+  ],
+  "verified_guarantees": {
+    "live_response_unchanged": "PASS — response body across all three scenarios contains only response/session_id/timestamp (+ optional debug/evidence/thread/memory_update). No target_unresolved_name, proposed_action, or target_resolution_status leakage.",
+    "no_5xx_errors": "PASS — 3 POST /api/mirror/chat calls all returned 200.",
+    "resolved_path_correct": "PASS — about_person_id='6a0b0ac57a933e4a69a5183b' yields receipt with target_resolution_status='RESOLVED' and proposed_action=null.",
+    "no_propername_no_falsefire": "PASS — 'Tell me about my chart' yields receipt with target_unresolved_name=null and proposed_action=null.",
+    "unresolved_named_path": "FAIL — 'How does Sarah show up at work?' should yield target_unresolved_name='Sarah' + proposed_action.type='add_to_circle'. Instead receipt has relationship_resolution=null and target_resolution_status='NOT_APPLICABLE'. See rca_of_issue."
+  },
+  "action_items": [
+    "FIX services/mirror_chat_shadow.py:73 — remove the `if about_person_id or saved_people:` gate or expand it so resolve_relationship_context is invoked whenever a chat request arrives (the router itself is fast and side-effect-free). This is the single change that unblocks the headline B2 telemetry guarantee.",
+    "FIX routers/mirror_chat.py:144 — replace `db['people'].find_one({'user_id': request.user_id})` with a read from `db.saved_people.find({'user_id': request.user_id}).to_list()` and map docs to the {id, name, role, closeness, weight} shape consumed by relationship_router_v2. The legacy `people` collection is empty for current canonical users.",
+    "AFTER FIX: re-run /app/backend/tests/test_b2_mirror_chat_shadow.py — expect 4/4 PASS.",
+    "Verify the relationship_resolver._derive_frame logic also covers the lens=None / life_domain=None case correctly once saved_people are loaded (currently returns 'self' which is fine, but worth confirming the fallback triggers for that frame as the router code already allows)."
+  ],
+  "critical_code_review_comments": [
+    "services/mirror_chat_shadow.py — `_derive_frame` contains `return 'forum' if False else 'self'` which is dead code (always returns 'self'). Should be cleaned up or replaced with the intended branch.",
+    "routers/mirror_chat.py is enormous (>1500 lines for a single endpoint) and the shadow hook is nested inside the main try/except. The shadow logic should be its own small helper so the saved-people loading is visible/auditable from one place — would have caught the db['people'] vs db.saved_people drift at review time.",
+    "build_receipt computes target_resolution_status off of `rel.get('target')` truthiness, but when relationship_resolution is null the status is 'NOT_APPLICABLE' regardless of whether the message had a proper name. Consider letting the validator do its own proper-name detection as a defence-in-depth so the receipt telemetry survives a future shadow-glue regression.",
+    "The INTENT_ROUTER_V2_SHADOW gate defaults to true (intent_router_v2.shadow_mode_enabled). Confirmed shadow receipts are being persisted on every chat call — good. Cutover flag INTENT_ROUTER_V2_CUTOVER is correctly still false."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_b2_mirror_chat_shadow.py (new — 4 integration tests against POST /api/mirror/chat + Mongo receipt validation)"
+  ],
+  "success_rate": {
+    "backend": "75% (3/4 integration tests pass; unit tests 7/7)",
+    "frontend": "n/a (skipped per request)"
+  },
+  "seed_data_creation": "None. Tests run against existing Pete account (697f0c6abf35c0528ff06954) and existing saved_people record id 6a0b0ac57a933e4a69a5183b ('Test Spouse'). Mel is NOT in Pete's saved_people in this DB (only in the Yoong forum), so 'Test Spouse' was used as a stable proxy for the RESOLVED scenario.",
+  "retest_needed": true,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "After the two fixes in action_items are applied: (1) re-run `python3 -m pytest /app/backend/tests/test_b2_mirror_chat_shadow.py -v` — all 4 tests should pass. (2) Spot-check `db.mirror_chat_retrieval_receipts` newest doc for Pete after a 'Sarah' message — relationship_resolution.target_unresolved_name should be 'Sarah' and proposed_action.type should be 'add_to_circle'. (3) Confirm live response body still has no B2 fields. The 7 router unit tests in tests/test_relationship_router_v2_missing_target.py already pass and need no change."
+}
