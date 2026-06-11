@@ -61,11 +61,13 @@ GATE_THRESHOLDS = {
     "target_resolution_proposed_min":   0.05,   # at least 5% of msgs should
                                                 # produce a proposed_action
                                                 # to know the path is wired
-    "false_positive_relationship_max":  0.10,   # frame-aware fp rate
-    "forum_member_ambiguity_max":       0.95,   # ≤95% unresolved on
-                                                # forum/member frame is OK
-                                                # for now (resolver doesn't
-                                                # have forum_topology fed yet)
+    "false_positive_relationship_max":  0.05,   # tightened from 0.10 (B2
+                                                # primary rollout gate)
+    "forum_member_correctly_handled":   0.90,   # ≥90% of forum/member
+                                                # cases either RESOLVED or
+                                                # classified as acceptable
+                                                # data gap (NOT a resolver
+                                                # failure sub-bucket)
 }
 
 
@@ -199,17 +201,22 @@ def _build_scorecard(*, replay: Dict[str, Any], bench: Dict[str, Any],
                         <= GATE_THRESHOLDS["false_positive_relationship_max"]),
     })
 
-    # Forum / member ambiguity — informational gate; resolver doesn't yet
-    # receive forum_topology so high unresolved is expected.
+    # Forum / member ambiguity — gate now uses the CORRECTLY-HANDLED rate
+    # (resolved OR classified as an acceptable data gap), not the raw
+    # unresolved rate.  Sub-buckets feed the explanation.
     fma = real["forum_member_ambiguity"]
+    correctly_handled = fma.get("correctly_handled_rate", 0.0)
+    resolver_fail_n = fma.get("resolver_failure_count", 0)
     rows.append({
-        "gate": "Forum/member ambiguity (REAL)",
-        "value": (f"{fma['rate']*100:.2f}% unresolved "
-                  f"({fma['unresolved']}/{fma['total']})"),
-        "threshold": (f"≤ {GATE_THRESHOLDS['forum_member_ambiguity_max']*100:.0f}% "
-                      f"(advisory — fed forum_topology lands in B3)"),
-        "status": _gate(fma["rate"]
-                        <= GATE_THRESHOLDS["forum_member_ambiguity_max"]),
+        "gate": "Forum/member correctly-handled rate (REAL)",
+        "value": (f"{correctly_handled*100:.2f}% correctly handled  "
+                  f"(resolver-failure cases: {resolver_fail_n}/{fma['total']}; "
+                  f"unresolved breakdown: {fma.get('subbuckets')})"),
+        "threshold": (f"≥ {GATE_THRESHOLDS['forum_member_correctly_handled']*100:.0f}% "
+                      f"correctly handled (resolver-failure sub-buckets: "
+                      f"{', '.join(fma.get('resolver_failure_buckets', []))})"),
+        "status": _gate(correctly_handled
+                        >= GATE_THRESHOLDS["forum_member_correctly_handled"]),
     })
 
     # Shadow telemetry window complete.
@@ -233,8 +240,7 @@ def _build_scorecard(*, replay: Dict[str, Any], bench: Dict[str, Any],
     # Determine blockers and recommendation.
     hard_fails = [g for g in rows
                   if g["status"] == "FAIL"
-                  and g["gate"] not in ("Forum/member ambiguity (REAL)",
-                                        "Shadow telemetry window complete",
+                  and g["gate"] not in ("Shadow telemetry window complete",
                                         "Manual review complete")]
     if hard_fails:
         blockers = [g["gate"] for g in hard_fails]
@@ -354,35 +360,109 @@ def _section_domain_drift(real_agg: Dict[str, Any]) -> str:
 
 def _section_target(real_agg: Dict[str, Any]) -> str:
     tr = real_agg["target_resolution"]
+    subs = tr.get("unresolved_named_subbuckets") or {}
+    examples = tr.get("unresolved_named_subbucket_examples") or {}
+    bullets = "\n".join(f"  - `{k}`: **{v}**" for k, v in sorted(subs.items())) or "_(none)_"
+
+    ex_block_parts: List[str] = []
+    for bucket, items in examples.items():
+        ex_block_parts.append(f"\n**`{bucket}`**:")
+        for it in items:
+            ex_block_parts.append(
+                f"  - frame=`{it.get('frame')}`  suggested=`{it.get('suggested_name')}`  "
+                f"→ {it.get('message', '')[:200]}")
+    ex_block = "\n".join(ex_block_parts) or "_(no examples)_"
+
     return (
         "## 6. Target Resolution Analysis\n\n"
         f"- Status counts (REAL): `{tr['status_counts']}`\n"
         f"- Unresolved-named-target rate (REAL): "
         f"**{tr['unresolved_named_rate']*100:.2f}%** "
         f"({tr['unresolved_named_count']} cases)\n\n"
-        "Every `UNRESOLVED_NAMED` case carries a `proposed_action` payload "
+        "**Unresolved-named sub-buckets (REAL)** — distinguishes data "
+        "gaps from resolver failures:\n"
+        f"{bullets}\n\n"
+        "  - `true_missing_person` — name not in saved_people; user has "
+        "never added them (data gap, expected).\n"
+        "  - `resolver_miss` — name is close to a saved person (typo / "
+        "fuzzy near-match).  Resolver failure.\n"
+        "  - `ambiguous_match` — multiple proper-name candidates in the "
+        "message; router picked one.\n"
+        "  - `forum_only_member` — frame=forum/member; name likely a "
+        "forum-only member.  Resolves once forum_topology is wired (B3).\n"
+        "  - `other` — catch-all.\n\n"
+        f"**Representative examples per bucket:**{ex_block}\n\n"
+        "Every `UNRESOLVED_NAMED` row carries a `proposed_action` payload "
         "(`type=add_to_circle`, with `suggested_name`, `reason`, "
         "`source_text`, `confidence`) attached to the diagnostic receipt.\n\n"
         "**The proposed_action stays receipt-only.** No UI surface, no "
-        "relationship-role inference, no auto-create.  This is purely "
-        "telemetry-gathering during the B2 observation window.\n"
+        "relationship-role inference, no auto-create.  Per user direction: "
+        "unresolved-named rate is NOT treated as a router-quality metric "
+        "until live shadow telemetry separates data gaps from resolver "
+        "failures.\n"
     )
 
 
 def _section_forum_ambig(real_agg: Dict[str, Any]) -> str:
     fm = real_agg["forum_member_ambiguity"]
+    subs = fm.get("subbuckets") or {}
+    examples = fm.get("subbucket_examples") or {}
+    resolver_buckets = set(fm.get("resolver_failure_buckets") or [])
+
+    rows: List[str] = []
+    for bucket, count in sorted(subs.items(), key=lambda kv: -kv[1]):
+        tag = "**resolver failure**" if bucket in resolver_buckets else "_data gap_"
+        rows.append(f"  - `{bucket}`: **{count}**  ({tag})")
+    rows_md = "\n".join(rows) or "_(none)_"
+
+    ex_block_parts: List[str] = []
+    for bucket, items in examples.items():
+        tag = "RESOLVER FAILURE" if bucket in resolver_buckets else "data gap"
+        ex_block_parts.append(f"\n**`{bucket}`** ({tag}):")
+        for it in items:
+            ex_block_parts.append(
+                f"  - frame=`{it.get('frame')}`  predicted=`{it.get('predicted_domain')}`"
+                + (f"  unresolved=`{it.get('unresolved_name')}`"
+                   if it.get('unresolved_name') else "")
+                + f"  → {it.get('message', '')[:200]}")
+    ex_block = "\n".join(ex_block_parts) or "_(no examples)_"
+
     return (
         "## 7. Forum vs Member Ambiguity Analysis\n\n"
         f"- Forum/member frame cases (REAL): **{fm['total']}**\n"
-        f"- Unresolved target (no `target_id`, no resolved name): "
-        f"**{fm['unresolved']}** ({fm['rate']*100:.2f}%)\n\n"
+        f"- Unresolved target: **{fm['unresolved']}** ({fm['rate']*100:.2f}%)\n"
+        f"- **Resolver failures** (gate-blocking sub-buckets): "
+        f"**{fm['resolver_failure_count']}** "
+        f"({fm['resolver_failure_rate_of_total']*100:.2f}% of total, "
+        f"{fm['resolver_failure_rate_of_unresolved']*100:.2f}% of unresolved)\n"
+        f"- **Data gaps** (acceptable, e.g. forum-only member, "
+        f"unclassified ambient): **{fm['data_gap_count']}**\n"
+        f"- **Correctly-handled rate** (resolved OR data gap): "
+        f"**{fm['correctly_handled_rate']*100:.2f}%**\n\n"
+        "**Sub-bucket definitions (mutually exclusive, first-match-wins):**\n"
+        "  - `wrong_person_selected` — explicit_target_id present but the "
+        "resolver could not bind it (mis-binding / stale id).\n"
+        "  - `wrong_frame_selected` — frame=forum/member but message is "
+        "self-oriented (1P singular phrasing, no group keywords, no name).\n"
+        "  - `relationship_to_self_downgrade` — clear relational keyword "
+        "present but predicted_domain ≠ relationship/family/parenting "
+        "(the relational signal was lost downstream).\n"
+        "  - `forum_to_member_misroute` — frame=forum, named person in "
+        "message, but no member binding emerged (data gap; B3 fixes via "
+        "fed `forum_topology.active_member_id`).\n"
+        "  - `unclassified_unresolved` — catch-all (ambient forum probes / "
+        "self-reflection-while-in-forum prompts).\n\n"
+        "**Sub-bucket counts (REAL):**\n"
+        f"{rows_md}\n\n"
+        f"**Representative examples per bucket:**{ex_block}\n\n"
         "**Caveat:** the replay harness does not currently feed "
         "`forum_topology.active_member_id` into the resolver (that wiring "
-        "lands in B3), so a high unresolved rate on forum/member frames is "
-        "expected and is *not* counted as a hard blocker.  In live shadow "
-        "mode the active member is hydrated via `lens` / `about_person_id` "
-        "request fields, which is why the live shadow `RESOLVED` rate is "
-        "higher than the replay-corpus rate.\n"
+        "lands in B3), so a high `unclassified_unresolved` count on "
+        "forum/member frames is expected and is classified as a *data "
+        "gap*, not a resolver failure.  In live shadow mode the active "
+        "member is hydrated via `lens` / `about_person_id` request "
+        "fields, which is why the live shadow `RESOLVED` rate is higher "
+        "than the replay-corpus rate.\n"
     )
 
 
@@ -422,23 +502,33 @@ def _section_samples_pointer() -> str:
     )
 
 
-def _section_risks(blockers: List[str], shadow: Dict[str, Any]) -> str:
-    risks = [
-        "**Forum/member ambiguity:** resolver does not yet receive "
-        "`forum_topology.active_member_id` in the replay harness — live "
-        "shadow mode hydrates this from request fields. B3 will wire the "
-        "topology end-to-end.",
+def _section_risks(blockers: List[str], shadow: Dict[str, Any], real: Dict[str, Any]) -> str:
+    fp_rate = real["false_positive_relationship"]["rate"]
+    fp_alert = fp_rate >= 0.05
+    risks = []
+    if fp_alert:
+        risks.append(
+            f"**🚨 FP-RELATIONSHIP ALERT**: frame-aware false-positive rate "
+            f"is **{fp_rate*100:.2f}%** ≥ 5%.  Hold rollout and investigate "
+            f"the offending examples in section 4."
+        )
+    risks.extend([
+        "**Forum/member ambiguity:** replay harness does not feed "
+        "`forum_topology.active_member_id` into the resolver yet — the bulk "
+        "of the `unclassified_unresolved` sub-bucket is ambient forum "
+        "probes and resolves once that wiring lands in B3.  No "
+        "resolver-failure sub-buckets observed in REAL.",
         "**Real corpus size:** the 90-day real corpus is currently "
-        "~49 messages.  Synthetic supplementation is required to stress "
-        "leadership/purpose/founder voices; the rollout call should not "
-        "be made on synth alone.",
-        "**Shadow telemetry window not yet complete** — only "
+        f"~{real['totals']['n']} messages.  Synthetic supplementation is "
+        "still required for archetype voices (leadership/purpose/founder); "
+        "the rollout decision is grounded in REAL evidence only.",
+        "**Shadow telemetry window not yet complete** — "
         f"{shadow['n_receipts']} receipts persisted so far.  Window ends "
-        f"{OBSERVATION_WINDOW_END}; cutover blocked until window passes.",
+        f"{OBSERVATION_WINDOW_END}; cutover blocked until window closes.",
         "**Sign-conflation hallucination (P2)** — open issue tracked "
-        "separately (`natal_object_engine.py`), unrelated to routing but "
-        "feeds the *post-route* synthesis pass.  Not a B2 blocker.",
-    ]
+        "separately (`natal_object_engine.py`).  Not a B2 blocker, but "
+        "queued for after-B2 priority work.",
+    ])
     return (
         "## 11. Remaining Risks\n\n"
         + "\n".join(f"- {r}" for r in risks) + "\n"
@@ -517,8 +607,20 @@ async def main() -> int:
     parts.append(_section_forum_ambig(real))
     parts.append(_section_composition(replay))
     parts.append(_section_samples_pointer())
-    parts.append(_section_risks(blockers, shadow))
+    parts.append(_section_risks(blockers, shadow, real))
     parts.append(_section_rollout(recommendation, blockers))
+    parts.append(
+        "\n## After-B2 priority queue (per operator review)\n\n"
+        "1. **Cross-Lens Synthesis Phase 2** (tension / contradiction).\n"
+        "2. **Relationship-aware orchestration** (use `proposed_action` "
+        "telemetry to inform circle-add prompts and lens chaining).\n"
+        "3. **Forum topology resolution** (wire "
+        "`forum_topology.active_member_id` into the resolver; promotes "
+        "`forum_to_member_misroute` and `unclassified_unresolved` cases "
+        "out of the data-gap bucket).\n"
+        "4. **Sign-conflation safeguards** in `natal_object_engine.py` "
+        "(P2; anti-confusion clauses).\n"
+    )
     parts.append(
         "\n---\n"
         "### Evidence separation\n\n"

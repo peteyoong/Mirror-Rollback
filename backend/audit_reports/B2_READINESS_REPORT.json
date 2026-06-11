@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-11T19:19:23.202560+00:00",
+  "generated_at": "2026-06-11T19:27:31.719673+00:00",
   "recommendation": "CONDITIONAL_GO",
   "blockers": [
     "Shadow telemetry window not complete (ends 2026-06-14)"
@@ -19,25 +19,25 @@
     },
     {
       "gate": "Target resolution (proposed_action path live)",
-      "value": "unresolved_named_rate=26.53% (13 cases, REAL-only)",
+      "value": "unresolved_named_rate=24.49% (12 cases, REAL-only)",
       "threshold": "\u2265 5% to confirm receipt path wired",
       "status": "PASS"
     },
     {
       "gate": "False-positive relationship rate (frame-aware, REAL)",
       "value": "2.04% (1 of 49)",
-      "threshold": "\u2264 10%",
+      "threshold": "\u2264 5%",
       "status": "PASS"
     },
     {
-      "gate": "Forum/member ambiguity (REAL)",
-      "value": "88.46% unresolved (23/26)",
-      "threshold": "\u2264 95% (advisory \u2014 fed forum_topology lands in B3)",
+      "gate": "Forum/member correctly-handled rate (REAL)",
+      "value": "100.00% correctly handled  (resolver-failure cases: 0/26; unresolved breakdown: {'unclassified_unresolved': 22, 'forum_to_member_misroute': 1})",
+      "threshold": "\u2265 90% correctly handled (resolver-failure sub-buckets: relationship_to_self_downgrade, wrong_frame_selected, wrong_person_selected)",
       "status": "PASS"
     },
     {
       "gate": "Shadow telemetry window complete",
-      "value": "n=10 receipts, span first=2026-06-11T18:37:11.997781+00:00 \u2192 last=2026-06-11T19:18:28.617965+00:00",
+      "value": "n=13 receipts, span first=2026-06-11T18:37:11.997781+00:00 \u2192 last=2026-06-11T19:27:18.106423+00:00",
       "threshold": "\u2265 3d span ending 2026-06-14",
       "status": "FAIL"
     },
@@ -49,19 +49,19 @@
     }
   ],
   "shadow_telemetry": {
-    "n_receipts": 10,
+    "n_receipts": 13,
     "first_at": "2026-06-11T18:37:11.997781+00:00",
-    "last_at": "2026-06-11T19:18:28.617965+00:00",
+    "last_at": "2026-06-11T19:27:18.106423+00:00",
     "window_target_end": "2026-06-14",
     "window_target_days": 3,
     "window_complete": false,
     "status_breakdown": {
-      "routing_status=PASS": 7,
-      "retrieval_status=PASS": 10,
-      "routing_status=WARNING": 3,
-      "target_resolution_status=NOT_APPLICABLE": 3,
-      "target_resolution_status=RESOLVED": 2,
-      "target_resolution_status=UNRESOLVED_NAMED": 2
+      "routing_status=PASS": 9,
+      "retrieval_status=PASS": 13,
+      "routing_status=WARNING": 4,
+      "target_resolution_status=NOT_APPLICABLE": 4,
+      "target_resolution_status=RESOLVED": 3,
+      "target_resolution_status=UNRESOLVED_NAMED": 3
     }
   },
   "replay_aggregate_real": {
@@ -113,12 +113,42 @@
     "target_resolution": {
       "status_counts": {
         "NOT_APPLICABLE": 12,
-        "UNRESOLVED_NO_NAME": 21,
+        "UNRESOLVED_NO_NAME": 22,
         "RESOLVED": 3,
-        "UNRESOLVED_NAMED": 13
+        "UNRESOLVED_NAMED": 12
       },
-      "unresolved_named_rate": 0.2653,
-      "unresolved_named_count": 13
+      "unresolved_named_rate": 0.2449,
+      "unresolved_named_count": 12,
+      "unresolved_named_subbuckets": {
+        "true_missing_person": 11,
+        "forum_only_member": 1
+      },
+      "unresolved_named_subbucket_examples": {
+        "true_missing_person": [
+          {
+            "message": "Tell me about Mel\u2019s 4th house",
+            "frame": "self",
+            "suggested_name": "Mel"
+          },
+          {
+            "message": "Tell me about Mel\u2019s 4th house",
+            "frame": "self",
+            "suggested_name": "Mel"
+          },
+          {
+            "message": "Can you tell me about Mel\u2019s 4th house please?",
+            "frame": "self",
+            "suggested_name": "Mel"
+          }
+        ],
+        "forum_only_member": [
+          {
+            "message": "I think John dominates every conversation here.",
+            "frame": "forum",
+            "suggested_name": "John"
+          }
+        ]
+      }
     },
     "false_positive_relationship": {
       "count": 1,
@@ -162,7 +192,56 @@
     "forum_member_ambiguity": {
       "total": 26,
       "unresolved": 23,
-      "rate": 0.8846
+      "rate": 0.8846,
+      "subbuckets": {
+        "unclassified_unresolved": 22,
+        "forum_to_member_misroute": 1
+      },
+      "subbucket_examples": {
+        "unclassified_unresolved": [
+          {
+            "message": "What strengths does this group composition bring?",
+            "frame": "forum",
+            "predicted_domain": "relationship",
+            "explicit_target_id": null,
+            "unresolved_name": null
+          },
+          {
+            "message": "What's the energy of this forum?",
+            "frame": "forum",
+            "predicted_domain": "relationship",
+            "explicit_target_id": null,
+            "unresolved_name": null
+          },
+          {
+            "message": "What's the energy of this forum?",
+            "frame": "forum",
+            "predicted_domain": "relationship",
+            "explicit_target_id": null,
+            "unresolved_name": null
+          }
+        ],
+        "forum_to_member_misroute": [
+          {
+            "message": "I think John dominates every conversation here.",
+            "frame": "forum",
+            "predicted_domain": "relationship",
+            "explicit_target_id": null,
+            "unresolved_name": "John"
+          }
+        ]
+      },
+      "resolver_failure_buckets": [
+        "relationship_to_self_downgrade",
+        "wrong_frame_selected",
+        "wrong_person_selected"
+      ],
+      "resolver_failure_count": 0,
+      "resolver_failure_rate_of_unresolved": 0.0,
+      "resolver_failure_rate_of_total": 0.0,
+      "data_gap_count": 23,
+      "data_gap_rate_of_unresolved": 1.0,
+      "correctly_handled_rate": 1.0
     },
     "general_bucket": {
       "count": 6,
@@ -178,10 +257,10 @@
       "accuracy": 0.0
     },
     "latency_ms": {
-      "mean": 0.898,
+      "mean": 0.889,
       "p50": 0.114,
-      "p95": 0.138,
-      "max": 38.494
+      "p95": 0.14,
+      "max": 37.991
     },
     "versions": {
       "intent_router": "intent_router_v2.1.0",
@@ -263,12 +342,42 @@
     "target_resolution": {
       "status_counts": {
         "NOT_APPLICABLE": 44,
-        "UNRESOLVED_NO_NAME": 23,
+        "UNRESOLVED_NO_NAME": 24,
         "RESOLVED": 5,
-        "UNRESOLVED_NAMED": 17
+        "UNRESOLVED_NAMED": 16
       },
-      "unresolved_named_rate": 0.191,
-      "unresolved_named_count": 17
+      "unresolved_named_rate": 0.1798,
+      "unresolved_named_count": 16,
+      "unresolved_named_subbuckets": {
+        "true_missing_person": 15,
+        "forum_only_member": 1
+      },
+      "unresolved_named_subbucket_examples": {
+        "true_missing_person": [
+          {
+            "message": "Tell me about Mel\u2019s 4th house",
+            "frame": "self",
+            "suggested_name": "Mel"
+          },
+          {
+            "message": "Tell me about Mel\u2019s 4th house",
+            "frame": "self",
+            "suggested_name": "Mel"
+          },
+          {
+            "message": "Can you tell me about Mel\u2019s 4th house please?",
+            "frame": "self",
+            "suggested_name": "Mel"
+          }
+        ],
+        "forum_only_member": [
+          {
+            "message": "I think John dominates every conversation here.",
+            "frame": "forum",
+            "suggested_name": "John"
+          }
+        ]
+      }
     },
     "false_positive_relationship": {
       "count": 1,
@@ -322,7 +431,56 @@
     "forum_member_ambiguity": {
       "total": 30,
       "unresolved": 25,
-      "rate": 0.8333
+      "rate": 0.8333,
+      "subbuckets": {
+        "unclassified_unresolved": 24,
+        "forum_to_member_misroute": 1
+      },
+      "subbucket_examples": {
+        "unclassified_unresolved": [
+          {
+            "message": "What strengths does this group composition bring?",
+            "frame": "forum",
+            "predicted_domain": "relationship",
+            "explicit_target_id": null,
+            "unresolved_name": null
+          },
+          {
+            "message": "What's the energy of this forum?",
+            "frame": "forum",
+            "predicted_domain": "relationship",
+            "explicit_target_id": null,
+            "unresolved_name": null
+          },
+          {
+            "message": "What's the energy of this forum?",
+            "frame": "forum",
+            "predicted_domain": "relationship",
+            "explicit_target_id": null,
+            "unresolved_name": null
+          }
+        ],
+        "forum_to_member_misroute": [
+          {
+            "message": "I think John dominates every conversation here.",
+            "frame": "forum",
+            "predicted_domain": "relationship",
+            "explicit_target_id": null,
+            "unresolved_name": "John"
+          }
+        ]
+      },
+      "resolver_failure_buckets": [
+        "relationship_to_self_downgrade",
+        "wrong_frame_selected",
+        "wrong_person_selected"
+      ],
+      "resolver_failure_count": 0,
+      "resolver_failure_rate_of_unresolved": 0.0,
+      "resolver_failure_rate_of_total": 0.0,
+      "data_gap_count": 25,
+      "data_gap_rate_of_unresolved": 1.0,
+      "correctly_handled_rate": 1.0
     },
     "general_bucket": {
       "count": 13,
@@ -338,10 +496,10 @@
       "accuracy": 0.65
     },
     "latency_ms": {
-      "mean": 0.547,
-      "p50": 0.115,
-      "p95": 0.136,
-      "max": 38.494
+      "mean": 0.543,
+      "p50": 0.117,
+      "p95": 0.138,
+      "max": 37.991
     },
     "versions": {
       "intent_router": "intent_router_v2.1.0",
@@ -398,12 +556,42 @@
         "target_resolution": {
           "status_counts": {
             "NOT_APPLICABLE": 12,
-            "UNRESOLVED_NO_NAME": 21,
+            "UNRESOLVED_NO_NAME": 22,
             "RESOLVED": 3,
-            "UNRESOLVED_NAMED": 13
+            "UNRESOLVED_NAMED": 12
           },
-          "unresolved_named_rate": 0.2653,
-          "unresolved_named_count": 13
+          "unresolved_named_rate": 0.2449,
+          "unresolved_named_count": 12,
+          "unresolved_named_subbuckets": {
+            "true_missing_person": 11,
+            "forum_only_member": 1
+          },
+          "unresolved_named_subbucket_examples": {
+            "true_missing_person": [
+              {
+                "message": "Tell me about Mel\u2019s 4th house",
+                "frame": "self",
+                "suggested_name": "Mel"
+              },
+              {
+                "message": "Tell me about Mel\u2019s 4th house",
+                "frame": "self",
+                "suggested_name": "Mel"
+              },
+              {
+                "message": "Can you tell me about Mel\u2019s 4th house please?",
+                "frame": "self",
+                "suggested_name": "Mel"
+              }
+            ],
+            "forum_only_member": [
+              {
+                "message": "I think John dominates every conversation here.",
+                "frame": "forum",
+                "suggested_name": "John"
+              }
+            ]
+          }
         },
         "false_positive_relationship": {
           "count": 1,
@@ -447,7 +635,56 @@
         "forum_member_ambiguity": {
           "total": 26,
           "unresolved": 23,
-          "rate": 0.8846
+          "rate": 0.8846,
+          "subbuckets": {
+            "unclassified_unresolved": 22,
+            "forum_to_member_misroute": 1
+          },
+          "subbucket_examples": {
+            "unclassified_unresolved": [
+              {
+                "message": "What strengths does this group composition bring?",
+                "frame": "forum",
+                "predicted_domain": "relationship",
+                "explicit_target_id": null,
+                "unresolved_name": null
+              },
+              {
+                "message": "What's the energy of this forum?",
+                "frame": "forum",
+                "predicted_domain": "relationship",
+                "explicit_target_id": null,
+                "unresolved_name": null
+              },
+              {
+                "message": "What's the energy of this forum?",
+                "frame": "forum",
+                "predicted_domain": "relationship",
+                "explicit_target_id": null,
+                "unresolved_name": null
+              }
+            ],
+            "forum_to_member_misroute": [
+              {
+                "message": "I think John dominates every conversation here.",
+                "frame": "forum",
+                "predicted_domain": "relationship",
+                "explicit_target_id": null,
+                "unresolved_name": "John"
+              }
+            ]
+          },
+          "resolver_failure_buckets": [
+            "relationship_to_self_downgrade",
+            "wrong_frame_selected",
+            "wrong_person_selected"
+          ],
+          "resolver_failure_count": 0,
+          "resolver_failure_rate_of_unresolved": 0.0,
+          "resolver_failure_rate_of_total": 0.0,
+          "data_gap_count": 23,
+          "data_gap_rate_of_unresolved": 1.0,
+          "correctly_handled_rate": 1.0
         },
         "general_bucket": {
           "count": 6,
@@ -463,10 +700,10 @@
           "accuracy": 0.0
         },
         "latency_ms": {
-          "mean": 0.898,
+          "mean": 0.889,
           "p50": 0.114,
-          "p95": 0.138,
-          "max": 38.494
+          "p95": 0.14,
+          "max": 37.991
         },
         "versions": {
           "intent_router": "intent_router_v2.1.0",
@@ -542,7 +779,29 @@
             "RESOLVED": 2
           },
           "unresolved_named_rate": 0.1,
-          "unresolved_named_count": 4
+          "unresolved_named_count": 4,
+          "unresolved_named_subbuckets": {
+            "true_missing_person": 4
+          },
+          "unresolved_named_subbucket_examples": {
+            "true_missing_person": [
+              {
+                "message": "How can Mel and I deepen our connection?",
+                "frame": "self",
+                "suggested_name": "Mel"
+              },
+              {
+                "message": "How do I support Mel through her current chapter?",
+                "frame": "self",
+                "suggested_name": "Mel"
+              },
+              {
+                "message": "Why does Mel feel distant lately?",
+                "frame": "self",
+                "suggested_name": "Mel"
+              }
+            ]
+          }
         },
         "false_positive_relationship": {
           "count": 0,
@@ -570,7 +829,39 @@
         "forum_member_ambiguity": {
           "total": 4,
           "unresolved": 2,
-          "rate": 0.5
+          "rate": 0.5,
+          "subbuckets": {
+            "unclassified_unresolved": 2
+          },
+          "subbucket_examples": {
+            "unclassified_unresolved": [
+              {
+                "message": "What pattern is showing up in our forum this week?",
+                "frame": "forum",
+                "predicted_domain": "relationship",
+                "explicit_target_id": null,
+                "unresolved_name": null
+              },
+              {
+                "message": "Which member needs the most space right now?",
+                "frame": "forum",
+                "predicted_domain": "relationship",
+                "explicit_target_id": null,
+                "unresolved_name": null
+              }
+            ]
+          },
+          "resolver_failure_buckets": [
+            "relationship_to_self_downgrade",
+            "wrong_frame_selected",
+            "wrong_person_selected"
+          ],
+          "resolver_failure_count": 0,
+          "resolver_failure_rate_of_unresolved": 0.0,
+          "resolver_failure_rate_of_total": 0.0,
+          "data_gap_count": 2,
+          "data_gap_rate_of_unresolved": 1.0,
+          "correctly_handled_rate": 1.0
         },
         "general_bucket": {
           "count": 7,
@@ -586,10 +877,10 @@
           "accuracy": 0.65
         },
         "latency_ms": {
-          "mean": 0.116,
-          "p50": 0.116,
-          "p95": 0.13,
-          "max": 0.141
+          "mean": 0.12,
+          "p50": 0.117,
+          "p95": 0.137,
+          "max": 0.236
         },
         "versions": {
           "intent_router": "intent_router_v2.1.0",
@@ -3676,7 +3967,7 @@
     "golden_set_top1_min": 0.95,
     "retrieval_pass_min": 0.95,
     "target_resolution_proposed_min": 0.05,
-    "false_positive_relationship_max": 0.1,
-    "forum_member_ambiguity_max": 0.95
+    "false_positive_relationship_max": 0.05,
+    "forum_member_correctly_handled": 0.9
   }
 }

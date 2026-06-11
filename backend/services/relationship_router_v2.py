@@ -52,7 +52,9 @@ _NAME_BLOCKLIST: set = {
     # filler & meta
     "Yes", "No", "Ok", "Okay", "Hi", "Hey", "Hello",
     "Mirror", "Chat", "Cross", "Lens", "Lenses", "Frame", "Forum",
-    "Reflection", "RL", "Probe", "Test", "Today",
+    "Reflection", "RL", "Probe", "Test", "Today", "Brief", "Quick",
+    "Just", "Also", "Maybe", "Sometimes", "Often", "Always", "Never",
+    "Update", "Note",
     # planets / luminaries / nodes / sensitive points
     "Sun", "Moon", "Mercury", "Venus", "Mars", "Jupiter", "Saturn",
     "Uranus", "Neptune", "Pluto", "Chiron", "Lilith", "Ceres", "Pallas",

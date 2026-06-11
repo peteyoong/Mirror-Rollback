@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-11T19:19:22.573359+00:00",
+  "generated_at": "2026-06-11T19:27:31.074622+00:00",
   "window_days": 90,
   "target_total": 120,
   "aggregate": {
@@ -76,12 +76,42 @@
     "target_resolution": {
       "status_counts": {
         "NOT_APPLICABLE": 44,
-        "UNRESOLVED_NO_NAME": 23,
+        "UNRESOLVED_NO_NAME": 24,
         "RESOLVED": 5,
-        "UNRESOLVED_NAMED": 17
+        "UNRESOLVED_NAMED": 16
       },
-      "unresolved_named_rate": 0.191,
-      "unresolved_named_count": 17
+      "unresolved_named_rate": 0.1798,
+      "unresolved_named_count": 16,
+      "unresolved_named_subbuckets": {
+        "true_missing_person": 15,
+        "forum_only_member": 1
+      },
+      "unresolved_named_subbucket_examples": {
+        "true_missing_person": [
+          {
+            "message": "Tell me about Mel\u2019s 4th house",
+            "frame": "self",
+            "suggested_name": "Mel"
+          },
+          {
+            "message": "Tell me about Mel\u2019s 4th house",
+            "frame": "self",
+            "suggested_name": "Mel"
+          },
+          {
+            "message": "Can you tell me about Mel\u2019s 4th house please?",
+            "frame": "self",
+            "suggested_name": "Mel"
+          }
+        ],
+        "forum_only_member": [
+          {
+            "message": "I think John dominates every conversation here.",
+            "frame": "forum",
+            "suggested_name": "John"
+          }
+        ]
+      }
     },
     "false_positive_relationship": {
       "count": 1,
@@ -135,7 +165,56 @@
     "forum_member_ambiguity": {
       "total": 30,
       "unresolved": 25,
-      "rate": 0.8333
+      "rate": 0.8333,
+      "subbuckets": {
+        "unclassified_unresolved": 24,
+        "forum_to_member_misroute": 1
+      },
+      "subbucket_examples": {
+        "unclassified_unresolved": [
+          {
+            "message": "What strengths does this group composition bring?",
+            "frame": "forum",
+            "predicted_domain": "relationship",
+            "explicit_target_id": null,
+            "unresolved_name": null
+          },
+          {
+            "message": "What's the energy of this forum?",
+            "frame": "forum",
+            "predicted_domain": "relationship",
+            "explicit_target_id": null,
+            "unresolved_name": null
+          },
+          {
+            "message": "What's the energy of this forum?",
+            "frame": "forum",
+            "predicted_domain": "relationship",
+            "explicit_target_id": null,
+            "unresolved_name": null
+          }
+        ],
+        "forum_to_member_misroute": [
+          {
+            "message": "I think John dominates every conversation here.",
+            "frame": "forum",
+            "predicted_domain": "relationship",
+            "explicit_target_id": null,
+            "unresolved_name": "John"
+          }
+        ]
+      },
+      "resolver_failure_buckets": [
+        "relationship_to_self_downgrade",
+        "wrong_frame_selected",
+        "wrong_person_selected"
+      ],
+      "resolver_failure_count": 0,
+      "resolver_failure_rate_of_unresolved": 0.0,
+      "resolver_failure_rate_of_total": 0.0,
+      "data_gap_count": 25,
+      "data_gap_rate_of_unresolved": 1.0,
+      "correctly_handled_rate": 1.0
     },
     "general_bucket": {
       "count": 13,
@@ -151,10 +230,10 @@
       "accuracy": 0.65
     },
     "latency_ms": {
-      "mean": 0.547,
-      "p50": 0.115,
-      "p95": 0.136,
-      "max": 38.494
+      "mean": 0.543,
+      "p50": 0.117,
+      "p95": 0.138,
+      "max": 37.991
     },
     "versions": {
       "intent_router": "intent_router_v2.1.0",
@@ -211,12 +290,42 @@
         "target_resolution": {
           "status_counts": {
             "NOT_APPLICABLE": 12,
-            "UNRESOLVED_NO_NAME": 21,
+            "UNRESOLVED_NO_NAME": 22,
             "RESOLVED": 3,
-            "UNRESOLVED_NAMED": 13
+            "UNRESOLVED_NAMED": 12
           },
-          "unresolved_named_rate": 0.2653,
-          "unresolved_named_count": 13
+          "unresolved_named_rate": 0.2449,
+          "unresolved_named_count": 12,
+          "unresolved_named_subbuckets": {
+            "true_missing_person": 11,
+            "forum_only_member": 1
+          },
+          "unresolved_named_subbucket_examples": {
+            "true_missing_person": [
+              {
+                "message": "Tell me about Mel\u2019s 4th house",
+                "frame": "self",
+                "suggested_name": "Mel"
+              },
+              {
+                "message": "Tell me about Mel\u2019s 4th house",
+                "frame": "self",
+                "suggested_name": "Mel"
+              },
+              {
+                "message": "Can you tell me about Mel\u2019s 4th house please?",
+                "frame": "self",
+                "suggested_name": "Mel"
+              }
+            ],
+            "forum_only_member": [
+              {
+                "message": "I think John dominates every conversation here.",
+                "frame": "forum",
+                "suggested_name": "John"
+              }
+            ]
+          }
         },
         "false_positive_relationship": {
           "count": 1,
@@ -260,7 +369,56 @@
         "forum_member_ambiguity": {
           "total": 26,
           "unresolved": 23,
-          "rate": 0.8846
+          "rate": 0.8846,
+          "subbuckets": {
+            "unclassified_unresolved": 22,
+            "forum_to_member_misroute": 1
+          },
+          "subbucket_examples": {
+            "unclassified_unresolved": [
+              {
+                "message": "What strengths does this group composition bring?",
+                "frame": "forum",
+                "predicted_domain": "relationship",
+                "explicit_target_id": null,
+                "unresolved_name": null
+              },
+              {
+                "message": "What's the energy of this forum?",
+                "frame": "forum",
+                "predicted_domain": "relationship",
+                "explicit_target_id": null,
+                "unresolved_name": null
+              },
+              {
+                "message": "What's the energy of this forum?",
+                "frame": "forum",
+                "predicted_domain": "relationship",
+                "explicit_target_id": null,
+                "unresolved_name": null
+              }
+            ],
+            "forum_to_member_misroute": [
+              {
+                "message": "I think John dominates every conversation here.",
+                "frame": "forum",
+                "predicted_domain": "relationship",
+                "explicit_target_id": null,
+                "unresolved_name": "John"
+              }
+            ]
+          },
+          "resolver_failure_buckets": [
+            "relationship_to_self_downgrade",
+            "wrong_frame_selected",
+            "wrong_person_selected"
+          ],
+          "resolver_failure_count": 0,
+          "resolver_failure_rate_of_unresolved": 0.0,
+          "resolver_failure_rate_of_total": 0.0,
+          "data_gap_count": 23,
+          "data_gap_rate_of_unresolved": 1.0,
+          "correctly_handled_rate": 1.0
         },
         "general_bucket": {
           "count": 6,
@@ -276,10 +434,10 @@
           "accuracy": 0.0
         },
         "latency_ms": {
-          "mean": 0.898,
+          "mean": 0.889,
           "p50": 0.114,
-          "p95": 0.138,
-          "max": 38.494
+          "p95": 0.14,
+          "max": 37.991
         },
         "versions": {
           "intent_router": "intent_router_v2.1.0",
@@ -355,7 +513,29 @@
             "RESOLVED": 2
           },
           "unresolved_named_rate": 0.1,
-          "unresolved_named_count": 4
+          "unresolved_named_count": 4,
+          "unresolved_named_subbuckets": {
+            "true_missing_person": 4
+          },
+          "unresolved_named_subbucket_examples": {
+            "true_missing_person": [
+              {
+                "message": "How can Mel and I deepen our connection?",
+                "frame": "self",
+                "suggested_name": "Mel"
+              },
+              {
+                "message": "How do I support Mel through her current chapter?",
+                "frame": "self",
+                "suggested_name": "Mel"
+              },
+              {
+                "message": "Why does Mel feel distant lately?",
+                "frame": "self",
+                "suggested_name": "Mel"
+              }
+            ]
+          }
         },
         "false_positive_relationship": {
           "count": 0,
@@ -383,7 +563,39 @@
         "forum_member_ambiguity": {
           "total": 4,
           "unresolved": 2,
-          "rate": 0.5
+          "rate": 0.5,
+          "subbuckets": {
+            "unclassified_unresolved": 2
+          },
+          "subbucket_examples": {
+            "unclassified_unresolved": [
+              {
+                "message": "What pattern is showing up in our forum this week?",
+                "frame": "forum",
+                "predicted_domain": "relationship",
+                "explicit_target_id": null,
+                "unresolved_name": null
+              },
+              {
+                "message": "Which member needs the most space right now?",
+                "frame": "forum",
+                "predicted_domain": "relationship",
+                "explicit_target_id": null,
+                "unresolved_name": null
+              }
+            ]
+          },
+          "resolver_failure_buckets": [
+            "relationship_to_self_downgrade",
+            "wrong_frame_selected",
+            "wrong_person_selected"
+          ],
+          "resolver_failure_count": 0,
+          "resolver_failure_rate_of_unresolved": 0.0,
+          "resolver_failure_rate_of_total": 0.0,
+          "data_gap_count": 2,
+          "data_gap_rate_of_unresolved": 1.0,
+          "correctly_handled_rate": 1.0
         },
         "general_bucket": {
           "count": 7,
@@ -399,10 +611,10 @@
           "accuracy": 0.65
         },
         "latency_ms": {
-          "mean": 0.116,
-          "p50": 0.116,
-          "p95": 0.13,
-          "max": 0.141
+          "mean": 0.12,
+          "p50": 0.117,
+          "p95": 0.137,
+          "max": 0.236
         },
         "versions": {
           "intent_router": "intent_router_v2.1.0",
@@ -438,7 +650,9 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "NOT_APPLICABLE",
-      "latency_ms": 38.494
+      "latency_ms": 37.991,
+      "fm_subbucket": null,
+      "un_subbucket": null
     },
     {
       "source": "real",
@@ -467,7 +681,9 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "UNRESOLVED_NO_NAME",
-      "latency_ms": 0.155
+      "latency_ms": 0.151,
+      "fm_subbucket": "unclassified_unresolved",
+      "un_subbucket": null
     },
     {
       "source": "real",
@@ -494,7 +710,9 @@
       "retrieval_status": "PASS",
       "routing_status": "WARNING",
       "target_resolution_status": "NOT_APPLICABLE",
-      "latency_ms": 0.118
+      "latency_ms": 0.116,
+      "fm_subbucket": null,
+      "un_subbucket": null
     },
     {
       "source": "real",
@@ -521,7 +739,9 @@
       "retrieval_status": "PASS",
       "routing_status": "WARNING",
       "target_resolution_status": "NOT_APPLICABLE",
-      "latency_ms": 0.111
+      "latency_ms": 0.111,
+      "fm_subbucket": null,
+      "un_subbucket": null
     },
     {
       "source": "real",
@@ -552,7 +772,9 @@
       "retrieval_status": "PASS",
       "routing_status": "WARNING",
       "target_resolution_status": "UNRESOLVED_NO_NAME",
-      "latency_ms": 0.126
+      "latency_ms": 0.135,
+      "fm_subbucket": "unclassified_unresolved",
+      "un_subbucket": null
     },
     {
       "source": "real",
@@ -579,7 +801,9 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "NOT_APPLICABLE",
-      "latency_ms": 0.132
+      "latency_ms": 0.122,
+      "fm_subbucket": null,
+      "un_subbucket": null
     },
     {
       "source": "real",
@@ -606,7 +830,9 @@
       "retrieval_status": "PASS",
       "routing_status": "WARNING",
       "target_resolution_status": "NOT_APPLICABLE",
-      "latency_ms": 0.085
+      "latency_ms": 0.084,
+      "fm_subbucket": null,
+      "un_subbucket": null
     },
     {
       "source": "real",
@@ -637,7 +863,9 @@
       "retrieval_status": "PASS",
       "routing_status": "WARNING",
       "target_resolution_status": "UNRESOLVED_NO_NAME",
-      "latency_ms": 0.131
+      "latency_ms": 0.137,
+      "fm_subbucket": "unclassified_unresolved",
+      "un_subbucket": null
     },
     {
       "source": "real",
@@ -664,7 +892,9 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "NOT_APPLICABLE",
-      "latency_ms": 0.121
+      "latency_ms": 0.116,
+      "fm_subbucket": null,
+      "un_subbucket": null
     },
     {
       "source": "real",
@@ -693,7 +923,9 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "UNRESOLVED_NO_NAME",
-      "latency_ms": 0.114
+      "latency_ms": 0.114,
+      "fm_subbucket": "unclassified_unresolved",
+      "un_subbucket": null
     },
     {
       "source": "real",
@@ -720,7 +952,9 @@
       "retrieval_status": "PASS",
       "routing_status": "WARNING",
       "target_resolution_status": "NOT_APPLICABLE",
-      "latency_ms": 0.092
+      "latency_ms": 0.092,
+      "fm_subbucket": null,
+      "un_subbucket": null
     },
     {
       "source": "real",
@@ -751,7 +985,9 @@
       "retrieval_status": "PASS",
       "routing_status": "WARNING",
       "target_resolution_status": "RESOLVED",
-      "latency_ms": 0.116
+      "latency_ms": 0.116,
+      "fm_subbucket": null,
+      "un_subbucket": null
     },
     {
       "source": "real",
@@ -780,7 +1016,9 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "UNRESOLVED_NO_NAME",
-      "latency_ms": 0.105
+      "latency_ms": 0.106,
+      "fm_subbucket": "unclassified_unresolved",
+      "un_subbucket": null
     },
     {
       "source": "real",
@@ -809,7 +1047,9 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "UNRESOLVED_NO_NAME",
-      "latency_ms": 0.107
+      "latency_ms": 0.117,
+      "fm_subbucket": "unclassified_unresolved",
+      "un_subbucket": null
     },
     {
       "source": "real",
@@ -836,7 +1076,9 @@
       "retrieval_status": "PASS",
       "routing_status": "WARNING",
       "target_resolution_status": "NOT_APPLICABLE",
-      "latency_ms": 0.097
+      "latency_ms": 0.092,
+      "fm_subbucket": null,
+      "un_subbucket": null
     },
     {
       "source": "real",
@@ -867,7 +1109,9 @@
       "retrieval_status": "PASS",
       "routing_status": "WARNING",
       "target_resolution_status": "RESOLVED",
-      "latency_ms": 0.11
+      "latency_ms": 0.11,
+      "fm_subbucket": null,
+      "un_subbucket": null
     },
     {
       "source": "real",
@@ -896,7 +1140,9 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "UNRESOLVED_NO_NAME",
-      "latency_ms": 0.105
+      "latency_ms": 0.109,
+      "fm_subbucket": "unclassified_unresolved",
+      "un_subbucket": null
     },
     {
       "source": "real",
@@ -933,7 +1179,9 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "UNRESOLVED_NAMED",
-      "latency_ms": 0.147
+      "latency_ms": 0.143,
+      "fm_subbucket": null,
+      "un_subbucket": "true_missing_person"
     },
     {
       "source": "real",
@@ -970,7 +1218,9 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "UNRESOLVED_NAMED",
-      "latency_ms": 0.131
+      "latency_ms": 0.132,
+      "fm_subbucket": null,
+      "un_subbucket": "true_missing_person"
     },
     {
       "source": "real",
@@ -1007,7 +1257,9 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "UNRESOLVED_NAMED",
-      "latency_ms": 0.138
+      "latency_ms": 0.14,
+      "fm_subbucket": null,
+      "un_subbucket": "true_missing_person"
     },
     {
       "source": "real",
@@ -1042,7 +1294,9 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "UNRESOLVED_NAMED",
-      "latency_ms": 0.128
+      "latency_ms": 0.136,
+      "fm_subbucket": null,
+      "un_subbucket": "true_missing_person"
     },
     {
       "source": "real",
@@ -1077,7 +1331,9 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "UNRESOLVED_NAMED",
-      "latency_ms": 0.124
+      "latency_ms": 0.124,
+      "fm_subbucket": null,
+      "un_subbucket": "true_missing_person"
     },
     {
       "source": "real",
@@ -1112,7 +1368,9 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "UNRESOLVED_NAMED",
-      "latency_ms": 0.131
+      "latency_ms": 0.118,
+      "fm_subbucket": null,
+      "un_subbucket": "true_missing_person"
     },
     {
       "source": "real",
@@ -1147,7 +1405,9 @@
       "retrieval_status": "PASS",
       "routing_status": "WARNING",
       "target_resolution_status": "UNRESOLVED_NAMED",
-      "latency_ms": 0.101
+      "latency_ms": 0.106,
+      "fm_subbucket": null,
+      "un_subbucket": "true_missing_person"
     },
     {
       "source": "real",
@@ -1182,7 +1442,9 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "UNRESOLVED_NAMED",
-      "latency_ms": 0.125
+      "latency_ms": 0.119,
+      "fm_subbucket": null,
+      "un_subbucket": "true_missing_person"
     },
     {
       "source": "real",
@@ -1217,7 +1479,9 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "UNRESOLVED_NAMED",
-      "latency_ms": 0.119
+      "latency_ms": 0.118,
+      "fm_subbucket": null,
+      "un_subbucket": "true_missing_person"
     },
     {
       "source": "real",
@@ -1246,7 +1510,9 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "NOT_APPLICABLE",
-      "latency_ms": 0.115
+      "latency_ms": 0.114,
+      "fm_subbucket": null,
+      "un_subbucket": null
     },
     {
       "source": "real",
@@ -1275,7 +1541,9 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "UNRESOLVED_NO_NAME",
-      "latency_ms": 0.115
+      "latency_ms": 0.115,
+      "fm_subbucket": "unclassified_unresolved",
+      "un_subbucket": null
     },
     {
       "source": "real",
@@ -1310,7 +1578,9 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "UNRESOLVED_NAMED",
-      "latency_ms": 0.121
+      "latency_ms": 0.127,
+      "fm_subbucket": null,
+      "un_subbucket": "true_missing_person"
     },
     {
       "source": "real",
@@ -1347,7 +1617,9 @@
       "retrieval_status": "PASS",
       "routing_status": "WARNING",
       "target_resolution_status": "UNRESOLVED_NAMED",
-      "latency_ms": 0.13
+      "latency_ms": 0.132,
+      "fm_subbucket": null,
+      "un_subbucket": "true_missing_person"
     },
     {
       "source": "real",
@@ -1378,7 +1650,9 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "RESOLVED",
-      "latency_ms": 0.122
+      "latency_ms": 0.114,
+      "fm_subbucket": null,
+      "un_subbucket": null
     },
     {
       "source": "real",
@@ -1405,7 +1679,9 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "NOT_APPLICABLE",
-      "latency_ms": 0.11
+      "latency_ms": 0.12,
+      "fm_subbucket": null,
+      "un_subbucket": null
     },
     {
       "source": "real",
@@ -1434,7 +1710,9 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "NOT_APPLICABLE",
-      "latency_ms": 0.121
+      "latency_ms": 0.117,
+      "fm_subbucket": null,
+      "un_subbucket": null
     },
     {
       "source": "real",
@@ -1463,7 +1741,9 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "NOT_APPLICABLE",
-      "latency_ms": 0.111
+      "latency_ms": 0.113,
+      "fm_subbucket": null,
+      "un_subbucket": null
     },
     {
       "source": "real",
@@ -1492,7 +1772,9 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "UNRESOLVED_NO_NAME",
-      "latency_ms": 0.108
+      "latency_ms": 0.11,
+      "fm_subbucket": "unclassified_unresolved",
+      "un_subbucket": null
     },
     {
       "source": "real",
@@ -1528,7 +1810,9 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "UNRESOLVED_NAMED",
-      "latency_ms": 0.124
+      "latency_ms": 0.126,
+      "fm_subbucket": "forum_to_member_misroute",
+      "un_subbucket": "forum_only_member"
     },
     {
       "source": "real",
@@ -1557,7 +1841,9 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "UNRESOLVED_NO_NAME",
-      "latency_ms": 0.111
+      "latency_ms": 0.12,
+      "fm_subbucket": "unclassified_unresolved",
+      "un_subbucket": null
     },
     {
       "source": "real",
@@ -1586,7 +1872,9 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "UNRESOLVED_NO_NAME",
-      "latency_ms": 0.107
+      "latency_ms": 0.11,
+      "fm_subbucket": "unclassified_unresolved",
+      "un_subbucket": null
     },
     {
       "source": "real",
@@ -1615,7 +1903,9 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "UNRESOLVED_NO_NAME",
-      "latency_ms": 0.116
+      "latency_ms": 0.106,
+      "fm_subbucket": "unclassified_unresolved",
+      "un_subbucket": null
     },
     {
       "source": "real",
@@ -1644,7 +1934,9 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "UNRESOLVED_NO_NAME",
-      "latency_ms": 0.104
+      "latency_ms": 0.105,
+      "fm_subbucket": "unclassified_unresolved",
+      "un_subbucket": null
     },
     {
       "source": "real",
@@ -1673,7 +1965,9 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "UNRESOLVED_NO_NAME",
-      "latency_ms": 0.105
+      "latency_ms": 0.11,
+      "fm_subbucket": "unclassified_unresolved",
+      "un_subbucket": null
     },
     {
       "source": "real",
@@ -1702,7 +1996,9 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "UNRESOLVED_NO_NAME",
-      "latency_ms": 0.106
+      "latency_ms": 0.105,
+      "fm_subbucket": "unclassified_unresolved",
+      "un_subbucket": null
     },
     {
       "source": "real",
@@ -1731,7 +2027,9 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "UNRESOLVED_NO_NAME",
-      "latency_ms": 0.107
+      "latency_ms": 0.112,
+      "fm_subbucket": "unclassified_unresolved",
+      "un_subbucket": null
     },
     {
       "source": "real",
@@ -1760,7 +2058,9 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "UNRESOLVED_NO_NAME",
-      "latency_ms": 0.102
+      "latency_ms": 0.104,
+      "fm_subbucket": "unclassified_unresolved",
+      "un_subbucket": null
     },
     {
       "source": "real",
@@ -1789,7 +2089,9 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "UNRESOLVED_NO_NAME",
-      "latency_ms": 0.102
+      "latency_ms": 0.103,
+      "fm_subbucket": "unclassified_unresolved",
+      "un_subbucket": null
     },
     {
       "source": "real",
@@ -1809,23 +2111,18 @@
       "relationship_relevant": true,
       "secondary_domains": [],
       "rel_target_resolved": null,
-      "rel_target_unresolved_name": "Brief",
+      "rel_target_unresolved_name": null,
       "rel_missing_data": [
-        "forum_target_unresolved",
-        "target_unresolved"
+        "forum_target_unresolved"
       ],
-      "rel_proposed_action": {
-        "type": "add_to_circle",
-        "suggested_name": "Brief",
-        "reason": "name 'Brief' appears in message but is not in user's saved_people",
-        "source_text": "Brief check-in.",
-        "confidence": 0.65
-      },
+      "rel_proposed_action": null,
       "rel_context_mode": "SELF",
       "retrieval_status": "PASS",
       "routing_status": "PASS",
-      "target_resolution_status": "UNRESOLVED_NAMED",
-      "latency_ms": 0.114
+      "target_resolution_status": "UNRESOLVED_NO_NAME",
+      "latency_ms": 0.113,
+      "fm_subbucket": "unclassified_unresolved",
+      "un_subbucket": null
     },
     {
       "source": "real",
@@ -1854,7 +2151,9 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "UNRESOLVED_NO_NAME",
-      "latency_ms": 0.097
+      "latency_ms": 0.099,
+      "fm_subbucket": "unclassified_unresolved",
+      "un_subbucket": null
     },
     {
       "source": "real",
@@ -1883,7 +2182,9 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "UNRESOLVED_NO_NAME",
-      "latency_ms": 0.108
+      "latency_ms": 0.105,
+      "fm_subbucket": "unclassified_unresolved",
+      "un_subbucket": null
     },
     {
       "source": "real",
@@ -1912,7 +2213,9 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "UNRESOLVED_NO_NAME",
-      "latency_ms": 0.103
+      "latency_ms": 0.103,
+      "fm_subbucket": "unclassified_unresolved",
+      "un_subbucket": null
     },
     {
       "source": "synth",
@@ -1939,7 +2242,9 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "NOT_APPLICABLE",
-      "latency_ms": 0.124
+      "latency_ms": 0.131,
+      "fm_subbucket": null,
+      "un_subbucket": null
     },
     {
       "source": "synth",
@@ -1966,7 +2271,9 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "NOT_APPLICABLE",
-      "latency_ms": 0.122
+      "latency_ms": 0.117,
+      "fm_subbucket": null,
+      "un_subbucket": null
     },
     {
       "source": "synth",
@@ -1995,7 +2302,9 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "NOT_APPLICABLE",
-      "latency_ms": 0.136
+      "latency_ms": 0.136,
+      "fm_subbucket": null,
+      "un_subbucket": null
     },
     {
       "source": "synth",
@@ -2022,7 +2331,9 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "NOT_APPLICABLE",
-      "latency_ms": 0.116
+      "latency_ms": 0.117,
+      "fm_subbucket": null,
+      "un_subbucket": null
     },
     {
       "source": "synth",
@@ -2049,7 +2360,9 @@
       "retrieval_status": "PASS",
       "routing_status": "WARNING",
       "target_resolution_status": "NOT_APPLICABLE",
-      "latency_ms": 0.097
+      "latency_ms": 0.096,
+      "fm_subbucket": null,
+      "un_subbucket": null
     },
     {
       "source": "synth",
@@ -2076,7 +2389,9 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "NOT_APPLICABLE",
-      "latency_ms": 0.115
+      "latency_ms": 0.122,
+      "fm_subbucket": null,
+      "un_subbucket": null
     },
     {
       "source": "synth",
@@ -2103,7 +2418,9 @@
       "retrieval_status": "PASS",
       "routing_status": "WARNING",
       "target_resolution_status": "NOT_APPLICABLE",
-      "latency_ms": 0.096
+      "latency_ms": 0.097,
+      "fm_subbucket": null,
+      "un_subbucket": null
     },
     {
       "source": "synth",
@@ -2132,7 +2449,9 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "NOT_APPLICABLE",
-      "latency_ms": 0.123
+      "latency_ms": 0.113,
+      "fm_subbucket": null,
+      "un_subbucket": null
     },
     {
       "source": "synth",
@@ -2159,7 +2478,9 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "NOT_APPLICABLE",
-      "latency_ms": 0.114
+      "latency_ms": 0.121,
+      "fm_subbucket": null,
+      "un_subbucket": null
     },
     {
       "source": "synth",
@@ -2186,7 +2507,9 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "NOT_APPLICABLE",
-      "latency_ms": 0.112
+      "latency_ms": 0.114,
+      "fm_subbucket": null,
+      "un_subbucket": null
     },
     {
       "source": "synth",
@@ -2213,7 +2536,9 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "NOT_APPLICABLE",
-      "latency_ms": 0.114
+      "latency_ms": 0.11,
+      "fm_subbucket": null,
+      "un_subbucket": null
     },
     {
       "source": "synth",
@@ -2242,7 +2567,9 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "NOT_APPLICABLE",
-      "latency_ms": 0.116
+      "latency_ms": 0.117,
+      "fm_subbucket": null,
+      "un_subbucket": null
     },
     {
       "source": "synth",
@@ -2269,7 +2596,9 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "NOT_APPLICABLE",
-      "latency_ms": 0.128
+      "latency_ms": 0.127,
+      "fm_subbucket": null,
+      "un_subbucket": null
     },
     {
       "source": "synth",
@@ -2296,7 +2625,9 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "NOT_APPLICABLE",
-      "latency_ms": 0.111
+      "latency_ms": 0.117,
+      "fm_subbucket": null,
+      "un_subbucket": null
     },
     {
       "source": "synth",
@@ -2323,7 +2654,9 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "NOT_APPLICABLE",
-      "latency_ms": 0.115
+      "latency_ms": 0.116,
+      "fm_subbucket": null,
+      "un_subbucket": null
     },
     {
       "source": "synth",
@@ -2350,7 +2683,9 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "NOT_APPLICABLE",
-      "latency_ms": 0.122
+      "latency_ms": 0.116,
+      "fm_subbucket": null,
+      "un_subbucket": null
     },
     {
       "source": "synth",
@@ -2377,7 +2712,9 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "NOT_APPLICABLE",
-      "latency_ms": 0.114
+      "latency_ms": 0.12,
+      "fm_subbucket": null,
+      "un_subbucket": null
     },
     {
       "source": "synth",
@@ -2404,7 +2741,9 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "NOT_APPLICABLE",
-      "latency_ms": 0.115
+      "latency_ms": 0.117,
+      "fm_subbucket": null,
+      "un_subbucket": null
     },
     {
       "source": "synth",
@@ -2431,7 +2770,9 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "NOT_APPLICABLE",
-      "latency_ms": 0.141
+      "latency_ms": 0.137,
+      "fm_subbucket": null,
+      "un_subbucket": null
     },
     {
       "source": "synth",
@@ -2458,7 +2799,9 @@
       "retrieval_status": "PASS",
       "routing_status": "WARNING",
       "target_resolution_status": "NOT_APPLICABLE",
-      "latency_ms": 0.093
+      "latency_ms": 0.092,
+      "fm_subbucket": null,
+      "un_subbucket": null
     },
     {
       "source": "synth",
@@ -2485,7 +2828,9 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "NOT_APPLICABLE",
-      "latency_ms": 0.112
+      "latency_ms": 0.114,
+      "fm_subbucket": null,
+      "un_subbucket": null
     },
     {
       "source": "synth",
@@ -2512,7 +2857,9 @@
       "retrieval_status": "PASS",
       "routing_status": "WARNING",
       "target_resolution_status": "NOT_APPLICABLE",
-      "latency_ms": 0.095
+      "latency_ms": 0.096,
+      "fm_subbucket": null,
+      "un_subbucket": null
     },
     {
       "source": "synth",
@@ -2539,7 +2886,9 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "NOT_APPLICABLE",
-      "latency_ms": 0.111
+      "latency_ms": 0.121,
+      "fm_subbucket": null,
+      "un_subbucket": null
     },
     {
       "source": "synth",
@@ -2566,7 +2915,9 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "NOT_APPLICABLE",
-      "latency_ms": 0.107
+      "latency_ms": 0.111,
+      "fm_subbucket": null,
+      "un_subbucket": null
     },
     {
       "source": "synth",
@@ -2593,7 +2944,9 @@
       "retrieval_status": "PASS",
       "routing_status": "WARNING",
       "target_resolution_status": "NOT_APPLICABLE",
-      "latency_ms": 0.098
+      "latency_ms": 0.092,
+      "fm_subbucket": null,
+      "un_subbucket": null
     },
     {
       "source": "synth",
@@ -2620,7 +2973,9 @@
       "retrieval_status": "PASS",
       "routing_status": "WARNING",
       "target_resolution_status": "NOT_APPLICABLE",
-      "latency_ms": 0.091
+      "latency_ms": 0.098,
+      "fm_subbucket": null,
+      "un_subbucket": null
     },
     {
       "source": "synth",
@@ -2655,7 +3010,9 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "UNRESOLVED_NAMED",
-      "latency_ms": 0.12
+      "latency_ms": 0.122,
+      "fm_subbucket": null,
+      "un_subbucket": "true_missing_person"
     },
     {
       "source": "synth",
@@ -2682,7 +3039,9 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "NOT_APPLICABLE",
-      "latency_ms": 0.121
+      "latency_ms": 0.117,
+      "fm_subbucket": null,
+      "un_subbucket": null
     },
     {
       "source": "synth",
@@ -2717,7 +3076,9 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "UNRESOLVED_NAMED",
-      "latency_ms": 0.122
+      "latency_ms": 0.122,
+      "fm_subbucket": null,
+      "un_subbucket": "true_missing_person"
     },
     {
       "source": "synth",
@@ -2752,7 +3113,9 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "UNRESOLVED_NAMED",
-      "latency_ms": 0.119
+      "latency_ms": 0.12,
+      "fm_subbucket": null,
+      "un_subbucket": "true_missing_person"
     },
     {
       "source": "synth",
@@ -2789,7 +3152,9 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "UNRESOLVED_NAMED",
-      "latency_ms": 0.128
+      "latency_ms": 0.138,
+      "fm_subbucket": null,
+      "un_subbucket": "true_missing_person"
     },
     {
       "source": "synth",
@@ -2818,7 +3183,9 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "UNRESOLVED_NO_NAME",
-      "latency_ms": 0.119
+      "latency_ms": 0.119,
+      "fm_subbucket": "unclassified_unresolved",
+      "un_subbucket": null
     },
     {
       "source": "synth",
@@ -2847,7 +3214,9 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "UNRESOLVED_NO_NAME",
-      "latency_ms": 0.114
+      "latency_ms": 0.116,
+      "fm_subbucket": "unclassified_unresolved",
+      "un_subbucket": null
     },
     {
       "source": "synth",
@@ -2878,7 +3247,9 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "RESOLVED",
-      "latency_ms": 0.128
+      "latency_ms": 0.125,
+      "fm_subbucket": null,
+      "un_subbucket": null
     },
     {
       "source": "synth",
@@ -2909,7 +3280,9 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "RESOLVED",
-      "latency_ms": 0.121
+      "latency_ms": 0.121,
+      "fm_subbucket": null,
+      "un_subbucket": null
     },
     {
       "source": "synth",
@@ -2936,7 +3309,9 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "NOT_APPLICABLE",
-      "latency_ms": 0.13
+      "latency_ms": 0.126,
+      "fm_subbucket": null,
+      "un_subbucket": null
     },
     {
       "source": "synth",
@@ -2965,7 +3340,9 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "NOT_APPLICABLE",
-      "latency_ms": 0.125
+      "latency_ms": 0.124,
+      "fm_subbucket": null,
+      "un_subbucket": null
     },
     {
       "source": "synth",
@@ -2992,7 +3369,9 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "NOT_APPLICABLE",
-      "latency_ms": 0.118
+      "latency_ms": 0.236,
+      "fm_subbucket": null,
+      "un_subbucket": null
     },
     {
       "source": "synth",
@@ -3019,7 +3398,9 @@
       "retrieval_status": "PASS",
       "routing_status": "WARNING",
       "target_resolution_status": "NOT_APPLICABLE",
-      "latency_ms": 0.097
+      "latency_ms": 0.104,
+      "fm_subbucket": null,
+      "un_subbucket": null
     },
     {
       "source": "synth",
@@ -3048,7 +3429,9 @@
       "retrieval_status": "PASS",
       "routing_status": "WARNING",
       "target_resolution_status": "NOT_APPLICABLE",
-      "latency_ms": 0.127
+      "latency_ms": 0.128,
+      "fm_subbucket": null,
+      "un_subbucket": null
     }
   ]
 }

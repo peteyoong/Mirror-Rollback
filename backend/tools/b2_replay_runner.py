@@ -71,6 +71,121 @@ CATEGORY_PATTERNS: List[Tuple[str, re.Pattern]] = [
     ("identity_growth",  re.compile(r"\b(show up|naturally|am i|who am i|patterns?|growth|stuck|cycle|season)\b", re.I)),
 ]
 
+# Heuristic patterns used by the sub-bucket classifiers below.
+_RELATIONSHIP_KW_RE = re.compile(
+    r"\b(mel|wife|husband|partner|spouse|marriage|us|we|her|him|relationship|"
+    r"between\s+\w+\s+and|together|fight|distant|connection|conflict)\b", re.I)
+_FORUM_KW_RE = re.compile(
+    r"\b(forum|group|room|cohort|circle|members?|together|we|us|our|this room|"
+    r"this group|this forum|the team)\b", re.I)
+_SELF_ONLY_RE = re.compile(
+    r"^\s*(how\s+(do|am|can)\s+i|am\s+i|why\s+(do|am)\s+i|what'?s\s+my|tell\s+me\s+about\s+my)",
+    re.I)
+
+
+def _classify_forum_member_unresolved(row: Dict[str, Any]) -> str:
+    """Classify why a forum/member-frame message did NOT resolve a target.
+
+    Mutually exclusive; first-match-wins priority order:
+      1. wrong_person_selected  — explicit_target_id was set but the
+                                  resolver couldn't match it in saved_people
+                                  (mis-binding / stale id)
+      2. forum_to_member_misroute — frame=forum, message names a specific
+                                  person, but no member binding emerged
+                                  (router should have picked a member)
+      3. relationship_to_self_downgrade — frame=forum/member AND clear
+                                  relational keywords present, but the
+                                  intent envelope's primary_domain is
+                                  NOT relationship/family/parenting (the
+                                  relational signal was lost downstream)
+      4. wrong_frame_selected   — frame=forum/member but the message is
+                                  self-oriented (1P singular phrasing,
+                                  no forum/group/member keywords, no
+                                  proper-name candidate).  Frame was
+                                  probably mis-derived upstream.
+      5. unclassified_unresolved — catch-all.
+    """
+    msg = row.get("message") or ""
+    frame = row.get("active_frame")
+    predicted = row.get("predicted_domain")
+    explicit_target = row.get("explicit_target_id")
+    has_proper_name = bool(row.get("rel_target_unresolved_name"))
+    has_rel_kw = bool(_RELATIONSHIP_KW_RE.search(msg))
+    has_forum_kw = bool(_FORUM_KW_RE.search(msg))
+    looks_self_only = bool(_SELF_ONLY_RE.search(msg))
+
+    if explicit_target and not row.get("rel_target_resolved"):
+        return "wrong_person_selected"
+    if frame == "forum" and has_proper_name:
+        return "forum_to_member_misroute"
+    if has_rel_kw and predicted not in ("relationship", "family", "parenting"):
+        return "relationship_to_self_downgrade"
+    if not has_rel_kw and not has_forum_kw and not has_proper_name and looks_self_only:
+        return "wrong_frame_selected"
+    return "unclassified_unresolved"
+
+
+def _classify_unresolved_named(row: Dict[str, Any]) -> str:
+    """Classify why an UNRESOLVED_NAMED row didn't bind to a saved person.
+
+    Mutually exclusive; first-match-wins:
+      1. resolver_miss        — saved_people loaded BUT a similar name
+                                exists (substring or shared 4+ char prefix).
+                                Signals fuzzy/typo failure in the resolver.
+      2. ambiguous_match      — multiple proper-name candidates in the
+                                message (router picked one arbitrarily).
+      3. forum_only_member    — frame=forum/member AND a proper name was
+                                detected; the named person is likely a
+                                forum-only member not in saved_people.
+      4. true_missing_person  — name truly not present anywhere
+                                (saved_people was empty in this replay
+                                row, OR the name is a brand-new mention).
+      5. other                — catch-all.
+
+    NOTE: in this OFFLINE replay the saved_people list is always empty
+    (we deliberately don't hydrate it so the missing-target path has a
+    fair chance to fire).  Live-shadow telemetry on
+    `mirror_chat_retrieval_receipts` is the place where `resolver_miss`
+    and `ambiguous_match` become populated meaningfully.  We surface the
+    classifier shape here for parity.
+    """
+    name = (row.get("rel_target_unresolved_name") or "").strip()
+    msg = row.get("message") or ""
+    frame = row.get("active_frame")
+    if not name:
+        return "other"
+
+    # Count distinct proper-name candidates in the message itself.
+    candidates = _NAME_CANDIDATE_RE.findall(msg)
+    distinct = {c for c in candidates if c.lower() not in _NAME_FILTER_LC}
+    if len(distinct) >= 2:
+        return "ambiguous_match"
+
+    # In live mode we would also check fuzzy match against saved_people
+    # here; in offline replay saved_people=[] so we skip resolver_miss.
+
+    if frame in ("forum", "member"):
+        return "forum_only_member"
+    return "true_missing_person"
+
+
+# Lightweight re-use of the router's filtering, without importing private
+# helpers (keeps the runner self-contained).
+_NAME_CANDIDATE_RE = re.compile(r"\b([A-Z][a-z]{1,30})\b")
+_NAME_FILTER_LC = {
+    "how", "what", "why", "when", "where", "who", "tell", "show", "can",
+    "should", "would", "am", "is", "are", "do", "does", "has", "have",
+    "i", "me", "my", "we", "us", "our", "you", "your", "they",
+    "saturn", "venus", "mars", "jupiter", "pluto", "mercury", "sun",
+    "moon", "uranus", "neptune", "chiron", "lilith", "node", "nodes",
+    "aries", "taurus", "gemini", "cancer", "leo", "virgo", "libra",
+    "scorpio", "sagittarius", "capricorn", "aquarius", "pisces",
+    "human", "design", "enneagram", "astrology", "numerology", "bazi",
+    "mirror", "chat", "cross", "lens", "lenses", "forum", "reflection",
+    "rl", "probe", "test", "today", "yes", "no", "ok", "okay", "hi",
+    "hey", "hello",
+}
+
 
 def categorise(message: str, frame: str, has_target: bool) -> str:
     if frame in ("forum",):
@@ -246,7 +361,7 @@ def _run_one(row: Dict[str, Any]) -> Dict[str, Any]:
     top1_hit = (expected is None) or (predicted == expected)
     category = row.get("category_hint") or categorise(row["message"], frame, bool(target_id or rel.target))
 
-    return {
+    out = {
         "source": row["source"],
         "collection": row["collection"],
         "user_id_short": (row.get("user_id") or "")[:10],
@@ -273,6 +388,17 @@ def _run_one(row: Dict[str, Any]) -> Dict[str, Any]:
         "target_resolution_status": receipt["target_resolution_status"],
         "latency_ms": latency_ms,
     }
+    # Attach sub-bucket classifiers (used by the readiness report to
+    # split forum/member ambiguity and unresolved-named into categories).
+    if frame in ("forum", "member") and not out["rel_target_resolved"]:
+        out["fm_subbucket"] = _classify_forum_member_unresolved(out)
+    else:
+        out["fm_subbucket"] = None
+    if out["target_resolution_status"] == "UNRESOLVED_NAMED":
+        out["un_subbucket"] = _classify_unresolved_named(out)
+    else:
+        out["un_subbucket"] = None
+    return out
 
 
 def _aggregate(rows: List[Dict[str, Any]]) -> Dict[str, Any]:
@@ -327,17 +453,52 @@ def _aggregate(rows: List[Dict[str, Any]]) -> Dict[str, Any]:
     ]
 
     # Forum/member ambiguity: frame is forum/member but the resolver
-    # produced no target AND no proposed_action.
+    # produced no target.  We now classify each unresolved row into a
+    # sub-bucket so the rollout review can separate resolver failures
+    # from acceptable data gaps.
     forum_member_unresolved = [
         r for r in rows
         if r["active_frame"] in ("forum", "member")
         and not r["rel_target_resolved"]
     ]
     forum_member_total = [r for r in rows if r["active_frame"] in ("forum", "member")]
+    fm_sub_counts = Counter(r.get("fm_subbucket") for r in forum_member_unresolved)
+    fm_sub_examples: Dict[str, List[Dict[str, Any]]] = {}
+    for r in forum_member_unresolved:
+        b = r.get("fm_subbucket") or "unclassified_unresolved"
+        if len(fm_sub_examples.get(b, [])) < 3:
+            fm_sub_examples.setdefault(b, []).append({
+                "message": r["message"],
+                "frame": r["active_frame"],
+                "predicted_domain": r["predicted_domain"],
+                "explicit_target_id": r.get("explicit_target_id"),
+                "unresolved_name": r.get("rel_target_unresolved_name"),
+            })
+    # "Resolver-failure" sub-buckets that block cutover; the others are
+    # acceptable data-gap categories we surface but don't gate on.
+    fm_resolver_failure_buckets = {
+        "wrong_person_selected",
+        "wrong_frame_selected",
+        "relationship_to_self_downgrade",
+    }
+    fm_resolver_failures = sum(v for k, v in fm_sub_counts.items()
+                               if k in fm_resolver_failure_buckets)
+    fm_data_gap_buckets = {"forum_to_member_misroute", "unclassified_unresolved", None}
+    fm_data_gaps = sum(v for k, v in fm_sub_counts.items() if k in fm_data_gap_buckets)
 
     # Unresolved-named-target rate: rows where a proper name was detected
     # but no saved-people match.
     unresolved_named = [r for r in rows if r["target_resolution_status"] == "UNRESOLVED_NAMED"]
+    un_sub_counts = Counter(r.get("un_subbucket") for r in unresolved_named)
+    un_sub_examples: Dict[str, List[Dict[str, Any]]] = {}
+    for r in unresolved_named:
+        b = r.get("un_subbucket") or "other"
+        if len(un_sub_examples.get(b, [])) < 3:
+            un_sub_examples.setdefault(b, []).append({
+                "message": r["message"],
+                "frame": r["active_frame"],
+                "suggested_name": r.get("rel_target_unresolved_name"),
+            })
 
     # General-bucket rate.
     general = [r for r in rows if r["predicted_domain"] == "general"]
@@ -376,6 +537,8 @@ def _aggregate(rows: List[Dict[str, Any]]) -> Dict[str, Any]:
             "status_counts": dict(target_status_counts),
             "unresolved_named_rate": round(len(unresolved_named) / max(n, 1), 4),
             "unresolved_named_count": len(unresolved_named),
+            "unresolved_named_subbuckets": dict(un_sub_counts),
+            "unresolved_named_subbucket_examples": un_sub_examples,
         },
         "false_positive_relationship": {
             "count": len(fp_rel),
@@ -396,6 +559,21 @@ def _aggregate(rows: List[Dict[str, Any]]) -> Dict[str, Any]:
             "unresolved": len(forum_member_unresolved),
             "rate": round(
                 len(forum_member_unresolved) / max(len(forum_member_total), 1), 4),
+            "subbuckets": dict(fm_sub_counts),
+            "subbucket_examples": fm_sub_examples,
+            "resolver_failure_buckets": sorted(fm_resolver_failure_buckets),
+            "resolver_failure_count": fm_resolver_failures,
+            "resolver_failure_rate_of_unresolved": round(
+                fm_resolver_failures / max(len(forum_member_unresolved), 1), 4),
+            "resolver_failure_rate_of_total": round(
+                fm_resolver_failures / max(len(forum_member_total), 1), 4),
+            "data_gap_count": fm_data_gaps,
+            "data_gap_rate_of_unresolved": round(
+                fm_data_gaps / max(len(forum_member_unresolved), 1), 4),
+            # "correctly handled" = resolved OR classified as acceptable data gap
+            "correctly_handled_rate": round(
+                ((len(forum_member_total) - fm_resolver_failures))
+                / max(len(forum_member_total), 1), 4),
         },
         "general_bucket": {
             "count": len(general),
