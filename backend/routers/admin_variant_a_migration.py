@@ -48,6 +48,7 @@ from typing import Any, Dict, List, Optional, Tuple
 from urllib.parse import urlparse
 
 from fastapi import APIRouter, Header, HTTPException, Query, Request
+from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse
 from motor.motor_asyncio import AsyncIOMotorClient
 
@@ -279,6 +280,186 @@ async def build_info():
             "looks_like_preview":             looks_pre,
             "server_time_utc":                datetime.now(timezone.utc).isoformat(),
         },
+        headers={"Cache-Control": "no-store"},
+    )
+
+
+# ---------------------------------------------------------------------
+# 0b) NO-AUTH READ-ONLY: per-user chart snapshot for GM verification
+# Returns the RAW stored chart document for one user. No recomputation,
+# no formatting, no derived values. Pure dict-walking from Mongo.
+# ---------------------------------------------------------------------
+@router.get("/chart-snapshot/{user_id}")
+async def chart_snapshot(user_id: str):
+    if _db is None:
+        raise HTTPException(status_code=500, detail={
+            "code": "MONGO_NOT_CONFIGURED",
+            "message": "MONGO_URL / DB_NAME not present in env."})
+
+    # Find user (try ObjectId first, then string)
+    user = None
+    try:
+        from bson import ObjectId
+        try:
+            user = await _db.users.find_one({"_id": ObjectId(user_id)})
+        except Exception:
+            pass
+    except Exception:
+        pass
+    if not user:
+        user = await _db.users.find_one({"_id": user_id})
+    if not user:
+        user = await _db.users.find_one({"user_id": user_id})
+
+    if not user:
+        return JSONResponse(
+            content={"found": False, "user_id_searched": user_id},
+            status_code=404,
+            headers={"Cache-Control": "no-store"},
+        )
+
+    uid_str = str(user.get("_id"))
+    # Fetch chart by user_id (string)
+    chart = await _db.charts.find_one({"user_id": uid_str})
+    if not chart:
+        chart = await _db.charts.find_one({"user_id": user.get("_id")})
+
+    # Stored birth data — raw values from user doc
+    bl = user.get("birth_location") or {}
+    coords = bl.get("coordinates") or {}
+    birth_data = {
+        "birth_date":  user.get("birth_date"),
+        "birth_time":  user.get("birth_time"),
+        "timezone":    user.get("birth_timezone")
+                       or user.get("timezone")
+                       or bl.get("timezone"),
+        "timezone_minutes": user.get("timezone_minutes"),
+        "latitude":    bl.get("latitude") or coords.get("lat") or user.get("latitude"),
+        "longitude":   bl.get("longitude") or coords.get("lon") or user.get("longitude"),
+        "place":       bl.get("city") or bl.get("name"),
+        "country":     bl.get("country"),
+    }
+
+    if not chart:
+        return JSONResponse(
+            content={
+                "found":         True,
+                "chart_present": False,
+                "user_id":       uid_str,
+                "name":          user.get("name"),
+                "birth_data":    birth_data,
+            },
+            headers={"Cache-Control": "no-store"},
+        )
+
+    ast = chart.get("astrology") or {}
+    planets_raw = ast.get("planets") or {}
+    nodes_raw   = ast.get("nodes")   or {}
+    angles_raw  = ast.get("angles")  or {}
+    houses_raw  = ast.get("houses")  or []
+    fvb         = ast.get("forensic_variant_b")
+
+    # Per-body raw dump — no computation, no normalisation
+    bodies_wanted = [
+        "Sun", "Moon", "Mercury", "Venus", "Mars", "Jupiter", "Saturn",
+        "Uranus", "Neptune", "Pluto", "Chiron",
+    ]
+    planets_out = {}
+    for b in bodies_wanted:
+        p = planets_raw.get(b) or planets_raw.get(b.lower()) or {}
+        planets_out[b] = {
+            "sign":       p.get("sign"),
+            "longitude":  p.get("longitude"),
+            "degree":     p.get("degree"),
+            "house":      p.get("house"),
+            "retrograde": p.get("retrograde"),
+            "speed":      p.get("speed"),
+        }
+    nn = (nodes_raw.get("north_node")
+          or nodes_raw.get("North Node")
+          or planets_raw.get("North Node")
+          or {})
+    sn = (nodes_raw.get("south_node")
+          or nodes_raw.get("South Node")
+          or planets_raw.get("South Node")
+          or {})
+    planets_out["North Node"] = {
+        "sign":      nn.get("sign"),
+        "longitude": nn.get("longitude"),
+        "degree":    nn.get("degree"),
+        "house":     nn.get("house"),
+    }
+    planets_out["South Node"] = {
+        "sign":      sn.get("sign"),
+        "longitude": sn.get("longitude"),
+        "degree":    sn.get("degree"),
+        "house":     sn.get("house"),
+    }
+
+    # Angles — raw stored values
+    asc = angles_raw.get("asc") or angles_raw.get("ascendant") or {}
+    mc  = angles_raw.get("mc")  or angles_raw.get("midheaven") or {}
+    ic  = angles_raw.get("ic")  or angles_raw.get("imum_coeli") or {}
+    dsc = angles_raw.get("dsc") or angles_raw.get("descendant") or {}
+    angles_out = {
+        "Ascendant":   {"sign": asc.get("sign"), "longitude": asc.get("longitude")},
+        "MC":          {"sign": mc.get("sign"),  "longitude": mc.get("longitude")},
+        "IC":          {"sign": ic.get("sign"),  "longitude": ic.get("longitude")},
+        "Descendant":  {"sign": dsc.get("sign"), "longitude": dsc.get("longitude")},
+    }
+
+    # Houses — full list, no derivation
+    houses_out = []
+    if isinstance(houses_raw, list):
+        for h in houses_raw:
+            if not isinstance(h, dict):
+                houses_out.append({"raw": h})
+                continue
+            houses_out.append({
+                "number":         h.get("number") or h.get("house"),
+                "cusp_longitude": h.get("cusp_longitude") or h.get("longitude") or h.get("cusp"),
+                "cusp_sign":      h.get("sign") or h.get("cusp_sign"),
+                "degree":         h.get("degree"),
+            })
+    elif isinstance(houses_raw, dict):
+        houses_out = houses_raw
+
+    # House system metadata (read whatever is stored)
+    house_meta = {
+        "house_system":              chart.get("house_system")
+                                     or ast.get("house_system")
+                                     or (ast.get("metadata") or {}).get("house_system"),
+        "equal_house_flag":          (ast.get("metadata") or {}).get("equal_houses"),
+        "houses_array_length":       len(houses_raw) if isinstance(houses_raw, list) else None,
+    }
+
+    return JSONResponse(
+        content=jsonable_encoder({
+            "found":         True,
+            "chart_present": True,
+            "identity": {
+                "user_id": uid_str,
+                "name":    user.get("name"),
+                "email":   user.get("email"),
+            },
+            "birth_data": birth_data,
+            "chart_metadata": {
+                "astrology_engine_version": chart.get("astrology_engine_version"),
+                "sign_attribution_version": chart.get("sign_attribution_version"),
+                "house_system":             chart.get("house_system"),
+                "migration_marker":         chart.get("migration_marker"),
+                "migrated_at":              chart.get("migrated_at"),
+                "updated_at":               chart.get("updated_at"),
+                "forensic_variant_b_present": fvb is not None,
+            },
+            "forensic_variant_b": fvb,
+            "planets":            planets_out,
+            "angles":             angles_out,
+            "houses":             houses_out,
+            "house_system_meta":  house_meta,
+            "astrology_metadata": ast.get("metadata"),
+            "server_time_utc":    datetime.now(timezone.utc).isoformat(),
+        }, custom_encoder={bytes: lambda b: b.decode("utf-8", "replace")}),
         headers={"Cache-Control": "no-store"},
     )
 
