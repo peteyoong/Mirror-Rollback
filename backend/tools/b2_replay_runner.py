@@ -186,6 +186,260 @@ _NAME_FILTER_LC = {
     "hey", "hello",
 }
 
+# ---------------------------------------------------------------------------
+# B2 Delta-Review Regression Classifiers (June 14 operator focus list).
+#
+# These helpers annotate each replay row with the regression buckets the
+# operator asked us to track on top of the existing FP/forum/unresolved
+# gates.  They are mutually-orthogonal labels (a row can hit several).
+#
+# Buckets (operator spec):
+#   1. domain_drift_kind          (gate <5%, per-domain >10% review)
+#   2. lens_jargon_override       (gate <3%)
+#   3. relationship_context_loss  (gate <2%)
+#   4. wrong_target_selected      (gate = 0)
+#   5. payload_completeness       (alert if >25% shrink vs baseline)
+#   6. multi_lens_coverage        (gate >=90% of multi-lens prompts get >=2 lenses)
+#   7. high_confidence_wrong_route (gate <1%)
+#   8. is_founder_query           (tracked separately)
+#   9. couple_forum_bleed_kind    (gate = 0)
+#  10. decision_not_explainable   (tracked)
+# ---------------------------------------------------------------------------
+
+# Lens families used by the "multi-lens coverage" classifier.
+_LENS_FAMILY_PATTERNS: Dict[str, re.Pattern] = {
+    "astrology":    re.compile(
+        r"\b(saturn|venus|mars|jupiter|pluto|mercury|sun|moon|uranus|neptune|"
+        r"chiron|north\s+node|south\s+node|7th\s+house|10th\s+house|5th\s+house|"
+        r"natal|transit|return|aries|taurus|gemini|cancer|leo|virgo|libra|"
+        r"scorpio|sagittarius|capricorn|aquarius|pisces|chart|ascendant)\b", re.I),
+    "human_design": re.compile(
+        r"\b(manifestor|generator|projector|reflector|sacral|splenic|emotional\s+"
+        r"authority|gate\s+\d+|channel\s+\d+|profile\s+\d|3/5|5/1|6/2|defined|"
+        r"undefined|open\s+center|strategy|inner\s+authority|human\s+design)\b",
+        re.I),
+    "enneagram":    re.compile(
+        r"\b(type\s+[1-9]\b|enneagram|integration|disintegration|wing\s+[1-9]|"
+        r"sp/so|so/sp|sx/sp|tritype)\b", re.I),
+    "numerology":   re.compile(
+        r"\b(life\s+path|expression\s+number|soul\s+urge|personality\s+number|"
+        r"numerolog|destiny\s+number|birthday\s+number|year\s+\d{4}\s+vibration)\b",
+        re.I),
+    "bazi":         re.compile(
+        r"\b(bazi|day\s+master|four\s+pillars|five\s+elements|metal\s+rat|"
+        r"wood\s+ox|fire\s+horse|water\s+dragon|earth\s+goat|heavenly\s+stem|"
+        r"earthly\s+branch)\b", re.I),
+}
+
+# Heuristic lens-jargon override patterns (operator examples).
+# Each entry: (lens-term-regex, "wrong" predicted domain it tends to land in,
+#              short note for the report).
+_LENS_OVERRIDE_PATTERNS: List[Tuple[re.Pattern, str, str]] = [
+    (re.compile(r"\bsaturn\s+return\b", re.I), "identity",
+     "saturn return collapsed to identity (should weight life_direction)"),
+    (re.compile(r"\b7th\s+house\b", re.I), "relationship",
+     "7th house auto-routed to relationship without relational kw"),
+    (re.compile(r"\bmanifestor\b", re.I), "leadership",
+     "manifestor auto-routed to leadership without leadership context"),
+    (re.compile(r"\b10th\s+house\b", re.I), "career",
+     "10th house auto-routed to career without career context"),
+]
+
+# Heuristic ground-truth labels for domain drift on REAL rows (where we
+# have no synth `expected_primary`).  Each tuple: (regex, expected_domain).
+# Pattern order matters — first match wins.
+_DRIFT_GROUND_TRUTH: List[Tuple[re.Pattern, str]] = [
+    (re.compile(r"\bsaturn\s+return\b", re.I),                 "life_direction"),
+    (re.compile(r"\bshould\s+i\s+leave\s+(my|the)\s+(company|job|role|firm)\b", re.I),
+                                                                "life_direction"),
+    (re.compile(r"\bshould\s+i\s+(quit|leave|exit)\b", re.I),  "life_direction"),
+    (re.compile(r"\bwhat\s+does\s+\w+\s+trigger\s+in\s+me\b", re.I),
+                                                                "relationship"),
+    (re.compile(r"\bbetween\s+\w+\s+and\s+(me|us)\b", re.I),   "relationship"),
+    (re.compile(r"\bmy\s+(career|next\s+role|next\s+chapter)\s+(direction|path)?\b", re.I),
+                                                                "life_direction"),
+    (re.compile(r"\b(life\s+direction|next\s+chapter|where\s+i'?m\s+headed)\b", re.I),
+                                                                "life_direction"),
+]
+
+# Founder / operator regression suite triggers.
+_FOUNDER_RE = re.compile(
+    r"\b(founder|co-?founder|ceo|cto|coo|chief\s+\w+\s+officer|board\b|investor|"
+    r"fundrais\w*|runway|hiring|hire\b|delegat\w*|cofound|company[- ]building|"
+    r"team\s+dynamics|leadership|operator|exec\b|executive)\b", re.I)
+
+# Couple-only signals (relational dyad).
+_COUPLE_RE = re.compile(
+    r"\b(mel|wife|husband|partner|spouse|marriage|between\s+(mel|me|us|him|her)\s+and|"
+    r"my\s+(wife|husband|partner|spouse))\b", re.I)
+# Forum-only signals (multi-party / room / group).  Intentionally
+# excludes the bare word "member(s)" — probe messages and member-frame
+# diagnostic strings frequently contain it without implying group framing.
+_FORUM_ONLY_RE = re.compile(
+    r"\b(the\s+forum|our\s+forum|this\s+room|this\s+group|the\s+group|"
+    r"the\s+team|cohort|circle)\b", re.I)
+
+# Diagnostic-probe filter — messages this short are operator/QA probes
+# (e.g. "Reflection test (member)."), not real user inputs, so we skip
+# them for content-quality classifiers that depend on semantic intent.
+_PROBE_MIN_CHARS = 25
+_PROBE_RE = re.compile(
+    r"^(reflection\s+test|probe|ping|test\b|hi\b|hey\b|hello\b)", re.I)
+
+
+def _is_probe(msg: str) -> bool:
+    if not msg:
+        return True
+    msg_s = msg.strip()
+    if len(msg_s) < _PROBE_MIN_CHARS:
+        return True
+    if _PROBE_RE.match(msg_s):
+        return True
+    return False
+
+
+def _domain_drift_kind(row: Dict[str, Any]) -> Optional[str]:
+    """Return a 'expected→predicted' label if there's a domain drift.
+
+    Uses:
+      * `expected_domain` if present (synth golden rows).
+      * Heuristic ground-truth regex for known REAL drift patterns.
+    Returns None if no drift detected or no ground truth available.
+    """
+    predicted = row.get("predicted_domain")
+    expected = row.get("expected_domain")
+    if expected and predicted and predicted != expected:
+        return f"{expected}->{predicted}"
+    msg = row.get("message") or ""
+    for pat, exp in _DRIFT_GROUND_TRUTH:
+        if pat.search(msg):
+            if predicted and predicted != exp:
+                return f"{exp}->{predicted}"
+            return None  # heuristic matched but predicted is correct
+    return None
+
+
+def _lens_jargon_override(row: Dict[str, Any]) -> Optional[str]:
+    """Return a short error tag if a lens term auto-overrode the route.
+
+    Heuristic: the message contains a lens term, the predicted domain
+    matches the "collapse" pattern for that term, AND the message lacks
+    independent relational/career/leadership keywords supporting the
+    predicted domain.
+    """
+    msg = row.get("message") or ""
+    predicted = row.get("predicted_domain")
+    if not predicted:
+        return None
+    for pat, wrong_dom, note in _LENS_OVERRIDE_PATTERNS:
+        if pat.search(msg) and predicted == wrong_dom:
+            # Make sure there's NO independent context that would
+            # legitimately push the route to that domain.
+            if wrong_dom == "relationship" and _COUPLE_RE.search(msg):
+                continue
+            if wrong_dom == "leadership" and re.search(
+                    r"\b(lead|leading|team|founder|ceo|board|delegat)\b", msg, re.I):
+                continue
+            if wrong_dom == "career" and re.search(
+                    r"\b(job|role|career|firm|company|promotion)\b", msg, re.I):
+                continue
+            if wrong_dom == "identity" and re.search(
+                    r"\b(who\s+am\s+i|my\s+core|am\s+i\s+really|identity)\b", msg, re.I):
+                continue
+            return note
+    return None
+
+
+def _relationship_context_loss(row: Dict[str, Any]) -> bool:
+    """Target resolved + relationship_relevant=true, but predicted is
+    NOT relationship/family/parenting → synthesis will likely treat as
+    solo self-analysis even though the user is asking about someone.
+
+    Skips diagnostic probe messages (operator/QA shorthand) since those
+    do not exercise the synthesis path meaningfully.
+    """
+    if _is_probe(row.get("message") or ""):
+        return False
+    if not row.get("rel_target_resolved"):
+        return False
+    if not row.get("relationship_relevant"):
+        return False
+    return row.get("predicted_domain") not in ("relationship", "family", "parenting")
+
+
+def _wrong_target_selected(row: Dict[str, Any]) -> bool:
+    """explicit_target_id given but resolver returned a different target
+    (mis-binding or stale-memory bleed-through)."""
+    explicit = row.get("explicit_target_id")
+    resolved = row.get("rel_target_resolved")
+    if not explicit:
+        return False
+    if resolved is None:
+        return False  # captured by wrong_person_selected sub-bucket
+    return str(explicit) != str(resolved)
+
+
+def _multi_lens_signature(msg: str) -> List[str]:
+    """List of lens families detected in the message."""
+    return [lens for lens, pat in _LENS_FAMILY_PATTERNS.items() if pat.search(msg or "")]
+
+
+def _high_confidence_wrong_route(row: Dict[str, Any]) -> bool:
+    """confidence >= 0.6 AND predicted != expected (only meaningful where
+    we have ground truth — synth rows OR heuristic-drift-detected rows)."""
+    conf = row.get("confidence") or 0.0
+    if conf < 0.6:
+        return False
+    drift = row.get("domain_drift_kind")
+    return bool(drift)
+
+
+def _couple_forum_bleed(row: Dict[str, Any]) -> Optional[str]:
+    """Detect cross-contamination between couple and forum framing.
+
+    Skips diagnostic probe messages (e.g. "Reflection test (member).")
+    to avoid false positives from operator-internal QA strings.
+    """
+    msg = row.get("message") or ""
+    if _is_probe(msg):
+        return None
+    frame = row.get("active_frame")
+    has_couple = bool(_COUPLE_RE.search(msg))
+    has_forum = bool(_FORUM_ONLY_RE.search(msg))
+    if has_couple and frame == "forum" and not has_forum:
+        return "couple_to_forum_bleed"
+    if has_forum and frame == "member" and not has_couple:
+        return "forum_to_couple_bleed"
+    return None
+
+
+def _is_decision_explainable(envelope: Dict[str, Any]) -> bool:
+    """A routing decision is explainable if:
+      * its primary_domain has at least one matched phrase, OR
+      * a strong frame/role/target bias contributed to the top score, OR
+      * the envelope is an intentional 'general' fallback (those are
+        explainable by definition via `fallback_reason`).
+    """
+    domain = envelope.get("primary_domain")
+    ev = envelope.get("evidence") or {}
+    if domain == "general":
+        return bool(ev.get("fallback_reason"))
+    matched = (ev.get("matched_phrases") or {}).get(domain) or []
+    if matched:
+        return True
+    # Bias-only decisions are explainable iff bias clearly contributed.
+    frame_bias = ev.get("frame_bias_applied") or {}
+    role_bias = ev.get("role_bias_applied") or {}
+    target_bonus = ev.get("target_active_bonus") or 0.0
+    contributed = (
+        domain in frame_bias and frame_bias.get(domain, 0) >= 0.20
+    ) or (
+        domain in role_bias and role_bias.get(domain, 0) >= 0.20
+    ) or (
+        target_bonus and domain in ("relationship", "family", "parenting", "work", "career")
+    )
+    return bool(contributed)
+
 
 def categorise(message: str, frame: str, has_target: bool) -> str:
     if frame in ("forum",):
@@ -398,6 +652,31 @@ def _run_one(row: Dict[str, Any]) -> Dict[str, Any]:
         out["un_subbucket"] = _classify_unresolved_named(out)
     else:
         out["un_subbucket"] = None
+
+    # ----- B2 Delta-Review Regression Classifiers (operator focus list) -----
+    out["domain_drift_kind"] = _domain_drift_kind(out)
+    out["lens_jargon_override"] = _lens_jargon_override(out)
+    out["relationship_context_loss"] = _relationship_context_loss(out)
+    out["wrong_target_selected"] = _wrong_target_selected(out)
+    out["multi_lens_signature"] = _multi_lens_signature(row["message"])
+    out["multi_lens_prompt"] = len(out["multi_lens_signature"]) >= 2
+    # Coverage: in the offline shadow stack, the "retrieved" lens family
+    # set == lens_priority entries that map to a known lens family.
+    lens_priority = envd.get("lens_priority") or []
+    out["lens_priority"] = lens_priority
+    out["multi_lens_covered_count"] = sum(
+        1 for fam in out["multi_lens_signature"]
+        if fam in lens_priority
+        or (fam == "human_design" and "human_design" in lens_priority)
+    )
+    out["high_confidence_wrong_route"] = _high_confidence_wrong_route(out)
+    out["is_founder_query"] = bool(_FOUNDER_RE.search(row["message"] or ""))
+    out["couple_forum_bleed_kind"] = _couple_forum_bleed(out)
+    out["decision_not_explainable"] = not _is_decision_explainable(envd)
+    # Payload completeness — in offline replay payloads are stubbed,
+    # but we still capture the *expected* mandatory module list size so
+    # the delta-detector can flag baseline-shrinkage in live mode.
+    out["mandatory_modules_count"] = len(modules)
     return out
 
 
@@ -599,6 +878,229 @@ def _aggregate(rows: List[Dict[str, Any]]) -> Dict[str, Any]:
             "relationship_router": REL_VER,
             "validator": VALIDATOR_VERSION,
         },
+        # ----- B2 Delta-Review Regression Buckets (operator focus list) -----
+        "regression_buckets": _aggregate_regression_buckets(rows),
+    }
+
+
+def _aggregate_regression_buckets(rows: List[Dict[str, Any]]) -> Dict[str, Any]:
+    """Compute the 10 operator-requested regression buckets.
+
+    Each sub-dict carries:
+      * count        — # rows that hit the bucket
+      * rate         — share of the denominator (whole corpus by default)
+      * gate         — the operator-specified threshold (informational)
+      * status       — PASS / FAIL / WATCH
+      * examples     — up to 5 representative rows
+    """
+    n = max(len(rows), 1)
+
+    def _examples(predicate, limit=5, fields=("message", "active_frame",
+                                              "predicted_domain")):
+        out = []
+        for r in rows:
+            if predicate(r):
+                out.append({f: r.get(f) for f in fields})
+                if len(out) >= limit:
+                    break
+        return out
+
+    def _status(rate: float, gate: float, cmp: str) -> str:
+        if cmp == "<=":
+            return "PASS" if rate <= gate else "FAIL"
+        if cmp == "<":
+            return "PASS" if rate < gate else "FAIL"
+        if cmp == ">=":
+            return "PASS" if rate >= gate else "FAIL"
+        if cmp == "==0":
+            return "PASS" if rate == 0 else "FAIL"
+        return "WATCH"
+
+    # 1. Domain drift
+    drift_rows = [r for r in rows if r.get("domain_drift_kind")]
+    drift_kinds = Counter(r["domain_drift_kind"] for r in drift_rows)
+    drift_per_domain: Dict[str, int] = defaultdict(int)
+    for kind, cnt in drift_kinds.items():
+        if "->" in kind:
+            expected, _ = kind.split("->", 1)
+            drift_per_domain[expected] += cnt
+    # Per-domain drift rate is normalised against rows that had a
+    # heuristic/synth ground truth (where drift was *possible*).
+    ground_truth_rows = sum(
+        1 for r in rows
+        if r.get("expected_domain")
+        or any(pat.search(r.get("message") or "") for pat, _ in _DRIFT_GROUND_TRUTH)
+    )
+    drift_denom = max(ground_truth_rows, 1)
+    drift_rate = len(drift_rows) / drift_denom
+    per_domain_rate = {k: round(v / drift_denom, 4) for k, v in drift_per_domain.items()}
+    domain_review = [d for d, rate in per_domain_rate.items() if rate > 0.10]
+    # Small-sample guard: < 5 ground-truth rows isn't enough signal to
+    # gate cutover on drift rate alone.
+    if ground_truth_rows < 5:
+        drift_status = "INSUFFICIENT_SAMPLE"
+    elif drift_rate >= 0.05 or domain_review:
+        drift_status = "FAIL"
+    else:
+        drift_status = "PASS"
+    domain_drift = {
+        "count": len(drift_rows),
+        "denominator": drift_denom,
+        "ground_truth_rows": ground_truth_rows,
+        "rate": round(drift_rate, 4),
+        "kinds": dict(drift_kinds),
+        "per_expected_domain": dict(drift_per_domain),
+        "per_expected_domain_rate": per_domain_rate,
+        "domains_above_10pct": sorted(domain_review),
+        "gate": "< 5% overall AND no expected_domain > 10%",
+        "status": drift_status,
+        "examples": _examples(lambda r: bool(r.get("domain_drift_kind")),
+                              fields=("message", "active_frame",
+                                      "predicted_domain", "domain_drift_kind")),
+    }
+
+    # 2. Lens-jargon override
+    lj_rows = [r for r in rows if r.get("lens_jargon_override")]
+    lj_rate = len(lj_rows) / n
+    lens_jargon = {
+        "count": len(lj_rows),
+        "rate": round(lj_rate, 4),
+        "kinds": dict(Counter(r["lens_jargon_override"] for r in lj_rows)),
+        "gate": "< 3%",
+        "status": _status(lj_rate, 0.03, "<"),
+        "examples": _examples(lambda r: bool(r.get("lens_jargon_override")),
+                              fields=("message", "predicted_domain",
+                                      "lens_jargon_override")),
+    }
+
+    # 3. Relationship-context loss
+    rcl_rows = [r for r in rows if r.get("relationship_context_loss")]
+    rcl_rate = len(rcl_rows) / n
+    rel_ctx_loss = {
+        "count": len(rcl_rows),
+        "rate": round(rcl_rate, 4),
+        "gate": "< 2%",
+        "status": _status(rcl_rate, 0.02, "<"),
+        "examples": _examples(lambda r: bool(r.get("relationship_context_loss")),
+                              fields=("message", "predicted_domain",
+                                      "rel_target_resolved")),
+    }
+
+    # 4. Wrong-target selection
+    wts_rows = [r for r in rows if r.get("wrong_target_selected")]
+    wrong_target = {
+        "count": len(wts_rows),
+        "rate": round(len(wts_rows) / n, 4),
+        "gate": "= 0 in review sample",
+        "status": "PASS" if not wts_rows else "FAIL",
+        "examples": _examples(lambda r: bool(r.get("wrong_target_selected")),
+                              fields=("message", "explicit_target_id",
+                                      "rel_target_resolved")),
+    }
+
+    # 5. Payload completeness (offline-stubbed; live-delta-only).
+    mandatory_counts = [r.get("mandatory_modules_count") or 0 for r in rows]
+    payload_completeness = {
+        "mandatory_modules_mean": round(
+            sum(mandatory_counts) / max(len(mandatory_counts), 1), 3),
+        "mandatory_modules_min": min(mandatory_counts) if mandatory_counts else 0,
+        "mandatory_modules_max": max(mandatory_counts) if mandatory_counts else 0,
+        "gate": "no mandatory payload shrinks >25% vs baseline",
+        "status": "BASELINE_ONLY",
+        "note": ("Offline replay stubs payloads to {'sim': true}; the >25% "
+                 "shrinkage alert fires only in the delta-detector when a "
+                 "live-shadow run is diffed against the frozen baseline."),
+    }
+
+    # 6. Multi-lens coverage loss
+    multi = [r for r in rows if r.get("multi_lens_prompt")]
+    multi_covered = [r for r in multi if (r.get("multi_lens_covered_count") or 0) >= 2]
+    multi_rate = (len(multi_covered) / max(len(multi), 1)) if multi else 1.0
+    cross_lens = {
+        "multi_lens_prompts": len(multi),
+        "covered_2plus": len(multi_covered),
+        "coverage_rate": round(multi_rate, 4),
+        "gate": ">= 90% of multi-lens prompts retrieve >= 2 lens families",
+        "status": "PASS" if (not multi or multi_rate >= 0.90) else "FAIL",
+        "examples": _examples(
+            lambda r: r.get("multi_lens_prompt")
+            and (r.get("multi_lens_covered_count") or 0) < 2,
+            fields=("message", "multi_lens_signature", "lens_priority")),
+    }
+
+    # 7. High-confidence wrong route
+    hcwr = [r for r in rows if r.get("high_confidence_wrong_route")]
+    hcwr_rate = len(hcwr) / n
+    # Small-sample guard: HCWR depends on having a ground-truth signal;
+    # if drift sample is too small to be meaningful, downgrade to WATCH.
+    if ground_truth_rows < 5:
+        hcwr_status = "WATCH" if hcwr else "INSUFFICIENT_SAMPLE"
+    else:
+        hcwr_status = _status(hcwr_rate, 0.01, "<")
+    false_confidence = {
+        "count": len(hcwr),
+        "rate": round(hcwr_rate, 4),
+        "ground_truth_rows": ground_truth_rows,
+        "gate": "< 1%",
+        "status": hcwr_status,
+        "examples": _examples(lambda r: bool(r.get("high_confidence_wrong_route")),
+                              fields=("message", "predicted_domain",
+                                      "domain_drift_kind", "confidence")),
+    }
+
+    # 8. Founder/operator regression suite
+    fnd = [r for r in rows if r.get("is_founder_query")]
+    fnd_dom = Counter(r["predicted_domain"] for r in fnd)
+    fnd_pass = sum(1 for r in fnd if r["routing_status"] == "PASS")
+    founder_suite = {
+        "count": len(fnd),
+        "predicted_domain_mix": dict(fnd_dom),
+        "routing_pass_rate": round(fnd_pass / max(len(fnd), 1), 4),
+        "gate": "informational (no hard threshold)",
+        "status": "WATCH",
+        "examples": _examples(lambda r: r.get("is_founder_query"),
+                              fields=("message", "predicted_domain",
+                                      "routing_status", "confidence")),
+    }
+
+    # 9. Couple/Forum bleed
+    bleed = [r for r in rows if r.get("couple_forum_bleed_kind")]
+    bleed_kinds = Counter(r["couple_forum_bleed_kind"] for r in bleed)
+    couple_forum = {
+        "count": len(bleed),
+        "kinds": dict(bleed_kinds),
+        "gate": "= 0 in reviewed samples",
+        "status": "PASS" if not bleed else "FAIL",
+        "examples": _examples(lambda r: bool(r.get("couple_forum_bleed_kind")),
+                              fields=("message", "active_frame",
+                                      "couple_forum_bleed_kind",
+                                      "predicted_domain")),
+    }
+
+    # 10. Explainability
+    not_expl = [r for r in rows if r.get("decision_not_explainable")]
+    explainability = {
+        "decision_not_explainable_count": len(not_expl),
+        "rate": round(len(not_expl) / n, 4),
+        "gate": "informational; track for future bug clusters",
+        "status": "WATCH" if not_expl else "PASS",
+        "examples": _examples(lambda r: r.get("decision_not_explainable"),
+                              fields=("message", "predicted_domain",
+                                      "signal_strength", "margin",
+                                      "confidence")),
+    }
+
+    return {
+        "domain_drift":            domain_drift,
+        "lens_jargon_override":    lens_jargon,
+        "relationship_context_loss": rel_ctx_loss,
+        "wrong_target_selected":   wrong_target,
+        "payload_completeness":    payload_completeness,
+        "cross_lens_coverage":     cross_lens,
+        "high_confidence_wrong_route": false_confidence,
+        "founder_operator_suite":  founder_suite,
+        "couple_forum_separation": couple_forum,
+        "explainability":          explainability,
     }
 
 

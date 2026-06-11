@@ -29,13 +29,14 @@ is detected.  The observation window ends June 14, 2026.
 """
 from __future__ import annotations
 
+import argparse
 import asyncio
 import json
 import os
 import sys
 from datetime import datetime, timezone as dt_tz, timedelta
 from pathlib import Path
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 BACKEND_DIR = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(BACKEND_DIR))
@@ -50,6 +51,11 @@ BENCH_JSON = OUT_DIR / "intent_router_v2_b2_all_suites.json"
 SAMPLES_MD = OUT_DIR / "B2_REPLAY_SAMPLES.md"
 REPORT_MD = OUT_DIR / "B2_READINESS_REPORT.md"
 REPORT_JSON = OUT_DIR / "B2_READINESS_REPORT.json"
+# Frozen-baseline artifacts captured at operator sign-off (2026-06-11).
+# The next refresh run (June 14) diffs against these to surface new
+# regression clusters per operator focus list.
+BASELINE_REPORT_JSON = OUT_DIR / "B2_READINESS_REPORT.baseline.json"
+BASELINE_REPLAY_JSON = OUT_DIR / "B2_REPLAY_RESULTS.baseline.json"
 
 OBSERVATION_WINDOW_END = "2026-06-14"
 OBSERVATION_WINDOW_DAYS = 3
@@ -237,11 +243,100 @@ def _build_scorecard(*, replay: Dict[str, Any], bench: Dict[str, Any],
         "status": "PENDING_OPERATOR",
     })
 
+    # ----- B2 Delta-Review Regression Buckets (operator focus list) -----
+    rb = real.get("regression_buckets") or {}
+
+    def _rb_row(gate_name: str, bucket_key: str, value_fmt) -> Dict[str, Any]:
+        b = rb.get(bucket_key) or {}
+        st = b.get("status", "UNKNOWN")
+        return {
+            "gate": gate_name,
+            "value": value_fmt(b),
+            "threshold": b.get("gate", "—"),
+            "status": st,
+        }
+
+    rows.append(_rb_row(
+        "Domain drift rate (REAL)", "domain_drift",
+        lambda b: (f"{b.get('rate', 0)*100:.2f}% "
+                   f"({b.get('count', 0)} of {b.get('ground_truth_rows', 0)} "
+                   f"ground-truth rows); per-domain hot zones: "
+                   f"{b.get('domains_above_10pct') or '_none_'}")))
+    rows.append(_rb_row(
+        "Lens-jargon override errors (REAL)", "lens_jargon_override",
+        lambda b: f"{b.get('rate', 0)*100:.2f}% ({b.get('count', 0)} cases); "
+                  f"kinds: {b.get('kinds') or {}}"))
+    rows.append(_rb_row(
+        "Relationship-context loss (REAL)", "relationship_context_loss",
+        lambda b: f"{b.get('rate', 0)*100:.2f}% ({b.get('count', 0)} cases)"))
+    rows.append(_rb_row(
+        "Wrong-target selection (REAL)", "wrong_target_selected",
+        lambda b: f"{b.get('count', 0)} cases"))
+    rows.append(_rb_row(
+        "Multi-lens coverage (REAL)", "cross_lens_coverage",
+        lambda b: (f"{b.get('coverage_rate', 0)*100:.2f}% "
+                   f"({b.get('covered_2plus', 0)} of {b.get('multi_lens_prompts', 0)} "
+                   f"multi-lens prompts)")))
+    rows.append(_rb_row(
+        "High-confidence wrong route (REAL)", "high_confidence_wrong_route",
+        lambda b: f"{b.get('count', 0)} cases ({b.get('rate', 0)*100:.2f}%)"))
+    rows.append(_rb_row(
+        "Couple ↔ Forum bleed (REAL)", "couple_forum_separation",
+        lambda b: f"{b.get('count', 0)} cases; kinds: {b.get('kinds') or {}}"))
+    rows.append(_rb_row(
+        "Decision explainability (REAL)", "explainability",
+        lambda b: f"{b.get('decision_not_explainable_count', 0)} non-explainable "
+                  f"({b.get('rate', 0)*100:.2f}%)"))
+    fnd = rb.get("founder_operator_suite") or {}
+    rows.append({
+        "gate": "Founder/operator suite (REAL)",
+        "value": (f"n={fnd.get('count', 0)} founder-pattern queries; "
+                  f"routing PASS rate={fnd.get('routing_pass_rate', 0)*100:.2f}%; "
+                  f"domain mix={fnd.get('predicted_domain_mix') or {}}"),
+        "threshold": "informational",
+        "status": fnd.get("status", "WATCH"),
+    })
+    # Payload completeness — offline replay can only baseline; surface
+    # the mean module count for the delta-detector to diff against.
+    pc = rb.get("payload_completeness") or {}
+    rows.append({
+        "gate": "Retrieval payload completeness (REAL, baseline only)",
+        "value": (f"mandatory_modules mean={pc.get('mandatory_modules_mean')} "
+                  f"min={pc.get('mandatory_modules_min')} "
+                  f"max={pc.get('mandatory_modules_max')}"),
+        "threshold": pc.get("gate", "no shrink > 25% vs baseline"),
+        "status": pc.get("status", "BASELINE_ONLY"),
+    })
+
     # Determine blockers and recommendation.
+    # Note: the new B2 delta-review regression buckets (rows added after
+    # "Manual review complete") are operator review signals — they
+    # surface review focus areas but do NOT auto-block cutover.  The
+    # original B2 gates (FP-relationship, forum/member correctly-handled,
+    # target-resolution, retrieval coverage, golden top-1) remain the
+    # hard blockers.
+    _AUTO_INFORMATIONAL_GATES = {
+        "Shadow telemetry window complete",
+        "Manual review complete",
+        "Domain drift rate (REAL)",
+        "Lens-jargon override errors (REAL)",
+        "Relationship-context loss (REAL)",
+        "Wrong-target selection (REAL)",
+        "Multi-lens coverage (REAL)",
+        "High-confidence wrong route (REAL)",
+        "Couple ↔ Forum bleed (REAL)",
+        "Decision explainability (REAL)",
+        "Founder/operator suite (REAL)",
+        "Retrieval payload completeness (REAL, baseline only)",
+    }
     hard_fails = [g for g in rows
                   if g["status"] == "FAIL"
-                  and g["gate"] not in ("Shadow telemetry window complete",
-                                        "Manual review complete")]
+                  and g["gate"] not in _AUTO_INFORMATIONAL_GATES]
+    review_flags = [g for g in rows
+                    if g["status"] == "FAIL"
+                    and g["gate"] in _AUTO_INFORMATIONAL_GATES
+                    and g["gate"] not in ("Shadow telemetry window complete",
+                                          "Manual review complete")]
     if hard_fails:
         blockers = [g["gate"] for g in hard_fails]
         recommendation = "NO_GO"
@@ -249,6 +344,15 @@ def _build_scorecard(*, replay: Dict[str, Any], bench: Dict[str, Any],
         recommendation = "CONDITIONAL_GO"
         blockers = ["Shadow telemetry window not complete (ends "
                     f"{OBSERVATION_WINDOW_END})"]
+        # Also surface any current review-signal FAILs so the operator
+        # sees them in the executive summary, not just the scorecard.
+        if review_flags:
+            blockers.extend(f"Review signal: {g['gate']}" for g in review_flags)
+    elif review_flags:
+        # Window complete and no hard fail, but the operator must review
+        # the new regression signals before flipping to GO.
+        recommendation = "CONDITIONAL_GO"
+        blockers = [f"Operator review required: {g['gate']}" for g in review_flags]
     else:
         recommendation = "GO"
     return rows, recommendation, blockers
@@ -502,6 +606,262 @@ def _section_samples_pointer() -> str:
     )
 
 
+def _section_regression_buckets(real_agg: Dict[str, Any]) -> str:
+    """Section 13 — operator's 10 regression buckets (June 14 focus list)."""
+    rb = real_agg.get("regression_buckets") or {}
+    if not rb:
+        return ("## 13. Delta-Review Regression Buckets (operator focus list)\n\n"
+                "_No regression bucket data found in replay results — "
+                "make sure you've re-run `b2_replay_runner.py` after the "
+                "B2 classifier update._\n")
+
+    def _examples_md(items, fields_label=("frame", "predicted_domain")):
+        if not items:
+            return "  _(no examples)_"
+        out = []
+        for it in items:
+            parts = []
+            for k, v in it.items():
+                if k == "message":
+                    continue
+                parts.append(f"{k}=`{v}`")
+            head = "  ".join(parts) or ""
+            out.append(f"  - {head} → {str(it.get('message', ''))[:180]}")
+        return "\n".join(out)
+
+    parts = ["## 13. Delta-Review Regression Buckets (REAL, operator focus list)\n",
+             "_The 10 regression buckets the operator asked us to track on "
+             "top of the existing FP/forum/unresolved gates.  These do **not** "
+             "auto-block cutover — they are review signals.  A FAIL here means "
+             "the operator must look before approving the next rollout stage._\n"]
+
+    order = [
+        ("1. Domain drift",             "domain_drift",            True),
+        ("2. Lens-jargon override",     "lens_jargon_override",    True),
+        ("3. Relationship-context loss", "relationship_context_loss", True),
+        ("4. Wrong-target selection",   "wrong_target_selected",   True),
+        ("5. Retrieval payload completeness", "payload_completeness", False),
+        ("6. Cross-lens coverage",      "cross_lens_coverage",     False),
+        ("7. False confidence (high-confidence wrong route)",
+                                        "high_confidence_wrong_route", True),
+        ("8. Founder/operator suite",   "founder_operator_suite",  False),
+        ("9. Couple ↔ Forum separation","couple_forum_separation", True),
+        ("10. Decision explainability", "explainability",          False),
+    ]
+    for title, key, show_examples in order:
+        b = rb.get(key) or {}
+        parts.append(f"\n### {title}\n")
+        status = b.get("status", "UNKNOWN")
+        gate = b.get("gate", "—")
+        parts.append(f"- **Status**: `{status}`")
+        parts.append(f"- **Gate**: {gate}")
+        if key == "domain_drift":
+            parts.append(
+                f"- Rate: **{b.get('rate', 0)*100:.2f}%** "
+                f"({b.get('count', 0)} / {b.get('ground_truth_rows', 0)} "
+                f"ground-truth rows)")
+            kinds = b.get("kinds") or {}
+            if kinds:
+                parts.append(f"- Kinds: `{kinds}`")
+            hot = b.get("domains_above_10pct") or []
+            if hot:
+                parts.append(f"- Per-domain hot zones (>10%): {hot}")
+        elif key == "lens_jargon_override":
+            parts.append(
+                f"- Rate: **{b.get('rate', 0)*100:.2f}%** "
+                f"({b.get('count', 0)} cases)")
+            kinds = b.get("kinds") or {}
+            if kinds:
+                parts.append(f"- Patterns: `{kinds}`")
+        elif key == "relationship_context_loss":
+            parts.append(
+                f"- Rate: **{b.get('rate', 0)*100:.2f}%** "
+                f"({b.get('count', 0)} cases)")
+        elif key == "wrong_target_selected":
+            parts.append(f"- Count: **{b.get('count', 0)}**")
+        elif key == "payload_completeness":
+            parts.append(
+                f"- mandatory_modules count: mean={b.get('mandatory_modules_mean')} "
+                f"min={b.get('mandatory_modules_min')} "
+                f"max={b.get('mandatory_modules_max')}")
+            parts.append(f"- Note: {b.get('note', '')}")
+        elif key == "cross_lens_coverage":
+            parts.append(
+                f"- Multi-lens prompts: **{b.get('multi_lens_prompts', 0)}**, "
+                f"covered with ≥2 lenses: **{b.get('covered_2plus', 0)}**, "
+                f"coverage rate: **{b.get('coverage_rate', 0)*100:.2f}%**")
+        elif key == "high_confidence_wrong_route":
+            parts.append(
+                f"- Rate: **{b.get('rate', 0)*100:.2f}%** "
+                f"({b.get('count', 0)} cases)")
+        elif key == "founder_operator_suite":
+            parts.append(f"- Count: **{b.get('count', 0)}**")
+            parts.append(f"- Routing PASS rate: "
+                         f"**{b.get('routing_pass_rate', 0)*100:.2f}%**")
+            parts.append(f"- Domain mix: `{b.get('predicted_domain_mix') or {}}`")
+        elif key == "couple_forum_separation":
+            parts.append(f"- Count: **{b.get('count', 0)}**")
+            parts.append(f"- Kinds: `{b.get('kinds') or {}}`")
+        elif key == "explainability":
+            parts.append(
+                f"- Non-explainable decisions: "
+                f"**{b.get('decision_not_explainable_count', 0)}** "
+                f"({b.get('rate', 0)*100:.2f}%)")
+        if show_examples:
+            ex = b.get("examples") or []
+            if ex:
+                parts.append("- Examples:")
+                parts.append(_examples_md(ex))
+    return "\n".join(parts) + "\n"
+
+
+def _diff_vs_baseline(replay: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+    """Compare the current replay run against the frozen baseline.
+
+    Surfaces operator's June 14 focus list:
+      1. NEW false-positive relationship-routing examples
+      2. NEW resolver-failure sub-buckets (in live telemetry)
+      3. Distribution delta of unresolved-named sub-buckets
+      4. NEW forum/member ambiguity examples
+      5. NEW regression clusters (≥3 cases of the same kind not seen
+         in baseline)
+    Returns None if baseline is missing.
+    """
+    if not BASELINE_REPLAY_JSON.exists():
+        return None
+    try:
+        baseline = json.loads(BASELINE_REPLAY_JSON.read_text())
+    except Exception:
+        return None
+
+    cur_real = replay["aggregate"]["aggregates_by_source"]["real"]
+    base_real = baseline["aggregate"]["aggregates_by_source"]["real"]
+
+    def _msgs(rows):
+        return {(r["source"], r["message"]) for r in rows}
+    base_msgs = _msgs(baseline.get("rows", []))
+
+    def _new_examples(predicate, limit=10):
+        return [
+            {"frame": r["active_frame"],
+             "predicted": r["predicted_domain"],
+             "message": r["message"]}
+            for r in replay.get("rows", [])
+            if predicate(r)
+            and (r["source"], r["message"]) not in base_msgs
+        ][:limit]
+
+    # 1. new FP examples
+    new_fp = _new_examples(
+        lambda r: r["predicted_domain"] == "relationship"
+        and r["active_frame"] == "self"
+        and not r["rel_target_resolved"]
+        and r.get("explicit_target_id") is None
+    )
+
+    # 2. new resolver-failure sub-buckets
+    rf_buckets = {"wrong_person_selected", "wrong_frame_selected",
+                  "relationship_to_self_downgrade"}
+    new_resolver_fail = _new_examples(
+        lambda r: r.get("fm_subbucket") in rf_buckets
+    )
+
+    # 3. unresolved-named sub-bucket distribution delta
+    cur_un = cur_real["target_resolution"].get("unresolved_named_subbuckets", {})
+    base_un = base_real["target_resolution"].get("unresolved_named_subbuckets", {})
+    keys = sorted(set(cur_un.keys()) | set(base_un.keys()))
+    un_delta = {k: {"baseline": base_un.get(k, 0),
+                    "current": cur_un.get(k, 0),
+                    "delta": cur_un.get(k, 0) - base_un.get(k, 0)}
+                for k in keys}
+
+    # 4. new forum/member ambiguity examples
+    new_fm = _new_examples(
+        lambda r: r["active_frame"] in ("forum", "member")
+        and not r["rel_target_resolved"]
+    )
+
+    # 5. regression clusters — group new-since-baseline failures
+    # (predicted=general OR routing=FAIL OR resolver-failure-bucket)
+    # by (predicted_domain, fm_subbucket) and surface clusters ≥3.
+    clusters: Dict[Tuple[str, Optional[str]], List[Dict[str, Any]]] = {}
+    for r in replay.get("rows", []):
+        if (r["source"], r["message"]) in base_msgs:
+            continue
+        if (r["predicted_domain"] == "general"
+                or r["routing_status"] == "FAIL"
+                or r.get("fm_subbucket") in rf_buckets):
+            key = (r["predicted_domain"], r.get("fm_subbucket"))
+            clusters.setdefault(key, []).append({
+                "frame": r["active_frame"],
+                "message": r["message"],
+            })
+    regression_clusters = [
+        {"predicted_domain": k[0], "fm_subbucket": k[1],
+         "count": len(v), "examples": v[:3]}
+        for k, v in clusters.items() if len(v) >= 3
+    ]
+
+    return {
+        "baseline_generated_at": baseline.get("generated_at"),
+        "current_generated_at": replay.get("generated_at"),
+        "new_fp_relationship_examples": new_fp,
+        "new_resolver_failure_examples": new_resolver_fail,
+        "unresolved_named_distribution_delta": un_delta,
+        "new_forum_member_unresolved_examples": new_fm,
+        "regression_clusters": regression_clusters,
+    }
+
+
+def _section_delta(delta: Optional[Dict[str, Any]]) -> str:
+    if delta is None:
+        return ("## 14. Delta vs. baseline (June 11 sign-off)\n\n"
+                "_No baseline snapshot found at "
+                f"`{BASELINE_REPLAY_JSON.name}`. Skipping delta section._\n")
+
+    def _fmt_examples(items, missing_msg="_(none)_"):
+        if not items:
+            return missing_msg
+        return "\n".join(
+            f"  - `{e.get('frame')}` / predicted=`{e.get('predicted')}` → "
+            f"{e.get('message', '')[:200]}"
+            for e in items
+        )
+
+    un_rows = "\n".join(
+        f"  - `{k}`: baseline={v['baseline']}  current={v['current']}  "
+        f"Δ={v['delta']:+d}"
+        for k, v in delta["unresolved_named_distribution_delta"].items()
+    )
+
+    clusters_md_parts: List[str] = []
+    for c in delta["regression_clusters"]:
+        clusters_md_parts.append(
+            f"\n- **predicted=`{c['predicted_domain']}`  "
+            f"fm_subbucket=`{c['fm_subbucket']}`**  ×{c['count']}"
+        )
+        for ex in c["examples"]:
+            clusters_md_parts.append(f"    - `{ex['frame']}` → {ex['message'][:200]}")
+    clusters_md = "\n".join(clusters_md_parts) or "_(no new clusters)_"
+
+    return (
+        "## 14. Delta vs. baseline (June 11 sign-off)\n\n"
+        f"_Baseline frozen at_ `{delta['baseline_generated_at']}`.  "
+        f"_Current run_ `{delta['current_generated_at']}`.\n\n"
+        "Operator's June 14 focus list, computed automatically:\n\n"
+        "### 1. New false-positive relationship-routing examples (REAL)\n\n"
+        f"{_fmt_examples(delta['new_fp_relationship_examples'])}\n\n"
+        "### 2. New resolver-failure sub-buckets observed since baseline\n\n"
+        f"{_fmt_examples(delta['new_resolver_failure_examples'])}\n\n"
+        "### 3. Unresolved-named sub-bucket distribution delta\n\n"
+        f"{un_rows or '_(no changes)_'}\n\n"
+        "### 4. New forum/member ambiguity examples since baseline\n\n"
+        f"{_fmt_examples(delta['new_forum_member_unresolved_examples'])}\n\n"
+        "### 5. Regression clusters (≥3 new failures of the same kind)\n"
+        f"{clusters_md}\n"
+    )
+
+
 def _section_risks(blockers: List[str], shadow: Dict[str, Any], real: Dict[str, Any]) -> str:
     fp_rate = real["false_positive_relationship"]["rate"]
     fp_alert = fp_rate >= 0.05
@@ -557,6 +917,14 @@ def _section_rollout(rec: str, blockers: List[str]) -> str:
 
 
 async def main() -> int:
+    ap = argparse.ArgumentParser(
+        description="Build the Mirror Chat V2 Slice B2 Readiness Report.")
+    ap.add_argument(
+        "--baseline", action="store_true",
+        help="Diff against the frozen baseline JSON snapshots and append "
+             "section 14 (Delta vs. baseline) to the markdown.")
+    args = ap.parse_args()
+
     OUT_DIR.mkdir(parents=True, exist_ok=True)
 
     if not REPLAY_JSON.exists():
@@ -580,6 +948,8 @@ async def main() -> int:
 
     gate_rows, recommendation, blockers = _build_scorecard(
         replay=replay, bench=bench, shadow=shadow)
+
+    delta = _diff_vs_baseline(replay) if args.baseline else None
 
     # --- Markdown ---
     parts: List[str] = []
@@ -609,6 +979,9 @@ async def main() -> int:
     parts.append(_section_samples_pointer())
     parts.append(_section_risks(blockers, shadow, real))
     parts.append(_section_rollout(recommendation, blockers))
+    parts.append(_section_regression_buckets(real))
+    if args.baseline:
+        parts.append(_section_delta(delta))
     parts.append(
         "\n## After-B2 priority queue (per operator review)\n\n"
         "1. **Cross-Lens Synthesis Phase 2** (tension / contradiction).\n"
@@ -622,12 +995,29 @@ async def main() -> int:
         "(P2; anti-confusion clauses).\n"
     )
     parts.append(
+        "\n## Rollout halt criteria (auto-stop between stages)\n\n"
+        "The phased rollout (10% → 50% → 100%) automatically halts and "
+        "requires operator review if any of the following appears in the "
+        "stage's observation window:\n\n"
+        "- Retrieval PASS rate **< 97%**\n"
+        "- False-positive relationship rate **> 5%**\n"
+        "- Any **new resolver-failure sub-bucket** in live telemetry\n"
+        "- Forum/member correctly-handled rate **< 90%**\n"
+        "- Any **unexpected rise** in `target_unresolved` rate vs prior stage\n"
+        "- Any **regression cluster** (≥3 cases) not represented in the "
+        "golden sets\n"
+        "- Any of the section-13 review-signal gates flipping FAIL since "
+        "the prior stage (domain drift, lens-jargon override, relationship-"
+        "context loss, wrong-target selection, multi-lens coverage, "
+        "high-confidence wrong route, couple↔forum bleed).\n"
+    )
+    parts.append(
         "\n---\n"
         "### Evidence separation\n\n"
         "- **From REAL messages**: gate statuses for false-positive "
         "relationship, forum/member ambiguity, target-resolution, "
-        "shadow-telemetry status, and general-bucket rate are computed "
-        "on REAL only.\n"
+        "shadow-telemetry status, general-bucket rate, AND every section-13 "
+        "regression bucket are computed on REAL only.\n"
         "- **From SYNTHETIC messages**: golden-set top-1 (over all "
         "suites including the synth slice of "
         "`golden_set_pete_mel_historical.yaml`) and retrieval-receipt "
@@ -641,7 +1031,7 @@ async def main() -> int:
     print(f"Wrote {REPORT_MD}")
 
     # --- JSON twin (machine-readable for dashboards) ---
-    REPORT_JSON.write_text(json.dumps({
+    json_doc = {
         "generated_at": datetime.now(dt_tz.utc).isoformat(),
         "recommendation": recommendation,
         "blockers": blockers,
@@ -652,7 +1042,10 @@ async def main() -> int:
         "benchmark_offline": bench.get("offline"),
         "observation_window_end": OBSERVATION_WINDOW_END,
         "thresholds": GATE_THRESHOLDS,
-    }, indent=2, default=str))
+    }
+    if args.baseline:
+        json_doc["delta_vs_baseline"] = delta
+    REPORT_JSON.write_text(json.dumps(json_doc, indent=2, default=str))
     print(f"Wrote {REPORT_JSON}")
     return 0
 

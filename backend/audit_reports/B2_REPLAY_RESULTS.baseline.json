@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-11T19:42:27.533359+00:00",
+  "generated_at": "2026-06-11T19:27:31.074622+00:00",
   "window_days": 90,
   "target_total": 120,
   "aggregate": {
@@ -230,260 +230,15 @@
       "accuracy": 0.65
     },
     "latency_ms": {
-      "mean": 0.548,
-      "p50": 0.116,
-      "p95": 0.139,
-      "max": 38.467
+      "mean": 0.543,
+      "p50": 0.117,
+      "p95": 0.138,
+      "max": 37.991
     },
     "versions": {
       "intent_router": "intent_router_v2.1.0",
       "relationship_router": "relationship_router_v2.1.0",
       "validator": "retrieval_validation_v1.2.0"
-    },
-    "regression_buckets": {
-      "domain_drift": {
-        "count": 17,
-        "denominator": 41,
-        "ground_truth_rows": 41,
-        "rate": 0.4146,
-        "kinds": {
-          "life_direction->identity": 2,
-          "leadership->growth": 1,
-          "leadership->general": 3,
-          "leadership->work": 1,
-          "leadership->career": 1,
-          "career->life_direction": 1,
-          "life_direction->career": 1,
-          "purpose->general": 2,
-          "money->career": 1,
-          "growth->general": 2,
-          "identity->work": 1,
-          "money->identity": 1
-        },
-        "per_expected_domain": {
-          "life_direction": 3,
-          "leadership": 6,
-          "career": 1,
-          "purpose": 2,
-          "money": 2,
-          "growth": 2,
-          "identity": 1
-        },
-        "per_expected_domain_rate": {
-          "life_direction": 0.0732,
-          "leadership": 0.1463,
-          "career": 0.0244,
-          "purpose": 0.0488,
-          "money": 0.0488,
-          "growth": 0.0488,
-          "identity": 0.0244
-        },
-        "domains_above_10pct": [
-          "leadership"
-        ],
-        "gate": "< 5% overall AND no expected_domain > 10%",
-        "status": "FAIL",
-        "examples": [
-          {
-            "message": "Tell me about my Saturn return",
-            "active_frame": "self",
-            "predicted_domain": "identity",
-            "domain_drift_kind": "life_direction->identity"
-          },
-          {
-            "message": "My team is stuck in execution mode \u2014 how do I lift them out?",
-            "active_frame": "self",
-            "predicted_domain": "growth",
-            "domain_drift_kind": "leadership->growth"
-          },
-          {
-            "message": "How do I have the firing conversation today?",
-            "active_frame": "self",
-            "predicted_domain": "general",
-            "domain_drift_kind": "leadership->general"
-          },
-          {
-            "message": "What's blocking me from being the leader my team needs?",
-            "active_frame": "self",
-            "predicted_domain": "work",
-            "domain_drift_kind": "leadership->work"
-          },
-          {
-            "message": "How do I scale myself as the company grows?",
-            "active_frame": "self",
-            "predicted_domain": "general",
-            "domain_drift_kind": "leadership->general"
-          }
-        ]
-      },
-      "lens_jargon_override": {
-        "count": 3,
-        "rate": 0.0337,
-        "kinds": {
-          "saturn return collapsed to identity (should weight life_direction)": 2,
-          "7th house auto-routed to relationship without relational kw": 1
-        },
-        "gate": "< 3%",
-        "status": "FAIL",
-        "examples": [
-          {
-            "message": "Tell me about my Saturn return",
-            "predicted_domain": "identity",
-            "lens_jargon_override": "saturn return collapsed to identity (should weight life_direction)"
-          },
-          {
-            "message": "What's my 7th house about?",
-            "predicted_domain": "relationship",
-            "lens_jargon_override": "7th house auto-routed to relationship without relational kw"
-          },
-          {
-            "message": "How do my Saturn return and Enneagram 8 intersect?",
-            "predicted_domain": "identity",
-            "lens_jargon_override": "saturn return collapsed to identity (should weight life_direction)"
-          }
-        ]
-      },
-      "relationship_context_loss": {
-        "count": 2,
-        "rate": 0.0225,
-        "gate": "< 2%",
-        "status": "FAIL",
-        "examples": [
-          {
-            "message": "What is Pete's deepest gift to this group?",
-            "predicted_domain": "work",
-            "rel_target_resolved": "tgt-pete"
-          },
-          {
-            "message": "How is Sarah holding back in her role?",
-            "predicted_domain": "career",
-            "rel_target_resolved": "tgt-sarah"
-          }
-        ]
-      },
-      "wrong_target_selected": {
-        "count": 0,
-        "rate": 0.0,
-        "gate": "= 0 in review sample",
-        "status": "PASS",
-        "examples": []
-      },
-      "payload_completeness": {
-        "mandatory_modules_mean": 3.146,
-        "mandatory_modules_min": 1,
-        "mandatory_modules_max": 4,
-        "gate": "no mandatory payload shrinks >25% vs baseline",
-        "status": "BASELINE_ONLY",
-        "note": "Offline replay stubs payloads to {'sim': true}; the >25% shrinkage alert fires only in the delta-detector when a live-shadow run is diffed against the frozen baseline."
-      },
-      "cross_lens_coverage": {
-        "multi_lens_prompts": 2,
-        "covered_2plus": 2,
-        "coverage_rate": 1.0,
-        "gate": ">= 90% of multi-lens prompts retrieve >= 2 lens families",
-        "status": "PASS",
-        "examples": []
-      },
-      "high_confidence_wrong_route": {
-        "count": 4,
-        "rate": 0.0449,
-        "ground_truth_rows": 41,
-        "gate": "< 1%",
-        "status": "FAIL",
-        "examples": [
-          {
-            "message": "Tell me about my Saturn return",
-            "predicted_domain": "identity",
-            "domain_drift_kind": "life_direction->identity",
-            "confidence": 1.0
-          },
-          {
-            "message": "What does my chart say about my career direction?",
-            "predicted_domain": "career",
-            "domain_drift_kind": "life_direction->career",
-            "confidence": 0.717
-          },
-          {
-            "message": "Is now the right window to fundraise?",
-            "predicted_domain": "career",
-            "domain_drift_kind": "money->career",
-            "confidence": 0.8
-          },
-          {
-            "message": "How do my Saturn return and Enneagram 8 intersect?",
-            "predicted_domain": "identity",
-            "domain_drift_kind": "life_direction->identity",
-            "confidence": 1.0
-          }
-        ]
-      },
-      "founder_operator_suite": {
-        "count": 6,
-        "predicted_domain_mix": {
-          "leadership": 2,
-          "career": 2,
-          "money": 1,
-          "general": 1
-        },
-        "routing_pass_rate": 0.8333,
-        "gate": "informational (no hard threshold)",
-        "status": "WATCH",
-        "examples": [
-          {
-            "message": "Should I delegate the Q3 product decisions to my VP?",
-            "predicted_domain": "leadership",
-            "routing_status": "PASS",
-            "confidence": 0.7
-          },
-          {
-            "message": "I feel like a bad CEO when I can't see the path forward",
-            "predicted_domain": "leadership",
-            "routing_status": "PASS",
-            "confidence": 0.45
-          },
-          {
-            "message": "Is being a founder still my role here?",
-            "predicted_domain": "career",
-            "routing_status": "PASS",
-            "confidence": 1.0
-          },
-          {
-            "message": "Should I take less salary to extend runway?",
-            "predicted_domain": "money",
-            "routing_status": "PASS",
-            "confidence": 0.7708
-          },
-          {
-            "message": "Is now the right window to fundraise?",
-            "predicted_domain": "career",
-            "routing_status": "PASS",
-            "confidence": 0.8
-          }
-        ]
-      },
-      "couple_forum_separation": {
-        "count": 1,
-        "kinds": {
-          "forum_to_couple_bleed": 1
-        },
-        "gate": "= 0 in reviewed samples",
-        "status": "FAIL",
-        "examples": [
-          {
-            "message": "What is Pete's deepest gift to this group?",
-            "active_frame": "member",
-            "couple_forum_bleed_kind": "forum_to_couple_bleed",
-            "predicted_domain": "work"
-          }
-        ]
-      },
-      "explainability": {
-        "decision_not_explainable_count": 0,
-        "rate": 0.0,
-        "gate": "informational; track for future bug clusters",
-        "status": "PASS",
-        "examples": []
-      }
     },
     "aggregates_by_source": {
       "real": {
@@ -679,134 +434,15 @@
           "accuracy": 0.0
         },
         "latency_ms": {
-          "mean": 0.899,
-          "p50": 0.116,
-          "p95": 0.144,
-          "max": 38.467
+          "mean": 0.889,
+          "p50": 0.114,
+          "p95": 0.14,
+          "max": 37.991
         },
         "versions": {
           "intent_router": "intent_router_v2.1.0",
           "relationship_router": "relationship_router_v2.1.0",
           "validator": "retrieval_validation_v1.2.0"
-        },
-        "regression_buckets": {
-          "domain_drift": {
-            "count": 1,
-            "denominator": 1,
-            "ground_truth_rows": 1,
-            "rate": 1.0,
-            "kinds": {
-              "life_direction->identity": 1
-            },
-            "per_expected_domain": {
-              "life_direction": 1
-            },
-            "per_expected_domain_rate": {
-              "life_direction": 1.0
-            },
-            "domains_above_10pct": [
-              "life_direction"
-            ],
-            "gate": "< 5% overall AND no expected_domain > 10%",
-            "status": "INSUFFICIENT_SAMPLE",
-            "examples": [
-              {
-                "message": "Tell me about my Saturn return",
-                "active_frame": "self",
-                "predicted_domain": "identity",
-                "domain_drift_kind": "life_direction->identity"
-              }
-            ]
-          },
-          "lens_jargon_override": {
-            "count": 2,
-            "rate": 0.0408,
-            "kinds": {
-              "saturn return collapsed to identity (should weight life_direction)": 1,
-              "7th house auto-routed to relationship without relational kw": 1
-            },
-            "gate": "< 3%",
-            "status": "FAIL",
-            "examples": [
-              {
-                "message": "Tell me about my Saturn return",
-                "predicted_domain": "identity",
-                "lens_jargon_override": "saturn return collapsed to identity (should weight life_direction)"
-              },
-              {
-                "message": "What's my 7th house about?",
-                "predicted_domain": "relationship",
-                "lens_jargon_override": "7th house auto-routed to relationship without relational kw"
-              }
-            ]
-          },
-          "relationship_context_loss": {
-            "count": 0,
-            "rate": 0.0,
-            "gate": "< 2%",
-            "status": "PASS",
-            "examples": []
-          },
-          "wrong_target_selected": {
-            "count": 0,
-            "rate": 0.0,
-            "gate": "= 0 in review sample",
-            "status": "PASS",
-            "examples": []
-          },
-          "payload_completeness": {
-            "mandatory_modules_mean": 3.469,
-            "mandatory_modules_min": 1,
-            "mandatory_modules_max": 4,
-            "gate": "no mandatory payload shrinks >25% vs baseline",
-            "status": "BASELINE_ONLY",
-            "note": "Offline replay stubs payloads to {'sim': true}; the >25% shrinkage alert fires only in the delta-detector when a live-shadow run is diffed against the frozen baseline."
-          },
-          "cross_lens_coverage": {
-            "multi_lens_prompts": 0,
-            "covered_2plus": 0,
-            "coverage_rate": 1.0,
-            "gate": ">= 90% of multi-lens prompts retrieve >= 2 lens families",
-            "status": "PASS",
-            "examples": []
-          },
-          "high_confidence_wrong_route": {
-            "count": 1,
-            "rate": 0.0204,
-            "ground_truth_rows": 1,
-            "gate": "< 1%",
-            "status": "WATCH",
-            "examples": [
-              {
-                "message": "Tell me about my Saturn return",
-                "predicted_domain": "identity",
-                "domain_drift_kind": "life_direction->identity",
-                "confidence": 1.0
-              }
-            ]
-          },
-          "founder_operator_suite": {
-            "count": 0,
-            "predicted_domain_mix": {},
-            "routing_pass_rate": 0.0,
-            "gate": "informational (no hard threshold)",
-            "status": "WATCH",
-            "examples": []
-          },
-          "couple_forum_separation": {
-            "count": 0,
-            "kinds": {},
-            "gate": "= 0 in reviewed samples",
-            "status": "PASS",
-            "examples": []
-          },
-          "explainability": {
-            "decision_not_explainable_count": 0,
-            "rate": 0.0,
-            "gate": "informational; track for future bug clusters",
-            "status": "PASS",
-            "examples": []
-          }
         }
       },
       "synth": {
@@ -975,243 +611,15 @@
           "accuracy": 0.65
         },
         "latency_ms": {
-          "mean": 0.118,
+          "mean": 0.12,
           "p50": 0.117,
-          "p95": 0.136,
-          "max": 0.174
+          "p95": 0.137,
+          "max": 0.236
         },
         "versions": {
           "intent_router": "intent_router_v2.1.0",
           "relationship_router": "relationship_router_v2.1.0",
           "validator": "retrieval_validation_v1.2.0"
-        },
-        "regression_buckets": {
-          "domain_drift": {
-            "count": 16,
-            "denominator": 40,
-            "ground_truth_rows": 40,
-            "rate": 0.4,
-            "kinds": {
-              "leadership->growth": 1,
-              "leadership->general": 3,
-              "leadership->work": 1,
-              "leadership->career": 1,
-              "career->life_direction": 1,
-              "life_direction->career": 1,
-              "purpose->general": 2,
-              "money->career": 1,
-              "growth->general": 2,
-              "identity->work": 1,
-              "life_direction->identity": 1,
-              "money->identity": 1
-            },
-            "per_expected_domain": {
-              "leadership": 6,
-              "career": 1,
-              "life_direction": 2,
-              "purpose": 2,
-              "money": 2,
-              "growth": 2,
-              "identity": 1
-            },
-            "per_expected_domain_rate": {
-              "leadership": 0.15,
-              "career": 0.025,
-              "life_direction": 0.05,
-              "purpose": 0.05,
-              "money": 0.05,
-              "growth": 0.05,
-              "identity": 0.025
-            },
-            "domains_above_10pct": [
-              "leadership"
-            ],
-            "gate": "< 5% overall AND no expected_domain > 10%",
-            "status": "FAIL",
-            "examples": [
-              {
-                "message": "My team is stuck in execution mode \u2014 how do I lift them out?",
-                "active_frame": "self",
-                "predicted_domain": "growth",
-                "domain_drift_kind": "leadership->growth"
-              },
-              {
-                "message": "How do I have the firing conversation today?",
-                "active_frame": "self",
-                "predicted_domain": "general",
-                "domain_drift_kind": "leadership->general"
-              },
-              {
-                "message": "What's blocking me from being the leader my team needs?",
-                "active_frame": "self",
-                "predicted_domain": "work",
-                "domain_drift_kind": "leadership->work"
-              },
-              {
-                "message": "How do I scale myself as the company grows?",
-                "active_frame": "self",
-                "predicted_domain": "general",
-                "domain_drift_kind": "leadership->general"
-              },
-              {
-                "message": "Am I micromanaging my head of product?",
-                "active_frame": "self",
-                "predicted_domain": "career",
-                "domain_drift_kind": "leadership->career"
-              }
-            ]
-          },
-          "lens_jargon_override": {
-            "count": 1,
-            "rate": 0.025,
-            "kinds": {
-              "saturn return collapsed to identity (should weight life_direction)": 1
-            },
-            "gate": "< 3%",
-            "status": "PASS",
-            "examples": [
-              {
-                "message": "How do my Saturn return and Enneagram 8 intersect?",
-                "predicted_domain": "identity",
-                "lens_jargon_override": "saturn return collapsed to identity (should weight life_direction)"
-              }
-            ]
-          },
-          "relationship_context_loss": {
-            "count": 2,
-            "rate": 0.05,
-            "gate": "< 2%",
-            "status": "FAIL",
-            "examples": [
-              {
-                "message": "What is Pete's deepest gift to this group?",
-                "predicted_domain": "work",
-                "rel_target_resolved": "tgt-pete"
-              },
-              {
-                "message": "How is Sarah holding back in her role?",
-                "predicted_domain": "career",
-                "rel_target_resolved": "tgt-sarah"
-              }
-            ]
-          },
-          "wrong_target_selected": {
-            "count": 0,
-            "rate": 0.0,
-            "gate": "= 0 in review sample",
-            "status": "PASS",
-            "examples": []
-          },
-          "payload_completeness": {
-            "mandatory_modules_mean": 2.75,
-            "mandatory_modules_min": 1,
-            "mandatory_modules_max": 4,
-            "gate": "no mandatory payload shrinks >25% vs baseline",
-            "status": "BASELINE_ONLY",
-            "note": "Offline replay stubs payloads to {'sim': true}; the >25% shrinkage alert fires only in the delta-detector when a live-shadow run is diffed against the frozen baseline."
-          },
-          "cross_lens_coverage": {
-            "multi_lens_prompts": 2,
-            "covered_2plus": 2,
-            "coverage_rate": 1.0,
-            "gate": ">= 90% of multi-lens prompts retrieve >= 2 lens families",
-            "status": "PASS",
-            "examples": []
-          },
-          "high_confidence_wrong_route": {
-            "count": 3,
-            "rate": 0.075,
-            "ground_truth_rows": 40,
-            "gate": "< 1%",
-            "status": "FAIL",
-            "examples": [
-              {
-                "message": "What does my chart say about my career direction?",
-                "predicted_domain": "career",
-                "domain_drift_kind": "life_direction->career",
-                "confidence": 0.717
-              },
-              {
-                "message": "Is now the right window to fundraise?",
-                "predicted_domain": "career",
-                "domain_drift_kind": "money->career",
-                "confidence": 0.8
-              },
-              {
-                "message": "How do my Saturn return and Enneagram 8 intersect?",
-                "predicted_domain": "identity",
-                "domain_drift_kind": "life_direction->identity",
-                "confidence": 1.0
-              }
-            ]
-          },
-          "founder_operator_suite": {
-            "count": 6,
-            "predicted_domain_mix": {
-              "leadership": 2,
-              "career": 2,
-              "money": 1,
-              "general": 1
-            },
-            "routing_pass_rate": 0.8333,
-            "gate": "informational (no hard threshold)",
-            "status": "WATCH",
-            "examples": [
-              {
-                "message": "Should I delegate the Q3 product decisions to my VP?",
-                "predicted_domain": "leadership",
-                "routing_status": "PASS",
-                "confidence": 0.7
-              },
-              {
-                "message": "I feel like a bad CEO when I can't see the path forward",
-                "predicted_domain": "leadership",
-                "routing_status": "PASS",
-                "confidence": 0.45
-              },
-              {
-                "message": "Is being a founder still my role here?",
-                "predicted_domain": "career",
-                "routing_status": "PASS",
-                "confidence": 1.0
-              },
-              {
-                "message": "Should I take less salary to extend runway?",
-                "predicted_domain": "money",
-                "routing_status": "PASS",
-                "confidence": 0.7708
-              },
-              {
-                "message": "Is now the right window to fundraise?",
-                "predicted_domain": "career",
-                "routing_status": "PASS",
-                "confidence": 0.8
-              }
-            ]
-          },
-          "couple_forum_separation": {
-            "count": 1,
-            "kinds": {
-              "forum_to_couple_bleed": 1
-            },
-            "gate": "= 0 in reviewed samples",
-            "status": "FAIL",
-            "examples": [
-              {
-                "message": "What is Pete's deepest gift to this group?",
-                "active_frame": "member",
-                "couple_forum_bleed_kind": "forum_to_couple_bleed",
-                "predicted_domain": "work"
-              }
-            ]
-          },
-          "explainability": {
-            "decision_not_explainable_count": 0,
-            "rate": 0.0,
-            "gate": "informational; track for future bug clusters",
-            "status": "PASS",
-            "examples": []
-          }
         }
       }
     }
@@ -1242,31 +650,9 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "NOT_APPLICABLE",
-      "latency_ms": 38.467,
+      "latency_ms": 37.991,
       "fm_subbucket": null,
-      "un_subbucket": null,
-      "domain_drift_kind": "life_direction->identity",
-      "lens_jargon_override": "saturn return collapsed to identity (should weight life_direction)",
-      "relationship_context_loss": false,
-      "wrong_target_selected": false,
-      "multi_lens_signature": [
-        "astrology"
-      ],
-      "multi_lens_prompt": false,
-      "lens_priority": [
-        "human_design",
-        "enneagram",
-        "astrology",
-        "numerology",
-        "timeline",
-        "relationship"
-      ],
-      "multi_lens_covered_count": 1,
-      "high_confidence_wrong_route": true,
-      "is_founder_query": false,
-      "couple_forum_bleed_kind": null,
-      "decision_not_explainable": false,
-      "mandatory_modules_count": 3
+      "un_subbucket": null
     },
     {
       "source": "real",
@@ -1295,29 +681,9 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "UNRESOLVED_NO_NAME",
-      "latency_ms": 0.16,
+      "latency_ms": 0.151,
       "fm_subbucket": "unclassified_unresolved",
-      "un_subbucket": null,
-      "domain_drift_kind": null,
-      "lens_jargon_override": null,
-      "relationship_context_loss": false,
-      "wrong_target_selected": false,
-      "multi_lens_signature": [],
-      "multi_lens_prompt": false,
-      "lens_priority": [
-        "relationship",
-        "astrology",
-        "human_design",
-        "enneagram",
-        "timeline",
-        "numerology"
-      ],
-      "multi_lens_covered_count": 0,
-      "high_confidence_wrong_route": false,
-      "is_founder_query": false,
-      "couple_forum_bleed_kind": null,
-      "decision_not_explainable": false,
-      "mandatory_modules_count": 4
+      "un_subbucket": null
     },
     {
       "source": "real",
@@ -1344,24 +710,9 @@
       "retrieval_status": "PASS",
       "routing_status": "WARNING",
       "target_resolution_status": "NOT_APPLICABLE",
-      "latency_ms": 0.128,
+      "latency_ms": 0.116,
       "fm_subbucket": null,
-      "un_subbucket": null,
-      "domain_drift_kind": null,
-      "lens_jargon_override": null,
-      "relationship_context_loss": false,
-      "wrong_target_selected": false,
-      "multi_lens_signature": [],
-      "multi_lens_prompt": false,
-      "lens_priority": [
-        "cross_lens_atoms"
-      ],
-      "multi_lens_covered_count": 0,
-      "high_confidence_wrong_route": false,
-      "is_founder_query": false,
-      "couple_forum_bleed_kind": null,
-      "decision_not_explainable": false,
-      "mandatory_modules_count": 1
+      "un_subbucket": null
     },
     {
       "source": "real",
@@ -1388,24 +739,9 @@
       "retrieval_status": "PASS",
       "routing_status": "WARNING",
       "target_resolution_status": "NOT_APPLICABLE",
-      "latency_ms": 0.114,
+      "latency_ms": 0.111,
       "fm_subbucket": null,
-      "un_subbucket": null,
-      "domain_drift_kind": null,
-      "lens_jargon_override": null,
-      "relationship_context_loss": false,
-      "wrong_target_selected": false,
-      "multi_lens_signature": [],
-      "multi_lens_prompt": false,
-      "lens_priority": [
-        "cross_lens_atoms"
-      ],
-      "multi_lens_covered_count": 0,
-      "high_confidence_wrong_route": false,
-      "is_founder_query": false,
-      "couple_forum_bleed_kind": null,
-      "decision_not_explainable": false,
-      "mandatory_modules_count": 1
+      "un_subbucket": null
     },
     {
       "source": "real",
@@ -1436,29 +772,9 @@
       "retrieval_status": "PASS",
       "routing_status": "WARNING",
       "target_resolution_status": "UNRESOLVED_NO_NAME",
-      "latency_ms": 0.129,
+      "latency_ms": 0.135,
       "fm_subbucket": "unclassified_unresolved",
-      "un_subbucket": null,
-      "domain_drift_kind": null,
-      "lens_jargon_override": null,
-      "relationship_context_loss": false,
-      "wrong_target_selected": false,
-      "multi_lens_signature": [],
-      "multi_lens_prompt": false,
-      "lens_priority": [
-        "relationship",
-        "astrology",
-        "human_design",
-        "enneagram",
-        "timeline",
-        "numerology"
-      ],
-      "multi_lens_covered_count": 0,
-      "high_confidence_wrong_route": false,
-      "is_founder_query": false,
-      "couple_forum_bleed_kind": null,
-      "decision_not_explainable": false,
-      "mandatory_modules_count": 4
+      "un_subbucket": null
     },
     {
       "source": "real",
@@ -1485,29 +801,9 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "NOT_APPLICABLE",
-      "latency_ms": 0.124,
+      "latency_ms": 0.122,
       "fm_subbucket": null,
-      "un_subbucket": null,
-      "domain_drift_kind": null,
-      "lens_jargon_override": null,
-      "relationship_context_loss": false,
-      "wrong_target_selected": false,
-      "multi_lens_signature": [],
-      "multi_lens_prompt": false,
-      "lens_priority": [
-        "human_design",
-        "enneagram",
-        "astrology",
-        "numerology",
-        "timeline",
-        "relationship"
-      ],
-      "multi_lens_covered_count": 0,
-      "high_confidence_wrong_route": false,
-      "is_founder_query": false,
-      "couple_forum_bleed_kind": null,
-      "decision_not_explainable": false,
-      "mandatory_modules_count": 3
+      "un_subbucket": null
     },
     {
       "source": "real",
@@ -1534,24 +830,9 @@
       "retrieval_status": "PASS",
       "routing_status": "WARNING",
       "target_resolution_status": "NOT_APPLICABLE",
-      "latency_ms": 0.087,
+      "latency_ms": 0.084,
       "fm_subbucket": null,
-      "un_subbucket": null,
-      "domain_drift_kind": null,
-      "lens_jargon_override": null,
-      "relationship_context_loss": false,
-      "wrong_target_selected": false,
-      "multi_lens_signature": [],
-      "multi_lens_prompt": false,
-      "lens_priority": [
-        "cross_lens_atoms"
-      ],
-      "multi_lens_covered_count": 0,
-      "high_confidence_wrong_route": false,
-      "is_founder_query": false,
-      "couple_forum_bleed_kind": null,
-      "decision_not_explainable": false,
-      "mandatory_modules_count": 1
+      "un_subbucket": null
     },
     {
       "source": "real",
@@ -1582,29 +863,9 @@
       "retrieval_status": "PASS",
       "routing_status": "WARNING",
       "target_resolution_status": "UNRESOLVED_NO_NAME",
-      "latency_ms": 0.139,
+      "latency_ms": 0.137,
       "fm_subbucket": "unclassified_unresolved",
-      "un_subbucket": null,
-      "domain_drift_kind": null,
-      "lens_jargon_override": null,
-      "relationship_context_loss": false,
-      "wrong_target_selected": false,
-      "multi_lens_signature": [],
-      "multi_lens_prompt": false,
-      "lens_priority": [
-        "relationship",
-        "astrology",
-        "human_design",
-        "enneagram",
-        "timeline",
-        "numerology"
-      ],
-      "multi_lens_covered_count": 0,
-      "high_confidence_wrong_route": false,
-      "is_founder_query": false,
-      "couple_forum_bleed_kind": null,
-      "decision_not_explainable": false,
-      "mandatory_modules_count": 4
+      "un_subbucket": null
     },
     {
       "source": "real",
@@ -1631,29 +892,9 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "NOT_APPLICABLE",
-      "latency_ms": 0.118,
+      "latency_ms": 0.116,
       "fm_subbucket": null,
-      "un_subbucket": null,
-      "domain_drift_kind": null,
-      "lens_jargon_override": null,
-      "relationship_context_loss": false,
-      "wrong_target_selected": false,
-      "multi_lens_signature": [],
-      "multi_lens_prompt": false,
-      "lens_priority": [
-        "human_design",
-        "enneagram",
-        "astrology",
-        "numerology",
-        "timeline",
-        "relationship"
-      ],
-      "multi_lens_covered_count": 0,
-      "high_confidence_wrong_route": false,
-      "is_founder_query": false,
-      "couple_forum_bleed_kind": null,
-      "decision_not_explainable": false,
-      "mandatory_modules_count": 3
+      "un_subbucket": null
     },
     {
       "source": "real",
@@ -1682,29 +923,9 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "UNRESOLVED_NO_NAME",
-      "latency_ms": 0.125,
+      "latency_ms": 0.114,
       "fm_subbucket": "unclassified_unresolved",
-      "un_subbucket": null,
-      "domain_drift_kind": null,
-      "lens_jargon_override": null,
-      "relationship_context_loss": false,
-      "wrong_target_selected": false,
-      "multi_lens_signature": [],
-      "multi_lens_prompt": false,
-      "lens_priority": [
-        "relationship",
-        "astrology",
-        "human_design",
-        "enneagram",
-        "timeline",
-        "numerology"
-      ],
-      "multi_lens_covered_count": 0,
-      "high_confidence_wrong_route": false,
-      "is_founder_query": false,
-      "couple_forum_bleed_kind": null,
-      "decision_not_explainable": false,
-      "mandatory_modules_count": 4
+      "un_subbucket": null
     },
     {
       "source": "real",
@@ -1731,24 +952,9 @@
       "retrieval_status": "PASS",
       "routing_status": "WARNING",
       "target_resolution_status": "NOT_APPLICABLE",
-      "latency_ms": 0.093,
+      "latency_ms": 0.092,
       "fm_subbucket": null,
-      "un_subbucket": null,
-      "domain_drift_kind": null,
-      "lens_jargon_override": null,
-      "relationship_context_loss": false,
-      "wrong_target_selected": false,
-      "multi_lens_signature": [],
-      "multi_lens_prompt": false,
-      "lens_priority": [
-        "cross_lens_atoms"
-      ],
-      "multi_lens_covered_count": 0,
-      "high_confidence_wrong_route": false,
-      "is_founder_query": false,
-      "couple_forum_bleed_kind": null,
-      "decision_not_explainable": false,
-      "mandatory_modules_count": 1
+      "un_subbucket": null
     },
     {
       "source": "real",
@@ -1781,27 +987,7 @@
       "target_resolution_status": "RESOLVED",
       "latency_ms": 0.116,
       "fm_subbucket": null,
-      "un_subbucket": null,
-      "domain_drift_kind": null,
-      "lens_jargon_override": null,
-      "relationship_context_loss": false,
-      "wrong_target_selected": false,
-      "multi_lens_signature": [],
-      "multi_lens_prompt": false,
-      "lens_priority": [
-        "astrology",
-        "timeline",
-        "human_design",
-        "enneagram",
-        "numerology",
-        "relationship"
-      ],
-      "multi_lens_covered_count": 0,
-      "high_confidence_wrong_route": false,
-      "is_founder_query": false,
-      "couple_forum_bleed_kind": null,
-      "decision_not_explainable": false,
-      "mandatory_modules_count": 3
+      "un_subbucket": null
     },
     {
       "source": "real",
@@ -1830,29 +1016,9 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "UNRESOLVED_NO_NAME",
-      "latency_ms": 0.113,
+      "latency_ms": 0.106,
       "fm_subbucket": "unclassified_unresolved",
-      "un_subbucket": null,
-      "domain_drift_kind": null,
-      "lens_jargon_override": null,
-      "relationship_context_loss": false,
-      "wrong_target_selected": false,
-      "multi_lens_signature": [],
-      "multi_lens_prompt": false,
-      "lens_priority": [
-        "relationship",
-        "astrology",
-        "human_design",
-        "enneagram",
-        "timeline",
-        "numerology"
-      ],
-      "multi_lens_covered_count": 0,
-      "high_confidence_wrong_route": false,
-      "is_founder_query": false,
-      "couple_forum_bleed_kind": null,
-      "decision_not_explainable": false,
-      "mandatory_modules_count": 4
+      "un_subbucket": null
     },
     {
       "source": "real",
@@ -1881,29 +1047,9 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "UNRESOLVED_NO_NAME",
-      "latency_ms": 0.11,
+      "latency_ms": 0.117,
       "fm_subbucket": "unclassified_unresolved",
-      "un_subbucket": null,
-      "domain_drift_kind": null,
-      "lens_jargon_override": null,
-      "relationship_context_loss": false,
-      "wrong_target_selected": false,
-      "multi_lens_signature": [],
-      "multi_lens_prompt": false,
-      "lens_priority": [
-        "relationship",
-        "astrology",
-        "human_design",
-        "enneagram",
-        "timeline",
-        "numerology"
-      ],
-      "multi_lens_covered_count": 0,
-      "high_confidence_wrong_route": false,
-      "is_founder_query": false,
-      "couple_forum_bleed_kind": null,
-      "decision_not_explainable": false,
-      "mandatory_modules_count": 4
+      "un_subbucket": null
     },
     {
       "source": "real",
@@ -1930,24 +1076,9 @@
       "retrieval_status": "PASS",
       "routing_status": "WARNING",
       "target_resolution_status": "NOT_APPLICABLE",
-      "latency_ms": 0.091,
+      "latency_ms": 0.092,
       "fm_subbucket": null,
-      "un_subbucket": null,
-      "domain_drift_kind": null,
-      "lens_jargon_override": null,
-      "relationship_context_loss": false,
-      "wrong_target_selected": false,
-      "multi_lens_signature": [],
-      "multi_lens_prompt": false,
-      "lens_priority": [
-        "cross_lens_atoms"
-      ],
-      "multi_lens_covered_count": 0,
-      "high_confidence_wrong_route": false,
-      "is_founder_query": false,
-      "couple_forum_bleed_kind": null,
-      "decision_not_explainable": false,
-      "mandatory_modules_count": 1
+      "un_subbucket": null
     },
     {
       "source": "real",
@@ -1978,29 +1109,9 @@
       "retrieval_status": "PASS",
       "routing_status": "WARNING",
       "target_resolution_status": "RESOLVED",
-      "latency_ms": 0.111,
+      "latency_ms": 0.11,
       "fm_subbucket": null,
-      "un_subbucket": null,
-      "domain_drift_kind": null,
-      "lens_jargon_override": null,
-      "relationship_context_loss": false,
-      "wrong_target_selected": false,
-      "multi_lens_signature": [],
-      "multi_lens_prompt": false,
-      "lens_priority": [
-        "astrology",
-        "timeline",
-        "human_design",
-        "enneagram",
-        "numerology",
-        "relationship"
-      ],
-      "multi_lens_covered_count": 0,
-      "high_confidence_wrong_route": false,
-      "is_founder_query": false,
-      "couple_forum_bleed_kind": null,
-      "decision_not_explainable": false,
-      "mandatory_modules_count": 3
+      "un_subbucket": null
     },
     {
       "source": "real",
@@ -2029,29 +1140,9 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "UNRESOLVED_NO_NAME",
-      "latency_ms": 0.105,
+      "latency_ms": 0.109,
       "fm_subbucket": "unclassified_unresolved",
-      "un_subbucket": null,
-      "domain_drift_kind": null,
-      "lens_jargon_override": null,
-      "relationship_context_loss": false,
-      "wrong_target_selected": false,
-      "multi_lens_signature": [],
-      "multi_lens_prompt": false,
-      "lens_priority": [
-        "relationship",
-        "astrology",
-        "human_design",
-        "enneagram",
-        "timeline",
-        "numerology"
-      ],
-      "multi_lens_covered_count": 0,
-      "high_confidence_wrong_route": false,
-      "is_founder_query": false,
-      "couple_forum_bleed_kind": null,
-      "decision_not_explainable": false,
-      "mandatory_modules_count": 4
+      "un_subbucket": null
     },
     {
       "source": "real",
@@ -2088,29 +1179,9 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "UNRESOLVED_NAMED",
-      "latency_ms": 0.145,
+      "latency_ms": 0.143,
       "fm_subbucket": null,
-      "un_subbucket": "true_missing_person",
-      "domain_drift_kind": null,
-      "lens_jargon_override": null,
-      "relationship_context_loss": false,
-      "wrong_target_selected": false,
-      "multi_lens_signature": [],
-      "multi_lens_prompt": false,
-      "lens_priority": [
-        "relationship",
-        "astrology",
-        "human_design",
-        "enneagram",
-        "timeline",
-        "numerology"
-      ],
-      "multi_lens_covered_count": 0,
-      "high_confidence_wrong_route": false,
-      "is_founder_query": false,
-      "couple_forum_bleed_kind": null,
-      "decision_not_explainable": false,
-      "mandatory_modules_count": 4
+      "un_subbucket": "true_missing_person"
     },
     {
       "source": "real",
@@ -2149,27 +1220,7 @@
       "target_resolution_status": "UNRESOLVED_NAMED",
       "latency_ms": 0.132,
       "fm_subbucket": null,
-      "un_subbucket": "true_missing_person",
-      "domain_drift_kind": null,
-      "lens_jargon_override": null,
-      "relationship_context_loss": false,
-      "wrong_target_selected": false,
-      "multi_lens_signature": [],
-      "multi_lens_prompt": false,
-      "lens_priority": [
-        "relationship",
-        "astrology",
-        "human_design",
-        "enneagram",
-        "timeline",
-        "numerology"
-      ],
-      "multi_lens_covered_count": 0,
-      "high_confidence_wrong_route": false,
-      "is_founder_query": false,
-      "couple_forum_bleed_kind": null,
-      "decision_not_explainable": false,
-      "mandatory_modules_count": 4
+      "un_subbucket": "true_missing_person"
     },
     {
       "source": "real",
@@ -2206,29 +1257,9 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "UNRESOLVED_NAMED",
-      "latency_ms": 0.144,
+      "latency_ms": 0.14,
       "fm_subbucket": null,
-      "un_subbucket": "true_missing_person",
-      "domain_drift_kind": null,
-      "lens_jargon_override": null,
-      "relationship_context_loss": false,
-      "wrong_target_selected": false,
-      "multi_lens_signature": [],
-      "multi_lens_prompt": false,
-      "lens_priority": [
-        "relationship",
-        "astrology",
-        "human_design",
-        "enneagram",
-        "timeline",
-        "numerology"
-      ],
-      "multi_lens_covered_count": 0,
-      "high_confidence_wrong_route": false,
-      "is_founder_query": false,
-      "couple_forum_bleed_kind": null,
-      "decision_not_explainable": false,
-      "mandatory_modules_count": 4
+      "un_subbucket": "true_missing_person"
     },
     {
       "source": "real",
@@ -2263,29 +1294,9 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "UNRESOLVED_NAMED",
-      "latency_ms": 0.13,
+      "latency_ms": 0.136,
       "fm_subbucket": null,
-      "un_subbucket": "true_missing_person",
-      "domain_drift_kind": null,
-      "lens_jargon_override": null,
-      "relationship_context_loss": false,
-      "wrong_target_selected": false,
-      "multi_lens_signature": [],
-      "multi_lens_prompt": false,
-      "lens_priority": [
-        "relationship",
-        "astrology",
-        "human_design",
-        "enneagram",
-        "timeline",
-        "numerology"
-      ],
-      "multi_lens_covered_count": 0,
-      "high_confidence_wrong_route": false,
-      "is_founder_query": false,
-      "couple_forum_bleed_kind": null,
-      "decision_not_explainable": false,
-      "mandatory_modules_count": 4
+      "un_subbucket": "true_missing_person"
     },
     {
       "source": "real",
@@ -2320,29 +1331,9 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "UNRESOLVED_NAMED",
-      "latency_ms": 0.127,
+      "latency_ms": 0.124,
       "fm_subbucket": null,
-      "un_subbucket": "true_missing_person",
-      "domain_drift_kind": null,
-      "lens_jargon_override": null,
-      "relationship_context_loss": false,
-      "wrong_target_selected": false,
-      "multi_lens_signature": [],
-      "multi_lens_prompt": false,
-      "lens_priority": [
-        "relationship",
-        "astrology",
-        "human_design",
-        "enneagram",
-        "timeline",
-        "numerology"
-      ],
-      "multi_lens_covered_count": 0,
-      "high_confidence_wrong_route": false,
-      "is_founder_query": false,
-      "couple_forum_bleed_kind": null,
-      "decision_not_explainable": false,
-      "mandatory_modules_count": 4
+      "un_subbucket": "true_missing_person"
     },
     {
       "source": "real",
@@ -2377,29 +1368,9 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "UNRESOLVED_NAMED",
-      "latency_ms": 0.121,
+      "latency_ms": 0.118,
       "fm_subbucket": null,
-      "un_subbucket": "true_missing_person",
-      "domain_drift_kind": null,
-      "lens_jargon_override": null,
-      "relationship_context_loss": false,
-      "wrong_target_selected": false,
-      "multi_lens_signature": [],
-      "multi_lens_prompt": false,
-      "lens_priority": [
-        "relationship",
-        "astrology",
-        "human_design",
-        "enneagram",
-        "timeline",
-        "numerology"
-      ],
-      "multi_lens_covered_count": 0,
-      "high_confidence_wrong_route": false,
-      "is_founder_query": false,
-      "couple_forum_bleed_kind": null,
-      "decision_not_explainable": false,
-      "mandatory_modules_count": 4
+      "un_subbucket": "true_missing_person"
     },
     {
       "source": "real",
@@ -2434,24 +1405,9 @@
       "retrieval_status": "PASS",
       "routing_status": "WARNING",
       "target_resolution_status": "UNRESOLVED_NAMED",
-      "latency_ms": 0.102,
+      "latency_ms": 0.106,
       "fm_subbucket": null,
-      "un_subbucket": "true_missing_person",
-      "domain_drift_kind": null,
-      "lens_jargon_override": null,
-      "relationship_context_loss": false,
-      "wrong_target_selected": false,
-      "multi_lens_signature": [],
-      "multi_lens_prompt": false,
-      "lens_priority": [
-        "cross_lens_atoms"
-      ],
-      "multi_lens_covered_count": 0,
-      "high_confidence_wrong_route": false,
-      "is_founder_query": false,
-      "couple_forum_bleed_kind": null,
-      "decision_not_explainable": false,
-      "mandatory_modules_count": 1
+      "un_subbucket": "true_missing_person"
     },
     {
       "source": "real",
@@ -2486,29 +1442,9 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "UNRESOLVED_NAMED",
-      "latency_ms": 0.12,
+      "latency_ms": 0.119,
       "fm_subbucket": null,
-      "un_subbucket": "true_missing_person",
-      "domain_drift_kind": null,
-      "lens_jargon_override": null,
-      "relationship_context_loss": false,
-      "wrong_target_selected": false,
-      "multi_lens_signature": [],
-      "multi_lens_prompt": false,
-      "lens_priority": [
-        "relationship",
-        "astrology",
-        "human_design",
-        "enneagram",
-        "timeline",
-        "numerology"
-      ],
-      "multi_lens_covered_count": 0,
-      "high_confidence_wrong_route": false,
-      "is_founder_query": false,
-      "couple_forum_bleed_kind": null,
-      "decision_not_explainable": false,
-      "mandatory_modules_count": 4
+      "un_subbucket": "true_missing_person"
     },
     {
       "source": "real",
@@ -2543,29 +1479,9 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "UNRESOLVED_NAMED",
-      "latency_ms": 0.123,
+      "latency_ms": 0.118,
       "fm_subbucket": null,
-      "un_subbucket": "true_missing_person",
-      "domain_drift_kind": null,
-      "lens_jargon_override": null,
-      "relationship_context_loss": false,
-      "wrong_target_selected": false,
-      "multi_lens_signature": [],
-      "multi_lens_prompt": false,
-      "lens_priority": [
-        "relationship",
-        "astrology",
-        "human_design",
-        "enneagram",
-        "timeline",
-        "numerology"
-      ],
-      "multi_lens_covered_count": 0,
-      "high_confidence_wrong_route": false,
-      "is_founder_query": false,
-      "couple_forum_bleed_kind": null,
-      "decision_not_explainable": false,
-      "mandatory_modules_count": 4
+      "un_subbucket": "true_missing_person"
     },
     {
       "source": "real",
@@ -2594,31 +1510,9 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "NOT_APPLICABLE",
-      "latency_ms": 0.116,
+      "latency_ms": 0.114,
       "fm_subbucket": null,
-      "un_subbucket": null,
-      "domain_drift_kind": null,
-      "lens_jargon_override": null,
-      "relationship_context_loss": false,
-      "wrong_target_selected": false,
-      "multi_lens_signature": [
-        "astrology"
-      ],
-      "multi_lens_prompt": false,
-      "lens_priority": [
-        "relationship",
-        "astrology",
-        "human_design",
-        "enneagram",
-        "timeline",
-        "numerology"
-      ],
-      "multi_lens_covered_count": 1,
-      "high_confidence_wrong_route": false,
-      "is_founder_query": false,
-      "couple_forum_bleed_kind": null,
-      "decision_not_explainable": false,
-      "mandatory_modules_count": 4
+      "un_subbucket": null
     },
     {
       "source": "real",
@@ -2647,29 +1541,9 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "UNRESOLVED_NO_NAME",
-      "latency_ms": 0.117,
+      "latency_ms": 0.115,
       "fm_subbucket": "unclassified_unresolved",
-      "un_subbucket": null,
-      "domain_drift_kind": null,
-      "lens_jargon_override": null,
-      "relationship_context_loss": false,
-      "wrong_target_selected": false,
-      "multi_lens_signature": [],
-      "multi_lens_prompt": false,
-      "lens_priority": [
-        "relationship",
-        "astrology",
-        "human_design",
-        "enneagram",
-        "timeline",
-        "numerology"
-      ],
-      "multi_lens_covered_count": 0,
-      "high_confidence_wrong_route": false,
-      "is_founder_query": false,
-      "couple_forum_bleed_kind": null,
-      "decision_not_explainable": false,
-      "mandatory_modules_count": 4
+      "un_subbucket": null
     },
     {
       "source": "real",
@@ -2704,31 +1578,9 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "UNRESOLVED_NAMED",
-      "latency_ms": 0.123,
+      "latency_ms": 0.127,
       "fm_subbucket": null,
-      "un_subbucket": "true_missing_person",
-      "domain_drift_kind": null,
-      "lens_jargon_override": null,
-      "relationship_context_loss": false,
-      "wrong_target_selected": false,
-      "multi_lens_signature": [
-        "human_design"
-      ],
-      "multi_lens_prompt": false,
-      "lens_priority": [
-        "relationship",
-        "astrology",
-        "human_design",
-        "enneagram",
-        "timeline",
-        "numerology"
-      ],
-      "multi_lens_covered_count": 1,
-      "high_confidence_wrong_route": false,
-      "is_founder_query": false,
-      "couple_forum_bleed_kind": null,
-      "decision_not_explainable": false,
-      "mandatory_modules_count": 4
+      "un_subbucket": "true_missing_person"
     },
     {
       "source": "real",
@@ -2765,31 +1617,9 @@
       "retrieval_status": "PASS",
       "routing_status": "WARNING",
       "target_resolution_status": "UNRESOLVED_NAMED",
-      "latency_ms": 0.139,
+      "latency_ms": 0.132,
       "fm_subbucket": null,
-      "un_subbucket": "true_missing_person",
-      "domain_drift_kind": null,
-      "lens_jargon_override": null,
-      "relationship_context_loss": false,
-      "wrong_target_selected": false,
-      "multi_lens_signature": [
-        "enneagram"
-      ],
-      "multi_lens_prompt": false,
-      "lens_priority": [
-        "human_design",
-        "enneagram",
-        "astrology",
-        "numerology",
-        "timeline",
-        "relationship"
-      ],
-      "multi_lens_covered_count": 1,
-      "high_confidence_wrong_route": false,
-      "is_founder_query": false,
-      "couple_forum_bleed_kind": null,
-      "decision_not_explainable": false,
-      "mandatory_modules_count": 3
+      "un_subbucket": "true_missing_person"
     },
     {
       "source": "real",
@@ -2820,29 +1650,9 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "RESOLVED",
-      "latency_ms": 0.116,
+      "latency_ms": 0.114,
       "fm_subbucket": null,
-      "un_subbucket": null,
-      "domain_drift_kind": null,
-      "lens_jargon_override": null,
-      "relationship_context_loss": false,
-      "wrong_target_selected": false,
-      "multi_lens_signature": [],
-      "multi_lens_prompt": false,
-      "lens_priority": [
-        "relationship",
-        "astrology",
-        "human_design",
-        "enneagram",
-        "numerology",
-        "timeline"
-      ],
-      "multi_lens_covered_count": 0,
-      "high_confidence_wrong_route": false,
-      "is_founder_query": false,
-      "couple_forum_bleed_kind": null,
-      "decision_not_explainable": false,
-      "mandatory_modules_count": 2
+      "un_subbucket": null
     },
     {
       "source": "real",
@@ -2869,31 +1679,9 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "NOT_APPLICABLE",
-      "latency_ms": 0.111,
+      "latency_ms": 0.12,
       "fm_subbucket": null,
-      "un_subbucket": null,
-      "domain_drift_kind": null,
-      "lens_jargon_override": "7th house auto-routed to relationship without relational kw",
-      "relationship_context_loss": false,
-      "wrong_target_selected": false,
-      "multi_lens_signature": [
-        "astrology"
-      ],
-      "multi_lens_prompt": false,
-      "lens_priority": [
-        "relationship",
-        "astrology",
-        "human_design",
-        "enneagram",
-        "timeline",
-        "numerology"
-      ],
-      "multi_lens_covered_count": 1,
-      "high_confidence_wrong_route": false,
-      "is_founder_query": false,
-      "couple_forum_bleed_kind": null,
-      "decision_not_explainable": false,
-      "mandatory_modules_count": 4
+      "un_subbucket": null
     },
     {
       "source": "real",
@@ -2922,31 +1710,9 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "NOT_APPLICABLE",
-      "latency_ms": 0.123,
+      "latency_ms": 0.117,
       "fm_subbucket": null,
-      "un_subbucket": null,
-      "domain_drift_kind": null,
-      "lens_jargon_override": null,
-      "relationship_context_loss": false,
-      "wrong_target_selected": false,
-      "multi_lens_signature": [
-        "astrology"
-      ],
-      "multi_lens_prompt": false,
-      "lens_priority": [
-        "relationship",
-        "astrology",
-        "human_design",
-        "enneagram",
-        "timeline",
-        "numerology"
-      ],
-      "multi_lens_covered_count": 1,
-      "high_confidence_wrong_route": false,
-      "is_founder_query": false,
-      "couple_forum_bleed_kind": null,
-      "decision_not_explainable": false,
-      "mandatory_modules_count": 4
+      "un_subbucket": null
     },
     {
       "source": "real",
@@ -2975,31 +1741,9 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "NOT_APPLICABLE",
-      "latency_ms": 0.111,
+      "latency_ms": 0.113,
       "fm_subbucket": null,
-      "un_subbucket": null,
-      "domain_drift_kind": null,
-      "lens_jargon_override": null,
-      "relationship_context_loss": false,
-      "wrong_target_selected": false,
-      "multi_lens_signature": [
-        "astrology"
-      ],
-      "multi_lens_prompt": false,
-      "lens_priority": [
-        "relationship",
-        "astrology",
-        "human_design",
-        "enneagram",
-        "timeline",
-        "numerology"
-      ],
-      "multi_lens_covered_count": 1,
-      "high_confidence_wrong_route": false,
-      "is_founder_query": false,
-      "couple_forum_bleed_kind": null,
-      "decision_not_explainable": false,
-      "mandatory_modules_count": 4
+      "un_subbucket": null
     },
     {
       "source": "real",
@@ -3030,27 +1774,7 @@
       "target_resolution_status": "UNRESOLVED_NO_NAME",
       "latency_ms": 0.11,
       "fm_subbucket": "unclassified_unresolved",
-      "un_subbucket": null,
-      "domain_drift_kind": null,
-      "lens_jargon_override": null,
-      "relationship_context_loss": false,
-      "wrong_target_selected": false,
-      "multi_lens_signature": [],
-      "multi_lens_prompt": false,
-      "lens_priority": [
-        "relationship",
-        "astrology",
-        "human_design",
-        "enneagram",
-        "timeline",
-        "numerology"
-      ],
-      "multi_lens_covered_count": 0,
-      "high_confidence_wrong_route": false,
-      "is_founder_query": false,
-      "couple_forum_bleed_kind": null,
-      "decision_not_explainable": false,
-      "mandatory_modules_count": 4
+      "un_subbucket": null
     },
     {
       "source": "real",
@@ -3086,29 +1810,9 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "UNRESOLVED_NAMED",
-      "latency_ms": 0.124,
+      "latency_ms": 0.126,
       "fm_subbucket": "forum_to_member_misroute",
-      "un_subbucket": "forum_only_member",
-      "domain_drift_kind": null,
-      "lens_jargon_override": null,
-      "relationship_context_loss": false,
-      "wrong_target_selected": false,
-      "multi_lens_signature": [],
-      "multi_lens_prompt": false,
-      "lens_priority": [
-        "relationship",
-        "astrology",
-        "human_design",
-        "enneagram",
-        "timeline",
-        "numerology"
-      ],
-      "multi_lens_covered_count": 0,
-      "high_confidence_wrong_route": false,
-      "is_founder_query": false,
-      "couple_forum_bleed_kind": null,
-      "decision_not_explainable": false,
-      "mandatory_modules_count": 4
+      "un_subbucket": "forum_only_member"
     },
     {
       "source": "real",
@@ -3137,131 +1841,9 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "UNRESOLVED_NO_NAME",
-      "latency_ms": 0.119,
+      "latency_ms": 0.12,
       "fm_subbucket": "unclassified_unresolved",
-      "un_subbucket": null,
-      "domain_drift_kind": null,
-      "lens_jargon_override": null,
-      "relationship_context_loss": false,
-      "wrong_target_selected": false,
-      "multi_lens_signature": [],
-      "multi_lens_prompt": false,
-      "lens_priority": [
-        "relationship",
-        "astrology",
-        "human_design",
-        "enneagram",
-        "timeline",
-        "numerology"
-      ],
-      "multi_lens_covered_count": 0,
-      "high_confidence_wrong_route": false,
-      "is_founder_query": false,
-      "couple_forum_bleed_kind": null,
-      "decision_not_explainable": false,
-      "mandatory_modules_count": 4
-    },
-    {
-      "source": "real",
-      "collection": "forum_mirror_chat_messages",
-      "user_id_short": "697f0c6abf",
-      "message": "What softens this room?",
-      "active_frame": "forum",
-      "explicit_target_id": null,
-      "category": "forum_member",
-      "predicted_domain": "relationship",
-      "expected_domain": null,
-      "top1_hit": null,
-      "signal_strength": 0.45,
-      "margin": 0.6364,
-      "confidence": 0.3682,
-      "fallback_reason": null,
-      "relationship_relevant": true,
-      "secondary_domains": [],
-      "rel_target_resolved": null,
-      "rel_target_unresolved_name": null,
-      "rel_missing_data": [
-        "forum_target_unresolved"
-      ],
-      "rel_proposed_action": null,
-      "rel_context_mode": "SELF",
-      "retrieval_status": "PASS",
-      "routing_status": "PASS",
-      "target_resolution_status": "UNRESOLVED_NO_NAME",
-      "latency_ms": 0.109,
-      "fm_subbucket": "unclassified_unresolved",
-      "un_subbucket": null,
-      "domain_drift_kind": null,
-      "lens_jargon_override": null,
-      "relationship_context_loss": false,
-      "wrong_target_selected": false,
-      "multi_lens_signature": [],
-      "multi_lens_prompt": false,
-      "lens_priority": [
-        "relationship",
-        "astrology",
-        "human_design",
-        "enneagram",
-        "timeline",
-        "numerology"
-      ],
-      "multi_lens_covered_count": 0,
-      "high_confidence_wrong_route": false,
-      "is_founder_query": false,
-      "couple_forum_bleed_kind": null,
-      "decision_not_explainable": false,
-      "mandatory_modules_count": 4
-    },
-    {
-      "source": "real",
-      "collection": "forum_mirror_chat_messages",
-      "user_id_short": "697f0c6abf",
-      "message": "What softens this room?",
-      "active_frame": "forum",
-      "explicit_target_id": null,
-      "category": "forum_member",
-      "predicted_domain": "relationship",
-      "expected_domain": null,
-      "top1_hit": null,
-      "signal_strength": 0.45,
-      "margin": 0.6364,
-      "confidence": 0.3682,
-      "fallback_reason": null,
-      "relationship_relevant": true,
-      "secondary_domains": [],
-      "rel_target_resolved": null,
-      "rel_target_unresolved_name": null,
-      "rel_missing_data": [
-        "forum_target_unresolved"
-      ],
-      "rel_proposed_action": null,
-      "rel_context_mode": "SELF",
-      "retrieval_status": "PASS",
-      "routing_status": "PASS",
-      "target_resolution_status": "UNRESOLVED_NO_NAME",
-      "latency_ms": 0.106,
-      "fm_subbucket": "unclassified_unresolved",
-      "un_subbucket": null,
-      "domain_drift_kind": null,
-      "lens_jargon_override": null,
-      "relationship_context_loss": false,
-      "wrong_target_selected": false,
-      "multi_lens_signature": [],
-      "multi_lens_prompt": false,
-      "lens_priority": [
-        "relationship",
-        "astrology",
-        "human_design",
-        "enneagram",
-        "timeline",
-        "numerology"
-      ],
-      "multi_lens_covered_count": 0,
-      "high_confidence_wrong_route": false,
-      "is_founder_query": false,
-      "couple_forum_bleed_kind": null,
-      "decision_not_explainable": false,
-      "mandatory_modules_count": 4
+      "un_subbucket": null
     },
     {
       "source": "real",
@@ -3292,27 +1874,100 @@
       "target_resolution_status": "UNRESOLVED_NO_NAME",
       "latency_ms": 0.11,
       "fm_subbucket": "unclassified_unresolved",
-      "un_subbucket": null,
-      "domain_drift_kind": null,
-      "lens_jargon_override": null,
-      "relationship_context_loss": false,
-      "wrong_target_selected": false,
-      "multi_lens_signature": [],
-      "multi_lens_prompt": false,
-      "lens_priority": [
-        "relationship",
-        "astrology",
-        "human_design",
-        "enneagram",
-        "timeline",
-        "numerology"
+      "un_subbucket": null
+    },
+    {
+      "source": "real",
+      "collection": "forum_mirror_chat_messages",
+      "user_id_short": "697f0c6abf",
+      "message": "What softens this room?",
+      "active_frame": "forum",
+      "explicit_target_id": null,
+      "category": "forum_member",
+      "predicted_domain": "relationship",
+      "expected_domain": null,
+      "top1_hit": null,
+      "signal_strength": 0.45,
+      "margin": 0.6364,
+      "confidence": 0.3682,
+      "fallback_reason": null,
+      "relationship_relevant": true,
+      "secondary_domains": [],
+      "rel_target_resolved": null,
+      "rel_target_unresolved_name": null,
+      "rel_missing_data": [
+        "forum_target_unresolved"
       ],
-      "multi_lens_covered_count": 0,
-      "high_confidence_wrong_route": false,
-      "is_founder_query": false,
-      "couple_forum_bleed_kind": null,
-      "decision_not_explainable": false,
-      "mandatory_modules_count": 4
+      "rel_proposed_action": null,
+      "rel_context_mode": "SELF",
+      "retrieval_status": "PASS",
+      "routing_status": "PASS",
+      "target_resolution_status": "UNRESOLVED_NO_NAME",
+      "latency_ms": 0.106,
+      "fm_subbucket": "unclassified_unresolved",
+      "un_subbucket": null
+    },
+    {
+      "source": "real",
+      "collection": "forum_mirror_chat_messages",
+      "user_id_short": "697f0c6abf",
+      "message": "What softens this room?",
+      "active_frame": "forum",
+      "explicit_target_id": null,
+      "category": "forum_member",
+      "predicted_domain": "relationship",
+      "expected_domain": null,
+      "top1_hit": null,
+      "signal_strength": 0.45,
+      "margin": 0.6364,
+      "confidence": 0.3682,
+      "fallback_reason": null,
+      "relationship_relevant": true,
+      "secondary_domains": [],
+      "rel_target_resolved": null,
+      "rel_target_unresolved_name": null,
+      "rel_missing_data": [
+        "forum_target_unresolved"
+      ],
+      "rel_proposed_action": null,
+      "rel_context_mode": "SELF",
+      "retrieval_status": "PASS",
+      "routing_status": "PASS",
+      "target_resolution_status": "UNRESOLVED_NO_NAME",
+      "latency_ms": 0.105,
+      "fm_subbucket": "unclassified_unresolved",
+      "un_subbucket": null
+    },
+    {
+      "source": "real",
+      "collection": "forum_mirror_chat_messages",
+      "user_id_short": "697f0c6abf",
+      "message": "What softens?",
+      "active_frame": "forum",
+      "explicit_target_id": null,
+      "category": "forum_member",
+      "predicted_domain": "relationship",
+      "expected_domain": null,
+      "top1_hit": null,
+      "signal_strength": 0.45,
+      "margin": 0.6364,
+      "confidence": 0.3682,
+      "fallback_reason": null,
+      "relationship_relevant": true,
+      "secondary_domains": [],
+      "rel_target_resolved": null,
+      "rel_target_unresolved_name": null,
+      "rel_missing_data": [
+        "forum_target_unresolved"
+      ],
+      "rel_proposed_action": null,
+      "rel_context_mode": "SELF",
+      "retrieval_status": "PASS",
+      "routing_status": "PASS",
+      "target_resolution_status": "UNRESOLVED_NO_NAME",
+      "latency_ms": 0.11,
+      "fm_subbucket": "unclassified_unresolved",
+      "un_subbucket": null
     },
     {
       "source": "real",
@@ -3343,78 +1998,7 @@
       "target_resolution_status": "UNRESOLVED_NO_NAME",
       "latency_ms": 0.105,
       "fm_subbucket": "unclassified_unresolved",
-      "un_subbucket": null,
-      "domain_drift_kind": null,
-      "lens_jargon_override": null,
-      "relationship_context_loss": false,
-      "wrong_target_selected": false,
-      "multi_lens_signature": [],
-      "multi_lens_prompt": false,
-      "lens_priority": [
-        "relationship",
-        "astrology",
-        "human_design",
-        "enneagram",
-        "timeline",
-        "numerology"
-      ],
-      "multi_lens_covered_count": 0,
-      "high_confidence_wrong_route": false,
-      "is_founder_query": false,
-      "couple_forum_bleed_kind": null,
-      "decision_not_explainable": false,
-      "mandatory_modules_count": 4
-    },
-    {
-      "source": "real",
-      "collection": "forum_mirror_chat_messages",
-      "user_id_short": "697f0c6abf",
-      "message": "What softens?",
-      "active_frame": "forum",
-      "explicit_target_id": null,
-      "category": "forum_member",
-      "predicted_domain": "relationship",
-      "expected_domain": null,
-      "top1_hit": null,
-      "signal_strength": 0.45,
-      "margin": 0.6364,
-      "confidence": 0.3682,
-      "fallback_reason": null,
-      "relationship_relevant": true,
-      "secondary_domains": [],
-      "rel_target_resolved": null,
-      "rel_target_unresolved_name": null,
-      "rel_missing_data": [
-        "forum_target_unresolved"
-      ],
-      "rel_proposed_action": null,
-      "rel_context_mode": "SELF",
-      "retrieval_status": "PASS",
-      "routing_status": "PASS",
-      "target_resolution_status": "UNRESOLVED_NO_NAME",
-      "latency_ms": 0.103,
-      "fm_subbucket": "unclassified_unresolved",
-      "un_subbucket": null,
-      "domain_drift_kind": null,
-      "lens_jargon_override": null,
-      "relationship_context_loss": false,
-      "wrong_target_selected": false,
-      "multi_lens_signature": [],
-      "multi_lens_prompt": false,
-      "lens_priority": [
-        "relationship",
-        "astrology",
-        "human_design",
-        "enneagram",
-        "timeline",
-        "numerology"
-      ],
-      "multi_lens_covered_count": 0,
-      "high_confidence_wrong_route": false,
-      "is_founder_query": false,
-      "couple_forum_bleed_kind": null,
-      "decision_not_explainable": false,
-      "mandatory_modules_count": 4
+      "un_subbucket": null
     },
     {
       "source": "real",
@@ -3443,29 +2027,9 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "UNRESOLVED_NO_NAME",
-      "latency_ms": 0.108,
+      "latency_ms": 0.112,
       "fm_subbucket": "unclassified_unresolved",
-      "un_subbucket": null,
-      "domain_drift_kind": null,
-      "lens_jargon_override": null,
-      "relationship_context_loss": false,
-      "wrong_target_selected": false,
-      "multi_lens_signature": [],
-      "multi_lens_prompt": false,
-      "lens_priority": [
-        "relationship",
-        "astrology",
-        "human_design",
-        "enneagram",
-        "timeline",
-        "numerology"
-      ],
-      "multi_lens_covered_count": 0,
-      "high_confidence_wrong_route": false,
-      "is_founder_query": false,
-      "couple_forum_bleed_kind": null,
-      "decision_not_explainable": false,
-      "mandatory_modules_count": 4
+      "un_subbucket": null
     },
     {
       "source": "real",
@@ -3496,27 +2060,7 @@
       "target_resolution_status": "UNRESOLVED_NO_NAME",
       "latency_ms": 0.104,
       "fm_subbucket": "unclassified_unresolved",
-      "un_subbucket": null,
-      "domain_drift_kind": null,
-      "lens_jargon_override": null,
-      "relationship_context_loss": false,
-      "wrong_target_selected": false,
-      "multi_lens_signature": [],
-      "multi_lens_prompt": false,
-      "lens_priority": [
-        "relationship",
-        "astrology",
-        "human_design",
-        "enneagram",
-        "timeline",
-        "numerology"
-      ],
-      "multi_lens_covered_count": 0,
-      "high_confidence_wrong_route": false,
-      "is_founder_query": false,
-      "couple_forum_bleed_kind": null,
-      "decision_not_explainable": false,
-      "mandatory_modules_count": 4
+      "un_subbucket": null
     },
     {
       "source": "real",
@@ -3545,29 +2089,9 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "UNRESOLVED_NO_NAME",
-      "latency_ms": 0.108,
+      "latency_ms": 0.103,
       "fm_subbucket": "unclassified_unresolved",
-      "un_subbucket": null,
-      "domain_drift_kind": null,
-      "lens_jargon_override": null,
-      "relationship_context_loss": false,
-      "wrong_target_selected": false,
-      "multi_lens_signature": [],
-      "multi_lens_prompt": false,
-      "lens_priority": [
-        "relationship",
-        "astrology",
-        "human_design",
-        "enneagram",
-        "timeline",
-        "numerology"
-      ],
-      "multi_lens_covered_count": 0,
-      "high_confidence_wrong_route": false,
-      "is_founder_query": false,
-      "couple_forum_bleed_kind": null,
-      "decision_not_explainable": false,
-      "mandatory_modules_count": 4
+      "un_subbucket": null
     },
     {
       "source": "real",
@@ -3596,29 +2120,9 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "UNRESOLVED_NO_NAME",
-      "latency_ms": 0.106,
+      "latency_ms": 0.113,
       "fm_subbucket": "unclassified_unresolved",
-      "un_subbucket": null,
-      "domain_drift_kind": null,
-      "lens_jargon_override": null,
-      "relationship_context_loss": false,
-      "wrong_target_selected": false,
-      "multi_lens_signature": [],
-      "multi_lens_prompt": false,
-      "lens_priority": [
-        "relationship",
-        "astrology",
-        "human_design",
-        "enneagram",
-        "timeline",
-        "numerology"
-      ],
-      "multi_lens_covered_count": 0,
-      "high_confidence_wrong_route": false,
-      "is_founder_query": false,
-      "couple_forum_bleed_kind": null,
-      "decision_not_explainable": false,
-      "mandatory_modules_count": 4
+      "un_subbucket": null
     },
     {
       "source": "real",
@@ -3647,29 +2151,9 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "UNRESOLVED_NO_NAME",
-      "latency_ms": 0.096,
+      "latency_ms": 0.099,
       "fm_subbucket": "unclassified_unresolved",
-      "un_subbucket": null,
-      "domain_drift_kind": null,
-      "lens_jargon_override": null,
-      "relationship_context_loss": false,
-      "wrong_target_selected": false,
-      "multi_lens_signature": [],
-      "multi_lens_prompt": false,
-      "lens_priority": [
-        "relationship",
-        "astrology",
-        "human_design",
-        "enneagram",
-        "timeline",
-        "numerology"
-      ],
-      "multi_lens_covered_count": 0,
-      "high_confidence_wrong_route": false,
-      "is_founder_query": false,
-      "couple_forum_bleed_kind": null,
-      "decision_not_explainable": false,
-      "mandatory_modules_count": 4
+      "un_subbucket": null
     },
     {
       "source": "real",
@@ -3698,29 +2182,9 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "UNRESOLVED_NO_NAME",
-      "latency_ms": 0.108,
+      "latency_ms": 0.105,
       "fm_subbucket": "unclassified_unresolved",
-      "un_subbucket": null,
-      "domain_drift_kind": null,
-      "lens_jargon_override": null,
-      "relationship_context_loss": false,
-      "wrong_target_selected": false,
-      "multi_lens_signature": [],
-      "multi_lens_prompt": false,
-      "lens_priority": [
-        "relationship",
-        "astrology",
-        "human_design",
-        "enneagram",
-        "timeline",
-        "numerology"
-      ],
-      "multi_lens_covered_count": 0,
-      "high_confidence_wrong_route": false,
-      "is_founder_query": false,
-      "couple_forum_bleed_kind": null,
-      "decision_not_explainable": false,
-      "mandatory_modules_count": 4
+      "un_subbucket": null
     },
     {
       "source": "real",
@@ -3749,29 +2213,9 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "UNRESOLVED_NO_NAME",
-      "latency_ms": 0.102,
+      "latency_ms": 0.103,
       "fm_subbucket": "unclassified_unresolved",
-      "un_subbucket": null,
-      "domain_drift_kind": null,
-      "lens_jargon_override": null,
-      "relationship_context_loss": false,
-      "wrong_target_selected": false,
-      "multi_lens_signature": [],
-      "multi_lens_prompt": false,
-      "lens_priority": [
-        "relationship",
-        "astrology",
-        "human_design",
-        "enneagram",
-        "timeline",
-        "numerology"
-      ],
-      "multi_lens_covered_count": 0,
-      "high_confidence_wrong_route": false,
-      "is_founder_query": false,
-      "couple_forum_bleed_kind": null,
-      "decision_not_explainable": false,
-      "mandatory_modules_count": 4
+      "un_subbucket": null
     },
     {
       "source": "synth",
@@ -3798,29 +2242,9 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "NOT_APPLICABLE",
-      "latency_ms": 0.128,
+      "latency_ms": 0.131,
       "fm_subbucket": null,
-      "un_subbucket": null,
-      "domain_drift_kind": null,
-      "lens_jargon_override": null,
-      "relationship_context_loss": false,
-      "wrong_target_selected": false,
-      "multi_lens_signature": [],
-      "multi_lens_prompt": false,
-      "lens_priority": [
-        "human_design",
-        "astrology",
-        "enneagram",
-        "timeline",
-        "numerology",
-        "relationship"
-      ],
-      "multi_lens_covered_count": 0,
-      "high_confidence_wrong_route": false,
-      "is_founder_query": false,
-      "couple_forum_bleed_kind": null,
-      "decision_not_explainable": false,
-      "mandatory_modules_count": 3
+      "un_subbucket": null
     },
     {
       "source": "synth",
@@ -3847,29 +2271,9 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "NOT_APPLICABLE",
-      "latency_ms": 0.119,
+      "latency_ms": 0.117,
       "fm_subbucket": null,
-      "un_subbucket": null,
-      "domain_drift_kind": null,
-      "lens_jargon_override": null,
-      "relationship_context_loss": false,
-      "wrong_target_selected": false,
-      "multi_lens_signature": [],
-      "multi_lens_prompt": false,
-      "lens_priority": [
-        "human_design",
-        "astrology",
-        "enneagram",
-        "timeline",
-        "numerology",
-        "relationship"
-      ],
-      "multi_lens_covered_count": 0,
-      "high_confidence_wrong_route": false,
-      "is_founder_query": true,
-      "couple_forum_bleed_kind": null,
-      "decision_not_explainable": false,
-      "mandatory_modules_count": 3
+      "un_subbucket": null
     },
     {
       "source": "synth",
@@ -3898,29 +2302,9 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "NOT_APPLICABLE",
-      "latency_ms": 0.139,
+      "latency_ms": 0.136,
       "fm_subbucket": null,
-      "un_subbucket": null,
-      "domain_drift_kind": "leadership->growth",
-      "lens_jargon_override": null,
-      "relationship_context_loss": false,
-      "wrong_target_selected": false,
-      "multi_lens_signature": [],
-      "multi_lens_prompt": false,
-      "lens_priority": [
-        "enneagram",
-        "timeline",
-        "human_design",
-        "astrology",
-        "numerology",
-        "relationship"
-      ],
-      "multi_lens_covered_count": 0,
-      "high_confidence_wrong_route": false,
-      "is_founder_query": false,
-      "couple_forum_bleed_kind": null,
-      "decision_not_explainable": false,
-      "mandatory_modules_count": 2
+      "un_subbucket": null
     },
     {
       "source": "synth",
@@ -3947,29 +2331,9 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "NOT_APPLICABLE",
-      "latency_ms": 0.132,
+      "latency_ms": 0.117,
       "fm_subbucket": null,
-      "un_subbucket": null,
-      "domain_drift_kind": null,
-      "lens_jargon_override": null,
-      "relationship_context_loss": false,
-      "wrong_target_selected": false,
-      "multi_lens_signature": [],
-      "multi_lens_prompt": false,
-      "lens_priority": [
-        "human_design",
-        "astrology",
-        "enneagram",
-        "timeline",
-        "numerology",
-        "relationship"
-      ],
-      "multi_lens_covered_count": 0,
-      "high_confidence_wrong_route": false,
-      "is_founder_query": true,
-      "couple_forum_bleed_kind": null,
-      "decision_not_explainable": false,
-      "mandatory_modules_count": 3
+      "un_subbucket": null
     },
     {
       "source": "synth",
@@ -3996,24 +2360,9 @@
       "retrieval_status": "PASS",
       "routing_status": "WARNING",
       "target_resolution_status": "NOT_APPLICABLE",
-      "latency_ms": 0.098,
+      "latency_ms": 0.096,
       "fm_subbucket": null,
-      "un_subbucket": null,
-      "domain_drift_kind": "leadership->general",
-      "lens_jargon_override": null,
-      "relationship_context_loss": false,
-      "wrong_target_selected": false,
-      "multi_lens_signature": [],
-      "multi_lens_prompt": false,
-      "lens_priority": [
-        "cross_lens_atoms"
-      ],
-      "multi_lens_covered_count": 0,
-      "high_confidence_wrong_route": false,
-      "is_founder_query": false,
-      "couple_forum_bleed_kind": null,
-      "decision_not_explainable": false,
-      "mandatory_modules_count": 1
+      "un_subbucket": null
     },
     {
       "source": "synth",
@@ -4040,29 +2389,9 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "NOT_APPLICABLE",
-      "latency_ms": 0.121,
+      "latency_ms": 0.122,
       "fm_subbucket": null,
-      "un_subbucket": null,
-      "domain_drift_kind": "leadership->work",
-      "lens_jargon_override": null,
-      "relationship_context_loss": false,
-      "wrong_target_selected": false,
-      "multi_lens_signature": [],
-      "multi_lens_prompt": false,
-      "lens_priority": [
-        "astrology",
-        "human_design",
-        "timeline",
-        "enneagram",
-        "numerology",
-        "relationship"
-      ],
-      "multi_lens_covered_count": 0,
-      "high_confidence_wrong_route": false,
-      "is_founder_query": false,
-      "couple_forum_bleed_kind": null,
-      "decision_not_explainable": false,
-      "mandatory_modules_count": 2
+      "un_subbucket": null
     },
     {
       "source": "synth",
@@ -4091,22 +2420,7 @@
       "target_resolution_status": "NOT_APPLICABLE",
       "latency_ms": 0.097,
       "fm_subbucket": null,
-      "un_subbucket": null,
-      "domain_drift_kind": "leadership->general",
-      "lens_jargon_override": null,
-      "relationship_context_loss": false,
-      "wrong_target_selected": false,
-      "multi_lens_signature": [],
-      "multi_lens_prompt": false,
-      "lens_priority": [
-        "cross_lens_atoms"
-      ],
-      "multi_lens_covered_count": 0,
-      "high_confidence_wrong_route": false,
-      "is_founder_query": false,
-      "couple_forum_bleed_kind": null,
-      "decision_not_explainable": false,
-      "mandatory_modules_count": 1
+      "un_subbucket": null
     },
     {
       "source": "synth",
@@ -4135,29 +2449,9 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "NOT_APPLICABLE",
-      "latency_ms": 0.114,
+      "latency_ms": 0.113,
       "fm_subbucket": null,
-      "un_subbucket": null,
-      "domain_drift_kind": "leadership->career",
-      "lens_jargon_override": null,
-      "relationship_context_loss": false,
-      "wrong_target_selected": false,
-      "multi_lens_signature": [],
-      "multi_lens_prompt": false,
-      "lens_priority": [
-        "astrology",
-        "timeline",
-        "human_design",
-        "enneagram",
-        "numerology",
-        "relationship"
-      ],
-      "multi_lens_covered_count": 0,
-      "high_confidence_wrong_route": false,
-      "is_founder_query": false,
-      "couple_forum_bleed_kind": null,
-      "decision_not_explainable": false,
-      "mandatory_modules_count": 3
+      "un_subbucket": null
     },
     {
       "source": "synth",
@@ -4184,29 +2478,9 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "NOT_APPLICABLE",
-      "latency_ms": 0.116,
+      "latency_ms": 0.121,
       "fm_subbucket": null,
-      "un_subbucket": null,
-      "domain_drift_kind": "career->life_direction",
-      "lens_jargon_override": null,
-      "relationship_context_loss": false,
-      "wrong_target_selected": false,
-      "multi_lens_signature": [],
-      "multi_lens_prompt": false,
-      "lens_priority": [
-        "timeline",
-        "astrology",
-        "human_design",
-        "enneagram",
-        "numerology",
-        "relationship"
-      ],
-      "multi_lens_covered_count": 0,
-      "high_confidence_wrong_route": false,
-      "is_founder_query": false,
-      "couple_forum_bleed_kind": null,
-      "decision_not_explainable": false,
-      "mandatory_modules_count": 3
+      "un_subbucket": null
     },
     {
       "source": "synth",
@@ -4233,29 +2507,9 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "NOT_APPLICABLE",
-      "latency_ms": 0.119,
+      "latency_ms": 0.114,
       "fm_subbucket": null,
-      "un_subbucket": null,
-      "domain_drift_kind": null,
-      "lens_jargon_override": null,
-      "relationship_context_loss": false,
-      "wrong_target_selected": false,
-      "multi_lens_signature": [],
-      "multi_lens_prompt": false,
-      "lens_priority": [
-        "astrology",
-        "timeline",
-        "human_design",
-        "enneagram",
-        "numerology",
-        "relationship"
-      ],
-      "multi_lens_covered_count": 0,
-      "high_confidence_wrong_route": false,
-      "is_founder_query": false,
-      "couple_forum_bleed_kind": null,
-      "decision_not_explainable": false,
-      "mandatory_modules_count": 3
+      "un_subbucket": null
     },
     {
       "source": "synth",
@@ -4282,29 +2536,9 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "NOT_APPLICABLE",
-      "latency_ms": 0.112,
+      "latency_ms": 0.11,
       "fm_subbucket": null,
-      "un_subbucket": null,
-      "domain_drift_kind": null,
-      "lens_jargon_override": null,
-      "relationship_context_loss": false,
-      "wrong_target_selected": false,
-      "multi_lens_signature": [],
-      "multi_lens_prompt": false,
-      "lens_priority": [
-        "astrology",
-        "timeline",
-        "human_design",
-        "enneagram",
-        "numerology",
-        "relationship"
-      ],
-      "multi_lens_covered_count": 0,
-      "high_confidence_wrong_route": false,
-      "is_founder_query": false,
-      "couple_forum_bleed_kind": null,
-      "decision_not_explainable": false,
-      "mandatory_modules_count": 3
+      "un_subbucket": null
     },
     {
       "source": "synth",
@@ -4335,29 +2569,7 @@
       "target_resolution_status": "NOT_APPLICABLE",
       "latency_ms": 0.117,
       "fm_subbucket": null,
-      "un_subbucket": null,
-      "domain_drift_kind": "life_direction->career",
-      "lens_jargon_override": null,
-      "relationship_context_loss": false,
-      "wrong_target_selected": false,
-      "multi_lens_signature": [
-        "astrology"
-      ],
-      "multi_lens_prompt": false,
-      "lens_priority": [
-        "astrology",
-        "timeline",
-        "human_design",
-        "enneagram",
-        "numerology",
-        "relationship"
-      ],
-      "multi_lens_covered_count": 1,
-      "high_confidence_wrong_route": true,
-      "is_founder_query": false,
-      "couple_forum_bleed_kind": null,
-      "decision_not_explainable": false,
-      "mandatory_modules_count": 3
+      "un_subbucket": null
     },
     {
       "source": "synth",
@@ -4384,31 +2596,9 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "NOT_APPLICABLE",
-      "latency_ms": 0.133,
+      "latency_ms": 0.127,
       "fm_subbucket": null,
-      "un_subbucket": null,
-      "domain_drift_kind": null,
-      "lens_jargon_override": null,
-      "relationship_context_loss": false,
-      "wrong_target_selected": false,
-      "multi_lens_signature": [
-        "astrology"
-      ],
-      "multi_lens_prompt": false,
-      "lens_priority": [
-        "astrology",
-        "timeline",
-        "human_design",
-        "enneagram",
-        "numerology",
-        "relationship"
-      ],
-      "multi_lens_covered_count": 1,
-      "high_confidence_wrong_route": false,
-      "is_founder_query": false,
-      "couple_forum_bleed_kind": null,
-      "decision_not_explainable": false,
-      "mandatory_modules_count": 3
+      "un_subbucket": null
     },
     {
       "source": "synth",
@@ -4435,29 +2625,9 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "NOT_APPLICABLE",
-      "latency_ms": 0.111,
+      "latency_ms": 0.117,
       "fm_subbucket": null,
-      "un_subbucket": null,
-      "domain_drift_kind": null,
-      "lens_jargon_override": null,
-      "relationship_context_loss": false,
-      "wrong_target_selected": false,
-      "multi_lens_signature": [],
-      "multi_lens_prompt": false,
-      "lens_priority": [
-        "astrology",
-        "timeline",
-        "human_design",
-        "enneagram",
-        "numerology",
-        "relationship"
-      ],
-      "multi_lens_covered_count": 0,
-      "high_confidence_wrong_route": false,
-      "is_founder_query": true,
-      "couple_forum_bleed_kind": null,
-      "decision_not_explainable": false,
-      "mandatory_modules_count": 3
+      "un_subbucket": null
     },
     {
       "source": "synth",
@@ -4486,27 +2656,7 @@
       "target_resolution_status": "NOT_APPLICABLE",
       "latency_ms": 0.116,
       "fm_subbucket": null,
-      "un_subbucket": null,
-      "domain_drift_kind": null,
-      "lens_jargon_override": null,
-      "relationship_context_loss": false,
-      "wrong_target_selected": false,
-      "multi_lens_signature": [],
-      "multi_lens_prompt": false,
-      "lens_priority": [
-        "astrology",
-        "numerology",
-        "timeline",
-        "human_design",
-        "enneagram",
-        "relationship"
-      ],
-      "multi_lens_covered_count": 0,
-      "high_confidence_wrong_route": false,
-      "is_founder_query": false,
-      "couple_forum_bleed_kind": null,
-      "decision_not_explainable": false,
-      "mandatory_modules_count": 3
+      "un_subbucket": null
     },
     {
       "source": "synth",
@@ -4533,29 +2683,9 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "NOT_APPLICABLE",
-      "latency_ms": 0.115,
+      "latency_ms": 0.116,
       "fm_subbucket": null,
-      "un_subbucket": null,
-      "domain_drift_kind": null,
-      "lens_jargon_override": null,
-      "relationship_context_loss": false,
-      "wrong_target_selected": false,
-      "multi_lens_signature": [],
-      "multi_lens_prompt": false,
-      "lens_priority": [
-        "astrology",
-        "numerology",
-        "timeline",
-        "human_design",
-        "enneagram",
-        "relationship"
-      ],
-      "multi_lens_covered_count": 0,
-      "high_confidence_wrong_route": false,
-      "is_founder_query": true,
-      "couple_forum_bleed_kind": null,
-      "decision_not_explainable": false,
-      "mandatory_modules_count": 3
+      "un_subbucket": null
     },
     {
       "source": "synth",
@@ -4582,29 +2712,9 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "NOT_APPLICABLE",
-      "latency_ms": 0.122,
+      "latency_ms": 0.12,
       "fm_subbucket": null,
-      "un_subbucket": null,
-      "domain_drift_kind": null,
-      "lens_jargon_override": null,
-      "relationship_context_loss": false,
-      "wrong_target_selected": false,
-      "multi_lens_signature": [],
-      "multi_lens_prompt": false,
-      "lens_priority": [
-        "astrology",
-        "numerology",
-        "timeline",
-        "human_design",
-        "enneagram",
-        "relationship"
-      ],
-      "multi_lens_covered_count": 0,
-      "high_confidence_wrong_route": false,
-      "is_founder_query": false,
-      "couple_forum_bleed_kind": null,
-      "decision_not_explainable": false,
-      "mandatory_modules_count": 3
+      "un_subbucket": null
     },
     {
       "source": "synth",
@@ -4631,29 +2741,9 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "NOT_APPLICABLE",
-      "latency_ms": 0.115,
+      "latency_ms": 0.117,
       "fm_subbucket": null,
-      "un_subbucket": null,
-      "domain_drift_kind": null,
-      "lens_jargon_override": null,
-      "relationship_context_loss": false,
-      "wrong_target_selected": false,
-      "multi_lens_signature": [],
-      "multi_lens_prompt": false,
-      "lens_priority": [
-        "astrology",
-        "numerology",
-        "timeline",
-        "human_design",
-        "enneagram",
-        "relationship"
-      ],
-      "multi_lens_covered_count": 0,
-      "high_confidence_wrong_route": false,
-      "is_founder_query": false,
-      "couple_forum_bleed_kind": null,
-      "decision_not_explainable": false,
-      "mandatory_modules_count": 3
+      "un_subbucket": null
     },
     {
       "source": "synth",
@@ -4680,29 +2770,9 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "NOT_APPLICABLE",
-      "latency_ms": 0.136,
+      "latency_ms": 0.137,
       "fm_subbucket": null,
-      "un_subbucket": null,
-      "domain_drift_kind": null,
-      "lens_jargon_override": null,
-      "relationship_context_loss": false,
-      "wrong_target_selected": false,
-      "multi_lens_signature": [],
-      "multi_lens_prompt": false,
-      "lens_priority": [
-        "astrology",
-        "human_design",
-        "enneagram",
-        "numerology",
-        "timeline",
-        "relationship"
-      ],
-      "multi_lens_covered_count": 0,
-      "high_confidence_wrong_route": false,
-      "is_founder_query": false,
-      "couple_forum_bleed_kind": null,
-      "decision_not_explainable": false,
-      "mandatory_modules_count": 3
+      "un_subbucket": null
     },
     {
       "source": "synth",
@@ -4729,24 +2799,9 @@
       "retrieval_status": "PASS",
       "routing_status": "WARNING",
       "target_resolution_status": "NOT_APPLICABLE",
-      "latency_ms": 0.098,
+      "latency_ms": 0.092,
       "fm_subbucket": null,
-      "un_subbucket": null,
-      "domain_drift_kind": "purpose->general",
-      "lens_jargon_override": null,
-      "relationship_context_loss": false,
-      "wrong_target_selected": false,
-      "multi_lens_signature": [],
-      "multi_lens_prompt": false,
-      "lens_priority": [
-        "cross_lens_atoms"
-      ],
-      "multi_lens_covered_count": 0,
-      "high_confidence_wrong_route": false,
-      "is_founder_query": false,
-      "couple_forum_bleed_kind": null,
-      "decision_not_explainable": false,
-      "mandatory_modules_count": 1
+      "un_subbucket": null
     },
     {
       "source": "synth",
@@ -4775,27 +2830,7 @@
       "target_resolution_status": "NOT_APPLICABLE",
       "latency_ms": 0.114,
       "fm_subbucket": null,
-      "un_subbucket": null,
-      "domain_drift_kind": null,
-      "lens_jargon_override": null,
-      "relationship_context_loss": false,
-      "wrong_target_selected": false,
-      "multi_lens_signature": [],
-      "multi_lens_prompt": false,
-      "lens_priority": [
-        "astrology",
-        "human_design",
-        "enneagram",
-        "numerology",
-        "timeline",
-        "relationship"
-      ],
-      "multi_lens_covered_count": 0,
-      "high_confidence_wrong_route": false,
-      "is_founder_query": false,
-      "couple_forum_bleed_kind": null,
-      "decision_not_explainable": false,
-      "mandatory_modules_count": 3
+      "un_subbucket": null
     },
     {
       "source": "synth",
@@ -4822,24 +2857,9 @@
       "retrieval_status": "PASS",
       "routing_status": "WARNING",
       "target_resolution_status": "NOT_APPLICABLE",
-      "latency_ms": 0.097,
+      "latency_ms": 0.096,
       "fm_subbucket": null,
-      "un_subbucket": null,
-      "domain_drift_kind": "purpose->general",
-      "lens_jargon_override": null,
-      "relationship_context_loss": false,
-      "wrong_target_selected": false,
-      "multi_lens_signature": [],
-      "multi_lens_prompt": false,
-      "lens_priority": [
-        "cross_lens_atoms"
-      ],
-      "multi_lens_covered_count": 0,
-      "high_confidence_wrong_route": false,
-      "is_founder_query": false,
-      "couple_forum_bleed_kind": null,
-      "decision_not_explainable": false,
-      "mandatory_modules_count": 1
+      "un_subbucket": null
     },
     {
       "source": "synth",
@@ -4866,29 +2886,9 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "NOT_APPLICABLE",
-      "latency_ms": 0.112,
+      "latency_ms": 0.121,
       "fm_subbucket": null,
-      "un_subbucket": null,
-      "domain_drift_kind": null,
-      "lens_jargon_override": null,
-      "relationship_context_loss": false,
-      "wrong_target_selected": false,
-      "multi_lens_signature": [],
-      "multi_lens_prompt": false,
-      "lens_priority": [
-        "timeline",
-        "astrology",
-        "human_design",
-        "enneagram",
-        "numerology",
-        "relationship"
-      ],
-      "multi_lens_covered_count": 0,
-      "high_confidence_wrong_route": false,
-      "is_founder_query": false,
-      "couple_forum_bleed_kind": null,
-      "decision_not_explainable": false,
-      "mandatory_modules_count": 3
+      "un_subbucket": null
     },
     {
       "source": "synth",
@@ -4915,29 +2915,9 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "NOT_APPLICABLE",
-      "latency_ms": 0.116,
+      "latency_ms": 0.111,
       "fm_subbucket": null,
-      "un_subbucket": null,
-      "domain_drift_kind": "money->career",
-      "lens_jargon_override": null,
-      "relationship_context_loss": false,
-      "wrong_target_selected": false,
-      "multi_lens_signature": [],
-      "multi_lens_prompt": false,
-      "lens_priority": [
-        "astrology",
-        "timeline",
-        "human_design",
-        "enneagram",
-        "numerology",
-        "relationship"
-      ],
-      "multi_lens_covered_count": 0,
-      "high_confidence_wrong_route": true,
-      "is_founder_query": true,
-      "couple_forum_bleed_kind": null,
-      "decision_not_explainable": false,
-      "mandatory_modules_count": 3
+      "un_subbucket": null
     },
     {
       "source": "synth",
@@ -4964,24 +2944,9 @@
       "retrieval_status": "PASS",
       "routing_status": "WARNING",
       "target_resolution_status": "NOT_APPLICABLE",
-      "latency_ms": 0.093,
+      "latency_ms": 0.092,
       "fm_subbucket": null,
-      "un_subbucket": null,
-      "domain_drift_kind": "growth->general",
-      "lens_jargon_override": null,
-      "relationship_context_loss": false,
-      "wrong_target_selected": false,
-      "multi_lens_signature": [],
-      "multi_lens_prompt": false,
-      "lens_priority": [
-        "cross_lens_atoms"
-      ],
-      "multi_lens_covered_count": 0,
-      "high_confidence_wrong_route": false,
-      "is_founder_query": false,
-      "couple_forum_bleed_kind": null,
-      "decision_not_explainable": false,
-      "mandatory_modules_count": 1
+      "un_subbucket": null
     },
     {
       "source": "synth",
@@ -5008,24 +2973,9 @@
       "retrieval_status": "PASS",
       "routing_status": "WARNING",
       "target_resolution_status": "NOT_APPLICABLE",
-      "latency_ms": 0.092,
+      "latency_ms": 0.098,
       "fm_subbucket": null,
-      "un_subbucket": null,
-      "domain_drift_kind": "growth->general",
-      "lens_jargon_override": null,
-      "relationship_context_loss": false,
-      "wrong_target_selected": false,
-      "multi_lens_signature": [],
-      "multi_lens_prompt": false,
-      "lens_priority": [
-        "cross_lens_atoms"
-      ],
-      "multi_lens_covered_count": 0,
-      "high_confidence_wrong_route": false,
-      "is_founder_query": false,
-      "couple_forum_bleed_kind": null,
-      "decision_not_explainable": false,
-      "mandatory_modules_count": 1
+      "un_subbucket": null
     },
     {
       "source": "synth",
@@ -5060,29 +3010,9 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "UNRESOLVED_NAMED",
-      "latency_ms": 0.127,
+      "latency_ms": 0.122,
       "fm_subbucket": null,
-      "un_subbucket": "true_missing_person",
-      "domain_drift_kind": null,
-      "lens_jargon_override": null,
-      "relationship_context_loss": false,
-      "wrong_target_selected": false,
-      "multi_lens_signature": [],
-      "multi_lens_prompt": false,
-      "lens_priority": [
-        "relationship",
-        "astrology",
-        "human_design",
-        "enneagram",
-        "timeline",
-        "numerology"
-      ],
-      "multi_lens_covered_count": 0,
-      "high_confidence_wrong_route": false,
-      "is_founder_query": false,
-      "couple_forum_bleed_kind": null,
-      "decision_not_explainable": false,
-      "mandatory_modules_count": 4
+      "un_subbucket": "true_missing_person"
     },
     {
       "source": "synth",
@@ -5109,29 +3039,9 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "NOT_APPLICABLE",
-      "latency_ms": 0.116,
+      "latency_ms": 0.117,
       "fm_subbucket": null,
-      "un_subbucket": null,
-      "domain_drift_kind": null,
-      "lens_jargon_override": null,
-      "relationship_context_loss": false,
-      "wrong_target_selected": false,
-      "multi_lens_signature": [],
-      "multi_lens_prompt": false,
-      "lens_priority": [
-        "relationship",
-        "astrology",
-        "human_design",
-        "enneagram",
-        "timeline",
-        "numerology"
-      ],
-      "multi_lens_covered_count": 0,
-      "high_confidence_wrong_route": false,
-      "is_founder_query": false,
-      "couple_forum_bleed_kind": null,
-      "decision_not_explainable": false,
-      "mandatory_modules_count": 4
+      "un_subbucket": null
     },
     {
       "source": "synth",
@@ -5168,27 +3078,7 @@
       "target_resolution_status": "UNRESOLVED_NAMED",
       "latency_ms": 0.122,
       "fm_subbucket": null,
-      "un_subbucket": "true_missing_person",
-      "domain_drift_kind": null,
-      "lens_jargon_override": null,
-      "relationship_context_loss": false,
-      "wrong_target_selected": false,
-      "multi_lens_signature": [],
-      "multi_lens_prompt": false,
-      "lens_priority": [
-        "relationship",
-        "astrology",
-        "human_design",
-        "enneagram",
-        "timeline",
-        "numerology"
-      ],
-      "multi_lens_covered_count": 0,
-      "high_confidence_wrong_route": false,
-      "is_founder_query": false,
-      "couple_forum_bleed_kind": null,
-      "decision_not_explainable": false,
-      "mandatory_modules_count": 4
+      "un_subbucket": "true_missing_person"
     },
     {
       "source": "synth",
@@ -5225,27 +3115,7 @@
       "target_resolution_status": "UNRESOLVED_NAMED",
       "latency_ms": 0.12,
       "fm_subbucket": null,
-      "un_subbucket": "true_missing_person",
-      "domain_drift_kind": null,
-      "lens_jargon_override": null,
-      "relationship_context_loss": false,
-      "wrong_target_selected": false,
-      "multi_lens_signature": [],
-      "multi_lens_prompt": false,
-      "lens_priority": [
-        "relationship",
-        "astrology",
-        "human_design",
-        "enneagram",
-        "timeline",
-        "numerology"
-      ],
-      "multi_lens_covered_count": 0,
-      "high_confidence_wrong_route": false,
-      "is_founder_query": false,
-      "couple_forum_bleed_kind": null,
-      "decision_not_explainable": false,
-      "mandatory_modules_count": 4
+      "un_subbucket": "true_missing_person"
     },
     {
       "source": "synth",
@@ -5282,31 +3152,9 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "UNRESOLVED_NAMED",
-      "latency_ms": 0.134,
+      "latency_ms": 0.138,
       "fm_subbucket": null,
-      "un_subbucket": "true_missing_person",
-      "domain_drift_kind": null,
-      "lens_jargon_override": null,
-      "relationship_context_loss": false,
-      "wrong_target_selected": false,
-      "multi_lens_signature": [
-        "astrology"
-      ],
-      "multi_lens_prompt": false,
-      "lens_priority": [
-        "relationship",
-        "astrology",
-        "human_design",
-        "enneagram",
-        "timeline",
-        "numerology"
-      ],
-      "multi_lens_covered_count": 1,
-      "high_confidence_wrong_route": false,
-      "is_founder_query": false,
-      "couple_forum_bleed_kind": null,
-      "decision_not_explainable": false,
-      "mandatory_modules_count": 4
+      "un_subbucket": "true_missing_person"
     },
     {
       "source": "synth",
@@ -5335,29 +3183,9 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "UNRESOLVED_NO_NAME",
-      "latency_ms": 0.118,
+      "latency_ms": 0.119,
       "fm_subbucket": "unclassified_unresolved",
-      "un_subbucket": null,
-      "domain_drift_kind": null,
-      "lens_jargon_override": null,
-      "relationship_context_loss": false,
-      "wrong_target_selected": false,
-      "multi_lens_signature": [],
-      "multi_lens_prompt": false,
-      "lens_priority": [
-        "relationship",
-        "astrology",
-        "human_design",
-        "enneagram",
-        "timeline",
-        "numerology"
-      ],
-      "multi_lens_covered_count": 0,
-      "high_confidence_wrong_route": false,
-      "is_founder_query": false,
-      "couple_forum_bleed_kind": null,
-      "decision_not_explainable": false,
-      "mandatory_modules_count": 4
+      "un_subbucket": null
     },
     {
       "source": "synth",
@@ -5386,29 +3214,9 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "UNRESOLVED_NO_NAME",
-      "latency_ms": 0.115,
+      "latency_ms": 0.116,
       "fm_subbucket": "unclassified_unresolved",
-      "un_subbucket": null,
-      "domain_drift_kind": null,
-      "lens_jargon_override": null,
-      "relationship_context_loss": false,
-      "wrong_target_selected": false,
-      "multi_lens_signature": [],
-      "multi_lens_prompt": false,
-      "lens_priority": [
-        "relationship",
-        "astrology",
-        "human_design",
-        "enneagram",
-        "timeline",
-        "numerology"
-      ],
-      "multi_lens_covered_count": 0,
-      "high_confidence_wrong_route": false,
-      "is_founder_query": false,
-      "couple_forum_bleed_kind": null,
-      "decision_not_explainable": false,
-      "mandatory_modules_count": 4
+      "un_subbucket": null
     },
     {
       "source": "synth",
@@ -5441,27 +3249,7 @@
       "target_resolution_status": "RESOLVED",
       "latency_ms": 0.125,
       "fm_subbucket": null,
-      "un_subbucket": null,
-      "domain_drift_kind": "identity->work",
-      "lens_jargon_override": null,
-      "relationship_context_loss": true,
-      "wrong_target_selected": false,
-      "multi_lens_signature": [],
-      "multi_lens_prompt": false,
-      "lens_priority": [
-        "astrology",
-        "human_design",
-        "timeline",
-        "enneagram",
-        "numerology",
-        "relationship"
-      ],
-      "multi_lens_covered_count": 0,
-      "high_confidence_wrong_route": false,
-      "is_founder_query": false,
-      "couple_forum_bleed_kind": "forum_to_couple_bleed",
-      "decision_not_explainable": false,
-      "mandatory_modules_count": 2
+      "un_subbucket": null
     },
     {
       "source": "synth",
@@ -5492,29 +3280,9 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "RESOLVED",
-      "latency_ms": 0.122,
+      "latency_ms": 0.121,
       "fm_subbucket": null,
-      "un_subbucket": null,
-      "domain_drift_kind": null,
-      "lens_jargon_override": null,
-      "relationship_context_loss": true,
-      "wrong_target_selected": false,
-      "multi_lens_signature": [],
-      "multi_lens_prompt": false,
-      "lens_priority": [
-        "astrology",
-        "timeline",
-        "human_design",
-        "enneagram",
-        "numerology",
-        "relationship"
-      ],
-      "multi_lens_covered_count": 0,
-      "high_confidence_wrong_route": false,
-      "is_founder_query": false,
-      "couple_forum_bleed_kind": null,
-      "decision_not_explainable": false,
-      "mandatory_modules_count": 3
+      "un_subbucket": null
     },
     {
       "source": "synth",
@@ -5541,32 +3309,9 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "NOT_APPLICABLE",
-      "latency_ms": 0.124,
+      "latency_ms": 0.126,
       "fm_subbucket": null,
-      "un_subbucket": null,
-      "domain_drift_kind": null,
-      "lens_jargon_override": null,
-      "relationship_context_loss": false,
-      "wrong_target_selected": false,
-      "multi_lens_signature": [
-        "human_design",
-        "enneagram"
-      ],
-      "multi_lens_prompt": true,
-      "lens_priority": [
-        "human_design",
-        "enneagram",
-        "astrology",
-        "numerology",
-        "timeline",
-        "relationship"
-      ],
-      "multi_lens_covered_count": 2,
-      "high_confidence_wrong_route": false,
-      "is_founder_query": false,
-      "couple_forum_bleed_kind": null,
-      "decision_not_explainable": false,
-      "mandatory_modules_count": 3
+      "un_subbucket": null
     },
     {
       "source": "synth",
@@ -5597,29 +3342,7 @@
       "target_resolution_status": "NOT_APPLICABLE",
       "latency_ms": 0.124,
       "fm_subbucket": null,
-      "un_subbucket": null,
-      "domain_drift_kind": null,
-      "lens_jargon_override": null,
-      "relationship_context_loss": false,
-      "wrong_target_selected": false,
-      "multi_lens_signature": [
-        "astrology"
-      ],
-      "multi_lens_prompt": false,
-      "lens_priority": [
-        "human_design",
-        "enneagram",
-        "astrology",
-        "numerology",
-        "timeline",
-        "relationship"
-      ],
-      "multi_lens_covered_count": 1,
-      "high_confidence_wrong_route": false,
-      "is_founder_query": false,
-      "couple_forum_bleed_kind": null,
-      "decision_not_explainable": false,
-      "mandatory_modules_count": 3
+      "un_subbucket": null
     },
     {
       "source": "synth",
@@ -5646,32 +3369,9 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "NOT_APPLICABLE",
-      "latency_ms": 0.126,
+      "latency_ms": 0.236,
       "fm_subbucket": null,
-      "un_subbucket": null,
-      "domain_drift_kind": "life_direction->identity",
-      "lens_jargon_override": "saturn return collapsed to identity (should weight life_direction)",
-      "relationship_context_loss": false,
-      "wrong_target_selected": false,
-      "multi_lens_signature": [
-        "astrology",
-        "enneagram"
-      ],
-      "multi_lens_prompt": true,
-      "lens_priority": [
-        "human_design",
-        "enneagram",
-        "astrology",
-        "numerology",
-        "timeline",
-        "relationship"
-      ],
-      "multi_lens_covered_count": 2,
-      "high_confidence_wrong_route": true,
-      "is_founder_query": false,
-      "couple_forum_bleed_kind": null,
-      "decision_not_explainable": false,
-      "mandatory_modules_count": 3
+      "un_subbucket": null
     },
     {
       "source": "synth",
@@ -5698,24 +3398,9 @@
       "retrieval_status": "PASS",
       "routing_status": "WARNING",
       "target_resolution_status": "NOT_APPLICABLE",
-      "latency_ms": 0.1,
+      "latency_ms": 0.104,
       "fm_subbucket": null,
-      "un_subbucket": null,
-      "domain_drift_kind": "leadership->general",
-      "lens_jargon_override": null,
-      "relationship_context_loss": false,
-      "wrong_target_selected": false,
-      "multi_lens_signature": [],
-      "multi_lens_prompt": false,
-      "lens_priority": [
-        "cross_lens_atoms"
-      ],
-      "multi_lens_covered_count": 0,
-      "high_confidence_wrong_route": false,
-      "is_founder_query": true,
-      "couple_forum_bleed_kind": null,
-      "decision_not_explainable": false,
-      "mandatory_modules_count": 1
+      "un_subbucket": null
     },
     {
       "source": "synth",
@@ -5744,31 +3429,9 @@
       "retrieval_status": "PASS",
       "routing_status": "WARNING",
       "target_resolution_status": "NOT_APPLICABLE",
-      "latency_ms": 0.174,
+      "latency_ms": 0.128,
       "fm_subbucket": null,
-      "un_subbucket": null,
-      "domain_drift_kind": "money->identity",
-      "lens_jargon_override": null,
-      "relationship_context_loss": false,
-      "wrong_target_selected": false,
-      "multi_lens_signature": [
-        "enneagram"
-      ],
-      "multi_lens_prompt": false,
-      "lens_priority": [
-        "human_design",
-        "enneagram",
-        "astrology",
-        "numerology",
-        "timeline",
-        "relationship"
-      ],
-      "multi_lens_covered_count": 1,
-      "high_confidence_wrong_route": false,
-      "is_founder_query": false,
-      "couple_forum_bleed_kind": null,
-      "decision_not_explainable": false,
-      "mandatory_modules_count": 3
+      "un_subbucket": null
     }
   ]
 }

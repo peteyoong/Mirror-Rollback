@@ -1,6 +1,6 @@
 # Mirror Chat V2 — Slice B2 Readiness Report
 
-_Generated: 2026-06-11T19:27:31.719292+00:00_
+_Generated: 2026-06-11T19:43:08.043258+00:00_
 
 _This is the canonical artifact for the B2 production cutover decision._  
 _All recommendations stay capped at `CONDITIONAL_GO` until the shadow telemetry observation window closes on 2026-06-14._
@@ -17,6 +17,7 @@ _All recommendations stay capped at `CONDITIONAL_GO` until the shadow telemetry 
 
 **Open blockers / conditions:**
 - Shadow telemetry window not complete (ends 2026-06-14)
+- Review signal: Lens-jargon override errors (REAL)
 
 ## 2. Gate Status Matrix
 
@@ -29,6 +30,16 @@ _All recommendations stay capped at `CONDITIONAL_GO` until the shadow telemetry 
 | Forum/member correctly-handled rate (REAL) | 100.00% correctly handled  (resolver-failure cases: 0/26; unresolved breakdown: {'unclassified_unresolved': 22, 'forum_to_member_misroute': 1}) | ≥ 90% correctly handled (resolver-failure sub-buckets: relationship_to_self_downgrade, wrong_frame_selected, wrong_person_selected) | PASS |
 | Shadow telemetry window complete | n=13 receipts, span first=2026-06-11T18:37:11.997781+00:00 → last=2026-06-11T19:27:18.106423+00:00 | ≥ 3d span ending 2026-06-14 | FAIL |
 | Manual review complete | auto: report generated; awaiting operator sign-off | operator confirms gates | PENDING_OPERATOR |
+| Domain drift rate (REAL) | 100.00% (1 of 1 ground-truth rows); per-domain hot zones: ['life_direction'] | < 5% overall AND no expected_domain > 10% | INSUFFICIENT_SAMPLE |
+| Lens-jargon override errors (REAL) | 4.08% (2 cases); kinds: {'saturn return collapsed to identity (should weight life_direction)': 1, '7th house auto-routed to relationship without relational kw': 1} | < 3% | FAIL |
+| Relationship-context loss (REAL) | 0.00% (0 cases) | < 2% | PASS |
+| Wrong-target selection (REAL) | 0 cases | = 0 in review sample | PASS |
+| Multi-lens coverage (REAL) | 100.00% (0 of 0 multi-lens prompts) | >= 90% of multi-lens prompts retrieve >= 2 lens families | PASS |
+| High-confidence wrong route (REAL) | 1 cases (2.04%) | < 1% | WATCH |
+| Couple ↔ Forum bleed (REAL) | 0 cases; kinds: {} | = 0 in reviewed samples | PASS |
+| Decision explainability (REAL) | 0 non-explainable (0.00%) | informational; track for future bug clusters | PASS |
+| Founder/operator suite (REAL) | n=0 founder-pattern queries; routing PASS rate=0.00%; domain mix={} | informational | WATCH |
+| Retrieval payload completeness (REAL, baseline only) | mandatory_modules mean=3.469 min=1 max=4 | no mandatory payload shrinks >25% vs baseline | BASELINE_ONLY |
 ## 3. Shadow Telemetry Summary
 
 - Receipts persisted to `mirror_chat_retrieval_receipts`: **13**
@@ -196,8 +207,114 @@ It contains:
 
 **Conditions to flip to `GO`:**
 - Shadow telemetry window not complete (ends 2026-06-14)
+- Review signal: Lens-jargon override errors (REAL)
 
 If `GO`: cutover proceeds in three stages over 7 days — **10%** (24h) → **50%** (48h) → **100%** with rollback on any of: (a) frame-aware FP rate >2x baseline, (b) routing PASS rate <70%, (c) p95 latency >100ms, (d) any >5% drop in per-suite golden top-1.
+
+## 13. Delta-Review Regression Buckets (REAL, operator focus list)
+
+_The 10 regression buckets the operator asked us to track on top of the existing FP/forum/unresolved gates.  These do **not** auto-block cutover — they are review signals.  A FAIL here means the operator must look before approving the next rollout stage._
+
+
+### 1. Domain drift
+
+- **Status**: `INSUFFICIENT_SAMPLE`
+- **Gate**: < 5% overall AND no expected_domain > 10%
+- Rate: **100.00%** (1 / 1 ground-truth rows)
+- Kinds: `{'life_direction->identity': 1}`
+- Per-domain hot zones (>10%): ['life_direction']
+- Examples:
+  - active_frame=`self`  predicted_domain=`identity`  domain_drift_kind=`life_direction->identity` → Tell me about my Saturn return
+
+### 2. Lens-jargon override
+
+- **Status**: `FAIL`
+- **Gate**: < 3%
+- Rate: **4.08%** (2 cases)
+- Patterns: `{'saturn return collapsed to identity (should weight life_direction)': 1, '7th house auto-routed to relationship without relational kw': 1}`
+- Examples:
+  - predicted_domain=`identity`  lens_jargon_override=`saturn return collapsed to identity (should weight life_direction)` → Tell me about my Saturn return
+  - predicted_domain=`relationship`  lens_jargon_override=`7th house auto-routed to relationship without relational kw` → What's my 7th house about?
+
+### 3. Relationship-context loss
+
+- **Status**: `PASS`
+- **Gate**: < 2%
+- Rate: **0.00%** (0 cases)
+
+### 4. Wrong-target selection
+
+- **Status**: `PASS`
+- **Gate**: = 0 in review sample
+- Count: **0**
+
+### 5. Retrieval payload completeness
+
+- **Status**: `BASELINE_ONLY`
+- **Gate**: no mandatory payload shrinks >25% vs baseline
+- mandatory_modules count: mean=3.469 min=1 max=4
+- Note: Offline replay stubs payloads to {'sim': true}; the >25% shrinkage alert fires only in the delta-detector when a live-shadow run is diffed against the frozen baseline.
+
+### 6. Cross-lens coverage
+
+- **Status**: `PASS`
+- **Gate**: >= 90% of multi-lens prompts retrieve >= 2 lens families
+- Multi-lens prompts: **0**, covered with ≥2 lenses: **0**, coverage rate: **100.00%**
+
+### 7. False confidence (high-confidence wrong route)
+
+- **Status**: `WATCH`
+- **Gate**: < 1%
+- Rate: **2.04%** (1 cases)
+- Examples:
+  - predicted_domain=`identity`  domain_drift_kind=`life_direction->identity`  confidence=`1.0` → Tell me about my Saturn return
+
+### 8. Founder/operator suite
+
+- **Status**: `WATCH`
+- **Gate**: informational (no hard threshold)
+- Count: **0**
+- Routing PASS rate: **0.00%**
+- Domain mix: `{}`
+
+### 9. Couple ↔ Forum separation
+
+- **Status**: `PASS`
+- **Gate**: = 0 in reviewed samples
+- Count: **0**
+- Kinds: `{}`
+
+### 10. Decision explainability
+
+- **Status**: `PASS`
+- **Gate**: informational; track for future bug clusters
+- Non-explainable decisions: **0** (0.00%)
+
+## 14. Delta vs. baseline (June 11 sign-off)
+
+_Baseline frozen at_ `2026-06-11T19:27:31.074622+00:00`.  _Current run_ `2026-06-11T19:42:27.533359+00:00`.
+
+Operator's June 14 focus list, computed automatically:
+
+### 1. New false-positive relationship-routing examples (REAL)
+
+_(none)_
+
+### 2. New resolver-failure sub-buckets observed since baseline
+
+_(none)_
+
+### 3. Unresolved-named sub-bucket distribution delta
+
+  - `forum_only_member`: baseline=1  current=1  Δ=+0
+  - `true_missing_person`: baseline=11  current=11  Δ=+0
+
+### 4. New forum/member ambiguity examples since baseline
+
+_(none)_
+
+### 5. Regression clusters (≥3 new failures of the same kind)
+_(no new clusters)_
 
 
 ## After-B2 priority queue (per operator review)
@@ -208,9 +325,22 @@ If `GO`: cutover proceeds in three stages over 7 days — **10%** (24h) → **50
 4. **Sign-conflation safeguards** in `natal_object_engine.py` (P2; anti-confusion clauses).
 
 
+## Rollout halt criteria (auto-stop between stages)
+
+The phased rollout (10% → 50% → 100%) automatically halts and requires operator review if any of the following appears in the stage's observation window:
+
+- Retrieval PASS rate **< 97%**
+- False-positive relationship rate **> 5%**
+- Any **new resolver-failure sub-bucket** in live telemetry
+- Forum/member correctly-handled rate **< 90%**
+- Any **unexpected rise** in `target_unresolved` rate vs prior stage
+- Any **regression cluster** (≥3 cases) not represented in the golden sets
+- Any of the section-13 review-signal gates flipping FAIL since the prior stage (domain drift, lens-jargon override, relationship-context loss, wrong-target selection, multi-lens coverage, high-confidence wrong route, couple↔forum bleed).
+
+
 ---
 ### Evidence separation
 
-- **From REAL messages**: gate statuses for false-positive relationship, forum/member ambiguity, target-resolution, shadow-telemetry status, and general-bucket rate are computed on REAL only.
+- **From REAL messages**: gate statuses for false-positive relationship, forum/member ambiguity, target-resolution, shadow-telemetry status, general-bucket rate, AND every section-13 regression bucket are computed on REAL only.
 - **From SYNTHETIC messages**: golden-set top-1 (over all suites including the synth slice of `golden_set_pete_mel_historical.yaml`) and retrieval-receipt coverage (PASS rate).
 - **Versions** — `intent_router_v2.1.0`, `relationship_router_v2.1.0`, `retrieval_validation_v1.2.0`.
