@@ -1,0 +1,37 @@
+{
+  "report": "PHASE2_COHORT_MIGRATION_REPORT",
+  "batch_id": "197d8a77-a220-4960-882c-ce569f39e7b4",
+  "mode": "COMMIT",
+  "started_at": "2026-06-11T17:28:18.972897+00:00",
+  "cohort_planned": 1,
+  "applied": 1,
+  "dry_run": 0,
+  "skipped": 0,
+  "failed": 0,
+  "verification_pass": 1,
+  "verification_pass_rate": 1.0,
+  "total_rollback_records": 1,
+  "total_cache_rows_invalidated": 3,
+  "stop_on_error_triggered": false,
+  "manual_review_users": [],
+  "results": [
+    {
+      "user_id": "6a17e8cf5bc5cc688d66eba0",
+      "name": "Naina",
+      "email": "nandika@emergent.sh",
+      "stored_tz_before": "+05:30",
+      "tz_after": "Asia/Kolkata",
+      "corrected_utc": "2002-03-04T06:25:00+00:00",
+      "asc_before": 48.08709922961007,
+      "asc_after": 48.08709922961007,
+      "mc_before": 301.9068385962483,
+      "mc_after": 301.9068385962483,
+      "asc_delta_from_expected": 0.0,
+      "mc_delta_from_expected": 0.0,
+      "cache_rows_deleted": 3,
+      "preserved_ok": true,
+      "migration_id": "8b68aff1-7ef8-457d-b873-609c2ea1c334",
+      "status": "APPLIED"
+    }
+  ]
+}
