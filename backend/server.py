@@ -373,7 +373,11 @@ class UserProfileCreate(BaseModel):
     birth_time: Optional[str] = None  # HH:MM
     city: str
     country: str
-    timezone: str  # "+07:30" or "Asia/Kuala_Lumpur"
+    timezone: Optional[str] = None  # IGNORED when latitude/longitude are present.
+                                    # When coords are absent, must be a strict
+                                    # IANA name (e.g., 'Asia/Kuala_Lumpur').
+                                    # Fixed offsets ('+08:00', 'UTC', 'GMT') are
+                                    # rejected — see services.timezone_resolver.
     latitude: Optional[float] = None  # Optional: skip geocoding if provided
     longitude: Optional[float] = None  # Optional: skip geocoding if provided
 
@@ -3960,6 +3964,23 @@ async def search_locations(request: LocationSearchRequest):
         tz_hours = round(longitude / 15)
         tz_sign = "+" if tz_hours >= 0 else "-"
         return f"{tz_sign}{abs(tz_hours):02d}:00"
+
+    def resolve_tz_from_coords(lat: float, lon: float) -> str:
+        """Coordinate -> IANA timezone, falling back to a longitude estimate
+        only for display in location-search results. Never used for write
+        paths (those go through services.timezone_resolver directly)."""
+        try:
+            from services.timezone_resolver import resolve_iana_timezone
+            iana = resolve_iana_timezone(lat, lon)
+            if iana:
+                return iana
+        except Exception as _e:  # noqa: BLE001
+            logger.warning(f"[resolve_tz_from_coords] resolver failed: {_e}")
+        # Last-ditch display fallback (read-only). Never persisted.
+        try:
+            return estimate_timezone(lon)
+        except Exception:
+            return ""
     
     def search_fallback(query: str):
         """Search through fallback cities with fuzzy matching"""
@@ -4134,53 +4155,112 @@ async def search_locations(request: LocationSearchRequest):
 
 @api_router.post("/users", response_model=UserProfileResponse)
 async def create_user(profile: UserProfileCreate):
-    """Create user profile"""
+    """Create user profile.
+
+    Phase 1.7 — Timezone Hardening:
+    Timezone is derived from coordinates via services.timezone_resolver.
+    Any client-supplied profile.timezone is IGNORED when latitude/longitude
+    are present, and the resolved IANA name is the only value stored.
+    """
     try:
-        # Parse and validate timezone
-        try:
-            timezone_raw, parsed_timezone_minutes = parse_timezone(profile.timezone)
-        except ValueError as e:
-            raise HTTPException(status_code=400, detail=f"Invalid timezone: {str(e)}")
-        
+        from services.timezone_resolver import (
+            resolve_iana_timezone, is_iana_name, TIMEZONE_RESOLVER_VERSION,
+        )
+
         # Use provided lat/long if available, otherwise geocode
         if profile.latitude is not None and profile.longitude is not None:
-            # Use provided coordinates (from fallback city database)
             location_data = {
                 "city": profile.city,
                 "country": profile.country,
                 "latitude": profile.latitude,
-                "longitude": profile.longitude
+                "longitude": profile.longitude,
             }
             logger.info(f"Using provided coordinates: {profile.city}, {profile.country} ({profile.latitude}, {profile.longitude})")
         else:
-            # Geocode location
             location_data = await geocode_location(profile.city, profile.country)
             if not location_data:
                 raise HTTPException(status_code=400, detail="Could not geocode location")
-        
+
+        lat = location_data.get("latitude")
+        lon = location_data.get("longitude")
+
+        # ---- COORDINATE-DRIVEN TIMEZONE (authoritative path) ----
+        resolved_tz = None
+        tz_source = None
+        if lat is not None and lon is not None:
+            resolved_tz = resolve_iana_timezone(lat, lon)
+            tz_source = "coordinates"
+            if profile.timezone and profile.timezone.strip() and profile.timezone.strip() != (resolved_tz or ""):
+                logger.warning(
+                    "[CreateUser] discarded client timezone=%r in favour of "
+                    "coordinate-derived %r (lat=%s, lon=%s)",
+                    profile.timezone, resolved_tz, lat, lon,
+                )
+            if not resolved_tz:
+                raise HTTPException(
+                    status_code=400,
+                    detail=(
+                        "Could not resolve timezone from coordinates "
+                        f"(lat={lat}, lon={lon}). Please contact support."
+                    ),
+                )
+        else:
+            # No coordinates: only accept a strict IANA name from the client.
+            client_tz = (profile.timezone or "").strip()
+            if not client_tz:
+                raise HTTPException(
+                    status_code=400,
+                    detail=(
+                        "Timezone is required. Provide either coordinates "
+                        "(latitude/longitude) or an IANA timezone name "
+                        "(e.g., 'Asia/Kuala_Lumpur')."
+                    ),
+                )
+            if not is_iana_name(client_tz):
+                raise HTTPException(
+                    status_code=400,
+                    detail=(
+                        f"Invalid timezone {client_tz!r}: only IANA names are "
+                        "accepted when coordinates are absent. Fixed offsets "
+                        "('+08:00', '+00:00', 'UTC', 'GMT') are rejected."
+                    ),
+                )
+            resolved_tz = client_tz
+            tz_source = "client_iana_no_coords"
+
+        # Compute offset minutes via existing util (best-effort, non-blocking)
+        try:
+            _, parsed_timezone_minutes = parse_timezone(resolved_tz)
+        except Exception:
+            parsed_timezone_minutes = None
+
         # Parse birth date
         birth_date = datetime.strptime(profile.birth_date, "%Y-%m-%d")
-        
+
+        now_iso = datetime.now(timezone.utc).isoformat()
         user_data = {
             "name": profile.name,
             "birth_date": birth_date,
             "birth_time": profile.birth_time,
             "birth_location": location_data,
-            "timezone": timezone_raw,
+            "timezone": resolved_tz,
             "timezone_minutes": parsed_timezone_minutes,
-            "created_at": datetime.now(timezone.utc)
+            "timezone_source": tz_source,
+            "timezone_resolved_at": now_iso,
+            "timezone_resolver_version": TIMEZONE_RESOLVER_VERSION,
+            "created_at": datetime.now(timezone.utc),
         }
-        
+
         # Save email if provided during registration
         if profile.email:
             user_data["email"] = profile.email.strip().lower()
-        
+
         # Save gender if provided
         if profile.gender:
             user_data["gender"] = profile.gender.strip().lower()
-        
+
         result = await db.users.insert_one(user_data)
-        
+
         return UserProfileResponse(
             id=str(result.inserted_id),
             name=profile.name,
@@ -4189,6 +4269,8 @@ async def create_user(profile: UserProfileCreate):
             birth_location=Location(**location_data),
             has_chart=False
         )
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"Create user error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
@@ -27320,9 +27402,21 @@ async def fix_deployed_data():
                     updates["gender"] = known["fix_gender"]
                 
                 # Fix timezone if specified
-                if known.get("fix_timezone") and not user.get("timezone"):
+                # Phase 1.7 — legacy timezone stamper (default disabled).
+                # Set ENABLE_LEGACY_TIMEZONE_STAMPERS=true to restore.
+                if (
+                    known.get("fix_timezone")
+                    and not user.get("timezone")
+                    and os.environ.get("ENABLE_LEGACY_TIMEZONE_STAMPERS", "false").lower() == "true"
+                ):
                     updates["timezone"] = known["fix_timezone"]
                     results["fixes"].append(f"Set {user_name} timezone: {known['fix_timezone']}")
+                elif known.get("fix_timezone") and not user.get("timezone"):
+                    logger.info(
+                        "[fix-deployed-data] SKIP legacy tz stamper for %s "
+                        "(ENABLE_LEGACY_TIMEZONE_STAMPERS=false); not setting %s",
+                        user_name, known["fix_timezone"],
+                    )
                 
                 # Force-enforce birth_date / birth_time when specified (these must match verified data)
                 if known.get("fix_birth_date"):
@@ -32013,6 +32107,8 @@ async def admin_fix_mel_live(user_id: str = "69b50ecb2b86cfb90750ec04"):
             }
         
         # Apply canonical fixes
+        # Phase 1.7 — legacy hardcoded timezone stamper (default disabled).
+        # Set ENABLE_LEGACY_TIMEZONE_STAMPERS=true to restore.
         canonical = {
             "email": "melissa.mars@gmail.com",
             "name": "Mel",
@@ -32027,6 +32123,12 @@ async def admin_fix_mel_live(user_id: str = "69b50ecb2b86cfb90750ec04"):
             "latitude": 2.1896,
             "longitude": 102.2501,
         }
+        if os.environ.get("ENABLE_LEGACY_TIMEZONE_STAMPERS", "false").lower() != "true":
+            logger.info(
+                "[admin/fix_mel_live] SKIP legacy tz stamper "
+                "(ENABLE_LEGACY_TIMEZONE_STAMPERS=false); canonical.timezone dropped"
+            )
+            canonical.pop("timezone", None)
         await db.users.update_one({"_id": _OID(user_id)}, {"$set": canonical})
         logger.info(f"[admin/fix_mel_live] Applied canonical user fields for {user_id}")
         
@@ -32513,12 +32615,20 @@ async def run_startup_data_migrations():
                     continue
                 
                 # Ensure timezone is set
-                if not user.get("timezone"):
+                # Phase 1.7 — legacy KL hardcoded stamper (default disabled).
+                # Set ENABLE_LEGACY_TIMEZONE_STAMPERS=true to restore.
+                if not user.get("timezone") and os.environ.get("ENABLE_LEGACY_TIMEZONE_STAMPERS", "false").lower() == "true":
                     city = (user.get("birth_location") or {}).get("city", "")
                     country = (user.get("birth_location") or {}).get("country", "")
                     if "malaysia" in country.lower() or city.lower() in ["kuala lumpur", "melaka", "penang"]:
                         await db.users.update_one({"_id": user["_id"]}, {"$set": {"timezone": "Asia/Kuala_Lumpur"}})
                         user["timezone"] = "Asia/Kuala_Lumpur"
+                elif not user.get("timezone"):
+                    logger.info(
+                        "[Migration] SKIP legacy KL timezone stamper for user_id=%s "
+                        "(ENABLE_LEGACY_TIMEZONE_STAMPERS=false)",
+                        user_id,
+                    )
                 
                 # Recompute chart via the existing calculation logic
                 from calculations.astrology import get_full_natal_chart
@@ -32725,9 +32835,21 @@ async def run_startup_data_migrations():
                 logger.info(f"[Migration] Canonicalized email for {user_name}: {user.get('email')} → {known['fix_email']}")
             
             # Fix timezone if specified
-            if known.get("fix_timezone") and not user.get("timezone"):
+            # Phase 1.7 — legacy KNOWN_USERS_MIGRATION tz stamper (default disabled).
+            # Set ENABLE_LEGACY_TIMEZONE_STAMPERS=true to restore.
+            if (
+                known.get("fix_timezone")
+                and not user.get("timezone")
+                and os.environ.get("ENABLE_LEGACY_TIMEZONE_STAMPERS", "false").lower() == "true"
+            ):
                 updates["timezone"] = known["fix_timezone"]
                 logger.info(f"[Migration] Set timezone for {user_name}")
+            elif known.get("fix_timezone") and not user.get("timezone"):
+                logger.info(
+                    "[Migration] SKIP legacy tz stamper for %s "
+                    "(ENABLE_LEGACY_TIMEZONE_STAMPERS=false); not setting %s",
+                    user_name, known["fix_timezone"],
+                )
             
             # Force-enforce birth_date / birth_time when verified (triggers chart recompute below)
             if known.get("fix_birth_date"):

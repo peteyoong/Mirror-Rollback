@@ -1,0 +1,45 @@
+{
+  "summary": "Phase 1.7 Timezone Hardening backend audit — ALL 6 areas PASS. Regression suite 27/27, adversarial smoke 7/7. POST /api/users, POST/PATCH /api/people/{uid}[/{pid}] all coordinate-driven; client-supplied fixed offsets are discarded when coords present and rejected when coords absent. Provenance fields (timezone_source='coordinates', timezone_resolver_version='1.0.0', timezone_resolved_at) persisted on every write path. Legacy KL stampers are env-gated (ENABLE_LEGACY_TIMEZONE_STAMPERS=false default) and did NOT execute on backend restart. timezone-integrity-summary counts IDENTICAL pre/post test (175 users, 26 IANA, 141 fixed offset, 8 missing). All test rows cleaned up via direct Mongo.",
+  "results_per_area": {
+    "1_regression_suite": "PASS 27/27 (tests/test_timezone_resolution.py)",
+    "2_users_adversarial": "PASS 4/4 (Buenos Aires +08:00→America/Argentina/Buenos_Aires; NY Asia/KL→America/New_York; KL UTC→Asia/Kuala_Lumpur; LA +00:00→America/Los_Angeles). All persisted with timezone_source=coordinates, timezone_resolver_version=1.0.0, timezone_resolved_at set.",
+    "3_saved_people_adversarial": "PASS 3/3 (POST BA+offset→Buenos_Aires; PATCH to NY without tz→America/New_York; PATCH clear-loc+offset→HTTP 400 'Invalid timezone +08:00')",
+    "4_build_info": "PASS — GET /api/admin/build-info returns 200 pre and post restart",
+    "5_legacy_stampers_off": "PASS — Post-restart logs show NO 'Set ... timezone: Asia/Kuala_Lumpur' lines and NO stamper execution. All 4 legacy sites (server.py L27410, L32126, L32620, L32843) gated behind ENABLE_LEGACY_TIMEZONE_STAMPERS env flag (default false).",
+    "6_integrity_summary": "PASS — IDENTICAL counts before/after (total=175, iana=26, fixed_offset=141, no_tz=8; top values 100% identical). Cleanup verified."
+  },
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {"ui_bugs": [], "integration_issues": [], "design_issues": [], "react_native_issues": []},
+  "binary_anag_answer": {
+    "question": "Can a new AnaG-class defect still be created via POST /api/users, POST /api/people/{uid}, or PATCH /api/people/{uid}/{pid}?",
+    "answer": "NO",
+    "proof": [
+      "POST /api/users with Buenos Aires coords + timezone=+08:00 stored America/Argentina/Buenos_Aires (DB-verified), source=coordinates.",
+      "POST /api/users with NY coords + timezone=Asia/Kuala_Lumpur stored America/New_York (DB-verified).",
+      "POST /api/users with LA coords + timezone=+00:00 stored America/Los_Angeles (DB-verified).",
+      "POST /api/people/{uid} with BA coords + tz=+08:00 returned timezone=America/Argentina/Buenos_Aires.",
+      "PATCH /api/people/{uid}/{pid} moving birth_location to NY (no tz field) returned timezone=America/New_York (re-resolution on coord change confirmed).",
+      "PATCH with birth_location=null + tz=+08:00 correctly rejected with HTTP 400."
+    ]
+  },
+  "remaining_timezone_write_surfaces": [
+    "None bypass the resolver. Audited all timezone writes in server.py: POST /api/users (hardened at ~L4135-4246), POST/PATCH /api/people/* (services/saved_people.py via _saved_person_resolve_tz), and 4 legacy stampers (L27410, L32126, L32620, L32843) all gated behind ENABLE_LEGACY_TIMEZONE_STAMPERS=false. The 3 geocoding search response sites (server.py L4015, L4077, L4118 inside /api/locations/search) return tz suggestions to clients using the resolver but never write to DB. No PATCH/PUT endpoint exists for /api/users/{id} that touches timezone (only /users/{id}/email writes email_updated_at)."
+  ],
+  "db_cleanup_confirmed": "Yes — adversarial test deleted 5 users + 1 saved_person row created during the run. Final timezone-integrity-summary counts match baseline exactly.",
+  "test_report_links": [
+    "/app/backend/tests/test_timezone_resolution.py (27 cases, pytest)",
+    "/app/backend/tests/adversarial_smoke.py (7 cases, direct Mongo verification)",
+    "/app/test_reports/pytest/timezone_results.xml"
+  ],
+  "updated_files": ["/app/backend/tests/adversarial_smoke.py (new — adversarial smoke runner)"],
+  "success_rate": {"backend": "100%", "frontend": "n/a (not tested per request)"},
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "action_items": [],
+  "critical_code_review_comments": [
+    "Coordinate-driven tz contract is enforced consistently across all write surfaces audited. Provenance fields are present on the response model for saved_people but NOT included in UserProfileResponse — consider exposing timezone_source/timezone_resolver_version on the user GET endpoint to make remediation progress observable from the frontend without direct Mongo reads.",
+    "_saved_person_resolve_tz raises HTTPException(400) if coords are present but resolver returns None (e.g. middle-of-ocean). Currently no test pins this branch — low risk but a future TC would harden it.",
+    "server.py is ~33k lines (well above the 700-line guideline). Out of scope here but worth flagging that the user-create + legacy migration paths would benefit from extraction into services/users.py."
+  ],
+  "context_for_next_testing_agent": "Phase 1.7 timezone hardening is complete and verified. If revisiting: re-run `python3 -m pytest /app/backend/tests/test_timezone_resolution.py -v` and `python3 /app/backend/tests/adversarial_smoke.py`. The integrity baseline was 175 users (26 IANA / 141 fixed offset / 8 none) — historical users were intentionally NOT touched."
+}

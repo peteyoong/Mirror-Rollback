@@ -46,6 +46,85 @@ from pydantic import BaseModel, Field, field_validator, model_validator
 logger = logging.getLogger(__name__)
 
 # ---------------------------------------------------------------------------
+# Phase 1.7 — Timezone Hardening helper
+# ---------------------------------------------------------------------------
+# Saved-person writes derive the timezone from birth_location coordinates
+# exclusively. Any client-supplied `timezone` is IGNORED when lat/lon are
+# present, and rejected when it is not a strict IANA name and coordinates
+# are absent.
+
+def _saved_person_resolve_tz(
+    birth_location: Optional[Dict[str, Any]],
+    client_tz: Optional[str],
+) -> Dict[str, Any]:
+    """Returns the fields to persist for tz on this saved-person record.
+
+    Possible outcomes (all include `timezone_resolver_version`):
+      - {timezone, timezone_source='coordinates', timezone_resolved_at}
+      - {timezone, timezone_source='client_iana_no_coords', timezone_resolved_at}
+      - {timezone: None, timezone_source='no_coords_no_client', timezone_resolved_at}
+    Raises HTTPException(400) when client tz is invalid in the no-coords path.
+    """
+    from services.timezone_resolver import (
+        resolve_iana_timezone, is_iana_name, TIMEZONE_RESOLVER_VERSION,
+    )
+    now_iso = datetime.now(timezone.utc).isoformat()
+
+    lat = lon = None
+    if isinstance(birth_location, dict):
+        lat = birth_location.get("latitude")
+        lon = birth_location.get("longitude")
+
+    if lat is not None and lon is not None:
+        iana = resolve_iana_timezone(lat, lon)
+        if not iana:
+            raise HTTPException(
+                status_code=400,
+                detail=(
+                    "Could not resolve timezone from coordinates "
+                    f"(lat={lat}, lon={lon})."
+                ),
+            )
+        if client_tz and client_tz.strip() and client_tz.strip() != iana:
+            logger.warning(
+                "[SavedPeople] discarded client timezone=%r in favour of "
+                "coordinate-derived %r (lat=%s, lon=%s)",
+                client_tz, iana, lat, lon,
+            )
+        return {
+            "timezone":                  iana,
+            "timezone_source":           "coordinates",
+            "timezone_resolved_at":      now_iso,
+            "timezone_resolver_version": TIMEZONE_RESOLVER_VERSION,
+        }
+
+    # No coordinates: only accept a strict IANA name (or nothing).
+    ct = (client_tz or "").strip()
+    if not ct:
+        return {
+            "timezone":                  None,
+            "timezone_source":           "no_coords_no_client",
+            "timezone_resolved_at":      now_iso,
+            "timezone_resolver_version": TIMEZONE_RESOLVER_VERSION,
+        }
+    if not is_iana_name(ct):
+        raise HTTPException(
+            status_code=400,
+            detail=(
+                f"Invalid timezone {ct!r}: only IANA names are accepted "
+                "when coordinates are absent. Fixed offsets "
+                "('+08:00', '+00:00', 'UTC', 'GMT') are rejected."
+            ),
+        )
+    return {
+        "timezone":                  ct,
+        "timezone_source":           "client_iana_no_coords",
+        "timezone_resolved_at":      now_iso,
+        "timezone_resolver_version": TIMEZONE_RESOLVER_VERSION,
+    }
+
+
+# ---------------------------------------------------------------------------
 # Constants
 # ---------------------------------------------------------------------------
 
@@ -262,6 +341,9 @@ class SavedPersonResponse(BaseModel):
     birth_location_accuracy: str
     notes: Optional[str]
     timezone: Optional[str]
+    timezone_source: Optional[str] = None
+    timezone_resolved_at: Optional[str] = None
+    timezone_resolver_version: Optional[str] = None
     created_at: str
     updated_at: str
     # Derived: callers can use this to surface "needs more info" hints
@@ -310,6 +392,9 @@ def _serialise(doc: Dict[str, Any]) -> Dict[str, Any]:
         "birth_location_accuracy":  doc.get("birth_location_accuracy", "unknown"),
         "notes":                    doc.get("notes"),
         "timezone":                 doc.get("timezone"),
+        "timezone_source":          doc.get("timezone_source"),
+        "timezone_resolved_at":     doc.get("timezone_resolved_at"),
+        "timezone_resolver_version": doc.get("timezone_resolver_version"),
         "full_birth_name":          doc.get("full_birth_name"),
         "enneagram_type":           doc.get("enneagram_type"),
         "enneagram_source":         doc.get("enneagram_source"),
@@ -358,6 +443,12 @@ def build_saved_people_router(db) -> APIRouter:  # noqa: ANN001 — db is Motor 
             raise HTTPException(status_code=400, detail="user_id is required")
 
         now = datetime.now(timezone.utc)
+        bl_dict = (
+            body.birth_location.model_dump()
+            if body.birth_location else None
+        )
+        # ---- Phase 1.7 — coordinate-driven timezone ------------------
+        tz_fields = _saved_person_resolve_tz(bl_dict, body.timezone)
         doc: Dict[str, Any] = {
             "id":                       str(uuid.uuid4()),
             "user_id":                  user_id.strip(),
@@ -366,15 +457,12 @@ def build_saved_people_router(db) -> APIRouter:  # noqa: ANN001 — db is Motor 
             "birth_date":               body.birth_date,
             "birth_time":               body.birth_time,
             "birth_time_accuracy":      body.birth_time_accuracy,
-            "birth_location": (
-                body.birth_location.model_dump()
-                if body.birth_location else None
-            ),
+            "birth_location":           bl_dict,
             "birth_location_accuracy":  body.birth_location_accuracy,
             "notes":                    (body.notes or None),
-            "timezone":                 (body.timezone or None),
             "created_at":               now,
             "updated_at":               now,
+            **tz_fields,
         }
         await db.saved_people.insert_one(doc)
         logger.info(
@@ -450,6 +538,22 @@ def build_saved_people_router(db) -> APIRouter:  # noqa: ANN001 — db is Motor 
                 status_code=400,
                 detail="birth_location is required when birth_location_accuracy is 'exact'.",
             )
+
+        # ---- Phase 1.7 — re-derive tz whenever coords change ----------
+        # Coordinate changes ALWAYS win over any client-supplied timezone.
+        old_loc = existing.get("birth_location") or {}
+        new_loc = merged.get("birth_location") or {}
+        old_lat, old_lon = old_loc.get("latitude"), old_loc.get("longitude")
+        new_lat, new_lon = new_loc.get("latitude"), new_loc.get("longitude")
+        coords_changed = (old_lat, old_lon) != (new_lat, new_lon)
+        client_tz_supplied = "timezone" in update_payload
+        if coords_changed or client_tz_supplied:
+            # Always re-resolve. Coord-driven if coords present.
+            tz_fields = _saved_person_resolve_tz(
+                new_loc if new_loc else None,
+                update_payload.get("timezone") if client_tz_supplied else None,
+            )
+            merged.update(tz_fields)
 
         merged["updated_at"] = datetime.now(timezone.utc)
         await db.saved_people.update_one(

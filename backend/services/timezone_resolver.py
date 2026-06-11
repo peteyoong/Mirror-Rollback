@@ -15,6 +15,9 @@ from typing import Optional, Tuple
 
 logger = logging.getLogger("timezone_resolver")
 
+# Bump on any change to resolution semantics (DB-recorded provenance).
+TIMEZONE_RESOLVER_VERSION = "1.0.0"
+
 _tf = None
 
 def _get_finder():
@@ -66,17 +69,19 @@ def build_timezone_provenance(latitude: Optional[float],
     now_iso = datetime.now(dt_timezone.utc).isoformat()
     if tz:
         prov = {
-            "timezone":              tz,
-            "timezone_source":       "coordinates",
-            "timezone_resolved_at":  now_iso,
+            "timezone":                  tz,
+            "timezone_source":           "coordinates",
+            "timezone_resolved_at":      now_iso,
+            "timezone_resolver_version": TIMEZONE_RESOLVER_VERSION,
         }
         logger.info("[TimezoneResolver] resolved lat=%s lon=%s -> %s",
                     latitude, longitude, tz)
     else:
         prov = {
-            "timezone":              None,
-            "timezone_source":       "unresolved",
-            "timezone_resolved_at":  now_iso,
+            "timezone":                  None,
+            "timezone_source":           "unresolved",
+            "timezone_resolved_at":      now_iso,
+            "timezone_resolver_version": TIMEZONE_RESOLVER_VERSION,
         }
         logger.warning("[TimezoneResolver] could not resolve lat=%s lon=%s",
                        latitude, longitude)
