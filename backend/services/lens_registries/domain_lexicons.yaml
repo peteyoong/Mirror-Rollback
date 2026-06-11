@@ -1,0 +1,140 @@
+# Domain lexicons for intent_router_v2 (Slice B1, shadow mode).
+# Phrase weights tuned conservatively; embedding layer can override later.
+# Lower-cased, substring/regex matching. Multi-word phrases score higher than single tokens.
+
+identity:
+  phrases:
+    - {p: "who am i",       w: 0.9}
+    - {p: "core self",      w: 0.7}
+    - {p: "real me",        w: 0.8}
+    - {p: "my identity",    w: 0.8}
+    - {p: "who i really am",w: 0.9}
+
+relationship:
+  phrases:
+    - {p: "between us",    w: 0.95}
+    - {p: "between you",   w: 0.85}
+    - {p: " we ",          w: 0.4}
+    - {p: " us ",          w: 0.4}
+    - {p: "my partner",    w: 0.95}
+    - {p: "with mel",      w: 0.9}
+    - {p: "my wife",       w: 0.95}
+    - {p: "my husband",    w: 0.95}
+    - {p: "my girlfriend", w: 0.9}
+    - {p: "my boyfriend",  w: 0.9}
+    - {p: "our relationship", w: 0.95}
+    - {p: "us today",      w: 0.95}
+
+family:
+  phrases:
+    - {p: "my mum",      w: 0.95}
+    - {p: "my mother",   w: 0.95}
+    - {p: "my dad",      w: 0.95}
+    - {p: "my father",   w: 0.95}
+    - {p: "my sister",   w: 0.9}
+    - {p: "my brother",  w: 0.9}
+    - {p: "my parents",  w: 0.9}
+    - {p: "my siblings", w: 0.9}
+
+parenting:
+  phrases:
+    - {p: "my child",     w: 0.95}
+    - {p: "my son",       w: 0.95}
+    - {p: "my daughter",  w: 0.95}
+    - {p: "my kid",       w: 0.95}
+    - {p: "my kids",      w: 0.95}
+    - {p: "raising",      w: 0.6}
+    - {p: "discipline",   w: 0.5}
+    - {p: "school",       w: 0.4}
+
+career:
+  phrases:
+    - {p: "my career",    w: 0.95}
+    - {p: "my job",       w: 0.9}
+    - {p: "promotion",    w: 0.85}
+    - {p: "new role",     w: 0.8}
+    - {p: "this role",    w: 0.6}
+    - {p: "my boss",      w: 0.6}
+    - {p: "company",      w: 0.4}
+    - {p: "workplace",    w: 0.7}
+    - {p: "career path",  w: 0.95}
+
+work:
+  phrases:
+    - {p: "my team",      w: 0.8}
+    - {p: "deadline",     w: 0.8}
+    - {p: "this task",    w: 0.7}
+    - {p: "project",      w: 0.5}
+    - {p: "meetings",     w: 0.6}
+    - {p: "workload",     w: 0.8}
+
+leadership:
+  phrases:
+    - {p: "how to lead",  w: 0.95}
+    - {p: "my vision",    w: 0.8}
+    - {p: "as a leader",  w: 0.95}
+    - {p: "my decision",  w: 0.5}
+    - {p: "deciding",     w: 0.5}
+    - {p: "strategy",     w: 0.5}
+
+money:
+  phrases:
+    - {p: "money",       w: 0.85}
+    - {p: "salary",      w: 0.95}
+    - {p: "wealth",      w: 0.9}
+    - {p: "investment",  w: 0.9}
+    - {p: "invest",      w: 0.7}
+    - {p: "finances",    w: 0.95}
+    - {p: "my budget",   w: 0.95}
+    - {p: "income",      w: 0.9}
+
+purpose:
+  phrases:
+    - {p: "my purpose",  w: 0.95}
+    - {p: "meaning",     w: 0.7}
+    - {p: "calling",     w: 0.85}
+    - {p: "my soul",     w: 0.75}
+    - {p: "why am i here", w: 0.95}
+    - {p: "what am i for", w: 0.95}
+
+spirituality:
+  phrases:
+    - {p: "spirit",      w: 0.7}
+    - {p: "divine",      w: 0.85}
+    - {p: "god",         w: 0.6}
+    - {p: "meditation",  w: 0.85}
+    - {p: "my soul",     w: 0.6}
+    - {p: "awakening",   w: 0.85}
+    - {p: "sacred",      w: 0.7}
+
+health:
+  phrases:
+    - {p: "my body",     w: 0.85}
+    - {p: "tired",       w: 0.5}
+    - {p: "exhausted",   w: 0.7}
+    - {p: "sleep",       w: 0.6}
+    - {p: "energy",      w: 0.4}
+    - {p: "my health",   w: 0.95}
+    - {p: "sick",        w: 0.7}
+    - {p: "crashing",    w: 0.6}
+
+growth:
+  phrases:
+    - {p: "stuck",       w: 0.7}
+    - {p: "i want to grow", w: 0.85}
+    - {p: "keep growing",   w: 0.7}
+    - {p: "evolve",      w: 0.7}
+    - {p: "transform",   w: 0.7}
+    - {p: "changing",    w: 0.4}
+    - {p: "breakthrough",w: 0.7}
+
+life_direction:
+  phrases:
+    - {p: "what's next",   w: 0.85}
+    - {p: "should i stay", w: 0.95}
+    - {p: "should i go",   w: 0.85}
+    - {p: "should i leave",w: 0.95}
+    - {p: "should i take", w: 0.7}
+    - {p: "fork in the road", w: 0.95}
+    - {p: "crossroads",    w: 0.85}
+    - {p: "next step",     w: 0.7}

@@ -1,0 +1,766 @@
+{
+  "offline": {
+    "router_version": "intent_router_v2.0.0",
+    "pass": "offline",
+    "total": 15,
+    "top1_accuracy": 0.6667,
+    "top2_accuracy": 0.6667,
+    "secondary_constraint": {
+      "checked": 1,
+      "ok": 1,
+      "accuracy": 1.0
+    },
+    "confidence_gate": {
+      "failed": 1,
+      "items": [
+        {
+          "id": 1,
+          "message": "What's happening between Mel and me today?",
+          "expected": "relationship",
+          "predicted": "general",
+          "secondary": [
+            "identity"
+          ],
+          "confidence": 0.0167,
+          "top1_hit": false,
+          "top2_hit": false,
+          "secondary_check": null,
+          "confidence_ok": false,
+          "latency_ms": 10.244,
+          "receipt_status": "WARNING"
+        }
+      ]
+    },
+    "latency_ms": {
+      "mean": 0.714,
+      "p50": 0.034,
+      "p95": 0.041,
+      "max": 10.244
+    },
+    "receipt_status_counts": {
+      "WARNING": 15
+    },
+    "receipt_pass_rate": 0.0,
+    "per_domain_misses": {
+      "relationship": [
+        {
+          "id": 1,
+          "message": "What's happening between Mel and me today?",
+          "predicted": "general",
+          "secondary": [
+            "identity"
+          ],
+          "confidence": 0.0167
+        },
+        {
+          "id": 6,
+          "message": "What's our forum's pattern this week?",
+          "predicted": "general",
+          "secondary": [
+            "growth"
+          ],
+          "confidence": 0.0041
+        }
+      ],
+      "career": [
+        {
+          "id": 2,
+          "message": "Should I take the promotion or start something new?",
+          "predicted": "general",
+          "secondary": [
+            "life_direction"
+          ],
+          "confidence": 0.0212
+        },
+        {
+          "id": 7,
+          "message": "Is Pete in his role properly?",
+          "predicted": "general",
+          "secondary": [
+            "identity"
+          ],
+          "confidence": 0.0123
+        }
+      ],
+      "leadership": [
+        {
+          "id": 10,
+          "message": "How do I lead my team better?",
+          "predicted": "work",
+          "secondary": [
+            "identity"
+          ],
+          "confidence": 0.0862
+        }
+      ]
+    },
+    "confusion_matrix": {
+      "relationship": {
+        "general": 2
+      },
+      "career": {
+        "general": 2
+      },
+      "parenting": {
+        "parenting": 1
+      },
+      "spirituality": {
+        "spirituality": 1
+      },
+      "health": {
+        "health": 1
+      },
+      "money": {
+        "money": 1
+      },
+      "life_direction": {
+        "life_direction": 1
+      },
+      "leadership": {
+        "work": 1
+      },
+      "family": {
+        "family": 1
+      },
+      "growth": {
+        "growth": 1
+      },
+      "identity": {
+        "identity": 1
+      },
+      "purpose": {
+        "purpose": 1
+      },
+      "general": {
+        "general": 1
+      }
+    },
+    "low_confidence_cases": [],
+    "results": [
+      {
+        "id": 1,
+        "message": "What's happening between Mel and me today?",
+        "expected": "relationship",
+        "predicted": "general",
+        "secondary": [
+          "identity"
+        ],
+        "confidence": 0.0167,
+        "top1_hit": false,
+        "top2_hit": false,
+        "secondary_check": null,
+        "confidence_ok": false,
+        "latency_ms": 10.244,
+        "receipt_status": "WARNING"
+      },
+      {
+        "id": 2,
+        "message": "Should I take the promotion or start something new?",
+        "expected": "career",
+        "predicted": "general",
+        "secondary": [
+          "life_direction"
+        ],
+        "confidence": 0.0212,
+        "top1_hit": false,
+        "top2_hit": false,
+        "secondary_check": true,
+        "confidence_ok": true,
+        "latency_ms": 0.041,
+        "receipt_status": "WARNING"
+      },
+      {
+        "id": 3,
+        "message": "My son keeps shutting down. What's going on?",
+        "expected": "parenting",
+        "predicted": "parenting",
+        "secondary": [
+          "family"
+        ],
+        "confidence": 0.1345,
+        "top1_hit": true,
+        "top2_hit": true,
+        "secondary_check": null,
+        "confidence_ok": true,
+        "latency_ms": 0.039,
+        "receipt_status": "WARNING"
+      },
+      {
+        "id": 4,
+        "message": "I feel disconnected from spirit lately.",
+        "expected": "spirituality",
+        "predicted": "spirituality",
+        "secondary": [
+          "identity"
+        ],
+        "confidence": 0.0723,
+        "top1_hit": true,
+        "top2_hit": true,
+        "secondary_check": null,
+        "confidence_ok": true,
+        "latency_ms": 0.034,
+        "receipt_status": "WARNING"
+      },
+      {
+        "id": 5,
+        "message": "Why does my body feel so heavy at work?",
+        "expected": "health",
+        "predicted": "health",
+        "secondary": [
+          "identity"
+        ],
+        "confidence": 0.0934,
+        "top1_hit": true,
+        "top2_hit": true,
+        "secondary_check": null,
+        "confidence_ok": true,
+        "latency_ms": 0.034,
+        "receipt_status": "WARNING"
+      },
+      {
+        "id": 6,
+        "message": "What's our forum's pattern this week?",
+        "expected": "relationship",
+        "predicted": "general",
+        "secondary": [
+          "growth"
+        ],
+        "confidence": 0.0041,
+        "top1_hit": false,
+        "top2_hit": false,
+        "secondary_check": null,
+        "confidence_ok": true,
+        "latency_ms": 0.037,
+        "receipt_status": "WARNING"
+      },
+      {
+        "id": 7,
+        "message": "Is Pete in his role properly?",
+        "expected": "career",
+        "predicted": "general",
+        "secondary": [
+          "identity"
+        ],
+        "confidence": 0.0123,
+        "top1_hit": false,
+        "top2_hit": false,
+        "secondary_check": null,
+        "confidence_ok": true,
+        "latency_ms": 0.038,
+        "receipt_status": "WARNING"
+      },
+      {
+        "id": 8,
+        "message": "I keep losing money on impulse.",
+        "expected": "money",
+        "predicted": "money",
+        "secondary": [
+          "identity"
+        ],
+        "confidence": 0.0934,
+        "top1_hit": true,
+        "top2_hit": true,
+        "secondary_check": null,
+        "confidence_ok": true,
+        "latency_ms": 0.034,
+        "receipt_status": "WARNING"
+      },
+      {
+        "id": 9,
+        "message": "Should I stay in this company or leave?",
+        "expected": "life_direction",
+        "predicted": "life_direction",
+        "secondary": [
+          "career"
+        ],
+        "confidence": 0.0726,
+        "top1_hit": true,
+        "top2_hit": true,
+        "secondary_check": null,
+        "confidence_ok": true,
+        "latency_ms": 0.034,
+        "receipt_status": "WARNING"
+      },
+      {
+        "id": 10,
+        "message": "How do I lead my team better?",
+        "expected": "leadership",
+        "predicted": "work",
+        "secondary": [
+          "identity"
+        ],
+        "confidence": 0.0862,
+        "top1_hit": false,
+        "top2_hit": false,
+        "secondary_check": null,
+        "confidence_ok": true,
+        "latency_ms": 0.034,
+        "receipt_status": "WARNING"
+      },
+      {
+        "id": 11,
+        "message": "My mum is driving me up the wall.",
+        "expected": "family",
+        "predicted": "family",
+        "secondary": [
+          "identity"
+        ],
+        "confidence": 0.1424,
+        "top1_hit": true,
+        "top2_hit": true,
+        "secondary_check": null,
+        "confidence_ok": true,
+        "latency_ms": 0.031,
+        "receipt_status": "WARNING"
+      },
+      {
+        "id": 12,
+        "message": "I just want to grow past this stuck feeling.",
+        "expected": "growth",
+        "predicted": "growth",
+        "secondary": [
+          "identity"
+        ],
+        "confidence": 0.0723,
+        "top1_hit": true,
+        "top2_hit": true,
+        "secondary_check": null,
+        "confidence_ok": true,
+        "latency_ms": 0.03,
+        "receipt_status": "WARNING"
+      },
+      {
+        "id": 13,
+        "message": "Who am I really when no one is watching?",
+        "expected": "identity",
+        "predicted": "identity",
+        "secondary": [
+          "growth"
+        ],
+        "confidence": 0.1088,
+        "top1_hit": true,
+        "top2_hit": true,
+        "secondary_check": null,
+        "confidence_ok": true,
+        "latency_ms": 0.03,
+        "receipt_status": "WARNING"
+      },
+      {
+        "id": 14,
+        "message": "What's my purpose with all this work I do?",
+        "expected": "purpose",
+        "predicted": "purpose",
+        "secondary": [
+          "identity"
+        ],
+        "confidence": 0.1087,
+        "top1_hit": true,
+        "top2_hit": true,
+        "secondary_check": null,
+        "confidence_ok": true,
+        "latency_ms": 0.03,
+        "receipt_status": "WARNING"
+      },
+      {
+        "id": 15,
+        "message": "hello",
+        "expected": "general",
+        "predicted": "general",
+        "secondary": [],
+        "confidence": 0.0,
+        "top1_hit": true,
+        "top2_hit": true,
+        "secondary_check": null,
+        "confidence_ok": true,
+        "latency_ms": 0.018,
+        "receipt_status": "WARNING"
+      }
+    ]
+  },
+  "embeddings": {
+    "router_version": "intent_router_v2.0.0",
+    "pass": "embeddings",
+    "total": 15,
+    "top1_accuracy": 0.6667,
+    "top2_accuracy": 0.6667,
+    "secondary_constraint": {
+      "checked": 1,
+      "ok": 1,
+      "accuracy": 1.0
+    },
+    "confidence_gate": {
+      "failed": 1,
+      "items": [
+        {
+          "id": 1,
+          "message": "What's happening between Mel and me today?",
+          "expected": "relationship",
+          "predicted": "general",
+          "secondary": [
+            "identity"
+          ],
+          "confidence": 0.0167,
+          "top1_hit": false,
+          "top2_hit": false,
+          "secondary_check": null,
+          "confidence_ok": false,
+          "latency_ms": 0.033,
+          "receipt_status": "WARNING"
+        }
+      ]
+    },
+    "latency_ms": {
+      "mean": 0.029,
+      "p50": 0.029,
+      "p95": 0.031,
+      "max": 0.033
+    },
+    "receipt_status_counts": {
+      "WARNING": 15
+    },
+    "receipt_pass_rate": 0.0,
+    "per_domain_misses": {
+      "relationship": [
+        {
+          "id": 1,
+          "message": "What's happening between Mel and me today?",
+          "predicted": "general",
+          "secondary": [
+            "identity"
+          ],
+          "confidence": 0.0167
+        },
+        {
+          "id": 6,
+          "message": "What's our forum's pattern this week?",
+          "predicted": "general",
+          "secondary": [
+            "growth"
+          ],
+          "confidence": 0.0041
+        }
+      ],
+      "career": [
+        {
+          "id": 2,
+          "message": "Should I take the promotion or start something new?",
+          "predicted": "general",
+          "secondary": [
+            "life_direction"
+          ],
+          "confidence": 0.0212
+        },
+        {
+          "id": 7,
+          "message": "Is Pete in his role properly?",
+          "predicted": "general",
+          "secondary": [
+            "identity"
+          ],
+          "confidence": 0.0123
+        }
+      ],
+      "leadership": [
+        {
+          "id": 10,
+          "message": "How do I lead my team better?",
+          "predicted": "work",
+          "secondary": [
+            "identity"
+          ],
+          "confidence": 0.0862
+        }
+      ]
+    },
+    "confusion_matrix": {
+      "relationship": {
+        "general": 2
+      },
+      "career": {
+        "general": 2
+      },
+      "parenting": {
+        "parenting": 1
+      },
+      "spirituality": {
+        "spirituality": 1
+      },
+      "health": {
+        "health": 1
+      },
+      "money": {
+        "money": 1
+      },
+      "life_direction": {
+        "life_direction": 1
+      },
+      "leadership": {
+        "work": 1
+      },
+      "family": {
+        "family": 1
+      },
+      "growth": {
+        "growth": 1
+      },
+      "identity": {
+        "identity": 1
+      },
+      "purpose": {
+        "purpose": 1
+      },
+      "general": {
+        "general": 1
+      }
+    },
+    "low_confidence_cases": [],
+    "results": [
+      {
+        "id": 1,
+        "message": "What's happening between Mel and me today?",
+        "expected": "relationship",
+        "predicted": "general",
+        "secondary": [
+          "identity"
+        ],
+        "confidence": 0.0167,
+        "top1_hit": false,
+        "top2_hit": false,
+        "secondary_check": null,
+        "confidence_ok": false,
+        "latency_ms": 0.033,
+        "receipt_status": "WARNING"
+      },
+      {
+        "id": 2,
+        "message": "Should I take the promotion or start something new?",
+        "expected": "career",
+        "predicted": "general",
+        "secondary": [
+          "life_direction"
+        ],
+        "confidence": 0.0212,
+        "top1_hit": false,
+        "top2_hit": false,
+        "secondary_check": true,
+        "confidence_ok": true,
+        "latency_ms": 0.031,
+        "receipt_status": "WARNING"
+      },
+      {
+        "id": 3,
+        "message": "My son keeps shutting down. What's going on?",
+        "expected": "parenting",
+        "predicted": "parenting",
+        "secondary": [
+          "family"
+        ],
+        "confidence": 0.1345,
+        "top1_hit": true,
+        "top2_hit": true,
+        "secondary_check": null,
+        "confidence_ok": true,
+        "latency_ms": 0.03,
+        "receipt_status": "WARNING"
+      },
+      {
+        "id": 4,
+        "message": "I feel disconnected from spirit lately.",
+        "expected": "spirituality",
+        "predicted": "spirituality",
+        "secondary": [
+          "identity"
+        ],
+        "confidence": 0.0723,
+        "top1_hit": true,
+        "top2_hit": true,
+        "secondary_check": null,
+        "confidence_ok": true,
+        "latency_ms": 0.029,
+        "receipt_status": "WARNING"
+      },
+      {
+        "id": 5,
+        "message": "Why does my body feel so heavy at work?",
+        "expected": "health",
+        "predicted": "health",
+        "secondary": [
+          "identity"
+        ],
+        "confidence": 0.0934,
+        "top1_hit": true,
+        "top2_hit": true,
+        "secondary_check": null,
+        "confidence_ok": true,
+        "latency_ms": 0.029,
+        "receipt_status": "WARNING"
+      },
+      {
+        "id": 6,
+        "message": "What's our forum's pattern this week?",
+        "expected": "relationship",
+        "predicted": "general",
+        "secondary": [
+          "growth"
+        ],
+        "confidence": 0.0041,
+        "top1_hit": false,
+        "top2_hit": false,
+        "secondary_check": null,
+        "confidence_ok": true,
+        "latency_ms": 0.028,
+        "receipt_status": "WARNING"
+      },
+      {
+        "id": 7,
+        "message": "Is Pete in his role properly?",
+        "expected": "career",
+        "predicted": "general",
+        "secondary": [
+          "identity"
+        ],
+        "confidence": 0.0123,
+        "top1_hit": false,
+        "top2_hit": false,
+        "secondary_check": null,
+        "confidence_ok": true,
+        "latency_ms": 0.027,
+        "receipt_status": "WARNING"
+      },
+      {
+        "id": 8,
+        "message": "I keep losing money on impulse.",
+        "expected": "money",
+        "predicted": "money",
+        "secondary": [
+          "identity"
+        ],
+        "confidence": 0.0934,
+        "top1_hit": true,
+        "top2_hit": true,
+        "secondary_check": null,
+        "confidence_ok": true,
+        "latency_ms": 0.029,
+        "receipt_status": "WARNING"
+      },
+      {
+        "id": 9,
+        "message": "Should I stay in this company or leave?",
+        "expected": "life_direction",
+        "predicted": "life_direction",
+        "secondary": [
+          "career"
+        ],
+        "confidence": 0.0726,
+        "top1_hit": true,
+        "top2_hit": true,
+        "secondary_check": null,
+        "confidence_ok": true,
+        "latency_ms": 0.03,
+        "receipt_status": "WARNING"
+      },
+      {
+        "id": 10,
+        "message": "How do I lead my team better?",
+        "expected": "leadership",
+        "predicted": "work",
+        "secondary": [
+          "identity"
+        ],
+        "confidence": 0.0862,
+        "top1_hit": false,
+        "top2_hit": false,
+        "secondary_check": null,
+        "confidence_ok": true,
+        "latency_ms": 0.028,
+        "receipt_status": "WARNING"
+      },
+      {
+        "id": 11,
+        "message": "My mum is driving me up the wall.",
+        "expected": "family",
+        "predicted": "family",
+        "secondary": [
+          "identity"
+        ],
+        "confidence": 0.1424,
+        "top1_hit": true,
+        "top2_hit": true,
+        "secondary_check": null,
+        "confidence_ok": true,
+        "latency_ms": 0.03,
+        "receipt_status": "WARNING"
+      },
+      {
+        "id": 12,
+        "message": "I just want to grow past this stuck feeling.",
+        "expected": "growth",
+        "predicted": "growth",
+        "secondary": [
+          "identity"
+        ],
+        "confidence": 0.0723,
+        "top1_hit": true,
+        "top2_hit": true,
+        "secondary_check": null,
+        "confidence_ok": true,
+        "latency_ms": 0.029,
+        "receipt_status": "WARNING"
+      },
+      {
+        "id": 13,
+        "message": "Who am I really when no one is watching?",
+        "expected": "identity",
+        "predicted": "identity",
+        "secondary": [
+          "growth"
+        ],
+        "confidence": 0.1088,
+        "top1_hit": true,
+        "top2_hit": true,
+        "secondary_check": null,
+        "confidence_ok": true,
+        "latency_ms": 0.029,
+        "receipt_status": "WARNING"
+      },
+      {
+        "id": 14,
+        "message": "What's my purpose with all this work I do?",
+        "expected": "purpose",
+        "predicted": "purpose",
+        "secondary": [
+          "identity"
+        ],
+        "confidence": 0.1087,
+        "top1_hit": true,
+        "top2_hit": true,
+        "secondary_check": null,
+        "confidence_ok": true,
+        "latency_ms": 0.029,
+        "receipt_status": "WARNING"
+      },
+      {
+        "id": 15,
+        "message": "hello",
+        "expected": "general",
+        "predicted": "general",
+        "secondary": [],
+        "confidence": 0.0,
+        "top1_hit": true,
+        "top2_hit": true,
+        "secondary_check": null,
+        "confidence_ok": true,
+        "latency_ms": 0.017,
+        "receipt_status": "WARNING"
+      }
+    ]
+  },
+  "delta": {
+    "top1_delta": 0.0,
+    "top2_delta": 0.0,
+    "latency_delta_mean_ms": -0.685,
+    "latency_delta_p95_ms": -0.01,
+    "corrected_by_embeddings": [],
+    "regressed_by_embeddings": []
+  }
+}

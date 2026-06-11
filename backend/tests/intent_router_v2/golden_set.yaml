@@ -1,0 +1,86 @@
+# Golden set for intent_router_v2 — Slice B1 starter.
+# Each entry produces a single (message, frame, target, role) → expected envelope row.
+# Used by tests/test_intent_router_v2.py.
+
+- id: 1
+  message: "What's happening between Mel and me today?"
+  active_frame: self
+  current_target_id: mel
+  relationship_role: partner
+  expected_primary: relationship
+  expected_min_confidence: 0.05
+
+- id: 2
+  message: "Should I take the promotion or start something new?"
+  active_frame: self
+  expected_primary: career
+  expected_secondary_in: [purpose, life_direction]
+
+- id: 3
+  message: "My son keeps shutting down. What's going on?"
+  active_frame: self
+  relationship_role: child
+  expected_primary: parenting
+
+- id: 4
+  message: "I feel disconnected from spirit lately."
+  active_frame: self
+  expected_primary: spirituality
+
+- id: 5
+  message: "Why does my body feel so heavy at work?"
+  active_frame: self
+  expected_primary: health
+
+- id: 6
+  message: "What's our forum's pattern this week?"
+  active_frame: forum
+  expected_primary: relationship
+
+- id: 7
+  message: "Is Pete in his role properly?"
+  active_frame: member
+  current_target_id: pete
+  expected_primary: career
+
+- id: 8
+  message: "I keep losing money on impulse."
+  active_frame: self
+  expected_primary: money
+
+- id: 9
+  message: "Should I stay in this company or leave?"
+  active_frame: self
+  expected_primary: life_direction
+
+- id: 10
+  message: "How do I lead my team better?"
+  active_frame: self
+  expected_primary: leadership
+
+- id: 11
+  message: "My mum is driving me up the wall."
+  active_frame: self
+  relationship_role: parent
+  expected_primary: family
+
+- id: 12
+  message: "I just want to grow past this stuck feeling."
+  active_frame: self
+  expected_primary: growth
+
+- id: 13
+  message: "Who am I really when no one is watching?"
+  active_frame: reflect
+  expected_primary: identity
+
+- id: 14
+  message: "What's my purpose with all this work I do?"
+  active_frame: self
+  expected_primary: purpose
+
+- id: 15
+  message: "hello"
+  active_frame: self
+  expected_primary: general
+  expected_max_confidence: 0.05
