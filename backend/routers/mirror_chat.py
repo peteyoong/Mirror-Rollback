@@ -140,13 +140,32 @@ def register(
                 _b1_request_id = _b1_make_request_id()
 
                 async def _b1_load_saved_people() -> list:
+                    """Hydrate the requester's saved_people list for the
+                    shadow router.  Reads from `db.saved_people` (the
+                    canonical store used by services/saved_people.py,
+                    member_chart_resolver, relationship_resolver, etc).
+                    Maps each doc to the minimal shape the V2 router
+                    expects: {id, name, role, closeness, weight}."""
                     try:
-                        doc = await db["people"].find_one({"user_id": request.user_id})
-                        if doc and isinstance(doc.get("people"), list):
-                            return doc["people"]
+                        out: list = []
+                        cur = db["saved_people"].find(
+                            {"user_id": request.user_id})
+                        async for p in cur:
+                            role = (p.get("relationship_type") or "").lower() or None
+                            # closeness/weight aren't tracked in saved_people
+                            # yet; use a conservative default tied to role
+                            # presence so the router doesn't ignore matches.
+                            closeness = 0.7 if role in ("partner", "spouse") else 0.5
+                            out.append({
+                                "id": p.get("id") or str(p.get("_id")),
+                                "name": p.get("name"),
+                                "role": role,
+                                "closeness": closeness,
+                                "weight": closeness,
+                            })
+                        return out
                     except Exception:
-                        pass
-                    return []
+                        return []
 
                 async def _b1_run_shadow():
                     saved = await _b1_load_saved_people()

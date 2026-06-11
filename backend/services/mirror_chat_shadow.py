@@ -67,23 +67,27 @@ async def emit_shadow_receipt(
         # Resolve target FIRST so we can feed its role back into the
         # intent classifier (lets "What enneagram pattern does Mel
         # show up with?" bias toward relationship via role=partner).
+        #
+        # NOTE (B2): we now always run the resolver, even when no
+        # about_person_id and no saved_people are present, because the
+        # missing-target fallback path detects proper names in the
+        # message itself and emits a receipt-only proposed_action.
         rel = None
         resolved_target_id = about_person_id
         resolved_role: Optional[str] = None
-        if about_person_id or saved_people:
-            try:
-                rel_resolved = resolve_relationship_context(
-                    self_user_id=user_id,
-                    user_message=message or "",
-                    active_frame=frame,
-                    target_id=about_person_id,
-                    saved_people=saved_people or [],
-                )
-                rel = rel_resolved.to_dict()
-                resolved_target_id = rel_resolved.target or about_person_id
-                resolved_role = rel_resolved.role
-            except Exception as e:
-                log.warning(f"[Shadow] relationship_router_v2 failed: {e!r}")
+        try:
+            rel_resolved = resolve_relationship_context(
+                self_user_id=user_id,
+                user_message=message or "",
+                active_frame=frame,
+                target_id=about_person_id,
+                saved_people=saved_people or [],
+            )
+            rel = rel_resolved.to_dict()
+            resolved_target_id = rel_resolved.target or about_person_id
+            resolved_role = rel_resolved.role
+        except Exception as e:
+            log.warning(f"[Shadow] relationship_router_v2 failed: {e!r}")
 
         envelope = classify_intent_v2(
             message=message or "",

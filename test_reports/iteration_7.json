@@ -1,0 +1,45 @@
+{
+  "summary": "RETEST after fixes — Track 1 Slice B2 Missing-Target Fallback: ALL GREEN. 4/4 backend integration tests in /app/backend/tests/test_b2_mirror_chat_shadow.py PASS, including the previously-failing headline case (test_mirror_chat_unresolved_named_sarah). Regression suites (test_intent_router_v2.py + test_relationship_router_v2_missing_target.py) remain 15/15 PASS. Live POST /api/mirror/chat response body is unchanged (response/session_id/timestamp + optional debug/evidence/thread/memory_update; no target_unresolved_name / proposed_action / target_resolution_status leakage). Mongo spot-check on the latest receipt for Pete after 'How does Sarah show up at work?' confirms relationship_resolution.target_unresolved_name='Sarah', proposed_action.type='add_to_circle', target_resolution_status='UNRESOLVED_NAMED'. Both fixes from iteration_6 are in place: (a) services/mirror_chat_shadow.py — the `if about_person_id or saved_people:` gate is removed and resolve_relationship_context now runs unconditionally; (b) routers/mirror_chat.py:_b1_load_saved_people now reads from db.saved_people and maps docs to {id, name, role, closeness, weight}. Slice B2 is ready to ship.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [],
+    "react_native_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_b2_mirror_chat_shadow.py (4/4 PASS)",
+    "/app/test_reports/pytest/b2_mirror_chat_shadow_iter7.xml",
+    "/app/backend/tests/test_intent_router_v2.py (8/8 PASS)",
+    "/app/backend/tests/test_relationship_router_v2_missing_target.py (7/7 PASS)"
+  ],
+  "verified_guarantees": {
+    "live_response_unchanged": "PASS — response body across all three POST scenarios contains only response/session_id/timestamp (+ optional debug/evidence/thread/memory_update). No B2 receipt fields leak into the live response.",
+    "no_5xx_errors": "PASS — all POST /api/mirror/chat calls returned 200.",
+    "unresolved_named_path": "PASS — 'How does Sarah show up at work?' yields receipt with target_resolution_status='UNRESOLVED_NAMED', target_unresolved_name='Sarah', proposed_action={'type':'add_to_circle','suggested_name':'Sarah','confidence':0.55}.",
+    "resolved_path_correct": "PASS — about_person_id='6a0b0ac57a933e4a69a5183b' yields receipt with target_resolution_status='RESOLVED' and proposed_action=null.",
+    "no_propername_no_falsefire": "PASS — 'Tell me about my chart' yields receipt with target_unresolved_name=null and proposed_action=null, status != 'UNRESOLVED_NAMED'."
+  },
+  "action_items": [
+    "None — Slice B2 missing-target fallback is fully validated end-to-end.",
+    "Optional cleanup (still applies from iter_6 code review): services/mirror_chat_shadow.py:42 still has `return 'forum' if False else 'self'` dead-code branch in _derive_frame — non-blocking but worth tidying.",
+    "Optional follow-up: routers/mirror_chat.py is still very large (>1500 lines); extracting the shadow hook + _b1_load_saved_people into its own module would make future audits easier."
+  ],
+  "critical_code_review_comments": [
+    "Fix #1 (mirror_chat_shadow.py): gate removal is correct — resolve_relationship_context is fast and side-effect-free, safe to invoke unconditionally.",
+    "Fix #2 (mirror_chat.py:_b1_load_saved_people): now correctly reads from db.saved_people and maps relationship_type → role with a sensible default closeness; matches the shape relationship_router_v2 expects.",
+    "Receipt persistence path is healthy: receipts appear in mirror_chat_retrieval_receipts within ~1-2s of the POST returning."
+  ],
+  "updated_files": [],
+  "success_rate": {
+    "backend": "100% (4/4 integration + 15/15 unit = 19/19)",
+    "frontend": "n/a (backend-only retest per request)"
+  },
+  "seed_data_creation": "None.",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Slice B2 Missing-Target Fallback is fully validated. Future iterations on this feature should preserve: (1) services/mirror_chat_shadow.py keeps resolve_relationship_context call unconditional; (2) routers/mirror_chat.py keeps _b1_load_saved_people reading from db.saved_people (NOT db.people); (3) live POST /api/mirror/chat response stays free of receipt-only fields target_unresolved_name / proposed_action / target_resolution_status. /app/backend/tests/test_b2_mirror_chat_shadow.py serves as the regression guard for all three."
+}
