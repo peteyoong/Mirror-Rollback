@@ -206,6 +206,87 @@ router = APIRouter(prefix="/api/admin", tags=["admin-variant-a-migration"])
 
 
 # ---------------------------------------------------------------------
+# TZ-INTEGRITY (Phase 1) — read-only audit endpoints
+# ---------------------------------------------------------------------
+@router.get("/timezone-integrity-summary")
+async def timezone_integrity_summary():
+    """Aggregate counts of stored tz values across all users. Read-only."""
+    if _db is None:
+        raise HTTPException(status_code=500, detail={"code": "MONGO_NOT_CONFIGURED"})
+    from services.timezone_resolver import is_iana_name
+    total = await _db.users.count_documents({})
+    with_tz_count = 0
+    iana_count = 0
+    fixed_offset_count = 0
+    dist = {}
+    async for u in _db.users.find({}, {"birth_timezone":1,"timezone":1,"birth_location.timezone":1}):
+        tz = u.get("birth_timezone") \
+             or (u.get("birth_location") or {}).get("timezone") \
+             or u.get("timezone")
+        if not tz:
+            continue
+        with_tz_count += 1
+        sval = str(tz)
+        dist[sval] = dist.get(sval, 0) + 1
+        if is_iana_name(sval):
+            iana_count += 1
+        elif sval.startswith(("+", "-")) or sval.upper() in ("UTC","GMT","Z"):
+            fixed_offset_count += 1
+    top = sorted(dist.items(), key=lambda kv: -kv[1])[:20]
+    return JSONResponse(content={
+        "total_users":                       total,
+        "users_with_timezone":               with_tz_count,
+        "users_with_iana_timezone":          iana_count,
+        "users_with_fixed_offset_timezone":  fixed_offset_count,
+        "users_without_timezone":            total - with_tz_count,
+        "top_timezone_values":               [{"value": k, "count": v} for k, v in top],
+        "server_time_utc":                   datetime.now(timezone.utc).isoformat(),
+    }, headers={"Cache-Control": "no-store"})
+
+
+@router.get("/timezone-audit/{user_id}")
+async def timezone_audit(user_id: str):
+    """Per-user tz audit. Read-only — no recomputation, no writes."""
+    if _db is None:
+        raise HTTPException(status_code=500, detail={"code": "MONGO_NOT_CONFIGURED"})
+    from services.timezone_resolver import resolve_iana_timezone, is_iana_name
+    user = None
+    try:
+        from bson import ObjectId
+        try: user = await _db.users.find_one({"_id": ObjectId(user_id)})
+        except Exception: pass
+    except Exception:
+        pass
+    if not user:
+        user = await _db.users.find_one({"_id": user_id}) \
+            or await _db.users.find_one({"user_id": user_id})
+    if not user:
+        return JSONResponse(status_code=404,
+                            content={"found": False, "user_id_searched": user_id})
+    bl = user.get("birth_location") or {}
+    lat = bl.get("latitude")
+    lon = bl.get("longitude")
+    stored_tz = user.get("birth_timezone") or bl.get("timezone") or user.get("timezone")
+    resolved_tz = resolve_iana_timezone(lat, lon)
+    chart = await _db.charts.find_one({"user_id": str(user.get("_id"))})
+    return JSONResponse(content=jsonable_encoder({
+        "user_id":                            str(user.get("_id")),
+        "name":                               user.get("name"),
+        "city":                               bl.get("city"),
+        "country":                            bl.get("country"),
+        "latitude":                           lat,
+        "longitude":                          lon,
+        "stored_timezone":                    stored_tz,
+        "stored_timezone_is_iana":            is_iana_name(stored_tz) if stored_tz else False,
+        "resolved_timezone_from_coordinates": resolved_tz,
+        "match":                              (stored_tz == resolved_tz) if resolved_tz else False,
+        "chart_present":                      bool(chart),
+        "astrology_engine_version":           (chart or {}).get("astrology_engine_version"),
+    }), headers={"Cache-Control": "no-store"})
+
+
+
+# ---------------------------------------------------------------------
 # 0) NO-AUTH READ-ONLY: build & deployed-state proof
 # ---------------------------------------------------------------------
 @router.get("/build-info")

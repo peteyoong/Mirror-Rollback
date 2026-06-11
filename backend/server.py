@@ -3991,7 +3991,7 @@ async def search_locations(request: LocationSearchRequest):
                     "latitude": city_data["latitude"],
                     "longitude": city_data["longitude"],
                     "display_name": f"{city_data['city']}, {city_data['country']}",
-                    "timezone": estimate_timezone(city_data["longitude"])
+                    "timezone": resolve_tz_from_coords(city_data["latitude"], city_data["longitude"])
                 })
         
         return results[:5]  # Limit to 5 results
@@ -4053,7 +4053,7 @@ async def search_locations(request: LocationSearchRequest):
                         "latitude": lat,
                         "longitude": lon,
                         "display_name": display_name or f"{city}, {country}",
-                        "timezone": estimate_timezone(lon)
+                        "timezone": resolve_tz_from_coords(lat, lon)
                     })
                 
                 return results
@@ -4094,7 +4094,7 @@ async def search_locations(request: LocationSearchRequest):
                     "latitude": loc.latitude,
                     "longitude": loc.longitude,
                     "display_name": loc.address,
-                    "timezone": estimate_timezone(loc.longitude)
+                    "timezone": resolve_tz_from_coords(loc.latitude, loc.longitude)
                 })
             
             return results
