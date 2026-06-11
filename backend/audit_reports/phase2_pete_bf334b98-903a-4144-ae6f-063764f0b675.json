@@ -1,0 +1,431 @@
+{
+  "report": "PHASE2_PETE_FINAL_REPORT",
+  "migration_id": "bf334b98-903a-4144-ae6f-063764f0b675",
+  "mode": "COMMIT",
+  "user_id": "697f0c6abf35c0528ff06954",
+  "user_email": "pete@pulsifi.me",
+  "started_at": "2026-06-11T17:18:16.012703+00:00",
+  "finished_at": "2026-06-11T17:18:16.205523+00:00",
+  "tz_before": "+07:00",
+  "tz_after": "Asia/Kuala_Lumpur",
+  "utc_before": null,
+  "utc_after": "1968-03-31T17:55:00+00:00",
+  "section_1_astrology": {
+    "asc_before": {
+      "long": 262.6995767446388,
+      "sign_deg": [
+        "Sagittarius",
+        22.69957674463882
+      ]
+    },
+    "asc_after": {
+      "long": 255.5384925799478,
+      "sign_deg": [
+        "Sagittarius",
+        15.538492579947814
+      ]
+    },
+    "asc_delta_deg": -7.1611,
+    "asc_sign_changed": false,
+    "mc_before": {
+      "long": 177.84716823191584,
+      "sign_deg": [
+        "Virgo",
+        27.847168231915845
+      ]
+    },
+    "mc_after": {
+      "long": 169.84452511823812,
+      "sign_deg": [
+        "Virgo",
+        19.844525118238124
+      ]
+    },
+    "mc_delta_deg": -8.0026,
+    "mc_sign_changed": false,
+    "house_cusps_before": [
+      262.6995767446388,
+      292.6995767446388,
+      322.6995767446388,
+      352.6995767446388,
+      22.69957674463882,
+      52.69957674463882,
+      82.69957674463882,
+      112.69957674463882,
+      142.69957674463882,
+      172.69957674463876,
+      202.69957674463876,
+      232.69957674463876
+    ],
+    "house_cusps_after": [
+      255.5384925799478,
+      285.53849257994784,
+      315.53849257994784,
+      345.53849257994784,
+      15.538492579947842,
+      45.53849257994784,
+      75.53849257994784,
+      105.53849257994784,
+      135.53849257994784,
+      165.53849257994784,
+      195.53849257994784,
+      225.53849257994784
+    ],
+    "planet_positions_before": {
+      "Sun": {
+        "long": 340.2620473144566,
+        "house": 3,
+        "sign": "Pisces"
+      },
+      "Moon": {
+        "long": 11.307571809214151,
+        "house": 4,
+        "sign": "Aries"
+      },
+      "Mercury": {
+        "long": 318.8169923651061,
+        "house": 2,
+        "sign": "Pisces"
+      },
+      "Venus": {
+        "long": 319.1328143215843,
+        "house": 2,
+        "sign": "Pisces"
+      },
+      "Mars": {
+        "long": 1.9451257942702262,
+        "house": 4,
+        "sign": "Aries"
+      },
+      "Jupiter": {
+        "long": 115.68319926590544,
+        "house": 8,
+        "sign": "Leo"
+      },
+      "Saturn": {
+        "long": 343.97768089985294,
+        "house": 3,
+        "sign": "Pisces"
+      },
+      "Uranus": {
+        "long": 145.73853715826573,
+        "house": 9,
+        "sign": "Virgo"
+      },
+      "Neptune": {
+        "long": 205.39584414009298,
+        "house": 11,
+        "sign": "Libra"
+      },
+      "Pluto": {
+        "long": 140.18721663653255,
+        "house": 8,
+        "sign": "Leo"
+      },
+      "Chiron": {
+        "long": 329.13054233860584,
+        "house": 3,
+        "sign": "Pisces"
+      },
+      "North Node": {
+        "long": 347.8379332248551,
+        "house": 3,
+        "sign": "Pisces"
+      },
+      "South Node": {
+        "long": 167.83793322485508,
+        "house": 9,
+        "sign": "Virgo"
+      }
+    },
+    "planet_positions_after": {
+      "Sun": {
+        "long": 340.2414836846036,
+        "house": 3,
+        "sign": "Pisces"
+      },
+      "Moon": {
+        "long": 11.06062205502309,
+        "house": 4,
+        "sign": "Aries"
+      },
+      "Mercury": {
+        "long": 318.7842348250145,
+        "house": 3,
+        "sign": "Pisces"
+      },
+      "Venus": {
+        "long": 319.10714277505053,
+        "house": 3,
+        "sign": "Pisces"
+      },
+      "Mars": {
+        "long": 1.9298123575613702,
+        "house": 4,
+        "sign": "Aries"
+      },
+      "Jupiter": {
+        "long": 115.68454664849531,
+        "house": 8,
+        "sign": "Leo"
+      },
+      "Saturn": {
+        "long": 343.97505854741803,
+        "house": 3,
+        "sign": "Pisces"
+      },
+      "Uranus": {
+        "long": 145.73940697654947,
+        "house": 9,
+        "sign": "Virgo"
+      },
+      "Neptune": {
+        "long": 205.39619884944622,
+        "house": 11,
+        "sign": "Libra"
+      },
+      "Pluto": {
+        "long": 140.1877365912015,
+        "house": 9,
+        "sign": "Leo"
+      },
+      "Chiron": {
+        "long": 329.12932284757863,
+        "house": 3,
+        "sign": "Pisces"
+      },
+      "North Node": {
+        "long": 347.83770240668963,
+        "house": 4,
+        "sign": "Pisces"
+      },
+      "South Node": {
+        "long": 167.8377024066897,
+        "house": 10,
+        "sign": "Virgo"
+      }
+    },
+    "planet_house_changes": [
+      {
+        "body": "Mercury",
+        "before": 2,
+        "after": 3
+      },
+      {
+        "body": "Venus",
+        "before": 2,
+        "after": 3
+      },
+      {
+        "body": "Pluto",
+        "before": 8,
+        "after": 9
+      },
+      {
+        "body": "North Node",
+        "before": 3,
+        "after": 4
+      },
+      {
+        "body": "South Node",
+        "before": 9,
+        "after": 10
+      }
+    ],
+    "aspects_before_count": 23,
+    "aspects_after_count": 23
+  },
+  "section_2_human_design": {
+    "type_before": "Manifestor",
+    "type_after": "Manifestor",
+    "authority_before": "Emotional",
+    "authority_after": "Emotional",
+    "profile_before": "5/1",
+    "profile_after": "5/1",
+    "definition_before": "Split",
+    "definition_after": "Split",
+    "personality_gates_before": [
+      4,
+      13,
+      21,
+      22,
+      25,
+      29,
+      32,
+      37,
+      40,
+      47,
+      49,
+      62,
+      63
+    ],
+    "personality_gates_after": [
+      4,
+      13,
+      21,
+      22,
+      25,
+      29,
+      32,
+      37,
+      40,
+      47,
+      49,
+      62,
+      63
+    ],
+    "design_gates_before": [
+      4,
+      5,
+      6,
+      28,
+      29,
+      31,
+      32,
+      35,
+      36,
+      41,
+      55,
+      61
+    ],
+    "design_gates_after": [
+      4,
+      5,
+      6,
+      28,
+      29,
+      31,
+      32,
+      35,
+      36,
+      41,
+      55,
+      61
+    ],
+    "channels_before": [
+      [
+        4,
+        63
+      ],
+      [
+        35,
+        36
+      ],
+      [
+        37,
+        40
+      ]
+    ],
+    "channels_after": [
+      [
+        4,
+        63
+      ],
+      [
+        35,
+        36
+      ],
+      [
+        37,
+        40
+      ]
+    ],
+    "incarnation_cross_before": "Left Angle Cross of Migration 1",
+    "incarnation_cross_after": "Left Angle Cross of Migration 1",
+    "incarnation_cross_gates_before": "37/40 | 5/35",
+    "incarnation_cross_gates_after": "37/40 | 5/35",
+    "design_utc_before": "1968-01-04T09:38:21.562500+00:00",
+    "design_utc_after": "1968-01-04T09:08:21.562500+00:00"
+  },
+  "section_3_mirror_impact": {
+    "governing_chapter": "asc-sign unchanged \u2192 chapter selection likely identical; verify on next regeneration",
+    "timeline": "all user_timeline rows invalidated; will regenerate lazily with new house placements",
+    "today": "daily_focus/daily_keystones/daily_astrology cleared; next visit regenerates",
+    "astrology_overview": "Asc/MC degrees shift within same signs; overview rewritten on next read",
+    "natal_story": "5 planet house re-assignments will re-paragraph"
+  },
+  "section_4_relationship_impact": {
+    "mel_anchor": {
+      "user_id": "697ec826ad4b18f75bf42616",
+      "asc": [
+        "Gemini",
+        29.10342319395835
+      ],
+      "mc": [
+        "Aries",
+        2.750266380184641
+      ],
+      "unchanged": true
+    },
+    "relationship_field": "MODERATE \u2014 composite Asc/MC rotates with Pete's \u22127\u00b0 shift",
+    "between_you_today": "LOW \u2014 Mel side unchanged; transit deltas only on Pete side",
+    "synastry_overlays": "HIGH \u2014 Pete planets shift ~7\u00b0 in Mel's house frame"
+  },
+  "section_5_verification": {
+    "forum_memberships_preserved": true,
+    "saved_people_preserved": true,
+    "journal_preserved": true,
+    "reflections_preserved": true,
+    "chat_history_preserved": true,
+    "preserved_collection_counts": {
+      "before": {
+        "chat_history": 1,
+        "enneagram_chat_history": 0,
+        "forum_chat_messages": 31,
+        "forum_mirror_chat_messages": 30,
+        "forum_reflections": 1,
+        "user_reflections": 2,
+        "reflections": 2,
+        "journal": 26,
+        "facet_history": 20,
+        "user_memory": 1,
+        "user_thread_state": 1,
+        "user_engagement_state": 1,
+        "user_recent_actions": 1,
+        "home_engagement_sessions": 327,
+        "enneagram_results": 1,
+        "saved_people": 9,
+        "forum_members": 4,
+        "forums": 0,
+        "forum_updates": 2,
+        "forum_exercises": 0,
+        "forum_relationship_edges": 0
+      },
+      "after": {
+        "chat_history": 1,
+        "enneagram_chat_history": 0,
+        "forum_chat_messages": 31,
+        "forum_mirror_chat_messages": 30,
+        "forum_reflections": 1,
+        "user_reflections": 2,
+        "reflections": 2,
+        "journal": 26,
+        "facet_history": 20,
+        "user_memory": 1,
+        "user_thread_state": 1,
+        "user_engagement_state": 1,
+        "user_recent_actions": 1,
+        "home_engagement_sessions": 327,
+        "enneagram_results": 1,
+        "saved_people": 9,
+        "forum_members": 4,
+        "forums": 0,
+        "forum_updates": 2,
+        "forum_exercises": 0,
+        "forum_relationship_edges": 0
+      }
+    },
+    "post_chart_asc": 255.5384925799478,
+    "post_chart_mc": 169.84452511823812,
+    "delta_from_expected_asc_deg": -0.0,
+    "delta_from_expected_mc_deg": 0.0,
+    "verify_within_tolerance": true,
+    "cache_rows_deleted": 637
+  },
+  "section_6_final_classification": {
+    "astrology_impact": "MODERATE",
+    "human_design_impact": "NONE",
+    "relationship_impact": "HIGH",
+    "overall_migration_status": "SUCCESS"
+  }
+}
