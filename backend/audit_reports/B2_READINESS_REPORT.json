@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-11T19:11:51.975320+00:00",
+  "generated_at": "2026-06-11T19:19:23.202560+00:00",
   "recommendation": "CONDITIONAL_GO",
   "blockers": [
     "Shadow telemetry window not complete (ends 2026-06-14)"
@@ -37,7 +37,7 @@
     },
     {
       "gate": "Shadow telemetry window complete",
-      "value": "n=3 receipts, span first=2026-06-11T18:37:11.997781+00:00 \u2192 last=2026-06-11T18:46:04.421224+00:00",
+      "value": "n=10 receipts, span first=2026-06-11T18:37:11.997781+00:00 \u2192 last=2026-06-11T19:18:28.617965+00:00",
       "threshold": "\u2265 3d span ending 2026-06-14",
       "status": "FAIL"
     },
@@ -49,16 +49,19 @@
     }
   ],
   "shadow_telemetry": {
-    "n_receipts": 3,
+    "n_receipts": 10,
     "first_at": "2026-06-11T18:37:11.997781+00:00",
-    "last_at": "2026-06-11T18:46:04.421224+00:00",
+    "last_at": "2026-06-11T19:18:28.617965+00:00",
     "window_target_end": "2026-06-14",
     "window_target_days": 3,
     "window_complete": false,
     "status_breakdown": {
-      "routing_status=PASS": 2,
-      "retrieval_status=PASS": 3,
-      "routing_status=WARNING": 1
+      "routing_status=PASS": 7,
+      "retrieval_status=PASS": 10,
+      "routing_status=WARNING": 3,
+      "target_resolution_status=NOT_APPLICABLE": 3,
+      "target_resolution_status=RESOLVED": 2,
+      "target_resolution_status=UNRESOLVED_NAMED": 2
     }
   },
   "replay_aggregate_real": {
@@ -175,10 +178,10 @@
       "accuracy": 0.0
     },
     "latency_ms": {
-      "mean": 0.896,
-      "p50": 0.116,
-      "p95": 0.14,
-      "max": 38.3
+      "mean": 0.898,
+      "p50": 0.114,
+      "p95": 0.138,
+      "max": 38.494
     },
     "versions": {
       "intent_router": "intent_router_v2.1.0",
@@ -335,10 +338,10 @@
       "accuracy": 0.65
     },
     "latency_ms": {
-      "mean": 0.546,
-      "p50": 0.116,
-      "p95": 0.139,
-      "max": 38.3
+      "mean": 0.547,
+      "p50": 0.115,
+      "p95": 0.136,
+      "max": 38.494
     },
     "versions": {
       "intent_router": "intent_router_v2.1.0",
@@ -460,10 +463,10 @@
           "accuracy": 0.0
         },
         "latency_ms": {
-          "mean": 0.896,
-          "p50": 0.116,
-          "p95": 0.14,
-          "max": 38.3
+          "mean": 0.898,
+          "p50": 0.114,
+          "p95": 0.138,
+          "max": 38.494
         },
         "versions": {
           "intent_router": "intent_router_v2.1.0",
@@ -583,10 +586,10 @@
           "accuracy": 0.65
         },
         "latency_ms": {
-          "mean": 0.117,
-          "p50": 0.117,
-          "p95": 0.136,
-          "max": 0.139
+          "mean": 0.116,
+          "p50": 0.116,
+          "p95": 0.13,
+          "max": 0.141
         },
         "versions": {
           "intent_router": "intent_router_v2.1.0",

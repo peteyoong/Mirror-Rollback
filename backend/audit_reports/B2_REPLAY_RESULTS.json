@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-11T19:07:08.801893+00:00",
+  "generated_at": "2026-06-11T19:19:22.573359+00:00",
   "window_days": 90,
   "target_total": 120,
   "aggregate": {
@@ -151,10 +151,10 @@
       "accuracy": 0.65
     },
     "latency_ms": {
-      "mean": 0.546,
-      "p50": 0.116,
-      "p95": 0.139,
-      "max": 38.3
+      "mean": 0.547,
+      "p50": 0.115,
+      "p95": 0.136,
+      "max": 38.494
     },
     "versions": {
       "intent_router": "intent_router_v2.1.0",
@@ -276,10 +276,10 @@
           "accuracy": 0.0
         },
         "latency_ms": {
-          "mean": 0.896,
-          "p50": 0.116,
-          "p95": 0.14,
-          "max": 38.3
+          "mean": 0.898,
+          "p50": 0.114,
+          "p95": 0.138,
+          "max": 38.494
         },
         "versions": {
           "intent_router": "intent_router_v2.1.0",
@@ -399,10 +399,10 @@
           "accuracy": 0.65
         },
         "latency_ms": {
-          "mean": 0.117,
-          "p50": 0.117,
-          "p95": 0.136,
-          "max": 0.139
+          "mean": 0.116,
+          "p50": 0.116,
+          "p95": 0.13,
+          "max": 0.141
         },
         "versions": {
           "intent_router": "intent_router_v2.1.0",
@@ -438,7 +438,7 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "NOT_APPLICABLE",
-      "latency_ms": 38.3
+      "latency_ms": 38.494
     },
     {
       "source": "real",
@@ -467,7 +467,7 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "UNRESOLVED_NO_NAME",
-      "latency_ms": 0.156
+      "latency_ms": 0.155
     },
     {
       "source": "real",
@@ -494,7 +494,7 @@
       "retrieval_status": "PASS",
       "routing_status": "WARNING",
       "target_resolution_status": "NOT_APPLICABLE",
-      "latency_ms": 0.131
+      "latency_ms": 0.118
     },
     {
       "source": "real",
@@ -521,7 +521,7 @@
       "retrieval_status": "PASS",
       "routing_status": "WARNING",
       "target_resolution_status": "NOT_APPLICABLE",
-      "latency_ms": 0.113
+      "latency_ms": 0.111
     },
     {
       "source": "real",
@@ -552,7 +552,7 @@
       "retrieval_status": "PASS",
       "routing_status": "WARNING",
       "target_resolution_status": "UNRESOLVED_NO_NAME",
-      "latency_ms": 0.127
+      "latency_ms": 0.126
     },
     {
       "source": "real",
@@ -579,7 +579,7 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "NOT_APPLICABLE",
-      "latency_ms": 0.13
+      "latency_ms": 0.132
     },
     {
       "source": "real",
@@ -637,7 +637,7 @@
       "retrieval_status": "PASS",
       "routing_status": "WARNING",
       "target_resolution_status": "UNRESOLVED_NO_NAME",
-      "latency_ms": 0.132
+      "latency_ms": 0.131
     },
     {
       "source": "real",
@@ -664,7 +664,7 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "NOT_APPLICABLE",
-      "latency_ms": 0.116
+      "latency_ms": 0.121
     },
     {
       "source": "real",
@@ -693,7 +693,7 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "UNRESOLVED_NO_NAME",
-      "latency_ms": 0.116
+      "latency_ms": 0.114
     },
     {
       "source": "real",
@@ -720,7 +720,7 @@
       "retrieval_status": "PASS",
       "routing_status": "WARNING",
       "target_resolution_status": "NOT_APPLICABLE",
-      "latency_ms": 0.101
+      "latency_ms": 0.092
     },
     {
       "source": "real",
@@ -780,100 +780,13 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "UNRESOLVED_NO_NAME",
-      "latency_ms": 0.106
+      "latency_ms": 0.105
     },
     {
       "source": "real",
       "collection": "forum_chat_messages",
       "user_id_short": "697f0c6abf",
       "message": "Reflection test (forum).",
-      "active_frame": "forum",
-      "explicit_target_id": null,
-      "category": "forum_member",
-      "predicted_domain": "relationship",
-      "expected_domain": null,
-      "top1_hit": null,
-      "signal_strength": 0.45,
-      "margin": 0.6364,
-      "confidence": 0.3682,
-      "fallback_reason": null,
-      "relationship_relevant": true,
-      "secondary_domains": [],
-      "rel_target_resolved": null,
-      "rel_target_unresolved_name": null,
-      "rel_missing_data": [
-        "forum_target_unresolved"
-      ],
-      "rel_proposed_action": null,
-      "rel_context_mode": "SELF",
-      "retrieval_status": "PASS",
-      "routing_status": "PASS",
-      "target_resolution_status": "UNRESOLVED_NO_NAME",
-      "latency_ms": 0.116
-    },
-    {
-      "source": "real",
-      "collection": "forum_chat_messages",
-      "user_id_short": "697f0c6abf",
-      "message": "Reflection test (self).",
-      "active_frame": "self",
-      "explicit_target_id": null,
-      "category": "other",
-      "predicted_domain": "general",
-      "expected_domain": null,
-      "top1_hit": null,
-      "signal_strength": 0.0,
-      "margin": 0.0,
-      "confidence": 0.0,
-      "fallback_reason": "no_signal",
-      "relationship_relevant": false,
-      "secondary_domains": [],
-      "rel_target_resolved": null,
-      "rel_target_unresolved_name": null,
-      "rel_missing_data": [],
-      "rel_proposed_action": null,
-      "rel_context_mode": "SELF",
-      "retrieval_status": "PASS",
-      "routing_status": "WARNING",
-      "target_resolution_status": "NOT_APPLICABLE",
-      "latency_ms": 0.093
-    },
-    {
-      "source": "real",
-      "collection": "forum_chat_messages",
-      "user_id_short": "697f0c6abf",
-      "message": "Reflection test (member).",
-      "active_frame": "member",
-      "explicit_target_id": "697ec826ad4b18f75bf42616",
-      "category": "forum_member",
-      "predicted_domain": "career",
-      "expected_domain": null,
-      "top1_hit": null,
-      "signal_strength": 0.4,
-      "margin": 0.0667,
-      "confidence": 0.2133,
-      "fallback_reason": null,
-      "relationship_relevant": true,
-      "secondary_domains": [
-        "relationship"
-      ],
-      "rel_target_resolved": "697ec826ad4b18f75bf42616",
-      "rel_target_unresolved_name": null,
-      "rel_missing_data": [
-        "target_not_in_saved_people"
-      ],
-      "rel_proposed_action": null,
-      "rel_context_mode": "RELATIONAL",
-      "retrieval_status": "PASS",
-      "routing_status": "WARNING",
-      "target_resolution_status": "RESOLVED",
-      "latency_ms": 0.112
-    },
-    {
-      "source": "real",
-      "collection": "forum_chat_messages",
-      "user_id_short": "697f0c6abf",
-      "message": "RL probe 1.",
       "active_frame": "forum",
       "explicit_target_id": null,
       "category": "forum_member",
@@ -902,38 +815,88 @@
       "source": "real",
       "collection": "forum_chat_messages",
       "user_id_short": "697f0c6abf",
-      "message": "Tell me about Mel\u2019s 4th house",
+      "message": "Reflection test (self).",
       "active_frame": "self",
       "explicit_target_id": null,
-      "category": "relationship",
-      "predicted_domain": "relationship",
+      "category": "other",
+      "predicted_domain": "general",
       "expected_domain": null,
       "top1_hit": null,
-      "signal_strength": 1.0,
-      "margin": 0.381,
-      "confidence": 0.6905,
+      "signal_strength": 0.0,
+      "margin": 0.0,
+      "confidence": 0.0,
+      "fallback_reason": "no_signal",
+      "relationship_relevant": false,
+      "secondary_domains": [],
+      "rel_target_resolved": null,
+      "rel_target_unresolved_name": null,
+      "rel_missing_data": [],
+      "rel_proposed_action": null,
+      "rel_context_mode": "SELF",
+      "retrieval_status": "PASS",
+      "routing_status": "WARNING",
+      "target_resolution_status": "NOT_APPLICABLE",
+      "latency_ms": 0.097
+    },
+    {
+      "source": "real",
+      "collection": "forum_chat_messages",
+      "user_id_short": "697f0c6abf",
+      "message": "Reflection test (member).",
+      "active_frame": "member",
+      "explicit_target_id": "697ec826ad4b18f75bf42616",
+      "category": "forum_member",
+      "predicted_domain": "career",
+      "expected_domain": null,
+      "top1_hit": null,
+      "signal_strength": 0.4,
+      "margin": 0.0667,
+      "confidence": 0.2133,
       "fallback_reason": null,
       "relationship_relevant": true,
       "secondary_domains": [
-        "family"
+        "relationship"
       ],
-      "rel_target_resolved": null,
-      "rel_target_unresolved_name": "Mel",
+      "rel_target_resolved": "697ec826ad4b18f75bf42616",
+      "rel_target_unresolved_name": null,
       "rel_missing_data": [
-        "target_unresolved"
+        "target_not_in_saved_people"
       ],
-      "rel_proposed_action": {
-        "type": "add_to_circle",
-        "suggested_name": "Mel",
-        "reason": "name 'Mel' appears in message but is not in user's saved_people",
-        "source_text": "Tell me about Mel\u2019s 4th house",
-        "confidence": 0.55
-      },
+      "rel_proposed_action": null,
+      "rel_context_mode": "RELATIONAL",
+      "retrieval_status": "PASS",
+      "routing_status": "WARNING",
+      "target_resolution_status": "RESOLVED",
+      "latency_ms": 0.11
+    },
+    {
+      "source": "real",
+      "collection": "forum_chat_messages",
+      "user_id_short": "697f0c6abf",
+      "message": "RL probe 1.",
+      "active_frame": "forum",
+      "explicit_target_id": null,
+      "category": "forum_member",
+      "predicted_domain": "relationship",
+      "expected_domain": null,
+      "top1_hit": null,
+      "signal_strength": 0.45,
+      "margin": 0.6364,
+      "confidence": 0.3682,
+      "fallback_reason": null,
+      "relationship_relevant": true,
+      "secondary_domains": [],
+      "rel_target_resolved": null,
+      "rel_target_unresolved_name": null,
+      "rel_missing_data": [
+        "forum_target_unresolved"
+      ],
+      "rel_proposed_action": null,
       "rel_context_mode": "SELF",
       "retrieval_status": "PASS",
       "routing_status": "PASS",
-      "target_resolution_status": "UNRESOLVED_NAMED",
-      "latency_ms": 0.143
+      "target_resolution_status": "UNRESOLVED_NO_NAME",
+      "latency_ms": 0.105
     },
     {
       "source": "real",
@@ -970,7 +933,44 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "UNRESOLVED_NAMED",
-      "latency_ms": 0.139
+      "latency_ms": 0.147
+    },
+    {
+      "source": "real",
+      "collection": "forum_chat_messages",
+      "user_id_short": "697f0c6abf",
+      "message": "Tell me about Mel\u2019s 4th house",
+      "active_frame": "self",
+      "explicit_target_id": null,
+      "category": "relationship",
+      "predicted_domain": "relationship",
+      "expected_domain": null,
+      "top1_hit": null,
+      "signal_strength": 1.0,
+      "margin": 0.381,
+      "confidence": 0.6905,
+      "fallback_reason": null,
+      "relationship_relevant": true,
+      "secondary_domains": [
+        "family"
+      ],
+      "rel_target_resolved": null,
+      "rel_target_unresolved_name": "Mel",
+      "rel_missing_data": [
+        "target_unresolved"
+      ],
+      "rel_proposed_action": {
+        "type": "add_to_circle",
+        "suggested_name": "Mel",
+        "reason": "name 'Mel' appears in message but is not in user's saved_people",
+        "source_text": "Tell me about Mel\u2019s 4th house",
+        "confidence": 0.55
+      },
+      "rel_context_mode": "SELF",
+      "retrieval_status": "PASS",
+      "routing_status": "PASS",
+      "target_resolution_status": "UNRESOLVED_NAMED",
+      "latency_ms": 0.131
     },
     {
       "source": "real",
@@ -1007,7 +1007,7 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "UNRESOLVED_NAMED",
-      "latency_ms": 0.14
+      "latency_ms": 0.138
     },
     {
       "source": "real",
@@ -1042,7 +1042,7 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "UNRESOLVED_NAMED",
-      "latency_ms": 0.13
+      "latency_ms": 0.128
     },
     {
       "source": "real",
@@ -1077,7 +1077,7 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "UNRESOLVED_NAMED",
-      "latency_ms": 0.129
+      "latency_ms": 0.124
     },
     {
       "source": "real",
@@ -1112,7 +1112,7 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "UNRESOLVED_NAMED",
-      "latency_ms": 0.12
+      "latency_ms": 0.131
     },
     {
       "source": "real",
@@ -1182,7 +1182,7 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "UNRESOLVED_NAMED",
-      "latency_ms": 0.12
+      "latency_ms": 0.125
     },
     {
       "source": "real",
@@ -1246,7 +1246,7 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "NOT_APPLICABLE",
-      "latency_ms": 0.127
+      "latency_ms": 0.115
     },
     {
       "source": "real",
@@ -1275,7 +1275,7 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "UNRESOLVED_NO_NAME",
-      "latency_ms": 0.116
+      "latency_ms": 0.115
     },
     {
       "source": "real",
@@ -1347,7 +1347,7 @@
       "retrieval_status": "PASS",
       "routing_status": "WARNING",
       "target_resolution_status": "UNRESOLVED_NAMED",
-      "latency_ms": 0.137
+      "latency_ms": 0.13
     },
     {
       "source": "real",
@@ -1378,7 +1378,7 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "RESOLVED",
-      "latency_ms": 0.116
+      "latency_ms": 0.122
     },
     {
       "source": "real",
@@ -1434,7 +1434,7 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "NOT_APPLICABLE",
-      "latency_ms": 0.117
+      "latency_ms": 0.121
     },
     {
       "source": "real",
@@ -1463,7 +1463,7 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "NOT_APPLICABLE",
-      "latency_ms": 0.112
+      "latency_ms": 0.111
     },
     {
       "source": "real",
@@ -1492,7 +1492,7 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "UNRESOLVED_NO_NAME",
-      "latency_ms": 0.12
+      "latency_ms": 0.108
     },
     {
       "source": "real",
@@ -1528,7 +1528,7 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "UNRESOLVED_NAMED",
-      "latency_ms": 0.127
+      "latency_ms": 0.124
     },
     {
       "source": "real",
@@ -1557,36 +1557,7 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "UNRESOLVED_NO_NAME",
-      "latency_ms": 0.113
-    },
-    {
-      "source": "real",
-      "collection": "forum_mirror_chat_messages",
-      "user_id_short": "697f0c6abf",
-      "message": "What softens this room?",
-      "active_frame": "forum",
-      "explicit_target_id": null,
-      "category": "forum_member",
-      "predicted_domain": "relationship",
-      "expected_domain": null,
-      "top1_hit": null,
-      "signal_strength": 0.45,
-      "margin": 0.6364,
-      "confidence": 0.3682,
-      "fallback_reason": null,
-      "relationship_relevant": true,
-      "secondary_domains": [],
-      "rel_target_resolved": null,
-      "rel_target_unresolved_name": null,
-      "rel_missing_data": [
-        "forum_target_unresolved"
-      ],
-      "rel_proposed_action": null,
-      "rel_context_mode": "SELF",
-      "retrieval_status": "PASS",
-      "routing_status": "PASS",
-      "target_resolution_status": "UNRESOLVED_NO_NAME",
-      "latency_ms": 0.115
+      "latency_ms": 0.111
     },
     {
       "source": "real",
@@ -1644,13 +1615,13 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "UNRESOLVED_NO_NAME",
-      "latency_ms": 0.104
+      "latency_ms": 0.116
     },
     {
       "source": "real",
       "collection": "forum_mirror_chat_messages",
       "user_id_short": "697f0c6abf",
-      "message": "What softens?",
+      "message": "What softens this room?",
       "active_frame": "forum",
       "explicit_target_id": null,
       "category": "forum_member",
@@ -1673,7 +1644,7 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "UNRESOLVED_NO_NAME",
-      "latency_ms": 0.106
+      "latency_ms": 0.104
     },
     {
       "source": "real",
@@ -1708,7 +1679,7 @@
       "source": "real",
       "collection": "forum_mirror_chat_messages",
       "user_id_short": "697f0c6abf",
-      "message": "what's softening?",
+      "message": "What softens?",
       "active_frame": "forum",
       "explicit_target_id": null,
       "category": "forum_member",
@@ -1731,7 +1702,7 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "UNRESOLVED_NO_NAME",
-      "latency_ms": 0.108
+      "latency_ms": 0.106
     },
     {
       "source": "real",
@@ -1760,7 +1731,7 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "UNRESOLVED_NO_NAME",
-      "latency_ms": 0.11
+      "latency_ms": 0.107
     },
     {
       "source": "real",
@@ -1789,7 +1760,36 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "UNRESOLVED_NO_NAME",
-      "latency_ms": 0.104
+      "latency_ms": 0.102
+    },
+    {
+      "source": "real",
+      "collection": "forum_mirror_chat_messages",
+      "user_id_short": "697f0c6abf",
+      "message": "what's softening?",
+      "active_frame": "forum",
+      "explicit_target_id": null,
+      "category": "forum_member",
+      "predicted_domain": "relationship",
+      "expected_domain": null,
+      "top1_hit": null,
+      "signal_strength": 0.45,
+      "margin": 0.6364,
+      "confidence": 0.3682,
+      "fallback_reason": null,
+      "relationship_relevant": true,
+      "secondary_domains": [],
+      "rel_target_resolved": null,
+      "rel_target_unresolved_name": null,
+      "rel_missing_data": [
+        "forum_target_unresolved"
+      ],
+      "rel_proposed_action": null,
+      "rel_context_mode": "SELF",
+      "retrieval_status": "PASS",
+      "routing_status": "PASS",
+      "target_resolution_status": "UNRESOLVED_NO_NAME",
+      "latency_ms": 0.102
     },
     {
       "source": "real",
@@ -1825,7 +1825,7 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "UNRESOLVED_NAMED",
-      "latency_ms": 0.115
+      "latency_ms": 0.114
     },
     {
       "source": "real",
@@ -1854,7 +1854,7 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "UNRESOLVED_NO_NAME",
-      "latency_ms": 0.102
+      "latency_ms": 0.097
     },
     {
       "source": "real",
@@ -1883,7 +1883,7 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "UNRESOLVED_NO_NAME",
-      "latency_ms": 0.105
+      "latency_ms": 0.108
     },
     {
       "source": "real",
@@ -1939,7 +1939,7 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "NOT_APPLICABLE",
-      "latency_ms": 0.129
+      "latency_ms": 0.124
     },
     {
       "source": "synth",
@@ -1966,7 +1966,7 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "NOT_APPLICABLE",
-      "latency_ms": 0.118
+      "latency_ms": 0.122
     },
     {
       "source": "synth",
@@ -2022,7 +2022,7 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "NOT_APPLICABLE",
-      "latency_ms": 0.124
+      "latency_ms": 0.116
     },
     {
       "source": "synth",
@@ -2049,7 +2049,7 @@
       "retrieval_status": "PASS",
       "routing_status": "WARNING",
       "target_resolution_status": "NOT_APPLICABLE",
-      "latency_ms": 0.099
+      "latency_ms": 0.097
     },
     {
       "source": "synth",
@@ -2076,7 +2076,7 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "NOT_APPLICABLE",
-      "latency_ms": 0.117
+      "latency_ms": 0.115
     },
     {
       "source": "synth",
@@ -2103,7 +2103,7 @@
       "retrieval_status": "PASS",
       "routing_status": "WARNING",
       "target_resolution_status": "NOT_APPLICABLE",
-      "latency_ms": 0.103
+      "latency_ms": 0.096
     },
     {
       "source": "synth",
@@ -2132,7 +2132,7 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "NOT_APPLICABLE",
-      "latency_ms": 0.114
+      "latency_ms": 0.123
     },
     {
       "source": "synth",
@@ -2159,7 +2159,7 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "NOT_APPLICABLE",
-      "latency_ms": 0.117
+      "latency_ms": 0.114
     },
     {
       "source": "synth",
@@ -2186,7 +2186,7 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "NOT_APPLICABLE",
-      "latency_ms": 0.114
+      "latency_ms": 0.112
     },
     {
       "source": "synth",
@@ -2213,7 +2213,7 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "NOT_APPLICABLE",
-      "latency_ms": 0.112
+      "latency_ms": 0.114
     },
     {
       "source": "synth",
@@ -2242,7 +2242,7 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "NOT_APPLICABLE",
-      "latency_ms": 0.127
+      "latency_ms": 0.116
     },
     {
       "source": "synth",
@@ -2269,7 +2269,7 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "NOT_APPLICABLE",
-      "latency_ms": 0.129
+      "latency_ms": 0.128
     },
     {
       "source": "synth",
@@ -2323,7 +2323,7 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "NOT_APPLICABLE",
-      "latency_ms": 0.12
+      "latency_ms": 0.115
     },
     {
       "source": "synth",
@@ -2350,7 +2350,7 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "NOT_APPLICABLE",
-      "latency_ms": 0.117
+      "latency_ms": 0.122
     },
     {
       "source": "synth",
@@ -2377,7 +2377,7 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "NOT_APPLICABLE",
-      "latency_ms": 0.115
+      "latency_ms": 0.114
     },
     {
       "source": "synth",
@@ -2404,7 +2404,7 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "NOT_APPLICABLE",
-      "latency_ms": 0.117
+      "latency_ms": 0.115
     },
     {
       "source": "synth",
@@ -2431,7 +2431,7 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "NOT_APPLICABLE",
-      "latency_ms": 0.136
+      "latency_ms": 0.141
     },
     {
       "source": "synth",
@@ -2458,7 +2458,7 @@
       "retrieval_status": "PASS",
       "routing_status": "WARNING",
       "target_resolution_status": "NOT_APPLICABLE",
-      "latency_ms": 0.092
+      "latency_ms": 0.093
     },
     {
       "source": "synth",
@@ -2485,7 +2485,7 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "NOT_APPLICABLE",
-      "latency_ms": 0.124
+      "latency_ms": 0.112
     },
     {
       "source": "synth",
@@ -2512,7 +2512,7 @@
       "retrieval_status": "PASS",
       "routing_status": "WARNING",
       "target_resolution_status": "NOT_APPLICABLE",
-      "latency_ms": 0.096
+      "latency_ms": 0.095
     },
     {
       "source": "synth",
@@ -2539,7 +2539,7 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "NOT_APPLICABLE",
-      "latency_ms": 0.112
+      "latency_ms": 0.111
     },
     {
       "source": "synth",
@@ -2566,7 +2566,7 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "NOT_APPLICABLE",
-      "latency_ms": 0.114
+      "latency_ms": 0.107
     },
     {
       "source": "synth",
@@ -2593,7 +2593,7 @@
       "retrieval_status": "PASS",
       "routing_status": "WARNING",
       "target_resolution_status": "NOT_APPLICABLE",
-      "latency_ms": 0.093
+      "latency_ms": 0.098
     },
     {
       "source": "synth",
@@ -2620,7 +2620,7 @@
       "retrieval_status": "PASS",
       "routing_status": "WARNING",
       "target_resolution_status": "NOT_APPLICABLE",
-      "latency_ms": 0.093
+      "latency_ms": 0.091
     },
     {
       "source": "synth",
@@ -2655,7 +2655,7 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "UNRESOLVED_NAMED",
-      "latency_ms": 0.122
+      "latency_ms": 0.12
     },
     {
       "source": "synth",
@@ -2682,7 +2682,7 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "NOT_APPLICABLE",
-      "latency_ms": 0.116
+      "latency_ms": 0.121
     },
     {
       "source": "synth",
@@ -2717,7 +2717,7 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "UNRESOLVED_NAMED",
-      "latency_ms": 0.128
+      "latency_ms": 0.122
     },
     {
       "source": "synth",
@@ -2752,7 +2752,7 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "UNRESOLVED_NAMED",
-      "latency_ms": 0.121
+      "latency_ms": 0.119
     },
     {
       "source": "synth",
@@ -2818,7 +2818,7 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "UNRESOLVED_NO_NAME",
-      "latency_ms": 0.121
+      "latency_ms": 0.119
     },
     {
       "source": "synth",
@@ -2847,7 +2847,7 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "UNRESOLVED_NO_NAME",
-      "latency_ms": 0.115
+      "latency_ms": 0.114
     },
     {
       "source": "synth",
@@ -2878,7 +2878,7 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "RESOLVED",
-      "latency_ms": 0.119
+      "latency_ms": 0.128
     },
     {
       "source": "synth",
@@ -2909,7 +2909,7 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "RESOLVED",
-      "latency_ms": 0.12
+      "latency_ms": 0.121
     },
     {
       "source": "synth",
@@ -2936,7 +2936,7 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "NOT_APPLICABLE",
-      "latency_ms": 0.124
+      "latency_ms": 0.13
     },
     {
       "source": "synth",
@@ -2965,7 +2965,7 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "NOT_APPLICABLE",
-      "latency_ms": 0.139
+      "latency_ms": 0.125
     },
     {
       "source": "synth",
@@ -2992,7 +2992,7 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "NOT_APPLICABLE",
-      "latency_ms": 0.119
+      "latency_ms": 0.118
     },
     {
       "source": "synth",
@@ -3019,7 +3019,7 @@
       "retrieval_status": "PASS",
       "routing_status": "WARNING",
       "target_resolution_status": "NOT_APPLICABLE",
-      "latency_ms": 0.098
+      "latency_ms": 0.097
     },
     {
       "source": "synth",
@@ -3048,7 +3048,7 @@
       "retrieval_status": "PASS",
       "routing_status": "WARNING",
       "target_resolution_status": "NOT_APPLICABLE",
-      "latency_ms": 0.13
+      "latency_ms": 0.127
     }
   ]
 }

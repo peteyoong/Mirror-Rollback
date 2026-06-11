@@ -1,6 +1,6 @@
 # Mirror Chat V2 — Slice B2 Readiness Report
 
-_Generated: 2026-06-11T19:11:51.974995+00:00_
+_Generated: 2026-06-11T19:19:23.202254+00:00_
 
 _This is the canonical artifact for the B2 production cutover decision._  
 _All recommendations stay capped at `CONDITIONAL_GO` until the shadow telemetry observation window closes on 2026-06-14._
@@ -27,18 +27,21 @@ _All recommendations stay capped at `CONDITIONAL_GO` until the shadow telemetry 
 | Target resolution (proposed_action path live) | unresolved_named_rate=26.53% (13 cases, REAL-only) | ≥ 5% to confirm receipt path wired | PASS |
 | False-positive relationship rate (frame-aware, REAL) | 2.04% (1 of 49) | ≤ 10% | PASS |
 | Forum/member ambiguity (REAL) | 88.46% unresolved (23/26) | ≤ 95% (advisory — fed forum_topology lands in B3) | PASS |
-| Shadow telemetry window complete | n=3 receipts, span first=2026-06-11T18:37:11.997781+00:00 → last=2026-06-11T18:46:04.421224+00:00 | ≥ 3d span ending 2026-06-14 | FAIL |
+| Shadow telemetry window complete | n=10 receipts, span first=2026-06-11T18:37:11.997781+00:00 → last=2026-06-11T19:18:28.617965+00:00 | ≥ 3d span ending 2026-06-14 | FAIL |
 | Manual review complete | auto: report generated; awaiting operator sign-off | operator confirms gates | PENDING_OPERATOR |
 ## 3. Shadow Telemetry Summary
 
-- Receipts persisted to `mirror_chat_retrieval_receipts`: **3**
-- Window: `2026-06-11T18:37:11.997781+00:00` → `2026-06-11T18:46:04.421224+00:00`
+- Receipts persisted to `mirror_chat_retrieval_receipts`: **10**
+- Window: `2026-06-11T18:37:11.997781+00:00` → `2026-06-11T19:18:28.617965+00:00`
 - Window-complete: **False** (target span ≥ 3d, ending 2026-06-14)
 
 **Status breakdown (live receipts)**:
-- `retrieval_status=PASS` → **3**
-- `routing_status=PASS` → **2**
-- `routing_status=WARNING` → **1**
+- `retrieval_status=PASS` → **10**
+- `routing_status=PASS` → **7**
+- `routing_status=WARNING` → **3**
+- `target_resolution_status=NOT_APPLICABLE` → **3**
+- `target_resolution_status=RESOLVED` → **2**
+- `target_resolution_status=UNRESOLVED_NAMED` → **2**
 
 ## 4. False-Positive Relationship Routing Analysis
 
@@ -142,7 +145,7 @@ It contains:
 
 - **Forum/member ambiguity:** resolver does not yet receive `forum_topology.active_member_id` in the replay harness — live shadow mode hydrates this from request fields. B3 will wire the topology end-to-end.
 - **Real corpus size:** the 90-day real corpus is currently ~49 messages.  Synthetic supplementation is required to stress leadership/purpose/founder voices; the rollout call should not be made on synth alone.
-- **Shadow telemetry window not yet complete** — only 3 receipts persisted so far.  Window ends 2026-06-14; cutover blocked until window passes.
+- **Shadow telemetry window not yet complete** — only 10 receipts persisted so far.  Window ends 2026-06-14; cutover blocked until window passes.
 - **Sign-conflation hallucination (P2)** — open issue tracked separately (`natal_object_engine.py`), unrelated to routing but feeds the *post-route* synthesis pass.  Not a B2 blocker.
 
 ## 12. Rollout Recommendation
