@@ -1,0 +1,346 @@
+{
+  "engine_global": {
+    "house_system": "Equal",
+    "default_ayanamsa": 31.2836,
+    "zodiac_signs_n": 12,
+    "engine_version": "unversioned"
+  },
+  "users": [
+    {
+      "label": "Pete",
+      "user_id": "697f0c6abf35c0528ff06954",
+      "birth_data": {
+        "name": "Pete",
+        "birth_date": "1968-04-01T00:00:00",
+        "birth_time": "01:25",
+        "birth_place": {
+          "city": "Petaling Jaya",
+          "country": "Malaysia",
+          "latitude": 3.0988792,
+          "longitude": 101.6454202
+        },
+        "birth_lat": null,
+        "birth_lon": null,
+        "birth_tz": "Asia/Kuala_Lumpur"
+      },
+      "calculation_layer": {
+        "error": "insufficient_birth_data_for_recalc",
+        "birth_data_seen": {
+          "name": "Pete",
+          "birth_date": "1968-04-01T00:00:00",
+          "birth_time": "01:25",
+          "birth_place": {
+            "city": "Petaling Jaya",
+            "country": "Malaysia",
+            "latitude": 3.0988792,
+            "longitude": 101.6454202
+          },
+          "birth_lat": null,
+          "birth_lon": null,
+          "birth_tz": "Asia/Kuala_Lumpur"
+        }
+      },
+      "storage_layer": {
+        "asc_sign": "Sagittarius",
+        "asc_degree": 19.756693,
+        "mc_sign": "Virgo",
+        "mc_degree": 28.238025,
+        "ic_sign": "Pisces",
+        "ic_degree": 31.834225,
+        "sun_sign": "Pisces",
+        "moon_sign": "Aries",
+        "engine_version": "midpoint13_variant_a_v1",
+        "house_system": "Equal",
+        "zodiac_mode": "true_sidereal_user_defined",
+        "sidereal_settings": {
+          "mode": "true_sidereal_user_defined",
+          "svp_degrees": 31.2836,
+          "reference_year": 2000,
+          "yearly_increment": 0.0,
+          "node_mode": "true_node"
+        },
+        "tenth_house_cusp_sign": null,
+        "_astro_top_keys": [
+          "angles",
+          "aspects",
+          "astrology_engine_version",
+          "chart_type",
+          "compute_integrity",
+          "coordinates",
+          "forensic_variant_b",
+          "houses",
+          "input_datetime_utc",
+          "julian_day",
+          "metadata",
+          "nodes",
+          "planets",
+          "sect",
+          "sidereal_settings",
+          "svp_applied"
+        ]
+      },
+      "prompt_layer": {
+        "chart_doc_surface": {},
+        "chart_doc_top_level": {}
+      },
+      "mismatch_check": {
+        "calc_mc": null,
+        "store_mc": "Virgo",
+        "prompt_mc": null,
+        "sun_sign": "Pisces",
+        "tenth_cusp_sign": null,
+        "match_calc_store": null,
+        "match_store_prompt": null,
+        "alias_to_sun": null,
+        "alias_to_tenth_cusp": null
+      }
+    },
+    {
+      "label": "Mel",
+      "user_id": "697ec826ad4b18f75bf42616",
+      "birth_data": {
+        "name": "Mel",
+        "birth_date": "1981-07-13",
+        "birth_time": "07:25",
+        "birth_place": {
+          "city": "Melaka",
+          "country": "Malaysia",
+          "latitude": 2.1896,
+          "longitude": 102.2501
+        },
+        "birth_lat": null,
+        "birth_lon": null,
+        "birth_tz": "Asia/Kuala_Lumpur"
+      },
+      "calculation_layer": {
+        "error": "insufficient_birth_data_for_recalc",
+        "birth_data_seen": {
+          "name": "Mel",
+          "birth_date": "1981-07-13",
+          "birth_time": "07:25",
+          "birth_place": {
+            "city": "Melaka",
+            "country": "Malaysia",
+            "latitude": 2.1896,
+            "longitude": 102.2501
+          },
+          "birth_lat": null,
+          "birth_lon": null,
+          "birth_tz": "Asia/Kuala_Lumpur"
+        }
+      },
+      "storage_layer": {
+        "asc_sign": "Cancer",
+        "asc_degree": 3.062223,
+        "mc_sign": "Aries",
+        "mc_degree": 2.750266,
+        "ic_sign": "Virgo",
+        "ic_degree": 41.143766,
+        "sun_sign": "Gemini",
+        "moon_sign": "Scorpio",
+        "engine_version": "midpoint13_variant_a_v1",
+        "house_system": "Equal",
+        "zodiac_mode": null,
+        "sidereal_settings": null,
+        "tenth_house_cusp_sign": null,
+        "_astro_top_keys": [
+          "angles",
+          "ascendant",
+          "aspects",
+          "forensic_variant_b",
+          "houses",
+          "metadata",
+          "midheaven",
+          "moon",
+          "nodes",
+          "planets",
+          "sect",
+          "sun"
+        ]
+      },
+      "prompt_layer": {
+        "chart_doc_surface": {},
+        "chart_doc_top_level": {}
+      },
+      "mismatch_check": {
+        "calc_mc": null,
+        "store_mc": "Aries",
+        "prompt_mc": null,
+        "sun_sign": "Gemini",
+        "tenth_cusp_sign": null,
+        "match_calc_store": null,
+        "match_store_prompt": null,
+        "alias_to_sun": null,
+        "alias_to_tenth_cusp": null
+      }
+    },
+    {
+      "label": "Isaac",
+      "user_id": "69dda348de9cb1c83c0780f8",
+      "birth_data": {
+        "name": "Isaac Yoong",
+        "birth_date": "2012-04-05T00:00:00",
+        "birth_time": "05:25",
+        "birth_place": {
+          "city": "Petaling Jaya",
+          "country": "Malaysia",
+          "latitude": 3.1073,
+          "longitude": 101.6067
+        },
+        "birth_lat": null,
+        "birth_lon": null,
+        "birth_tz": "Asia/Kuala_Lumpur"
+      },
+      "calculation_layer": {
+        "error": "insufficient_birth_data_for_recalc",
+        "birth_data_seen": {
+          "name": "Isaac Yoong",
+          "birth_date": "2012-04-05T00:00:00",
+          "birth_time": "05:25",
+          "birth_place": {
+            "city": "Petaling Jaya",
+            "country": "Malaysia",
+            "latitude": 3.1073,
+            "longitude": 101.6067
+          },
+          "birth_lat": null,
+          "birth_lon": null,
+          "birth_tz": "Asia/Kuala_Lumpur"
+        }
+      },
+      "storage_layer": {
+        "asc_sign": "Aquarius",
+        "asc_degree": 18.808047,
+        "mc_sign": "Ophiuchus",
+        "mc_degree": 2.824525,
+        "ic_sign": "Taurus",
+        "ic_degree": 26.520425,
+        "sun_sign": "Pisces",
+        "moon_sign": "Leo",
+        "engine_version": "midpoint13_variant_a_v1",
+        "house_system": "Equal",
+        "zodiac_mode": null,
+        "sidereal_settings": null,
+        "tenth_house_cusp_sign": null,
+        "_astro_top_keys": [
+          "angles",
+          "ascendant",
+          "aspects",
+          "forensic_variant_b",
+          "houses",
+          "metadata",
+          "midheaven",
+          "moon",
+          "nodes",
+          "planets",
+          "sect",
+          "sun"
+        ]
+      },
+      "prompt_layer": {
+        "chart_doc_surface": {},
+        "chart_doc_top_level": {}
+      },
+      "mismatch_check": {
+        "calc_mc": null,
+        "store_mc": "Ophiuchus",
+        "prompt_mc": null,
+        "sun_sign": "Pisces",
+        "tenth_cusp_sign": null,
+        "match_calc_store": null,
+        "match_store_prompt": null,
+        "alias_to_sun": null,
+        "alias_to_tenth_cusp": null
+      }
+    },
+    {
+      "label": "Jaan",
+      "user_id": "69894cc932380843ba87d121",
+      "birth_data": {
+        "name": "Jaan",
+        "birth_date": "1973-12-09T00:00:00",
+        "birth_time": "21:50",
+        "birth_place": {
+          "city": "Kuala Lumpur",
+          "country": "Malaysia",
+          "latitude": 3.1702996,
+          "longitude": 101.699563
+        },
+        "birth_lat": null,
+        "birth_lon": null,
+        "birth_tz": "Asia/Kuala_Lumpur"
+      },
+      "calculation_layer": {
+        "error": "insufficient_birth_data_for_recalc",
+        "birth_data_seen": {
+          "name": "Jaan",
+          "birth_date": "1973-12-09T00:00:00",
+          "birth_time": "21:50",
+          "birth_place": {
+            "city": "Kuala Lumpur",
+            "country": "Malaysia",
+            "latitude": 3.1702996,
+            "longitude": 101.699563
+          },
+          "birth_lat": null,
+          "birth_lon": null,
+          "birth_tz": "Asia/Kuala_Lumpur"
+        }
+      },
+      "storage_layer": {
+        "asc_sign": "Cancer",
+        "asc_degree": 6.358059,
+        "mc_sign": "Aries",
+        "mc_degree": 5.947199,
+        "ic_sign": "Virgo",
+        "ic_degree": 44.340699,
+        "sun_sign": "Ophiuchus",
+        "moon_sign": "Taurus",
+        "engine_version": "midpoint13_variant_a_v1",
+        "house_system": "Equal",
+        "zodiac_mode": "true_sidereal_user_defined",
+        "sidereal_settings": {
+          "mode": "true_sidereal_user_defined",
+          "svp_degrees": 31.2836,
+          "reference_year": 2000,
+          "yearly_increment": 0.0,
+          "node_mode": "true_node"
+        },
+        "tenth_house_cusp_sign": null,
+        "_astro_top_keys": [
+          "angles",
+          "aspects",
+          "astrology_engine_version",
+          "chart_type",
+          "compute_integrity",
+          "coordinates",
+          "forensic_variant_b",
+          "houses",
+          "input_datetime_utc",
+          "julian_day",
+          "metadata",
+          "nodes",
+          "planets",
+          "sect",
+          "sidereal_settings",
+          "svp_applied"
+        ]
+      },
+      "prompt_layer": {
+        "chart_doc_surface": {},
+        "chart_doc_top_level": {}
+      },
+      "mismatch_check": {
+        "calc_mc": null,
+        "store_mc": "Aries",
+        "prompt_mc": null,
+        "sun_sign": "Ophiuchus",
+        "tenth_cusp_sign": null,
+        "match_calc_store": null,
+        "match_store_prompt": null,
+        "alias_to_sun": null,
+        "alias_to_tenth_cusp": null
+      }
+    }
+  ]
+}
