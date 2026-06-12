@@ -209,6 +209,29 @@ def register(
                     forum_topology=_b1_forum_topology,
                 )
 
+                # ── Follow-up Sprint: Spouse auto-bind + lexicon
+                #    enrichment (Tasks 1 + 2).  Runs immediately after
+                #    `compute_v2_envelope_sync` so downstream consumers
+                #    (intent-v2 block, founder block, forum-field
+                #    block) read the post-enrichment receipt.  Pure
+                #    reads against forum_relationship_edges /
+                #    forum_members / forums / users.  No mutations.
+                try:
+                    from services.v2_receipt_lexicon_enrichment import (
+                        enrich_v2_receipt,
+                    )
+                    await enrich_v2_receipt(
+                        db=db,
+                        user_id=request.user_id,
+                        message=request.message,
+                        v2_receipt=v2_receipt,
+                    )
+                except Exception as _enr_exc:
+                    logger.warning(
+                        f"[MIRROR_CHAT] V2 lexicon enrichment failed: "
+                        f"{type(_enr_exc).__name__}: {_enr_exc!r}"
+                    )
+
                 # ASYNC step: persistence is fire-and-forget so the
                 # response latency stays unchanged.
                 # NOTE (R3b telemetry fix): We DEFER persistence until

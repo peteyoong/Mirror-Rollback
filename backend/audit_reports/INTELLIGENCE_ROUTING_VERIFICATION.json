@@ -1,0 +1,430 @@
+{
+  "generated_at_iso": "2026-06-12T14:54:39Z",
+  "probes": [
+    {
+      "i": 1,
+      "category": "Relationship",
+      "intent_key": "us_tension",
+      "message": "What tension exists between us?",
+      "live": {
+        "ok": true,
+        "status": 200,
+        "response": "You're sensing something between you and Melissa, perhaps. It often feels like there's a pull between wanting individual freedom (Sagittarius Rising) and the desire for deep connection, especially in a committed space like the Yoong family. This tension might show up as moments where you feel torn between pursuing your own vision and fully engaging in the relational field. What do you notice happening in those moments?",
+        "elapsed_s": 4.61707067489624,
+        "error": null
+      },
+      "receipt": {
+        "request_id": "mc-6a1e5ab9-858d-4fbf-b555-93a808808fe4",
+        "shadow_mode": true,
+        "intent_envelope": {
+          "primary_domain": "relationship",
+          "confidence": 1.0,
+          "relationship_relevant": true,
+          "target_resolved": "907b832e-4386-43cc-b98b-0a160af3fb0b",
+          "matched_phrases": {
+            "relationship": [
+              "between us",
+              "between"
+            ]
+          }
+        },
+        "relationship_resolution": {
+          "target": "697ec826ad4b18f75bf42616",
+          "target_name": "Mel",
+          "role": "spouse",
+          "forum_id": "69dda348de9cb1c83c0780fa",
+          "forum_name": "Yoong family",
+          "resolution_source": "spouse_auto_bind",
+          "spouse_auto_bind": true,
+          "lexicon_match": null,
+          "company_phrase_hits": null,
+          "topology_role_found": null,
+          "topology_role_type": null
+        }
+      },
+      "log_lines": [
+        "2026-06-12 14:53:11,065 - server - INFO - [MIRROR_CHAT] === REQUEST COMPLETED === user_id=697f0c6abf35c0528ff06954, duration=3.14s, response_length=474",
+        "2026-06-12 14:53:11,065 - server - INFO - [MIRROR_CHAT][evidence-drawer-v2] evidence_emitted=True keys=['marker', 'calibration']",
+        "2026-06-12 14:53:12,471 - server - INFO - [MIRROR_CHAT] === REQUEST RECEIVED === user_id=697f0c6abf35c0528ff06954, lens=None, message_length=34",
+        "2026-06-12 14:53:12,486 - server - INFO - [MIRROR_CHAT][phase4-PFS2.1] target_resolved via family_forum: name='Thaddeus Yoong' role='family' topology_role_type=None forum='Yoong family'",
+        "2026-06-12 14:53:12,487 - server - INFO - [MIRROR_CHAT][phase4-PFS2.3] re-planned: bucket='self' framing='self_inquiry' domain_bias='self' (was bucket='self' framing='self_inquiry')",
+        "2026-06-12 14:53:12,487 - server - INFO - [MIRROR_CHAT][phase4-intent-v2] block_emitted=True signals=['target_via_family_forum:Thaddeus Yoong', 'enforcement_target:Thaddeus Yoong/family']",
+        "2026-06-12 14:53:12,487 - server - INFO - [MIRROR_CHAT][phase4-timeline-v2] events=8 dominant_state=exploring",
+        "2026-06-12 14:53:12,495 - server - INFO - [MIRROR_CHAT][phase4-forum-field] forum='Yoong family' signals=['forum_id=69dda348de9cb1c83c0780fa', 'story_sparse:sparse', 'members=4']",
+        "2026-06-12 14:53:12,497 - server - INFO - [MIRROR_CHAT] Starting LLM call: mode=reflection_chat, user=697f0c6abf35c0528ff06954, is_transit_question=False",
+        "2026-06-12 14:53:16,678 - server - INFO - [MIRROR_CHAT] === REQUEST COMPLETED === user_id=697f0c6abf35c0528ff06954, duration=4.21s, response_length=731",
+        "2026-06-12 14:53:16,678 - server - INFO - [MIRROR_CHAT][evidence-drawer-v2] evidence_emitted=True keys=['marker', 'calibration']",
+        "2026-06-12 14:53:18,086 - server - INFO - [MIRROR_CHAT] === REQUEST RECEIVED === user_id=697f0c6abf35c0528ff06954, lens=None, message_length=39",
+        "2026-06-12 14:53:18,102 - server - INFO - [MIRROR_CHAT][phase4-intent-v2] block_emitted=True signals=['primary=career', 'phrases=2', 'target_unresolved:Pulsifi']",
+        "2026-06-12 14:53:18,103 - server - INFO - [MIRROR_CHAT][phase4-timeline-v2] events=8 dominant_state=exploring",
+        "2026-06-12 14:53:18,104 - server - INFO - [MIRROR_CHAT][phase4-founder-context] signals=['trigger:primary=career/conf=0.7/phrase=False', 'patterns=3']",
+        "2026-06-12 14:53:18,106 - server - INFO - [MIRROR_CHAT] Starting LLM call: mode=reflection_chat, user=697f0c6abf35c0528ff06954, is_transit_question=False",
+        "2026-06-12 14:53:22,496 - server - INFO - [MIRROR_CHAT] === REQUEST COMPLETED === user_id=697f0c6abf35c0528ff06954, duration=4.41s, response_length=525",
+        "2026-06-12 14:53:22,496 - server - INFO - [MIRROR_CHAT][evidence-drawer-v2] evidence_emitted=True keys=['marker', 'calibration']",
+        "2026-06-12 14:54:10,535 - server - INFO - [MIRROR_CHAT] === REQUEST RECEIVED === user_id=697f0c6abf35c0528ff06954, lens=None, message_length=31",
+        "2026-06-12 14:54:10,628 - server - INFO - [MIRROR_CHAT][phase4-intent-v2] block_emitted=True signals=['primary=relationship', 'phrases=2', 'target_bound:spouse']",
+        "2026-06-12 14:54:10,630 - server - INFO - [MIRROR_CHAT][phase4-timeline-v2] events=8 dominant_state=exploring",
+        "2026-06-12 14:54:10,637 - server - INFO - [MIRROR_CHAT][phase4-forum-field] forum='Yoong family' signals=['forum_id=69dda348de9cb1c83c0780fa', 'story_sparse:sparse', 'members=4']",
+        "2026-06-12 14:54:10,652 - server - INFO - [MIRROR_CHAT] Starting LLM call: mode=reflection_chat, user=697f0c6abf35c0528ff06954, is_transit_question=False",
+        "2026-06-12 14:54:15,142 - server - INFO - [MIRROR_CHAT] === REQUEST COMPLETED === user_id=697f0c6abf35c0528ff06954, duration=4.61s, response_length=422",
+        "2026-06-12 14:54:15,142 - server - INFO - [MIRROR_CHAT][evidence-drawer-v2] evidence_emitted=True keys=['marker', 'calibration']"
+      ]
+    },
+    {
+      "i": 2,
+      "category": "Relationship",
+      "intent_key": "we_learning",
+      "message": "What are we learning together?",
+      "live": {
+        "ok": true,
+        "status": 200,
+        "response": "You're exploring the dynamics within the Yoong family, noticing what unfolds in your shared experiences. There's a theme here of curiosity and engagement\u2014perhaps learning not just through reflection on what has happened, but also by inviting deeper understanding within relationships. In this field of exploration, your open question suggests an interest in both connection and growth. It may be an opportunity to consider how these learning moments shape interactions, decisions, or even how you see and understand each other. What feels most alive in this learning journey with your family right now?",
+        "elapsed_s": 2.9866504669189453,
+        "error": null
+      },
+      "receipt": {
+        "request_id": "mc-54fe7117-eeb8-447d-ab3e-3f31df6e3937",
+        "shadow_mode": true,
+        "intent_envelope": {
+          "primary_domain": "relationship",
+          "confidence": 0.4,
+          "relationship_relevant": true,
+          "target_resolved": null,
+          "matched_phrases": {
+            "relationship": [
+              " we "
+            ]
+          }
+        },
+        "relationship_resolution": {
+          "target": "697ec826ad4b18f75bf42616",
+          "target_name": "Mel",
+          "role": "spouse",
+          "forum_id": "69dda348de9cb1c83c0780fa",
+          "forum_name": "Yoong family",
+          "resolution_source": "spouse_auto_bind",
+          "spouse_auto_bind": true,
+          "lexicon_match": null,
+          "company_phrase_hits": null,
+          "topology_role_found": null,
+          "topology_role_type": null
+        }
+      },
+      "log_lines": [
+        "2026-06-12 14:53:12,495 - server - INFO - [MIRROR_CHAT][phase4-forum-field] forum='Yoong family' signals=['forum_id=69dda348de9cb1c83c0780fa', 'story_sparse:sparse', 'members=4']",
+        "2026-06-12 14:53:12,497 - server - INFO - [MIRROR_CHAT] Starting LLM call: mode=reflection_chat, user=697f0c6abf35c0528ff06954, is_transit_question=False",
+        "2026-06-12 14:53:16,678 - server - INFO - [MIRROR_CHAT] === REQUEST COMPLETED === user_id=697f0c6abf35c0528ff06954, duration=4.21s, response_length=731",
+        "2026-06-12 14:53:16,678 - server - INFO - [MIRROR_CHAT][evidence-drawer-v2] evidence_emitted=True keys=['marker', 'calibration']",
+        "2026-06-12 14:53:18,086 - server - INFO - [MIRROR_CHAT] === REQUEST RECEIVED === user_id=697f0c6abf35c0528ff06954, lens=None, message_length=39",
+        "2026-06-12 14:53:18,102 - server - INFO - [MIRROR_CHAT][phase4-intent-v2] block_emitted=True signals=['primary=career', 'phrases=2', 'target_unresolved:Pulsifi']",
+        "2026-06-12 14:53:18,103 - server - INFO - [MIRROR_CHAT][phase4-timeline-v2] events=8 dominant_state=exploring",
+        "2026-06-12 14:53:18,104 - server - INFO - [MIRROR_CHAT][phase4-founder-context] signals=['trigger:primary=career/conf=0.7/phrase=False', 'patterns=3']",
+        "2026-06-12 14:53:18,106 - server - INFO - [MIRROR_CHAT] Starting LLM call: mode=reflection_chat, user=697f0c6abf35c0528ff06954, is_transit_question=False",
+        "2026-06-12 14:53:22,496 - server - INFO - [MIRROR_CHAT] === REQUEST COMPLETED === user_id=697f0c6abf35c0528ff06954, duration=4.41s, response_length=525",
+        "2026-06-12 14:53:22,496 - server - INFO - [MIRROR_CHAT][evidence-drawer-v2] evidence_emitted=True keys=['marker', 'calibration']",
+        "2026-06-12 14:54:10,535 - server - INFO - [MIRROR_CHAT] === REQUEST RECEIVED === user_id=697f0c6abf35c0528ff06954, lens=None, message_length=31",
+        "2026-06-12 14:54:10,628 - server - INFO - [MIRROR_CHAT][phase4-intent-v2] block_emitted=True signals=['primary=relationship', 'phrases=2', 'target_bound:spouse']",
+        "2026-06-12 14:54:10,630 - server - INFO - [MIRROR_CHAT][phase4-timeline-v2] events=8 dominant_state=exploring",
+        "2026-06-12 14:54:10,637 - server - INFO - [MIRROR_CHAT][phase4-forum-field] forum='Yoong family' signals=['forum_id=69dda348de9cb1c83c0780fa', 'story_sparse:sparse', 'members=4']",
+        "2026-06-12 14:54:10,652 - server - INFO - [MIRROR_CHAT] Starting LLM call: mode=reflection_chat, user=697f0c6abf35c0528ff06954, is_transit_question=False",
+        "2026-06-12 14:54:15,142 - server - INFO - [MIRROR_CHAT] === REQUEST COMPLETED === user_id=697f0c6abf35c0528ff06954, duration=4.61s, response_length=422",
+        "2026-06-12 14:54:15,142 - server - INFO - [MIRROR_CHAT][evidence-drawer-v2] evidence_emitted=True keys=['marker', 'calibration']",
+        "2026-06-12 14:54:16,552 - server - INFO - [MIRROR_CHAT] === REQUEST RECEIVED === user_id=697f0c6abf35c0528ff06954, lens=None, message_length=30",
+        "2026-06-12 14:54:16,561 - server - INFO - [MIRROR_CHAT][phase4-intent-v2] block_emitted=True signals=['primary=relationship', 'phrases=1', 'target_bound:spouse']",
+        "2026-06-12 14:54:16,561 - server - INFO - [MIRROR_CHAT][phase4-timeline-v2] events=8 dominant_state=exploring",
+        "2026-06-12 14:54:16,567 - server - INFO - [MIRROR_CHAT][phase4-forum-field] forum='Yoong family' signals=['forum_id=69dda348de9cb1c83c0780fa', 'story_sparse:sparse', 'members=4']",
+        "2026-06-12 14:54:16,569 - server - INFO - [MIRROR_CHAT] Starting LLM call: mode=reflection_chat, user=697f0c6abf35c0528ff06954, is_transit_question=False",
+        "2026-06-12 14:54:19,535 - server - INFO - [MIRROR_CHAT] === REQUEST COMPLETED === user_id=697f0c6abf35c0528ff06954, duration=2.98s, response_length=602",
+        "2026-06-12 14:54:19,535 - server - INFO - [MIRROR_CHAT][evidence-drawer-v2] evidence_emitted=True keys=['marker', 'calibration']"
+      ]
+    },
+    {
+      "i": 3,
+      "category": "Founder",
+      "intent_key": "pulsifi_struggling",
+      "message": "What is Pulsifi struggling to see?",
+      "live": {
+        "ok": true,
+        "status": 200,
+        "response": "You're sensing something beneath the surface with Pulsifi. There's a possibility of ongoing tension between the organization's ambitions and its current operations. You might notice this alignment or misalignment showing up in how decisions are made, or perhaps in how resources are allocated. The question also points to a potential gap between what's happening now and what the future vision demands. This could invite exploration around clarity of goals and alignment of the team to those goals. What, specifically, feels unclear or misaligned to you right now?",
+        "elapsed_s": 2.661168336868286,
+        "error": null
+      },
+      "receipt": {
+        "request_id": "mc-269c95a0-254f-4dc4-8a91-b338918ae211",
+        "shadow_mode": true,
+        "intent_envelope": {
+          "primary_domain": "career",
+          "confidence": 0.7,
+          "relationship_relevant": false,
+          "target_resolved": null,
+          "matched_phrases": {
+            "career": [
+              "pulsifi"
+            ]
+          }
+        },
+        "relationship_resolution": {
+          "target": null,
+          "target_name": null,
+          "role": null,
+          "forum_id": null,
+          "forum_name": null,
+          "resolution_source": null,
+          "spouse_auto_bind": null,
+          "lexicon_match": [
+            "company:pulsifi"
+          ],
+          "company_phrase_hits": [
+            "pulsifi"
+          ],
+          "topology_role_found": null,
+          "topology_role_type": null
+        }
+      },
+      "log_lines": [
+        "2026-06-12 14:53:18,104 - server - INFO - [MIRROR_CHAT][phase4-founder-context] signals=['trigger:primary=career/conf=0.7/phrase=False', 'patterns=3']",
+        "2026-06-12 14:53:18,106 - server - INFO - [MIRROR_CHAT] Starting LLM call: mode=reflection_chat, user=697f0c6abf35c0528ff06954, is_transit_question=False",
+        "2026-06-12 14:53:22,496 - server - INFO - [MIRROR_CHAT] === REQUEST COMPLETED === user_id=697f0c6abf35c0528ff06954, duration=4.41s, response_length=525",
+        "2026-06-12 14:53:22,496 - server - INFO - [MIRROR_CHAT][evidence-drawer-v2] evidence_emitted=True keys=['marker', 'calibration']",
+        "2026-06-12 14:54:10,535 - server - INFO - [MIRROR_CHAT] === REQUEST RECEIVED === user_id=697f0c6abf35c0528ff06954, lens=None, message_length=31",
+        "2026-06-12 14:54:10,628 - server - INFO - [MIRROR_CHAT][phase4-intent-v2] block_emitted=True signals=['primary=relationship', 'phrases=2', 'target_bound:spouse']",
+        "2026-06-12 14:54:10,630 - server - INFO - [MIRROR_CHAT][phase4-timeline-v2] events=8 dominant_state=exploring",
+        "2026-06-12 14:54:10,637 - server - INFO - [MIRROR_CHAT][phase4-forum-field] forum='Yoong family' signals=['forum_id=69dda348de9cb1c83c0780fa', 'story_sparse:sparse', 'members=4']",
+        "2026-06-12 14:54:10,652 - server - INFO - [MIRROR_CHAT] Starting LLM call: mode=reflection_chat, user=697f0c6abf35c0528ff06954, is_transit_question=False",
+        "2026-06-12 14:54:15,142 - server - INFO - [MIRROR_CHAT] === REQUEST COMPLETED === user_id=697f0c6abf35c0528ff06954, duration=4.61s, response_length=422",
+        "2026-06-12 14:54:15,142 - server - INFO - [MIRROR_CHAT][evidence-drawer-v2] evidence_emitted=True keys=['marker', 'calibration']",
+        "2026-06-12 14:54:16,552 - server - INFO - [MIRROR_CHAT] === REQUEST RECEIVED === user_id=697f0c6abf35c0528ff06954, lens=None, message_length=30",
+        "2026-06-12 14:54:16,561 - server - INFO - [MIRROR_CHAT][phase4-intent-v2] block_emitted=True signals=['primary=relationship', 'phrases=1', 'target_bound:spouse']",
+        "2026-06-12 14:54:16,561 - server - INFO - [MIRROR_CHAT][phase4-timeline-v2] events=8 dominant_state=exploring",
+        "2026-06-12 14:54:16,567 - server - INFO - [MIRROR_CHAT][phase4-forum-field] forum='Yoong family' signals=['forum_id=69dda348de9cb1c83c0780fa', 'story_sparse:sparse', 'members=4']",
+        "2026-06-12 14:54:16,569 - server - INFO - [MIRROR_CHAT] Starting LLM call: mode=reflection_chat, user=697f0c6abf35c0528ff06954, is_transit_question=False",
+        "2026-06-12 14:54:19,535 - server - INFO - [MIRROR_CHAT] === REQUEST COMPLETED === user_id=697f0c6abf35c0528ff06954, duration=2.98s, response_length=602",
+        "2026-06-12 14:54:19,535 - server - INFO - [MIRROR_CHAT][evidence-drawer-v2] evidence_emitted=True keys=['marker', 'calibration']",
+        "2026-06-12 14:54:20,942 - server - INFO - [MIRROR_CHAT] === REQUEST RECEIVED === user_id=697f0c6abf35c0528ff06954, lens=None, message_length=34",
+        "2026-06-12 14:54:20,953 - server - INFO - [MIRROR_CHAT][phase4-intent-v2] block_emitted=True signals=['primary=career', 'phrases=1', 'target_unresolved:Pulsifi']",
+        "2026-06-12 14:54:20,954 - server - INFO - [MIRROR_CHAT][phase4-timeline-v2] events=8 dominant_state=exploring",
+        "2026-06-12 14:54:20,955 - server - INFO - [MIRROR_CHAT][phase4-founder-context] signals=['trigger:primary=career/conf=0.7/phrase=False', 'patterns=3']",
+        "2026-06-12 14:54:20,956 - server - INFO - [MIRROR_CHAT] Starting LLM call: mode=reflection_chat, user=697f0c6abf35c0528ff06954, is_transit_question=False",
+        "2026-06-12 14:54:23,600 - server - INFO - [MIRROR_CHAT] === REQUEST COMPLETED === user_id=697f0c6abf35c0528ff06954, duration=2.66s, response_length=564",
+        "2026-06-12 14:54:23,600 - server - INFO - [MIRROR_CHAT][evidence-drawer-v2] evidence_emitted=True keys=['marker', 'calibration']"
+      ]
+    },
+    {
+      "i": 4,
+      "category": "Founder",
+      "intent_key": "leadership_team_tension",
+      "message": "What tension exists inside the leadership team?",
+      "live": {
+        "ok": true,
+        "status": 200,
+        "response": "You're sensing something in the dynamics that doesn't quite settle. It's like the energy isn't flowing smoothly, perhaps there's a dissonance or unspoken barrier among the team. This tension might stem from different visions, priorities, or expectations that haven\u2019t been fully aligned yet. Consider exploring these dynamics further:\n\nWhat conversation could you initiate to bring more clarity or cohesion to the team?",
+        "elapsed_s": 3.794862747192383,
+        "error": null
+      },
+      "receipt": {
+        "request_id": "mc-08e8dd1c-7b69-4da6-a4ed-80ff125a3412",
+        "shadow_mode": true,
+        "intent_envelope": {
+          "primary_domain": "leadership",
+          "confidence": 0.6017,
+          "relationship_relevant": true,
+          "target_resolved": "907b832e-4386-43cc-b98b-0a160af3fb0b",
+          "matched_phrases": {
+            "leadership": [
+              "leadership team"
+            ],
+            "career": [
+              "leadership team"
+            ]
+          }
+        },
+        "relationship_resolution": {
+          "target": "907b832e-4386-43cc-b98b-0a160af3fb0b",
+          "target_name": null,
+          "role": "friend",
+          "forum_id": null,
+          "forum_name": null,
+          "resolution_source": null,
+          "spouse_auto_bind": null,
+          "lexicon_match": [
+            "company:leadership team"
+          ],
+          "company_phrase_hits": [
+            "leadership team"
+          ],
+          "topology_role_found": null,
+          "topology_role_type": null
+        }
+      },
+      "log_lines": [
+        "2026-06-12 14:54:10,637 - server - INFO - [MIRROR_CHAT][phase4-forum-field] forum='Yoong family' signals=['forum_id=69dda348de9cb1c83c0780fa', 'story_sparse:sparse', 'members=4']",
+        "2026-06-12 14:54:10,652 - server - INFO - [MIRROR_CHAT] Starting LLM call: mode=reflection_chat, user=697f0c6abf35c0528ff06954, is_transit_question=False",
+        "2026-06-12 14:54:15,142 - server - INFO - [MIRROR_CHAT] === REQUEST COMPLETED === user_id=697f0c6abf35c0528ff06954, duration=4.61s, response_length=422",
+        "2026-06-12 14:54:15,142 - server - INFO - [MIRROR_CHAT][evidence-drawer-v2] evidence_emitted=True keys=['marker', 'calibration']",
+        "2026-06-12 14:54:16,552 - server - INFO - [MIRROR_CHAT] === REQUEST RECEIVED === user_id=697f0c6abf35c0528ff06954, lens=None, message_length=30",
+        "2026-06-12 14:54:16,561 - server - INFO - [MIRROR_CHAT][phase4-intent-v2] block_emitted=True signals=['primary=relationship', 'phrases=1', 'target_bound:spouse']",
+        "2026-06-12 14:54:16,561 - server - INFO - [MIRROR_CHAT][phase4-timeline-v2] events=8 dominant_state=exploring",
+        "2026-06-12 14:54:16,567 - server - INFO - [MIRROR_CHAT][phase4-forum-field] forum='Yoong family' signals=['forum_id=69dda348de9cb1c83c0780fa', 'story_sparse:sparse', 'members=4']",
+        "2026-06-12 14:54:16,569 - server - INFO - [MIRROR_CHAT] Starting LLM call: mode=reflection_chat, user=697f0c6abf35c0528ff06954, is_transit_question=False",
+        "2026-06-12 14:54:19,535 - server - INFO - [MIRROR_CHAT] === REQUEST COMPLETED === user_id=697f0c6abf35c0528ff06954, duration=2.98s, response_length=602",
+        "2026-06-12 14:54:19,535 - server - INFO - [MIRROR_CHAT][evidence-drawer-v2] evidence_emitted=True keys=['marker', 'calibration']",
+        "2026-06-12 14:54:20,942 - server - INFO - [MIRROR_CHAT] === REQUEST RECEIVED === user_id=697f0c6abf35c0528ff06954, lens=None, message_length=34",
+        "2026-06-12 14:54:20,953 - server - INFO - [MIRROR_CHAT][phase4-intent-v2] block_emitted=True signals=['primary=career', 'phrases=1', 'target_unresolved:Pulsifi']",
+        "2026-06-12 14:54:20,954 - server - INFO - [MIRROR_CHAT][phase4-timeline-v2] events=8 dominant_state=exploring",
+        "2026-06-12 14:54:20,955 - server - INFO - [MIRROR_CHAT][phase4-founder-context] signals=['trigger:primary=career/conf=0.7/phrase=False', 'patterns=3']",
+        "2026-06-12 14:54:20,956 - server - INFO - [MIRROR_CHAT] Starting LLM call: mode=reflection_chat, user=697f0c6abf35c0528ff06954, is_transit_question=False",
+        "2026-06-12 14:54:23,600 - server - INFO - [MIRROR_CHAT] === REQUEST COMPLETED === user_id=697f0c6abf35c0528ff06954, duration=2.66s, response_length=564",
+        "2026-06-12 14:54:23,600 - server - INFO - [MIRROR_CHAT][evidence-drawer-v2] evidence_emitted=True keys=['marker', 'calibration']",
+        "2026-06-12 14:54:25,007 - server - INFO - [MIRROR_CHAT] === REQUEST RECEIVED === user_id=697f0c6abf35c0528ff06954, lens=None, message_length=47",
+        "2026-06-12 14:54:25,016 - server - INFO - [MIRROR_CHAT][phase4-intent-v2] block_emitted=True signals=['primary=leadership', 'secondary=relationship', 'phrases=2', 'target_bound:friend']",
+        "2026-06-12 14:54:25,017 - server - INFO - [MIRROR_CHAT][phase4-timeline-v2] events=8 dominant_state=exploring",
+        "2026-06-12 14:54:25,018 - server - INFO - [MIRROR_CHAT][phase4-founder-context] signals=['trigger:primary=leadership/conf=0.6017/phrase=False', 'patterns=3']",
+        "2026-06-12 14:54:25,019 - server - INFO - [MIRROR_CHAT] Starting LLM call: mode=reflection_chat, user=697f0c6abf35c0528ff06954, is_transit_question=False",
+        "2026-06-12 14:54:28,798 - server - INFO - [MIRROR_CHAT] === REQUEST COMPLETED === user_id=697f0c6abf35c0528ff06954, duration=3.79s, response_length=418",
+        "2026-06-12 14:54:28,798 - server - INFO - [MIRROR_CHAT][evidence-drawer-v2] evidence_emitted=True keys=['marker', 'calibration']"
+      ]
+    },
+    {
+      "i": 5,
+      "category": "Forum",
+      "intent_key": "yoong_family",
+      "message": "What is happening in Yoong Family?",
+      "live": {
+        "ok": true,
+        "status": 200,
+        "response": "You seem curious about the dynamics within the Yoong family. Given your connection to Thaddeus Yoong, it might be helpful to approach this with openness, looking for how each family member, including yourself, is playing a part in the current family landscape. With your IC in Pisces, there might be a sensitivity to the unseen emotional currents and a desire for deeper understanding of family roots and belonging. How does this resonate with what you see and feel within the family right now?",
+        "elapsed_s": 2.936091184616089,
+        "error": null
+      },
+      "receipt": {
+        "request_id": "mc-d2da23e5-3f62-47fc-a37c-cf4146f7a32e",
+        "shadow_mode": true,
+        "intent_envelope": {
+          "primary_domain": "general",
+          "confidence": 0.0,
+          "relationship_relevant": false,
+          "target_resolved": null,
+          "matched_phrases": {}
+        },
+        "relationship_resolution": {
+          "target": "69dd0b2cc92ba973f8838c11",
+          "target_name": "Thaddeus Yoong",
+          "role": "family",
+          "forum_id": "69dda348de9cb1c83c0780fa",
+          "forum_name": "Yoong family",
+          "resolution_source": "family_forum",
+          "spouse_auto_bind": null,
+          "lexicon_match": [
+            "forum:Yoong family"
+          ],
+          "company_phrase_hits": null,
+          "topology_role_found": false,
+          "topology_role_type": null
+        }
+      },
+      "log_lines": [
+        "2026-06-12 14:54:19,535 - server - INFO - [MIRROR_CHAT] === REQUEST COMPLETED === user_id=697f0c6abf35c0528ff06954, duration=2.98s, response_length=602",
+        "2026-06-12 14:54:19,535 - server - INFO - [MIRROR_CHAT][evidence-drawer-v2] evidence_emitted=True keys=['marker', 'calibration']",
+        "2026-06-12 14:54:20,942 - server - INFO - [MIRROR_CHAT] === REQUEST RECEIVED === user_id=697f0c6abf35c0528ff06954, lens=None, message_length=34",
+        "2026-06-12 14:54:20,953 - server - INFO - [MIRROR_CHAT][phase4-intent-v2] block_emitted=True signals=['primary=career', 'phrases=1', 'target_unresolved:Pulsifi']",
+        "2026-06-12 14:54:20,954 - server - INFO - [MIRROR_CHAT][phase4-timeline-v2] events=8 dominant_state=exploring",
+        "2026-06-12 14:54:20,955 - server - INFO - [MIRROR_CHAT][phase4-founder-context] signals=['trigger:primary=career/conf=0.7/phrase=False', 'patterns=3']",
+        "2026-06-12 14:54:20,956 - server - INFO - [MIRROR_CHAT] Starting LLM call: mode=reflection_chat, user=697f0c6abf35c0528ff06954, is_transit_question=False",
+        "2026-06-12 14:54:23,600 - server - INFO - [MIRROR_CHAT] === REQUEST COMPLETED === user_id=697f0c6abf35c0528ff06954, duration=2.66s, response_length=564",
+        "2026-06-12 14:54:23,600 - server - INFO - [MIRROR_CHAT][evidence-drawer-v2] evidence_emitted=True keys=['marker', 'calibration']",
+        "2026-06-12 14:54:25,007 - server - INFO - [MIRROR_CHAT] === REQUEST RECEIVED === user_id=697f0c6abf35c0528ff06954, lens=None, message_length=47",
+        "2026-06-12 14:54:25,016 - server - INFO - [MIRROR_CHAT][phase4-intent-v2] block_emitted=True signals=['primary=leadership', 'secondary=relationship', 'phrases=2', 'target_bound:friend']",
+        "2026-06-12 14:54:25,017 - server - INFO - [MIRROR_CHAT][phase4-timeline-v2] events=8 dominant_state=exploring",
+        "2026-06-12 14:54:25,018 - server - INFO - [MIRROR_CHAT][phase4-founder-context] signals=['trigger:primary=leadership/conf=0.6017/phrase=False', 'patterns=3']",
+        "2026-06-12 14:54:25,019 - server - INFO - [MIRROR_CHAT] Starting LLM call: mode=reflection_chat, user=697f0c6abf35c0528ff06954, is_transit_question=False",
+        "2026-06-12 14:54:28,798 - server - INFO - [MIRROR_CHAT] === REQUEST COMPLETED === user_id=697f0c6abf35c0528ff06954, duration=3.79s, response_length=418",
+        "2026-06-12 14:54:28,798 - server - INFO - [MIRROR_CHAT][evidence-drawer-v2] evidence_emitted=True keys=['marker', 'calibration']",
+        "2026-06-12 14:54:30,205 - server - INFO - [MIRROR_CHAT] === REQUEST RECEIVED === user_id=697f0c6abf35c0528ff06954, lens=None, message_length=34",
+        "2026-06-12 14:54:30,219 - server - INFO - [MIRROR_CHAT][phase4-PFS2.1] target_resolved via family_forum: name='Thaddeus Yoong' role='family' topology_role_type=None forum='Yoong family'",
+        "2026-06-12 14:54:30,219 - server - INFO - [MIRROR_CHAT][phase4-PFS2.3] re-planned: bucket='self' framing='self_inquiry' domain_bias='self' (was bucket='self' framing='self_inquiry')",
+        "2026-06-12 14:54:30,219 - server - INFO - [MIRROR_CHAT][phase4-intent-v2] block_emitted=True signals=['target_via_family_forum:Thaddeus Yoong', 'enforcement_target:Thaddeus Yoong/family']",
+        "2026-06-12 14:54:30,219 - server - INFO - [MIRROR_CHAT][phase4-timeline-v2] events=8 dominant_state=exploring",
+        "2026-06-12 14:54:30,226 - server - INFO - [MIRROR_CHAT][phase4-forum-field] forum='Yoong family' signals=['forum_id=69dda348de9cb1c83c0780fa', 'story_sparse:sparse', 'members=4']",
+        "2026-06-12 14:54:30,227 - server - INFO - [MIRROR_CHAT] Starting LLM call: mode=reflection_chat, user=697f0c6abf35c0528ff06954, is_transit_question=False",
+        "2026-06-12 14:54:33,137 - server - INFO - [MIRROR_CHAT] === REQUEST COMPLETED === user_id=697f0c6abf35c0528ff06954, duration=2.93s, response_length=494",
+        "2026-06-12 14:54:33,137 - server - INFO - [MIRROR_CHAT][evidence-drawer-v2] evidence_emitted=True keys=['marker', 'calibration']"
+      ]
+    },
+    {
+      "i": 6,
+      "category": "Forum",
+      "intent_key": "pulsifi_leadership_emerging",
+      "message": "What is emerging in Pulsifi Leadership?",
+      "live": {
+        "ok": true,
+        "status": 200,
+        "response": "You're seeking insight into the leadership dynamics within Pulsifi, possibly looking for clarity or a new perspective. There's something about the way you're exploring this that speaks to your own evolution as a leader. Your Midheaven in Virgo suggests a structured approach to public roles and careers, where details and precision play a significant role. This could mean that in leadership, you might naturally lean towards creating systems and refining processes to enhance effectiveness. As you reflect on your role within Pulsifi, consider how this attention to detail and structure might both support and challenge your leadership. Are there areas where this perspective could be expanded or shifted? Perhaps there's an invitation here to explore how you balance detailed focus with broader vision. What aspect of leadership feels most alive for you at this moment?",
+        "elapsed_s": 3.695143222808838,
+        "error": null
+      },
+      "receipt": {
+        "request_id": "mc-ea0aaf4c-42e2-47c5-a884-69f016bf25f2",
+        "shadow_mode": true,
+        "intent_envelope": {
+          "primary_domain": "career",
+          "confidence": 0.7,
+          "relationship_relevant": false,
+          "target_resolved": null,
+          "matched_phrases": {
+            "career": [
+              "pulsifi leadership",
+              "pulsifi"
+            ]
+          }
+        },
+        "relationship_resolution": {
+          "target": null,
+          "target_name": null,
+          "role": null,
+          "forum_id": null,
+          "forum_name": null,
+          "resolution_source": null,
+          "spouse_auto_bind": null,
+          "lexicon_match": [
+            "company:pulsifi",
+            "company:pulsifi leadership"
+          ],
+          "company_phrase_hits": [
+            "pulsifi",
+            "pulsifi leadership"
+          ],
+          "topology_role_found": null,
+          "topology_role_type": null
+        }
+      },
+      "log_lines": [
+        "2026-06-12 14:54:23,600 - server - INFO - [MIRROR_CHAT] === REQUEST COMPLETED === user_id=697f0c6abf35c0528ff06954, duration=2.66s, response_length=564",
+        "2026-06-12 14:54:23,600 - server - INFO - [MIRROR_CHAT][evidence-drawer-v2] evidence_emitted=True keys=['marker', 'calibration']",
+        "2026-06-12 14:54:25,007 - server - INFO - [MIRROR_CHAT] === REQUEST RECEIVED === user_id=697f0c6abf35c0528ff06954, lens=None, message_length=47",
+        "2026-06-12 14:54:25,016 - server - INFO - [MIRROR_CHAT][phase4-intent-v2] block_emitted=True signals=['primary=leadership', 'secondary=relationship', 'phrases=2', 'target_bound:friend']",
+        "2026-06-12 14:54:25,017 - server - INFO - [MIRROR_CHAT][phase4-timeline-v2] events=8 dominant_state=exploring",
+        "2026-06-12 14:54:25,018 - server - INFO - [MIRROR_CHAT][phase4-founder-context] signals=['trigger:primary=leadership/conf=0.6017/phrase=False', 'patterns=3']",
+        "2026-06-12 14:54:25,019 - server - INFO - [MIRROR_CHAT] Starting LLM call: mode=reflection_chat, user=697f0c6abf35c0528ff06954, is_transit_question=False",
+        "2026-06-12 14:54:28,798 - server - INFO - [MIRROR_CHAT] === REQUEST COMPLETED === user_id=697f0c6abf35c0528ff06954, duration=3.79s, response_length=418",
+        "2026-06-12 14:54:28,798 - server - INFO - [MIRROR_CHAT][evidence-drawer-v2] evidence_emitted=True keys=['marker', 'calibration']",
+        "2026-06-12 14:54:30,205 - server - INFO - [MIRROR_CHAT] === REQUEST RECEIVED === user_id=697f0c6abf35c0528ff06954, lens=None, message_length=34",
+        "2026-06-12 14:54:30,219 - server - INFO - [MIRROR_CHAT][phase4-PFS2.1] target_resolved via family_forum: name='Thaddeus Yoong' role='family' topology_role_type=None forum='Yoong family'",
+        "2026-06-12 14:54:30,219 - server - INFO - [MIRROR_CHAT][phase4-PFS2.3] re-planned: bucket='self' framing='self_inquiry' domain_bias='self' (was bucket='self' framing='self_inquiry')",
+        "2026-06-12 14:54:30,219 - server - INFO - [MIRROR_CHAT][phase4-intent-v2] block_emitted=True signals=['target_via_family_forum:Thaddeus Yoong', 'enforcement_target:Thaddeus Yoong/family']",
+        "2026-06-12 14:54:30,219 - server - INFO - [MIRROR_CHAT][phase4-timeline-v2] events=8 dominant_state=exploring",
+        "2026-06-12 14:54:30,226 - server - INFO - [MIRROR_CHAT][phase4-forum-field] forum='Yoong family' signals=['forum_id=69dda348de9cb1c83c0780fa', 'story_sparse:sparse', 'members=4']",
+        "2026-06-12 14:54:30,227 - server - INFO - [MIRROR_CHAT] Starting LLM call: mode=reflection_chat, user=697f0c6abf35c0528ff06954, is_transit_question=False",
+        "2026-06-12 14:54:33,137 - server - INFO - [MIRROR_CHAT] === REQUEST COMPLETED === user_id=697f0c6abf35c0528ff06954, duration=2.93s, response_length=494",
+        "2026-06-12 14:54:33,137 - server - INFO - [MIRROR_CHAT][evidence-drawer-v2] evidence_emitted=True keys=['marker', 'calibration']",
+        "2026-06-12 14:54:34,545 - server - INFO - [MIRROR_CHAT] === REQUEST RECEIVED === user_id=697f0c6abf35c0528ff06954, lens=None, message_length=39",
+        "2026-06-12 14:54:34,557 - server - INFO - [MIRROR_CHAT][phase4-intent-v2] block_emitted=True signals=['primary=career', 'phrases=2', 'target_unresolved:Pulsifi']",
+        "2026-06-12 14:54:34,557 - server - INFO - [MIRROR_CHAT][phase4-timeline-v2] events=8 dominant_state=exploring",
+        "2026-06-12 14:54:34,558 - server - INFO - [MIRROR_CHAT][phase4-founder-context] signals=['trigger:primary=career/conf=0.7/phrase=False', 'patterns=3']",
+        "2026-06-12 14:54:34,560 - server - INFO - [MIRROR_CHAT] Starting LLM call: mode=reflection_chat, user=697f0c6abf35c0528ff06954, is_transit_question=False",
+        "2026-06-12 14:54:38,236 - server - INFO - [MIRROR_CHAT] === REQUEST COMPLETED === user_id=697f0c6abf35c0528ff06954, duration=3.69s, response_length=871",
+        "2026-06-12 14:54:38,236 - server - INFO - [MIRROR_CHAT][evidence-drawer-v2] evidence_emitted=True keys=['marker', 'calibration']"
+      ]
+    }
+  ]
+}
