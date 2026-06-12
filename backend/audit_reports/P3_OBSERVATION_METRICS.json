@@ -1,0 +1,139 @@
+{
+  "window_days": 7,
+  "metrics": {
+    "schema": "p3_observation_v1",
+    "totals": {
+      "receipts_in_window": 72,
+      "receipts_with_p3": 1,
+      "p3_coverage_pct": 1.4
+    },
+    "bucket_counts": {
+      "self": 1
+    },
+    "bucket_reorder_rate_pct": {
+      "self": 0.0
+    },
+    "bucket_target_bound": {},
+    "bucket_active_member_bound": {},
+    "overall_reorder_rate_pct": 0.0,
+    "non_self_reorder_rate_pct": 0.0,
+    "role_distribution": {
+      "_none_": 1
+    },
+    "framing_hint_distribution": {
+      "self_inquiry": 1
+    },
+    "applied_rules_distribution": {
+      "self:default": 1
+    },
+    "modulation_patterns": {
+      "_none_": 1
+    },
+    "context_mode_distribution": {
+      "_none_": 1
+    },
+    "top_lens_after_per_bucket": {
+      "self": {
+        "relationship": 1
+      }
+    },
+    "rank_delta_means": {
+      "self": {
+        "relationship": 0.0,
+        "astrology": 0.0,
+        "human_design": 0.0,
+        "enneagram": 0.0,
+        "timeline": 0.0,
+        "numerology": 0.0
+      }
+    },
+    "target_resolution": {
+      "non_self_attempts": 0,
+      "non_self_success": 0,
+      "success_pct": 0.0
+    },
+    "forum_topology": {
+      "forum_member_bucket_count": 0,
+      "active_member_id_bound_count": 0,
+      "active_member_id_util_pct": 0.0
+    },
+    "stage1_telemetry": {
+      "stage1_bucket_deciles_seen": {
+        "80": 1
+      },
+      "cutover_enabled_count": 0,
+      "cutover_enabled_pct": 0.0
+    }
+  },
+  "readiness": {
+    "min_receipts_in_window": {
+      "required": 500,
+      "actual": 72,
+      "pass": false
+    },
+    "min_p3_coverage_pct": {
+      "required": 95.0,
+      "actual": 1.4,
+      "pass": false
+    },
+    "min_spouse_receipts": {
+      "required": 20,
+      "actual": 0,
+      "pass": false
+    },
+    "min_forum_member_receipts": {
+      "required": 20,
+      "actual": 0,
+      "pass": false
+    },
+    "min_cofounder_receipts": {
+      "required": 10,
+      "actual": 0,
+      "pass": false
+    },
+    "min_child_receipts": {
+      "required": 10,
+      "actual": 0,
+      "pass": false
+    },
+    "min_active_member_id_util_pct": {
+      "required": 60.0,
+      "actual": 0.0,
+      "pass": false
+    },
+    "min_target_resolution_pct": {
+      "required": 80.0,
+      "actual": 0.0,
+      "pass": false
+    },
+    "non_self_reorder_rate_pct": {
+      "required_min": 60.0,
+      "required_max": 80.0,
+      "actual": 0.0,
+      "pass": false
+    },
+    "overall_pass": false
+  },
+  "recommendations": [
+    {
+      "severity": "info",
+      "rule": "spouse_underrepresented",
+      "msg": "Spouse bucket has 0 receipts (< 20). Continue observation; do not adjust spouse modulations yet."
+    },
+    {
+      "severity": "info",
+      "rule": "forum_member_underrepresented",
+      "msg": "forum_member bucket has 0 receipts (< 20). Defer modulation tuning."
+    },
+    {
+      "severity": "info",
+      "rule": "cofounder_underrepresented",
+      "msg": "cofounder bucket has 0 receipts (< 10). Defer modulation tuning."
+    },
+    {
+      "severity": "info",
+      "rule": "child_underrepresented",
+      "msg": "child bucket has 0 receipts (< 10). Defer modulation tuning."
+    }
+  ]
+}
