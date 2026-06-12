@@ -341,6 +341,101 @@ def register(
                                 "leadership."
                             )
 
+                    # ── Phase-2 prompt integrity — Chiron, Descendant, IC ─
+                    # Same pattern as MC: unconditional inject for Chiron
+                    # (foundational for healing/growth narratives);
+                    # intent-gated inject for Descendant (relationship)
+                    # and IC (home/family).
+                    _msg_lc_p2 = (request.message or "").lower()
+
+                    # Chiron — always include when present in stored chart.
+                    chiron_doc = planets.get("Chiron") or {}
+                    if chiron_doc.get("sign"):
+                        _c_house = chiron_doc.get("house")
+                        _c_house_s = f" House {_c_house}" if _c_house else ""
+                        context_parts.append(
+                            f"Chiron: {chiron_doc.get('formatted') or chiron_doc.get('sign')} "
+                            f"({chiron_doc.get('sign')}){_c_house_s}"
+                        )
+
+                    # Descendant — relationship / forum_relationship /
+                    # between_you_today / forum_dynamics triggers.
+                    dc_doc = angles_doc.get("dc") or angles_doc.get("descendant") or {}
+                    if dc_doc.get("sign"):
+                        _dc_triggers = (
+                            "relationship", "marriage", "spouse", "partner",
+                            "wife", "husband", "girlfriend", "boyfriend",
+                            "between us", "between you", "forum",
+                            "team dynamics", "dynamic with", "dynamic between",
+                            "we work", "how we work", "couple",
+                        )
+                        if any(t in _msg_lc_p2 for t in _dc_triggers):
+                            context_parts.append(
+                                f"Descendant / DC: {dc_doc.get('formatted') or dc_doc.get('sign')} "
+                                f"({dc_doc.get('sign')})"
+                            )
+                            context_parts.append(
+                                "Descendant weighting: For relationship, "
+                                "forum, and between-us questions, use the "
+                                "DESCENDANT as the partnership-other axis. "
+                                "Do NOT infer Descendant from Ascendant — "
+                                "use only the stored value above."
+                            )
+
+                    # IC — family / home / childhood / roots / safety triggers.
+                    ic_doc = angles_doc.get("ic") or {}
+                    if ic_doc.get("sign"):
+                        _ic_triggers = (
+                            "family", "home", "childhood", "roots",
+                            "belonging", "safety", "parents", "mother",
+                            "father", "lineage", "ancestry", "inherited",
+                            "where i come from", "my origins",
+                        )
+                        if any(t in _msg_lc_p2 for t in _ic_triggers):
+                            context_parts.append(
+                                f"IC / Imum Coeli: {ic_doc.get('formatted') or ic_doc.get('sign')} "
+                                f"({ic_doc.get('sign')})"
+                            )
+                            context_parts.append(
+                                "IC weighting: For family / home / "
+                                "childhood / roots / belonging questions, "
+                                "use the IC as the foundation / lineage "
+                                "axis. Use only the stored value above."
+                            )
+
+                    # Purpose / growth / healing developmental axis —
+                    # ensure the LLM sees the complete N/S Node + Chiron
+                    # + MC stack together for these intents.
+                    _purpose_triggers = (
+                        "purpose", "growth", "life direction",
+                        "life-direction", "healing", "spirituality",
+                        "shadow", "integration", "wound", "calling",
+                        "my soul", "soul's", "evolution",
+                    )
+                    if any(t in _msg_lc_p2 for t in _purpose_triggers):
+                        context_parts.append(
+                            "Developmental axis weighting: For purpose, "
+                            "growth, healing, spirituality, and shadow / "
+                            "integration questions, weave the North Node "
+                            "(direction), South Node (release pattern), "
+                            "Chiron (core wound), and MC (public "
+                            "contribution) together as the complete "
+                            "developmental axis. Use only the stored "
+                            "values listed above; do not invent points "
+                            "that are not in the ASTROLOGY PROFILE block."
+                        )
+
+                    # Global anti-hallucination guardrail for all chart
+                    # points (covers MC, Descendant, Chiron, IC, Nodes).
+                    context_parts.append(
+                        "ASTROLOGY INTEGRITY RULE: Only discuss chart "
+                        "points explicitly provided in the ASTROLOGY "
+                        "PROFILE block above. Do not infer Descendant "
+                        "from Ascendant, MC from Sun, Chiron themes when "
+                        "Chiron is absent, or IC themes when IC is "
+                        "absent. Use stored chart values only."
+                    )
+
                     # Add other planets if in astrology lens
                     if request.lens == "astrology":
                         for planet_name in ['Mercury', 'Venus', 'Mars', 'Jupiter', 'Saturn', 'Uranus', 'Neptune', 'Pluto']:
