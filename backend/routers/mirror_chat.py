@@ -984,14 +984,26 @@ SUPPORT STYLE: {v1_support}
                                 "forum_id":         _forum_resolved["forum_id"],
                                 "forum_name":       _forum_resolved["forum_name"],
                                 "resolution_source": _forum_resolved["resolution_source"],
+                                # PFS-2.1 topology-first telemetry persisted
+                                # into the relationship_resolution block so
+                                # the saved receipt and the prompt builder
+                                # both expose edge provenance.
+                                "topology_role_found":  _forum_resolved.get("topology_role_found", False),
+                                "topology_role_type":   _forum_resolved.get("topology_role_type"),
+                                "topology_confidence":  _forum_resolved.get("topology_confidence"),
+                                "topology_inferred":    _forum_resolved.get("topology_inferred"),
+                                "topology_edge_id":     _forum_resolved.get("topology_edge_id"),
                                 # Keep the original unresolved-name marker
                                 # for telemetry — promotion does not erase it.
                                 "target_unresolved_name": _candidate_name,
                             }
                             logger.info(
-                                f"[MIRROR_CHAT][phase4-R3b] target_resolved via "
-                                f"{_forum_resolved['resolution_source']}: "
+                                f"[MIRROR_CHAT][phase4-PFS2.1] target_resolved via "
+                                f"{_forum_resolved['resolution_source']}"
+                                f"{' (topology_edge)' if _forum_resolved.get('topology_role_found') else ''}: "
                                 f"name={_forum_resolved['resolved_name']!r} "
+                                f"role={_forum_resolved.get('resolved_role')!r} "
+                                f"topology_role_type={_forum_resolved.get('topology_role_type')!r} "
                                 f"forum={_forum_resolved['forum_name']!r}"
                             )
                     elif v2_receipt:

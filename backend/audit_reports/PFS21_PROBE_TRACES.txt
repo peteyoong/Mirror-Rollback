@@ -1,0 +1,254 @@
+==============================================================================
+PFS-2.1 TOPOLOGY-FIRST VALIDATION PROBES (read-only)
+Preview DB: test_database
+Run at: 2026-06-12T08:11:45.368044Z
+==============================================================================
+
+──────── DIRECT EDGE: Pete→Mel inside 'Pete & Mel' forum ────────
+  forum_id=69dd05eaa333335fcbf3ad33 from=697f0c6abf35c0528ff06954 to=697ec826ad4b18f75bf42616
+  result  : {"forum_id": "69dd05eaa333335fcbf3ad33", "from_user_id": "697f0c6abf35c0528ff06954", "to_user_id": "697ec826ad4b18f75bf42616", "role_type": "spouse", "directional": true, "inferred": false, "confidence": "high", "emotional_weight": "heavy", "power_gradient": "equal", "intimacy_level": "high", "updated_at": "2026-06-12T06:54:45.299000", "id": "5beee835-8f27-43ca-8d36-e25e2915b84e", "created_at": "2026-06-12T06:54:45.299000"}
+
+──────── DIRECT EDGE: Pete→Mel inside 'Yoong family' forum ────────
+  forum_id=69dda348de9cb1c83c0780fa from=697f0c6abf35c0528ff06954 to=697ec826ad4b18f75bf42616
+  result  : {"forum_id": "69dda348de9cb1c83c0780fa", "from_user_id": "697f0c6abf35c0528ff06954", "to_user_id": "697ec826ad4b18f75bf42616", "role_type": "spouse", "directional": true, "inferred": false, "confidence": "high", "emotional_weight": "heavy", "power_gradient": "equal", "intimacy_level": "high", "updated_at": "2026-05-28T09:29:02.245000", "id": "0c0c37e5-0c1d-4a09-8f5c-7da185217b30", "created_at": "2026-05-28T09:29:02.245000"}
+
+──────── PROBE: 1. Pete & Mel → expect spouse via topology edge ────────
+  user_id      : 697f0c6abf35c0528ff06954
+  candidate    : 'Mel'
+  message      : 'How is Mel doing today?'
+  RESOLVED     : found=True src=pair_forum role='spouse' name='Mel'
+  TOPOLOGY     : found=True role_type='spouse' confidence=high inferred=False edge_id=5beee835-8f27-43ca-8d36-e25e2915b84e
+  all_matches  : [{"forum_id": "69dd05eaa333335fcbf3ad33", "forum_name": "Pete & Mel", "source": "pair_forum", "role": "spouse", "via_topology": true, "topology_role_type": "spouse", "heuristic_source": "pair_forum", "heuristic_role": null}, {"forum_id": "69dda348de9cb1c83c0780fa", "forum_name": "Yoong family", "source": "pair_forum", "role": "spouse", "via_topology": true, "topology_role_type": "spouse", "heuristic_source": "family_forum", "heuristic_role": "family"}]
+  PERSISTED RECEIPT (relationship_resolution):
+    {
+      "target": "697ec826ad4b18f75bf42616",
+      "target_name": "Mel",
+      "role": "spouse",
+      "forum_id": "69dd05eaa333335fcbf3ad33",
+      "forum_name": "Pete & Mel",
+      "resolution_source": "pair_forum",
+      "topology_role_found": true,
+      "topology_role_type": "spouse",
+      "topology_confidence": "high",
+      "topology_inferred": false,
+      "topology_edge_id": "5beee835-8f27-43ca-8d36-e25e2915b84e",
+      "target_unresolved_name": "Mel"
+    }
+
+──────── PROBE: 2. Yoong Family → expect spouse via topology (NOT family-only) + family ctx preserved ────────
+  user_id      : 697f0c6abf35c0528ff06954
+  candidate    : 'Melissa'
+  message      : 'Talking with Melissa about the family'
+  RESOLVED     : found=True src=pair_forum role='spouse' name='Mel'
+  TOPOLOGY     : found=True role_type='spouse' confidence=high inferred=False edge_id=5beee835-8f27-43ca-8d36-e25e2915b84e
+  all_matches  : [{"forum_id": "69dd05eaa333335fcbf3ad33", "forum_name": "Pete & Mel", "source": "pair_forum", "role": "spouse", "via_topology": true, "topology_role_type": "spouse", "heuristic_source": "pair_forum", "heuristic_role": null}, {"forum_id": "69dda348de9cb1c83c0780fa", "forum_name": "Yoong family", "source": "pair_forum", "role": "spouse", "via_topology": true, "topology_role_type": "spouse", "heuristic_source": "family_forum", "heuristic_role": "family"}]
+  PERSISTED RECEIPT (relationship_resolution):
+    {
+      "target": "697ec826ad4b18f75bf42616",
+      "target_name": "Mel",
+      "role": "spouse",
+      "forum_id": "69dd05eaa333335fcbf3ad33",
+      "forum_name": "Pete & Mel",
+      "resolution_source": "pair_forum",
+      "topology_role_found": true,
+      "topology_role_type": "spouse",
+      "topology_confidence": "high",
+      "topology_inferred": false,
+      "topology_edge_id": "5beee835-8f27-43ca-8d36-e25e2915b84e",
+      "target_unresolved_name": "Melissa"
+    }
+
+──────── PROBE: 3. Isaac → expect ENVIRONMENTAL N/A (no member, no edge in preview) ────────
+  user_id      : 697f0c6abf35c0528ff06954
+  candidate    : 'Isaac'
+  message      : 'How is Isaac handling school?'
+  RESOLVED     : found=True src=family_forum role='family' name='Isaac Yoong'
+  TOPOLOGY     : found=False role_type=None confidence=None inferred=None edge_id=None
+  all_matches  : [{"forum_id": "69dda348de9cb1c83c0780fa", "forum_name": "Yoong family", "source": "family_forum", "role": "family", "via_topology": false, "topology_role_type": null, "heuristic_source": "family_forum", "heuristic_role": "family"}]
+  PERSISTED RECEIPT (relationship_resolution):
+    {
+      "target": "69dda348de9cb1c83c0780f8",
+      "target_name": "Isaac Yoong",
+      "role": "family",
+      "forum_id": "69dda348de9cb1c83c0780fa",
+      "forum_name": "Yoong family",
+      "resolution_source": "family_forum",
+      "topology_role_found": false,
+      "topology_role_type": null,
+      "topology_confidence": null,
+      "topology_inferred": null,
+      "topology_edge_id": null,
+      "target_unresolved_name": "Isaac"
+    }
+
+──────── PROBE: 4. Thaddeus → expect ENVIRONMENTAL N/A (no member, no edge in preview) ────────
+  user_id      : 697f0c6abf35c0528ff06954
+  candidate    : 'Thaddeus'
+  message      : 'Worried about Thaddeus lately.'
+  RESOLVED     : found=True src=family_forum role='family' name='Thaddeus Yoong'
+  TOPOLOGY     : found=False role_type=None confidence=None inferred=None edge_id=None
+  all_matches  : [{"forum_id": "69dda348de9cb1c83c0780fa", "forum_name": "Yoong family", "source": "family_forum", "role": "family", "via_topology": false, "topology_role_type": null, "heuristic_source": "family_forum", "heuristic_role": "family"}]
+  PERSISTED RECEIPT (relationship_resolution):
+    {
+      "target": "69dd0b2cc92ba973f8838c11",
+      "target_name": "Thaddeus Yoong",
+      "role": "family",
+      "forum_id": "69dda348de9cb1c83c0780fa",
+      "forum_name": "Yoong family",
+      "resolution_source": "family_forum",
+      "topology_role_found": false,
+      "topology_role_type": null,
+      "topology_confidence": null,
+      "topology_inferred": null,
+      "topology_edge_id": null,
+      "target_unresolved_name": "Thaddeus"
+    }
+
+──────── PROBE: 5. Cofounder lookup → expect ENVIRONMENTAL N/A (no cofounder forum/edge in preview) ────────
+  user_id      : 697f0c6abf35c0528ff06954
+  candidate    : 'Lu'
+  message      : 'Sync with my cofounder Lu about runway.'
+  RESOLVED     : found=False src=unresolved role=None name=None
+  TOPOLOGY     : found=False role_type=None confidence=None inferred=None edge_id=None
+  all_matches  : []
+  PERSISTED RECEIPT (relationship_resolution):
+    {
+      "target": null,
+      "target_unresolved_name": "Lu",
+      "resolution_source": "unresolved",
+      "topology_role_found": false,
+      "topology_role_type": null,
+      "topology_confidence": null,
+      "topology_inferred": null,
+      "topology_edge_id": null
+    }
+
+──────── PROBE: 6. Mentor lookup → expect ENVIRONMENTAL N/A (no mentor forum/edge in preview) ────────
+  user_id      : 697f0c6abf35c0528ff06954
+  candidate    : 'Sandra'
+  message      : 'Catching up with my mentor Sandra.'
+  RESOLVED     : found=False src=unresolved role=None name=None
+  TOPOLOGY     : found=False role_type=None confidence=None inferred=None edge_id=None
+  all_matches  : []
+  PERSISTED RECEIPT (relationship_resolution):
+    {
+      "target": null,
+      "target_unresolved_name": "Sandra",
+      "resolution_source": "unresolved",
+      "topology_role_found": false,
+      "topology_role_type": null,
+      "topology_confidence": null,
+      "topology_inferred": null,
+      "topology_edge_id": null
+    }
+
+==============================================================================
+INFORMATION PRESERVATION AUDIT (before vs after topology-first)
+==============================================================================
+
+  BEFORE (PFS-1 name regex) — forum 'Pete & Mel':
+    source='pair_forum'  role=None
+
+  BEFORE (PFS-1 name regex) — forum 'Yoong family':
+    source='family_forum'  role='family'
+
+  AFTER (PFS-2.1 topology-first) — Pete probing 'Mel':
+    source='pair_forum'  role='spouse'  topology_role_type='spouse'  forum_name='Pete & Mel'
+  AFTER (PFS-2.1 topology-first) — Pete probing 'Melissa':
+    source='pair_forum'  role='spouse'  topology_role_type='spouse'  forum_name='Pete & Mel'
+
+==============================================================================
+REGRESSION MATRIX
+==============================================================================
+
+──────── PROBE: REG.A unresolved target — random name ────────
+  user_id      : 697f0c6abf35c0528ff06954
+  candidate    : 'QwertyXYZ'
+  message      : 'What about QwertyXYZ?'
+  RESOLVED     : found=False src=unresolved role=None name=None
+  TOPOLOGY     : found=False role_type=None confidence=None inferred=None edge_id=None
+  all_matches  : []
+  PERSISTED RECEIPT (relationship_resolution):
+    {
+      "target": null,
+      "target_unresolved_name": "QwertyXYZ",
+      "resolution_source": "unresolved",
+      "topology_role_found": false,
+      "topology_role_type": null,
+      "topology_confidence": null,
+      "topology_inferred": null,
+      "topology_edge_id": null
+    }
+
+──────── PROBE: REG.B saved_people-only target — 'Test Spouse' ────────
+  user_id      : 697f0c6abf35c0528ff06954
+  candidate    : 'Test Spouse'
+  message      : 'Talked to Test Spouse today.'
+  RESOLVED     : found=True src=pair_forum role='spouse' name='Mel'
+  TOPOLOGY     : found=True role_type='spouse' confidence=high inferred=False edge_id=5beee835-8f27-43ca-8d36-e25e2915b84e
+  all_matches  : []
+  PERSISTED RECEIPT (relationship_resolution):
+    {
+      "target": "697ec826ad4b18f75bf42616",
+      "target_name": "Mel",
+      "role": "spouse",
+      "forum_id": "69dd05eaa333335fcbf3ad33",
+      "forum_name": "Pete & Mel",
+      "resolution_source": "pair_forum",
+      "topology_role_found": true,
+      "topology_role_type": "spouse",
+      "topology_confidence": "high",
+      "topology_inferred": false,
+      "topology_edge_id": "5beee835-8f27-43ca-8d36-e25e2915b84e",
+      "target_unresolved_name": "Test Spouse"
+    }
+
+──────── PROBE: REG.C forum-member, no topology edge — FM TEST 1 owner ────────
+  user_id      : 697ec826ad4b18f75bf42616
+  candidate    : 'Pete'
+  message      : 'Just me.'
+  RESOLVED     : found=True src=pair_forum role=None name='Pete'
+  TOPOLOGY     : found=False role_type=None confidence=None inferred=None edge_id=None
+  all_matches  : [{"forum_id": "69dd05eaa333335fcbf3ad33", "forum_name": "Pete & Mel", "source": "pair_forum", "role": null, "via_topology": false, "topology_role_type": null, "heuristic_source": "pair_forum", "heuristic_role": null}, {"forum_id": "69dda348de9cb1c83c0780fa", "forum_name": "Yoong family", "source": "family_forum", "role": "family", "via_topology": false, "topology_role_type": null, "heuristic_source": "family_forum", "heuristic_role": "family"}]
+  PERSISTED RECEIPT (relationship_resolution):
+    {
+      "target": "697f0c6abf35c0528ff06954",
+      "target_name": "Pete",
+      "role": null,
+      "forum_id": "69dd05eaa333335fcbf3ad33",
+      "forum_name": "Pete & Mel",
+      "resolution_source": "pair_forum",
+      "topology_role_found": false,
+      "topology_role_type": null,
+      "topology_confidence": null,
+      "topology_inferred": null,
+      "topology_edge_id": null,
+      "target_unresolved_name": "Pete"
+    }
+
+──────── PROBE: REG.D role-noun alias 'wife' (spouse-alias path) ────────
+  user_id      : 697f0c6abf35c0528ff06954
+  candidate    : None
+  message      : 'I had a difficult chat with my wife today.'
+  RESOLVED     : found=True src=pair_forum role='spouse' name='Mel'
+  TOPOLOGY     : found=True role_type='spouse' confidence=high inferred=False edge_id=5beee835-8f27-43ca-8d36-e25e2915b84e
+  all_matches  : []
+  PERSISTED RECEIPT (relationship_resolution):
+    {
+      "target": "697ec826ad4b18f75bf42616",
+      "target_name": "Mel",
+      "role": "spouse",
+      "forum_id": "69dd05eaa333335fcbf3ad33",
+      "forum_name": "Pete & Mel",
+      "resolution_source": "pair_forum",
+      "topology_role_found": true,
+      "topology_role_type": "spouse",
+      "topology_confidence": "high",
+      "topology_inferred": false,
+      "topology_edge_id": "5beee835-8f27-43ca-8d36-e25e2915b84e",
+      "target_unresolved_name": null
+    }
+
+==============================================================================
+PROBE RUN COMPLETE
+==============================================================================

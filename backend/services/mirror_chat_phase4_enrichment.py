@@ -117,6 +117,126 @@ _SPOUSE_ALIASES = {"wife", "husband", "partner", "spouse",
                    "girlfriend", "boyfriend", "fiance", "fiancee"}
 
 
+# ─────────────────────────────────────────────────────────────────────
+# PFS-2.1 — Topology-first role derivation
+# ─────────────────────────────────────────────────────────────────────
+#
+# `forum_relationship_edges` is the authoritative per-forum role table.
+# When an explicit edge exists from the requester to the resolved
+# candidate, we use the edge's `role_type` directly and bypass the
+# forum-name regex. The mapping below converts the topology vocabulary
+# (defined in services/forum_topology.py) to the resolver's
+# (source, role) pair used by the prompt builder.
+#
+#   Romantic / pair-context roles:
+#     spouse, former_partner             → pair_forum
+#   Family roles:
+#     parent, child, sibling             → family_forum
+#   Business / professional roles:
+#     cofounder, manager, employee,
+#     investor, advisor, mentor, mentee,
+#     coach, coachee, business_partner   → business_forum
+#   Social / other:
+#     close_friend, forum_mate,
+#     authority_figure, collaborator,
+#     other                              → forum_member
+#
+# The `role` field surfaced to the prompt builder is the edge's
+# `role_type` directly (e.g. "spouse", "child", "cofounder") — strictly
+# more specific than the regex heuristic ever produced.
+
+_ROLE_TYPE_TO_SOURCE: Dict[str, str] = {
+    # pair_forum
+    "spouse":            "pair_forum",
+    "former_partner":    "pair_forum",
+    # family_forum
+    "parent":            "family_forum",
+    "child":             "family_forum",
+    "sibling":           "family_forum",
+    # business_forum
+    "cofounder":         "business_forum",
+    "business_partner":  "business_forum",
+    "manager":           "business_forum",
+    "employee":          "business_forum",
+    "investor":          "business_forum",
+    "advisor":           "business_forum",
+    "mentor":            "business_forum",
+    "mentee":            "business_forum",
+    "coach":             "business_forum",
+    "coachee":           "business_forum",
+    # forum_member (generic social)
+    "close_friend":      "forum_member",
+    "forum_mate":        "forum_member",
+    "authority_figure":  "forum_member",
+    "collaborator":      "forum_member",
+    "other":             "forum_member",
+}
+
+
+def _role_type_to_source_role(
+    role_type: Optional[str],
+) -> Tuple[Optional[str], Optional[str]]:
+    """Map a `forum_relationship_edges.role_type` value to the
+    (resolution_source, role) pair the resolver emits to the prompt
+    builder. Returns (None, None) when the role_type is unrecognised
+    so the caller can fall through to the PFS-1 name heuristic.
+    """
+    if not role_type:
+        return None, None
+    rt = role_type.strip().lower()
+    source = _ROLE_TYPE_TO_SOURCE.get(rt)
+    if source is None:
+        return None, None
+    # Role surfaced to the prompt = the exact edge role_type.
+    return source, rt
+
+
+async def _lookup_topology_edge(
+    db,
+    *,
+    forum_id: str,
+    from_user_id: str,
+    to_user_id: str,
+) -> Optional[Dict[str, Any]]:
+    """Return the best (highest-confidence, prefer-explicit) edge in
+    `forum_relationship_edges` for the directed pair
+    `from_user_id → to_user_id` inside `forum_id`. None if no edge.
+
+    Caller is responsible for invoking this only when (forum_id,
+    from_user_id, to_user_id) all carry safe values.
+    """
+    if db is None or not (forum_id and from_user_id and to_user_id):
+        return None
+    try:
+        # Collect both explicit and inferred edges; prefer explicit,
+        # then high-confidence.
+        edges: List[Dict[str, Any]] = []
+        cur = db.forum_relationship_edges.find({
+            "forum_id":     forum_id,
+            "from_user_id": from_user_id,
+            "to_user_id":   to_user_id,
+        })
+        async for e in cur:
+            e.pop("_id", None)
+            edges.append(e)
+        if not edges:
+            return None
+        # Sort: explicit first, then by confidence rank (high>moderate>low).
+        _conf_rank = {"high": 0, "moderate": 1, "low": 2}
+        edges.sort(key=lambda e: (
+            bool(e.get("inferred", True)),
+            _conf_rank.get(e.get("confidence", "low"), 9),
+        ))
+        return edges[0]
+    except Exception as e:
+        log.warning(
+            f"[mirror_chat_phase4][PFS2.1] topology edge lookup failed "
+            f"(forum={forum_id} from={from_user_id} to={to_user_id}): "
+            f"{type(e).__name__}: {e}"
+        )
+        return None
+
+
 async def resolve_target_via_forums(
     *, db, user_id: str, candidate_name: Optional[str], message: str,
 ) -> Dict[str, Any]:
@@ -141,6 +261,15 @@ async def resolve_target_via_forums(
         "all_forums_with_match": [],
         "user_forum_count":  0,
         "alias_used":        None,
+        # PFS-2.1 — topology-first telemetry. Always present so the
+        # persisted receipt has a stable schema (False/None when the
+        # resolver didn't find a topology edge OR didn't reach the
+        # topology-lookup step).
+        "topology_role_found":  False,
+        "topology_role_type":   None,
+        "topology_confidence":  None,
+        "topology_inferred":    None,
+        "topology_edge_id":     None,
     }
 
     if db is None or not user_id:
@@ -222,24 +351,57 @@ async def resolve_target_via_forums(
                     )
                     if name_match or email_match:
                         forum_name = (forum_docs.get(fid) or {}).get("name") or ""
-                        source, role = _classify_forum_source(forum_name)
+                        # PFS-1 heuristic baseline (forum-name regex).
+                        name_source, name_role = _classify_forum_source(forum_name)
+                        # PFS-2.1: topology-first override. If an explicit
+                        # `forum_relationship_edges` edge exists for the
+                        # directed pair (user_id → m.user_id) inside this
+                        # forum, prefer its role_type. Falls through to the
+                        # PFS-1 heuristic when no edge or unknown role_type.
+                        edge = await _lookup_topology_edge(
+                            db,
+                            forum_id=fid,
+                            from_user_id=user_id,
+                            to_user_id=m["user_id"],
+                        )
+                        topo_source, topo_role = (None, None)
+                        if edge:
+                            topo_source, topo_role = _role_type_to_source_role(
+                                edge.get("role_type")
+                            )
+                        # Effective (source, role) — topology wins when
+                        # the edge exists AND its role_type is recognised.
+                        eff_source = topo_source or name_source
+                        eff_role   = topo_role   or name_role
                         matches.append({
                             "user_id":    m["user_id"],
                             "name":       m["name"],
                             "forum_id":   fid,
                             "forum_name": forum_name,
-                            "source":     source,
-                            "role":       role,
+                            "source":     eff_source,
+                            "role":       eff_role,
                             "alias_used": (
                                 f"{cand_lc}→{nm}" if (name_match and nm != cand_lc)
                                 else f"{cand_lc}→email:{email_stem}"
                                 if email_match else None
                             ),
+                            # PFS-2.1 telemetry per-match.
+                            "via_topology":        bool(topo_source),
+                            "topology_role_type":  (edge or {}).get("role_type") if edge else None,
+                            "topology_confidence": (edge or {}).get("confidence") if edge else None,
+                            "topology_inferred":   (edge or {}).get("inferred") if edge else None,
+                            "topology_edge_id":    (edge or {}).get("id") if edge else None,
+                            # Preserve the heuristic baseline so the
+                            # validation report can show "before" vs
+                            # "after" without re-running the resolver.
+                            "heuristic_source":    name_source,
+                            "heuristic_role":      name_role,
                         })
 
             if matches:
                 # Priority order per user's resolution ladder:
-                #   pair_forum > family_forum > business_forum > forum_member
+                #   1. Topology-backed edge (PFS-2.1)
+                #   2. pair_forum > family_forum > business_forum > forum_member
                 # (PFS-1: `business_forum` inserted between family and
                 # generic. Leadership/cofounder groups are more specific
                 # than a generic shared forum, but less specific than a
@@ -250,7 +412,10 @@ async def resolve_target_via_forums(
                     "business_forum": 2,
                     "forum_member":   3,
                 }
-                matches.sort(key=lambda x: _src_priority.get(x["source"], 9))
+                matches.sort(key=lambda x: (
+                    0 if x.get("via_topology") else 1,
+                    _src_priority.get(x["source"], 9),
+                ))
                 top = matches[0]
                 result["found"] = True
                 result["resolved_user_id"] = top["user_id"]
@@ -260,10 +425,21 @@ async def resolve_target_via_forums(
                 result["forum_name"]      = top["forum_name"]
                 result["resolution_source"] = top["source"]
                 result["alias_used"]      = top["alias_used"]
+                # PFS-2.1 telemetry promotion onto result.
+                if top.get("via_topology"):
+                    result["topology_role_found"] = True
+                    result["topology_role_type"]  = top.get("topology_role_type")
+                    result["topology_confidence"] = top.get("topology_confidence")
+                    result["topology_inferred"]   = top.get("topology_inferred")
+                    result["topology_edge_id"]    = top.get("topology_edge_id")
                 # Record ALL forums where the match was found
                 result["all_forums_with_match"] = [
                     {"forum_id": x["forum_id"], "forum_name": x["forum_name"],
-                     "source": x["source"], "role": x["role"]}
+                     "source": x["source"], "role": x["role"],
+                     "via_topology": bool(x.get("via_topology")),
+                     "topology_role_type": x.get("topology_role_type"),
+                     "heuristic_source": x.get("heuristic_source"),
+                     "heuristic_role": x.get("heuristic_role")}
                     for x in matches
                 ]
                 return result
@@ -285,16 +461,41 @@ async def resolve_target_via_forums(
                 # accept any 1-other-member forum as a partner candidate.
                 pair_hit = bool(_PAIR_FORUM_NAME_RE.match(forum_name))
                 m = members[0]
+                # PFS-2.1: topology-first override on the role-noun
+                # alias path too. If an explicit edge exists, prefer
+                # its role_type ("spouse"/"former_partner"/etc.) over
+                # the hard-coded "partner".
+                edge = await _lookup_topology_edge(
+                    db,
+                    forum_id=fid,
+                    from_user_id=user_id,
+                    to_user_id=m["user_id"],
+                )
+                topo_source, topo_role = (None, None)
+                if edge:
+                    topo_source, topo_role = _role_type_to_source_role(
+                        edge.get("role_type")
+                    )
                 result["found"] = True
                 result["resolved_user_id"] = m["user_id"]
                 result["resolved_name"]   = m["name"]
-                result["resolved_role"]   = "partner"
+                result["resolved_role"]   = topo_role or "partner"
                 result["forum_id"]        = fid
                 result["forum_name"]      = forum_name
-                result["resolution_source"] = (
-                    "alias_spouse_via_pair_forum" if pair_hit
-                    else "alias_spouse_via_single_other_member"
-                )
+                if topo_source:
+                    # Topology edge wins: surface its source so the
+                    # prompt builder & receipt reflect provenance.
+                    result["resolution_source"] = topo_source
+                    result["topology_role_found"] = True
+                    result["topology_role_type"]  = edge.get("role_type")
+                    result["topology_confidence"] = edge.get("confidence")
+                    result["topology_inferred"]   = edge.get("inferred")
+                    result["topology_edge_id"]    = edge.get("id")
+                else:
+                    result["resolution_source"] = (
+                        "alias_spouse_via_pair_forum" if pair_hit
+                        else "alias_spouse_via_single_other_member"
+                    )
                 result["alias_used"] = spouse_alias
                 return result
 
