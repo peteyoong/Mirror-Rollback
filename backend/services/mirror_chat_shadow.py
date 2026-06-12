@@ -260,3 +260,189 @@ async def emit_shadow_receipt(
 
 def make_request_id() -> str:
     return f"mc-{uuid.uuid4()}"
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# Phase-4 sync hoist (P6 R8) — compute V2 receipt WITHOUT persisting.
+# ═══════════════════════════════════════════════════════════════════════
+#
+# Same semantics as `emit_shadow_receipt` above but split into a pure
+# sync computation function + a separate async persistence step.  This
+# lets the live request path consume the V2 envelope synchronously
+# (before LLM prompt assembly) while keeping the MongoDB write in a
+# fire-and-forget background task.
+#
+# Never raises (catches its own errors and returns a best-effort
+# payload with `compute_error` set when needed).
+# ═══════════════════════════════════════════════════════════════════════
+
+def compute_v2_envelope_sync(
+    *,
+    request_id: str,
+    user_id: str,
+    message: str,
+    lens: Optional[str] = None,
+    about_person_id: Optional[str] = None,
+    life_domain: Optional[str] = None,
+    saved_people: Optional[List[Dict[str, Any]]] = None,
+    forum_topology: Optional[Dict[str, Any]] = None,
+) -> Dict[str, Any]:
+    """Synchronously compute the full V2 receipt payload WITHOUT persisting.
+
+    Returns a dict shaped exactly like the persisted receipt so the
+    prompt builder can read the same fields the dashboard reads.
+
+    Returns `{"shadow_mode": False, ...}` (skipped) when shadow mode is
+    disabled, so callers can short-circuit cheaply.
+    """
+    if not shadow_mode_enabled():
+        return {
+            "request_id":  request_id,
+            "user_id":     user_id,
+            "shadow_mode": False,
+        }
+
+    t0 = time.perf_counter()
+    receipt: Dict[str, Any] = {}
+    try:
+        frame = _derive_frame(lens, life_domain, about_person_id, forum_topology)
+
+        rel = None
+        resolved_target_id = about_person_id
+        resolved_role: Optional[str] = None
+        try:
+            rel_resolved = resolve_relationship_context(
+                self_user_id=user_id,
+                user_message=message or "",
+                active_frame=frame,
+                target_id=about_person_id,
+                saved_people=saved_people or [],
+                forum_topology=forum_topology,
+            )
+            rel = rel_resolved.to_dict()
+            resolved_target_id = rel_resolved.target or about_person_id
+            resolved_role = rel_resolved.role
+        except Exception as e:
+            log.warning(f"[Shadow-Sync] relationship_router_v2 failed: {e!r}")
+
+        envelope = classify_intent_v2(
+            message=message or "",
+            active_frame=frame,
+            current_target_id=resolved_target_id,
+            relationship_role=resolved_role,
+        )
+        envd = envelope.to_dict()
+        modules = mandatory_modules(envd["primary_domain"])
+        receipt = build_receipt(
+            request_id=request_id,
+            intent_envelope=envd,
+            relationship_resolution=rel,
+            modules_invoked=modules,
+            payloads={m: {"sim": True} for m in modules},
+        )
+        receipt["shadow_mode"] = True
+        receipt["shadow_latency_ms"] = round((time.perf_counter() - t0) * 1000, 3)
+        receipt["frame_source"] = {
+            "lens":                            lens,
+            "life_domain":                     life_domain,
+            "derived_frame":                   frame,
+            "forum_topology_supplied":         bool(forum_topology),
+            "forum_topology_active_member_id": (
+                (forum_topology or {}).get("active_member_id")
+            ),
+        }
+        receipt["user_id"] = user_id
+
+        try:
+            decision = cutover_decision_for(user_id)
+        except Exception as e:
+            log.warning(f"[Shadow-Sync] cutover_decision_for failed: {e!r}")
+            decision = {
+                "enabled":         False,
+                "reason":          "decision_error",
+                "stage1_bucket":   -1,
+                "rollout_percent": 0,
+                "cutover_flag":    False,
+                "salt":            None,
+            }
+        receipt["stage1_bucket"]    = decision["stage1_bucket"]
+        receipt["cutover_decision"] = decision
+
+        try:
+            receipt["cross_lens_synthesis_v2"] = compute_synthesis_v2(
+                intent_envelope=envd, message=message,
+            )
+        except Exception as _cl_exc:
+            log.warning(f"[Shadow-Sync] cross_lens_synthesis_v2 failed: {_cl_exc!r}")
+            receipt["cross_lens_synthesis_v2"] = {
+                "version":                "cross_lens_synthesis_v2.1.0",
+                "computed":               False,
+                "error":                  f"{type(_cl_exc).__name__}: {_cl_exc!s}",
+                "lens_outputs_preserved": True,
+            }
+
+        try:
+            receipt["relationship_orchestration_v1"] = plan_lens_priority(
+                intent_envelope=envd,
+                relationship_role=resolved_role,
+                target_resolved=resolved_target_id,
+                forum_topology=forum_topology,
+                context_mode=lens or life_domain,
+            )
+        except Exception as _ro_exc:
+            log.warning(f"[Shadow-Sync] relationship_orchestration_v1 failed: {_ro_exc!r}")
+            receipt["relationship_orchestration_v1"] = {
+                "version":                "relationship_orchestration_v1.0.0",
+                "computed":               False,
+                "error":                  f"{type(_ro_exc).__name__}: {_ro_exc!s}",
+                "lens_outputs_preserved": True,
+            }
+
+        try:
+            _topology_members = (forum_topology or {}).get("members") or []
+            _active_id = (forum_topology or {}).get("active_member_id")
+            _active_found = bool(
+                _active_id and any(
+                    m.get("id") == _active_id for m in _topology_members
+                )
+            )
+            _frame_consistent = (
+                (frame == "forum" and bool(_active_id))
+                or (frame != "forum" and not _active_id)
+            )
+            receipt["forum_topology_resolution"] = {
+                "topology_supplied":        bool(forum_topology),
+                "active_member_id":         _active_id,
+                "active_member_in_members": _active_found,
+                "topology_member_count":    len(_topology_members),
+                "resolver_frame":           frame,
+                "frame_consistent":         _frame_consistent,
+            }
+        except Exception as _ft_exc:
+            log.warning(f"[Shadow-Sync] forum_topology_resolution failed: {_ft_exc!r}")
+            receipt["forum_topology_resolution"] = {
+                "topology_supplied": bool(forum_topology),
+                "error": f"{type(_ft_exc).__name__}: {_ft_exc!s}",
+            }
+
+    except Exception as e:
+        receipt["shadow_mode"] = True
+        receipt["compute_error"] = f"{type(e).__name__}: {e!s}"
+        log.warning(f"[Shadow-Sync] compute_v2_envelope_sync outer failure: {receipt['compute_error']}")
+
+    return receipt
+
+
+async def persist_precomputed_receipt(db, receipt: Dict[str, Any]) -> None:
+    """Async-only persistence of a pre-computed receipt. Never raises."""
+    if not receipt or not receipt.get("shadow_mode"):
+        return
+    try:
+        if db is not None:
+            await persist_receipt(db, receipt)
+        log.info(format_log_line(receipt))
+    except Exception as e:
+        log.warning(
+            f"[Shadow-Sync] persist_precomputed_receipt failed: "
+            f"{type(e).__name__}: {e}"
+        )

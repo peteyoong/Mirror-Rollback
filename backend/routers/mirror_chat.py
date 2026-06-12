@@ -129,6 +129,12 @@ def register(
             )
 
         try:
+            # Phase 4: V2 receipt is computed sync and exposed to the
+            # prompt builder. Initialised here so all downstream readers
+            # always see a defined value (None means "shadow disabled
+            # or compute failed").
+            v2_receipt: Optional[Dict[str, Any]] = None
+
             # ===== Slice B1: Intent Router V2 shadow-mode hook (emit-only) =====
             # Fire-and-forget; never raises into the user-visible flow.
             try:
@@ -138,6 +144,17 @@ def register(
                     make_request_id as _b1_make_request_id,
                 )
                 _b1_request_id = _b1_make_request_id()
+
+                # ═══════════════════════════════════════════════════════
+                # Phase-4 (P6 R8) — hoist V2 computation to SYNC so its
+                # outputs can be read by the prompt builder before the
+                # LLM call. Persistence remains async-fire-and-forget so
+                # response latency is not affected by the MongoDB write.
+                # ═══════════════════════════════════════════════════════
+                from services.mirror_chat_shadow import (
+                    compute_v2_envelope_sync,
+                    persist_precomputed_receipt,
+                )
 
                 async def _b1_load_saved_people() -> list:
                     """Hydrate the requester's saved_people list for the
@@ -167,35 +184,39 @@ def register(
                     except Exception:
                         return []
 
-                async def _b1_run_shadow():
-                    saved = await _b1_load_saved_people()
-                    # P4: forward forum_topology when the client supplied it.
-                    # Belt-and-braces fallback — if no explicit topology but
-                    # `about_person_id` is set on a forum-like surface, build
-                    # a minimal topology so the resolver still binds.
-                    _b1_forum_topology = getattr(request, "forum_topology", None)
-                    if (_b1_forum_topology is None
-                            and getattr(request, "about_person_id", None)
-                            and (getattr(request, "life_domain", None) == "forum"
-                                 or (request.lens or "").lower() == "forum")):
-                        _b1_forum_topology = {
-                            "active_member_id": request.about_person_id,
-                        }
-                    await _b1_emit_shadow_receipt(
-                        db=db,
-                        request_id=_b1_request_id,
-                        user_id=request.user_id,
-                        message=request.message,
-                        lens=request.lens,
-                        about_person_id=getattr(request, "about_person_id", None),
-                        life_domain=getattr(request, "life_domain", None),
-                        saved_people=saved,
-                        forum_topology=_b1_forum_topology,
-                    )
+                # SYNC step: load saved_people then compute the V2 envelope.
+                # `compute_v2_envelope_sync` is itself synchronous (pure
+                # Python computation) but we need the DB hydration to
+                # finish first, hence the awaited load.
+                _b1_saved_people = await _b1_load_saved_people()
+                _b1_forum_topology = getattr(request, "forum_topology", None)
+                if (_b1_forum_topology is None
+                        and getattr(request, "about_person_id", None)
+                        and (getattr(request, "life_domain", None) == "forum"
+                             or (request.lens or "").lower() == "forum")):
+                    _b1_forum_topology = {
+                        "active_member_id": request.about_person_id,
+                    }
 
-                _asyncio_b1.create_task(_b1_run_shadow())
+                v2_receipt = compute_v2_envelope_sync(
+                    request_id=_b1_request_id,
+                    user_id=request.user_id,
+                    message=request.message,
+                    lens=request.lens,
+                    about_person_id=getattr(request, "about_person_id", None),
+                    life_domain=getattr(request, "life_domain", None),
+                    saved_people=_b1_saved_people,
+                    forum_topology=_b1_forum_topology,
+                )
+
+                # ASYNC step: persistence is fire-and-forget so the
+                # response latency stays unchanged.
+                _asyncio_b1.create_task(
+                    persist_precomputed_receipt(db, v2_receipt)
+                )
             except Exception as _b1_shadow_exc:
                 logger.warning(f"[MIRROR_CHAT] B1 shadow hook scheduling failed: {_b1_shadow_exc!r}")
+                v2_receipt = None
             # ===== End Slice B1 shadow hook =====
 
             if not EMERGENT_LLM_KEY:
@@ -899,6 +920,67 @@ SUPPORT STYLE: {v1_support}
 
             # Add context
             system_prompt += "\n\n--- USER CONTEXT ---\n" + "\n".join(context_parts)
+
+            # ═════════════════════════════════════════════════════════════
+            # Phase 4 (P6 R1/R2/R4) — V2 intent envelope / Timeline V2 /
+            # Founder context prompt injection.  STRICTLY ADDITIVE and
+            # FEATURE-FLAG-GATED.  Never raises into the request flow.
+            # ═════════════════════════════════════════════════════════════
+            phase4_debug: Dict[str, Any] = {
+                "v2_receipt_available": bool(v2_receipt and v2_receipt.get("shadow_mode")),
+                "intent_v2_block":      None,
+                "timeline_v2_block":    None,
+                "founder_block":        None,
+            }
+            try:
+                from services.mirror_chat_phase4_enrichment import (
+                    build_intent_v2_prompt_block,
+                    build_timeline_v2_context,
+                    build_founder_context_block,
+                )
+
+                # R2 — V2 envelope → prompt
+                _iv2_block, _iv2_debug = build_intent_v2_prompt_block(v2_receipt)
+                phase4_debug["intent_v2_block"] = _iv2_debug
+                if _iv2_block:
+                    system_prompt += "\n\n" + _iv2_block
+                    logger.info(
+                        f"[MIRROR_CHAT][phase4-intent-v2] block_emitted=True "
+                        f"signals={_iv2_debug.get('intent_v2_signals')}"
+                    )
+
+                # R1 — Timeline V2 read-side retrieval
+                _tl_block, _tl_debug = await build_timeline_v2_context(
+                    db=db, user_id=request.user_id, window_days=14, max_events=8
+                )
+                phase4_debug["timeline_v2_block"] = _tl_debug
+                if _tl_block:
+                    system_prompt += "\n\n" + _tl_block
+                    logger.info(
+                        f"[MIRROR_CHAT][phase4-timeline-v2] "
+                        f"events={_tl_debug.get('event_count')} "
+                        f"dominant_state={_tl_debug.get('dominant_state')}"
+                    )
+
+                # R4 — Founder/Operator context retrieval
+                _fc_block, _fc_debug = await build_founder_context_block(
+                    db=db, user_id=request.user_id, v2_receipt=v2_receipt,
+                )
+                phase4_debug["founder_block"] = _fc_debug
+                if _fc_block:
+                    system_prompt += "\n\n" + _fc_block
+                    logger.info(
+                        f"[MIRROR_CHAT][phase4-founder-context] "
+                        f"signals={_fc_debug.get('founder_signals')}"
+                    )
+            except Exception as _phase4_err:
+                logger.warning(
+                    f"[MIRROR_CHAT][phase4] enrichment failed: "
+                    f"{type(_phase4_err).__name__}: {_phase4_err}"
+                )
+                phase4_debug["error"] = (
+                    f"{type(_phase4_err).__name__}: {_phase4_err!s}"
+                )
 
             # ===== V1: PATTERN THREAD CONTEXT FOR LENS → CHAT CONTINUITY =====
             if request.pattern_thread_context:
