@@ -1414,6 +1414,207 @@ SUPPORT STYLE: {v1_support}
                         f"[MIRROR_CHAT][phase4-founder-context] "
                         f"signals={_fc_debug.get('founder_signals')}"
                     )
+
+                # ─────────────────────────────────────────────────────
+                # R6 (Sprint-2) — Forum Field Intelligence activation
+                # ─────────────────────────────────────────────────────
+                # The two existing services
+                # (`services/forum_field_intelligence.py` and
+                #  `services/forum_conversational_field.py`)
+                # were producing real signals but were NOT imported by
+                # this router — they were only consumed by the
+                # separate `routers/forums_field.py` endpoint.  The
+                # P0 Intelligence Utilization Audit identified this as
+                # the single highest-leverage gap.  Sprint-2 wires the
+                # `compose_story_of_circle` story-of-the-room composer
+                # into the chat path so Ask Mirror surfaces actual
+                # forum signals when a forum_id is resolved (via the
+                # V2 receipt's `relationship_resolution.forum_id`).
+                # We use the leaner composer (not the full
+                # `compose_forum_field_prompt`) to avoid duplicating
+                # half the chat assembly here.
+                _forum_debug: Dict[str, Any] = {
+                    "forum_block_emitted": False,
+                    "forum_signals":       [],
+                }
+                phase4_debug["forum_field_block"] = _forum_debug
+                try:
+                    _rel_for_forum = (
+                        (v2_receipt or {}).get("relationship_resolution") or {}
+                    )
+                    _forum_id   = _rel_for_forum.get("forum_id")
+                    _forum_name = _rel_for_forum.get("forum_name")
+                    if _forum_id:
+                        _forum_debug["forum_signals"].append(
+                            f"forum_id={_forum_id}"
+                        )
+                        from services.forum_field_intelligence import (
+                            compose_story_of_circle,
+                        )
+                        _story_result = await compose_story_of_circle(
+                            db, forum_id=_forum_id
+                        )
+                        _story = (_story_result or {}).get("story") or {}
+                        _story_debug = (_story_result or {}).get("debug") or {}
+
+                        # Fetch the member roster directly so the LLM can
+                        # name actual people even when the topology is
+                        # too sparse for the full story to be "ready".
+                        _members_raw: List[Dict[str, Any]] = []
+                        try:
+                            _mc = db.forum_members.find({"forum_id": _forum_id})
+                            async for _m in _mc:
+                                _members_raw.append({
+                                    "user_id": _m.get("user_id"),
+                                    "name":    (_m.get("name")
+                                                or _m.get("display_name")
+                                                or _m.get("user_name")
+                                                or None),
+                                    "role":    _m.get("role"),
+                                })
+                        except Exception:
+                            _members_raw = []
+
+                        # Resolve member names by user lookup when the
+                        # forum_member row didn't carry a display name.
+                        if _members_raw:
+                            _missing_uids = [m["user_id"] for m in _members_raw
+                                             if not m["name"] and m["user_id"]]
+                            if _missing_uids:
+                                try:
+                                    from bson import ObjectId as _ObjectId
+                                    _uid_query: List[Any] = []
+                                    for u in _missing_uids:
+                                        try:
+                                            _uid_query.append(_ObjectId(u))
+                                        except Exception:
+                                            _uid_query.append(u)
+                                    _name_map: Dict[str, str] = {}
+                                    async for _u in db.users.find(
+                                        {"_id": {"$in": _uid_query}}
+                                    ):
+                                        _name_map[str(_u.get("_id"))] = (
+                                            _u.get("name")
+                                            or _u.get("first_name")
+                                            or _u.get("email")
+                                            or ""
+                                        )
+                                    for _m in _members_raw:
+                                        if not _m["name"]:
+                                            _m["name"] = _name_map.get(
+                                                str(_m["user_id"]), None
+                                            )
+                                except Exception:
+                                    pass
+
+                        _block_lines: List[str] = [
+                            "--- FORUM FIELD CONTEXT (Sprint-2 activation) ---",
+                            f"Forum: {_forum_name or '(unnamed)'} "
+                            f"(forum_id={_forum_id})",
+                        ]
+                        if _members_raw:
+                            _mn = ", ".join(
+                                str(m.get("name") or "(unnamed)")
+                                for m in _members_raw[:8]
+                            )
+                            _block_lines.append(
+                                f"Members ({len(_members_raw)}): {_mn}"
+                            )
+
+                        if _story.get("ready"):
+                            _the_field    = _story.get("the_field")
+                            _moves_toward = _story.get("moves_toward")
+                            _softening    = _story.get("softening")
+                            _unsaid       = _story.get("unsaid")
+                            _chips        = _story.get("field_state_chips") or []
+                            if _the_field:
+                                _block_lines.append(
+                                    f"The field right now: {_the_field}"
+                                )
+                            if _moves_toward:
+                                _block_lines.append(
+                                    f"Moves toward: {_moves_toward}"
+                                )
+                            if _softening:
+                                _block_lines.append(
+                                    f"Softening signal: {_softening}"
+                                )
+                            if _unsaid:
+                                _block_lines.append(f"Unsaid: {_unsaid}")
+                            if _chips:
+                                _block_lines.append(
+                                    "Timing chips: "
+                                    + ", ".join(str(c) for c in _chips[:4])
+                                )
+                            _forum_debug["forum_signals"].append("story_ready")
+                        else:
+                            # Sparse topology — still surface what we do know.
+                            _topo_conf = _story_debug.get("topology_confidence")
+                            _topo_sum  = (
+                                _story_debug.get("topology_summary") or {}
+                            )
+                            _edge_sum  = (
+                                _story_debug.get("edge_summary") or {}
+                            )
+                            _block_lines.append(
+                                f"Topology state: {_topo_conf or 'unknown'} · "
+                                f"edges={_topo_sum.get('edges') or 0} · "
+                                f"high-confidence edges="
+                                f"{_topo_sum.get('high_confidence_edges') or 0}"
+                            )
+                            _roles_present = (
+                                _story_debug.get("topology_roles_present")
+                                or _edge_sum.get("roles_present")
+                                or {}
+                            )
+                            if _roles_present:
+                                _rp = ", ".join(
+                                    f"{k}:{v}" for k, v in _roles_present.items()
+                                )
+                                _block_lines.append(f"Edge roles present: {_rp}")
+                            _forum_debug["forum_signals"].append(
+                                f"story_sparse:{_topo_conf}"
+                            )
+
+                        _block_lines.append("")
+                        _block_lines.append(
+                            "RESOLVED FORUM (HIGH CONFIDENCE)\n"
+                            f"  Forum: {_forum_name or _forum_id}\n"
+                            "  MANDATORY (Sprint-2 enforcement):\n"
+                            "  • TREAT this forum as a real, specific room "
+                            "the user is part of — not an abstract group.\n"
+                            "  • If members are listed above, NAME at least "
+                            "one of them by name in the answer (other than "
+                            "the user themselves).\n"
+                            "  • If field signals (the field / moves toward "
+                            "/ softening / unsaid / timing chips) are above, "
+                            "REFERENCE at least one of them.\n"
+                            "  • DO NOT pivot to generic 'family dynamics "
+                            "often shift over time' or 'I don't have more "
+                            "information' language — the forum context "
+                            "above IS the information.\n"
+                            "  • Name the forum explicitly."
+                        )
+                        system_prompt += "\n\n" + "\n".join(_block_lines)
+                        _forum_debug["forum_block_emitted"] = True
+                        _forum_debug["forum_signals"].append(
+                            f"members={len(_members_raw)}"
+                        )
+                        logger.info(
+                            f"[MIRROR_CHAT][phase4-forum-field] "
+                            f"forum={_forum_name!r} "
+                            f"signals={_forum_debug['forum_signals']}"
+                        )
+                    else:
+                        _forum_debug["forum_signals"].append("no_forum_id")
+                except Exception as _forum_err:
+                    logger.warning(
+                        f"[MIRROR_CHAT][phase4-forum-field] failed: "
+                        f"{type(_forum_err).__name__}: {_forum_err}"
+                    )
+                    _forum_debug["error"] = (
+                        f"{type(_forum_err).__name__}: {_forum_err!s}"
+                    )
             except Exception as _phase4_err:
                 logger.warning(
                     f"[MIRROR_CHAT][phase4] enrichment failed: "

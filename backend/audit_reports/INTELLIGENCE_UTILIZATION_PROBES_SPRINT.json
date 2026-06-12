@@ -1,0 +1,2118 @@
+{
+  "generated_at_iso": "2026-06-12T13:54:35Z",
+  "probes": [
+    {
+      "probe_index": 1,
+      "category": "Founder",
+      "intent_key": "founder_blind_spot",
+      "user_label": "Pete",
+      "user_id": "697f0c6abf35c0528ff06954",
+      "message": "What is my biggest founder blind spot?",
+      "live": {
+        "ok": true,
+        "status": 200,
+        "response": "You're navigating a complex space where decision velocity and team dynamics intertwine. There's a pattern that often arises for founders like you: the focus on moving quickly can sometimes overshadow the need for deeper integration with your team. This swift decision-making style, while effective for momentum and adaptability, can occasionally lead to blind spots, where the insights and contributions of others might be under-leveraged. Hovering in this space might disconnect you from realizing the full potential your team has to offer, potentially affecting the innovative capacity of your ventures. So, in a role where every decision impacts your company's trajectory, what might shift if you paused to invite more collaborative input before moving forward?",
+        "debug": {
+          "pattern_memory": {
+            "marker": "pattern-memory-v1",
+            "matched_patterns": [],
+            "surfaceable_count": 0,
+            "growth_shifts_count": 0,
+            "surfaced_keys": [],
+            "growth_keys": []
+          },
+          "micro_reflection": {
+            "marker": "micro-reflection-v2",
+            "growth_score": 0,
+            "resistance_score": 0,
+            "resonance_score": 0,
+            "total_recent": 0,
+            "softened_patterns": [],
+            "stuck_patterns": [],
+            "loop_applied": null
+          },
+          "contradictions": {
+            "marker": "contradiction-intelligence-v1",
+            "scope": "individual",
+            "contradiction_level": "LOW",
+            "contradiction_types": [],
+            "surfaced": false,
+            "softened_by_reflection": false,
+            "forum_related": false,
+            "recurrence_overlap": []
+          }
+        },
+        "session_id": "4d558f46-13c2-4cf2-ad6e-d6c696b8e988",
+        "elapsed_s": 3.9765751361846924,
+        "error": null
+      },
+      "receipt": {
+        "request_id": "mc-bf154497-d2d7-4965-a740-8557e35588c8",
+        "shadow_mode": true,
+        "router_version": "intent_router_v2.1.0",
+        "routing_status": "PASS",
+        "domain_selected": "career",
+        "frame_source": {
+          "lens": null,
+          "life_domain": null,
+          "derived_frame": "self",
+          "forum_topology_supplied": false,
+          "forum_topology_active_member_id": null
+        },
+        "intent_envelope": {
+          "primary_domain": "career",
+          "confidence": 0.7,
+          "margin": 1.0,
+          "secondary_domains": [],
+          "frame_resolved": "self",
+          "target_resolved": null,
+          "relationship_relevant": false,
+          "timeline_relevant": true,
+          "matched_phrases": {
+            "career": [
+              "founder"
+            ]
+          }
+        },
+        "relationship_resolution": {
+          "self_user_id": "697f0c6abf35c0528ff06954",
+          "target": null,
+          "role": null,
+          "closeness": 0.0,
+          "relationship_weight": 0.0,
+          "active_frame": "self",
+          "context_mode": "SELF",
+          "resolution_path": [
+            "none"
+          ],
+          "conflicts": [],
+          "missing_data": [],
+          "target_unresolved_name": null,
+          "proposed_action": null,
+          "router_version": "relationship_router_v2.1.0"
+        },
+        "forum_topology_resolution": {
+          "topology_supplied": false,
+          "active_member_id": null,
+          "active_member_in_members": false,
+          "topology_member_count": 0,
+          "resolver_frame": "self",
+          "frame_consistent": true
+        },
+        "p3_orchestration": {
+          "rule_bucket": "self",
+          "framing_hint": "self_inquiry",
+          "domain_bias": "self",
+          "replanned_after_topology": null,
+          "topology_role_type": null
+        },
+        "target_resolution_source": "unresolved",
+        "context_retrieved": {
+          "user_chart": false,
+          "target_chart": false,
+          "timeline_window": null,
+          "lens_payloads": []
+        },
+        "mandatory_modules_invoked": [
+          "astrology_domain_context",
+          "cross_lens_synthesis",
+          "timeline"
+        ],
+        "mandatory_modules_missing": [],
+        "retrieval_status": "PASS",
+        "validation_status": "PASS"
+      },
+      "log_lines": [
+        "2026-06-12 13:28:40,715 - server - INFO - [MIRROR_CHAT][phase4-PFS2.3] re-planned: bucket='self' framing='self_inquiry' domain_bias='self' (was bucket='self' framing='self_inquiry')",
+        "2026-06-12 13:28:40,715 - server - INFO - [MIRROR_CHAT][phase4-intent-v2] block_emitted=True signals=['target_via_family_forum:Thaddeus Yoong']",
+        "2026-06-12 13:28:40,716 - server - INFO - [MIRROR_CHAT][phase4-timeline-v2] events=8 dominant_state=exploring",
+        "2026-06-12 13:28:40,717 - server - INFO - [MIRROR_CHAT] Starting LLM call: mode=reflection_chat, user=697f0c6abf35c0528ff06954, is_transit_question=False",
+        "2026-06-12 13:28:45,128 - server - INFO - [MIRROR_CHAT] === REQUEST COMPLETED === user_id=697f0c6abf35c0528ff06954, duration=4.43s, response_length=567",
+        "2026-06-12 13:28:45,128 - server - INFO - [MIRROR_CHAT][evidence-drawer-v2] evidence_emitted=True keys=['marker', 'calibration']",
+        "2026-06-12 13:28:46,634 - server - INFO - [MIRROR_CHAT] === REQUEST RECEIVED === user_id=697f0c6abf35c0528ff06954, lens=None, message_length=40",
+        "2026-06-12 13:28:46,644 - server - INFO - [MIRROR_CHAT][phase4-intent-v2] block_emitted=True signals=['target_unresolved:Pulsifi']",
+        "2026-06-12 13:28:46,645 - server - INFO - [MIRROR_CHAT][phase4-timeline-v2] events=8 dominant_state=exploring",
+        "2026-06-12 13:28:46,647 - server - INFO - [MIRROR_CHAT] Starting LLM call: mode=reflection_chat, user=697f0c6abf35c0528ff06954, is_transit_question=False",
+        "2026-06-12 13:28:50,445 - server - INFO - [MIRROR_CHAT] === REQUEST COMPLETED === user_id=697f0c6abf35c0528ff06954, duration=3.81s, response_length=518",
+        "2026-06-12 13:28:50,446 - server - INFO - [MIRROR_CHAT][evidence-drawer-v2] evidence_emitted=True keys=['marker', 'calibration']",
+        "2026-06-12 13:28:51,952 - server - INFO - [MIRROR_CHAT] === REQUEST RECEIVED === user_id=697f0c6abf35c0528ff06954, lens=None, message_length=16",
+        "2026-06-12 13:28:51,961 - server - INFO - [MIRROR_CHAT][phase4-timeline-v2] events=8 dominant_state=exploring",
+        "2026-06-12 13:28:51,963 - server - INFO - [MIRROR_CHAT] Starting LLM call: mode=reflection_chat, user=697f0c6abf35c0528ff06954, is_transit_question=False",
+        "2026-06-12 13:28:54,497 - server - INFO - [MIRROR_CHAT] === REQUEST COMPLETED === user_id=697f0c6abf35c0528ff06954, duration=2.54s, response_length=369",
+        "2026-06-12 13:28:54,497 - server - INFO - [MIRROR_CHAT][evidence-drawer-v2] evidence_emitted=True keys=['marker', 'calibration']",
+        "2026-06-12 13:28:56,003 - server - INFO - [MIRROR_CHAT] === REQUEST RECEIVED === user_id=697f0c6abf35c0528ff06954, lens=None, message_length=17",
+        "2026-06-12 13:28:56,014 - server - INFO - [MIRROR_CHAT][phase4-intent-v2] block_emitted=True signals=['target_unresolved:Jay']",
+        "2026-06-12 13:28:56,015 - server - INFO - [MIRROR_CHAT][phase4-timeline-v2] events=8 dominant_state=exploring",
+        "2026-06-12 13:28:56,017 - server - INFO - [MIRROR_CHAT] Starting LLM call: mode=reflection_chat, user=697f0c6abf35c0528ff06954, is_transit_question=False",
+        "2026-06-12 13:28:59,356 - server - INFO - [MIRROR_CHAT] === REQUEST COMPLETED === user_id=697f0c6abf35c0528ff06954, duration=3.35s, response_length=269",
+        "2026-06-12 13:28:59,356 - server - INFO - [MIRROR_CHAT][evidence-drawer-v2] evidence_emitted=True keys=['marker', 'calibration']",
+        "2026-06-12 13:53:32,612 - server - INFO - [MIRROR_CHAT] === REQUEST RECEIVED === user_id=697f0c6abf35c0528ff06954, lens=None, message_length=38",
+        "2026-06-12 13:53:32,813 - server - INFO - [MIRROR_CHAT][phase4-intent-v2] block_emitted=True signals=['primary=career', 'phrases=1', 'founder_hits', 'enforcement_founder']",
+        "2026-06-12 13:53:32,817 - server - INFO - [MIRROR_CHAT][phase4-timeline-v2] events=8 dominant_state=exploring",
+        "2026-06-12 13:53:32,832 - server - INFO - [MIRROR_CHAT][phase4-founder-context] signals=['trigger:primary=career/conf=0.7/phrase=True', 'events=5', 'patterns=3']",
+        "2026-06-12 13:53:32,846 - server - INFO - [MIRROR_CHAT] Starting LLM call: mode=reflection_chat, user=697f0c6abf35c0528ff06954, is_transit_question=False",
+        "2026-06-12 13:53:36,563 - server - INFO - [MIRROR_CHAT] === REQUEST COMPLETED === user_id=697f0c6abf35c0528ff06954, duration=3.95s, response_length=764",
+        "2026-06-12 13:53:36,563 - server - INFO - [MIRROR_CHAT][evidence-drawer-v2] evidence_emitted=True keys=['marker', 'calibration']"
+      ],
+      "score": {
+        "len_words": 114,
+        "mentions_target_name": false,
+        "mentions_target_role": false,
+        "mentions_primary_domain": false,
+        "mentions_secondary_lens": [],
+        "mentions_founder_term": [
+          "founder",
+          "company",
+          "team"
+        ],
+        "mentions_forum_name": [],
+        "category": "Founder",
+        "primary_domain": "career",
+        "matched_phrases_in_router": {
+          "career": [
+            "founder"
+          ]
+        }
+      }
+    },
+    {
+      "probe_index": 2,
+      "category": "Founder",
+      "intent_key": "pulsifi_not_seeing",
+      "user_label": "Pete",
+      "user_id": "697f0c6abf35c0528ff06954",
+      "message": "What am I not seeing in Pulsifi?",
+      "live": {
+        "ok": true,
+        "status": 200,
+        "response": "You're exploring what's just beyond your current field of vision with Pulsifi. There's a quality of seeking clarity here\u2014perhaps something about the dynamics or potential you're not entirely comfortable with yet. It's like you're sensing that there's an element or aspect about Pulsifi that hasn't fully revealed itself to you. The details might be subtle, but your intuition seems to be nudging you to look deeper. What part of your experience with Pulsifi feels unclear or unresolved right now?",
+        "debug": {
+          "pattern_memory": {
+            "marker": "pattern-memory-v1",
+            "matched_patterns": [],
+            "surfaceable_count": 0,
+            "growth_shifts_count": 0,
+            "surfaced_keys": [],
+            "growth_keys": []
+          },
+          "micro_reflection": {
+            "marker": "micro-reflection-v2",
+            "growth_score": 0,
+            "resistance_score": 0,
+            "resonance_score": 0,
+            "total_recent": 0,
+            "softened_patterns": [],
+            "stuck_patterns": [],
+            "loop_applied": null
+          },
+          "contradictions": {
+            "marker": "contradiction-intelligence-v1",
+            "scope": "individual",
+            "contradiction_level": "LOW",
+            "contradiction_types": [],
+            "surfaced": false,
+            "softened_by_reflection": false,
+            "forum_related": false,
+            "recurrence_overlap": []
+          }
+        },
+        "session_id": "ce39150f-411d-4173-b036-9ae42d21b31a",
+        "elapsed_s": 3.2427854537963867,
+        "error": null
+      },
+      "receipt": {
+        "request_id": "mc-5858679d-3662-4406-aa0c-828c0c754eb1",
+        "shadow_mode": true,
+        "router_version": "intent_router_v2.1.0",
+        "routing_status": "WARNING",
+        "domain_selected": "general",
+        "frame_source": {
+          "lens": null,
+          "life_domain": null,
+          "derived_frame": "self",
+          "forum_topology_supplied": false,
+          "forum_topology_active_member_id": null
+        },
+        "intent_envelope": {
+          "primary_domain": "general",
+          "confidence": 0.0,
+          "margin": 0.0,
+          "secondary_domains": [],
+          "frame_resolved": "self",
+          "target_resolved": null,
+          "relationship_relevant": false,
+          "timeline_relevant": false,
+          "matched_phrases": {}
+        },
+        "relationship_resolution": {
+          "self_user_id": "697f0c6abf35c0528ff06954",
+          "target": null,
+          "role": null,
+          "closeness": 0.0,
+          "relationship_weight": 0.0,
+          "active_frame": "self",
+          "context_mode": "SELF",
+          "resolution_path": [
+            "none"
+          ],
+          "conflicts": [],
+          "missing_data": [
+            "target_unresolved"
+          ],
+          "target_unresolved_name": "Pulsifi",
+          "proposed_action": {
+            "type": "add_to_circle",
+            "suggested_name": "Pulsifi",
+            "reason": "name 'Pulsifi' appears in message but is not in user's saved_people",
+            "source_text": "What am I not seeing in Pulsifi?",
+            "confidence": 0.55
+          },
+          "router_version": "relationship_router_v2.1.0"
+        },
+        "forum_topology_resolution": {
+          "topology_supplied": false,
+          "active_member_id": null,
+          "active_member_in_members": false,
+          "topology_member_count": 0,
+          "resolver_frame": "self",
+          "frame_consistent": true
+        },
+        "p3_orchestration": {
+          "rule_bucket": "self",
+          "framing_hint": "self_inquiry",
+          "domain_bias": "self",
+          "replanned_after_topology": null,
+          "topology_role_type": null
+        },
+        "target_resolution_source": "unresolved",
+        "context_retrieved": {
+          "user_chart": false,
+          "target_chart": false,
+          "timeline_window": null,
+          "lens_payloads": []
+        },
+        "mandatory_modules_invoked": [
+          "cross_lens_atoms"
+        ],
+        "mandatory_modules_missing": [],
+        "retrieval_status": "PASS",
+        "validation_status": "PASS"
+      },
+      "log_lines": [
+        "2026-06-12 13:28:46,634 - server - INFO - [MIRROR_CHAT] === REQUEST RECEIVED === user_id=697f0c6abf35c0528ff06954, lens=None, message_length=40",
+        "2026-06-12 13:28:46,644 - server - INFO - [MIRROR_CHAT][phase4-intent-v2] block_emitted=True signals=['target_unresolved:Pulsifi']",
+        "2026-06-12 13:28:46,645 - server - INFO - [MIRROR_CHAT][phase4-timeline-v2] events=8 dominant_state=exploring",
+        "2026-06-12 13:28:46,647 - server - INFO - [MIRROR_CHAT] Starting LLM call: mode=reflection_chat, user=697f0c6abf35c0528ff06954, is_transit_question=False",
+        "2026-06-12 13:28:50,445 - server - INFO - [MIRROR_CHAT] === REQUEST COMPLETED === user_id=697f0c6abf35c0528ff06954, duration=3.81s, response_length=518",
+        "2026-06-12 13:28:50,446 - server - INFO - [MIRROR_CHAT][evidence-drawer-v2] evidence_emitted=True keys=['marker', 'calibration']",
+        "2026-06-12 13:28:51,952 - server - INFO - [MIRROR_CHAT] === REQUEST RECEIVED === user_id=697f0c6abf35c0528ff06954, lens=None, message_length=16",
+        "2026-06-12 13:28:51,961 - server - INFO - [MIRROR_CHAT][phase4-timeline-v2] events=8 dominant_state=exploring",
+        "2026-06-12 13:28:51,963 - server - INFO - [MIRROR_CHAT] Starting LLM call: mode=reflection_chat, user=697f0c6abf35c0528ff06954, is_transit_question=False",
+        "2026-06-12 13:28:54,497 - server - INFO - [MIRROR_CHAT] === REQUEST COMPLETED === user_id=697f0c6abf35c0528ff06954, duration=2.54s, response_length=369",
+        "2026-06-12 13:28:54,497 - server - INFO - [MIRROR_CHAT][evidence-drawer-v2] evidence_emitted=True keys=['marker', 'calibration']",
+        "2026-06-12 13:28:56,003 - server - INFO - [MIRROR_CHAT] === REQUEST RECEIVED === user_id=697f0c6abf35c0528ff06954, lens=None, message_length=17",
+        "2026-06-12 13:28:56,014 - server - INFO - [MIRROR_CHAT][phase4-intent-v2] block_emitted=True signals=['target_unresolved:Jay']",
+        "2026-06-12 13:28:56,015 - server - INFO - [MIRROR_CHAT][phase4-timeline-v2] events=8 dominant_state=exploring",
+        "2026-06-12 13:28:56,017 - server - INFO - [MIRROR_CHAT] Starting LLM call: mode=reflection_chat, user=697f0c6abf35c0528ff06954, is_transit_question=False",
+        "2026-06-12 13:28:59,356 - server - INFO - [MIRROR_CHAT] === REQUEST COMPLETED === user_id=697f0c6abf35c0528ff06954, duration=3.35s, response_length=269",
+        "2026-06-12 13:28:59,356 - server - INFO - [MIRROR_CHAT][evidence-drawer-v2] evidence_emitted=True keys=['marker', 'calibration']",
+        "2026-06-12 13:53:32,612 - server - INFO - [MIRROR_CHAT] === REQUEST RECEIVED === user_id=697f0c6abf35c0528ff06954, lens=None, message_length=38",
+        "2026-06-12 13:53:32,813 - server - INFO - [MIRROR_CHAT][phase4-intent-v2] block_emitted=True signals=['primary=career', 'phrases=1', 'founder_hits', 'enforcement_founder']",
+        "2026-06-12 13:53:32,817 - server - INFO - [MIRROR_CHAT][phase4-timeline-v2] events=8 dominant_state=exploring",
+        "2026-06-12 13:53:32,832 - server - INFO - [MIRROR_CHAT][phase4-founder-context] signals=['trigger:primary=career/conf=0.7/phrase=True', 'events=5', 'patterns=3']",
+        "2026-06-12 13:53:32,846 - server - INFO - [MIRROR_CHAT] Starting LLM call: mode=reflection_chat, user=697f0c6abf35c0528ff06954, is_transit_question=False",
+        "2026-06-12 13:53:36,563 - server - INFO - [MIRROR_CHAT] === REQUEST COMPLETED === user_id=697f0c6abf35c0528ff06954, duration=3.95s, response_length=764",
+        "2026-06-12 13:53:36,563 - server - INFO - [MIRROR_CHAT][evidence-drawer-v2] evidence_emitted=True keys=['marker', 'calibration']",
+        "2026-06-12 13:53:38,073 - server - INFO - [MIRROR_CHAT] === REQUEST RECEIVED === user_id=697f0c6abf35c0528ff06954, lens=None, message_length=32",
+        "2026-06-12 13:53:38,086 - server - INFO - [MIRROR_CHAT][phase4-intent-v2] block_emitted=True signals=['target_unresolved:Pulsifi']",
+        "2026-06-12 13:53:38,087 - server - INFO - [MIRROR_CHAT][phase4-timeline-v2] events=8 dominant_state=exploring",
+        "2026-06-12 13:53:38,089 - server - INFO - [MIRROR_CHAT] Starting LLM call: mode=reflection_chat, user=697f0c6abf35c0528ff06954, is_transit_question=False",
+        "2026-06-12 13:53:41,312 - server - INFO - [MIRROR_CHAT] === REQUEST COMPLETED === user_id=697f0c6abf35c0528ff06954, duration=3.24s, response_length=496",
+        "2026-06-12 13:53:41,312 - server - INFO - [MIRROR_CHAT][evidence-drawer-v2] evidence_emitted=True keys=['marker', 'calibration']"
+      ],
+      "score": {
+        "len_words": 79,
+        "mentions_target_name": true,
+        "mentions_target_role": false,
+        "mentions_primary_domain": false,
+        "mentions_secondary_lens": [],
+        "mentions_founder_term": [
+          "pulsifi"
+        ],
+        "mentions_forum_name": [
+          "pulsifi"
+        ],
+        "category": "Founder",
+        "resolved_target_name": "Pulsifi",
+        "matched_phrases_in_router": {}
+      }
+    },
+    {
+      "probe_index": 3,
+      "category": "Founder",
+      "intent_key": "leadership_pattern",
+      "user_label": "Pete",
+      "user_id": "697f0c6abf35c0528ff06954",
+      "message": "What leadership pattern keeps repeating?",
+      "live": {
+        "ok": true,
+        "status": 200,
+        "response": "You're tuning into themes of leadership. There's often this balance at play for you between innovation and structure. Your Midheaven in Virgo suggests a strong inclination toward bringing order and analytical precision to what you lead. Yet, you've also got a Sun and Saturn in Pisces, which could introduce a dynamic of visionary thinking and perhaps times when you feel caught between clear action and fluid exploration. Under pressure, the tendency may arise to oscillate between detailed planning and seeking broader, perhaps even idealistic, visions. This can sometimes create tension if the two aren't harmonized. Reflect on moments where you've felt most effective as a leader: what was the balance between clarity and fluidity in those instances?",
+        "debug": {
+          "pattern_memory": {
+            "marker": "pattern-memory-v1",
+            "matched_patterns": [],
+            "surfaceable_count": 0,
+            "growth_shifts_count": 0,
+            "surfaced_keys": [],
+            "growth_keys": []
+          },
+          "micro_reflection": {
+            "marker": "micro-reflection-v2",
+            "growth_score": 0,
+            "resistance_score": 0,
+            "resonance_score": 0,
+            "total_recent": 0,
+            "softened_patterns": [],
+            "stuck_patterns": [],
+            "loop_applied": null
+          },
+          "contradictions": {
+            "marker": "contradiction-intelligence-v1",
+            "scope": "individual",
+            "contradiction_level": "LOW",
+            "contradiction_types": [],
+            "surfaced": false,
+            "softened_by_reflection": false,
+            "forum_related": false,
+            "recurrence_overlap": []
+          }
+        },
+        "session_id": "6f328573-bde3-4192-b618-38f9357b6b19",
+        "elapsed_s": 3.698423385620117,
+        "error": null
+      },
+      "receipt": {
+        "request_id": "mc-768cf6e8-0ee3-4a94-853d-1b3cf0b6fb81",
+        "shadow_mode": true,
+        "router_version": "intent_router_v2.1.0",
+        "routing_status": "WARNING",
+        "domain_selected": "general",
+        "frame_source": {
+          "lens": null,
+          "life_domain": null,
+          "derived_frame": "self",
+          "forum_topology_supplied": false,
+          "forum_topology_active_member_id": null
+        },
+        "intent_envelope": {
+          "primary_domain": "general",
+          "confidence": 0.0,
+          "margin": 0.0,
+          "secondary_domains": [],
+          "frame_resolved": "self",
+          "target_resolved": null,
+          "relationship_relevant": false,
+          "timeline_relevant": false,
+          "matched_phrases": {}
+        },
+        "relationship_resolution": {
+          "self_user_id": "697f0c6abf35c0528ff06954",
+          "target": null,
+          "role": null,
+          "closeness": 0.0,
+          "relationship_weight": 0.0,
+          "active_frame": "self",
+          "context_mode": "SELF",
+          "resolution_path": [
+            "none"
+          ],
+          "conflicts": [],
+          "missing_data": [],
+          "target_unresolved_name": null,
+          "proposed_action": null,
+          "router_version": "relationship_router_v2.1.0"
+        },
+        "forum_topology_resolution": {
+          "topology_supplied": false,
+          "active_member_id": null,
+          "active_member_in_members": false,
+          "topology_member_count": 0,
+          "resolver_frame": "self",
+          "frame_consistent": true
+        },
+        "p3_orchestration": {
+          "rule_bucket": "self",
+          "framing_hint": "self_inquiry",
+          "domain_bias": "self",
+          "replanned_after_topology": null,
+          "topology_role_type": null
+        },
+        "target_resolution_source": "unresolved",
+        "context_retrieved": {
+          "user_chart": false,
+          "target_chart": false,
+          "timeline_window": null,
+          "lens_payloads": []
+        },
+        "mandatory_modules_invoked": [
+          "cross_lens_atoms"
+        ],
+        "mandatory_modules_missing": [],
+        "retrieval_status": "PASS",
+        "validation_status": "PASS"
+      },
+      "log_lines": [
+        "2026-06-12 13:28:50,446 - server - INFO - [MIRROR_CHAT][evidence-drawer-v2] evidence_emitted=True keys=['marker', 'calibration']",
+        "2026-06-12 13:28:51,952 - server - INFO - [MIRROR_CHAT] === REQUEST RECEIVED === user_id=697f0c6abf35c0528ff06954, lens=None, message_length=16",
+        "2026-06-12 13:28:51,961 - server - INFO - [MIRROR_CHAT][phase4-timeline-v2] events=8 dominant_state=exploring",
+        "2026-06-12 13:28:51,963 - server - INFO - [MIRROR_CHAT] Starting LLM call: mode=reflection_chat, user=697f0c6abf35c0528ff06954, is_transit_question=False",
+        "2026-06-12 13:28:54,497 - server - INFO - [MIRROR_CHAT] === REQUEST COMPLETED === user_id=697f0c6abf35c0528ff06954, duration=2.54s, response_length=369",
+        "2026-06-12 13:28:54,497 - server - INFO - [MIRROR_CHAT][evidence-drawer-v2] evidence_emitted=True keys=['marker', 'calibration']",
+        "2026-06-12 13:28:56,003 - server - INFO - [MIRROR_CHAT] === REQUEST RECEIVED === user_id=697f0c6abf35c0528ff06954, lens=None, message_length=17",
+        "2026-06-12 13:28:56,014 - server - INFO - [MIRROR_CHAT][phase4-intent-v2] block_emitted=True signals=['target_unresolved:Jay']",
+        "2026-06-12 13:28:56,015 - server - INFO - [MIRROR_CHAT][phase4-timeline-v2] events=8 dominant_state=exploring",
+        "2026-06-12 13:28:56,017 - server - INFO - [MIRROR_CHAT] Starting LLM call: mode=reflection_chat, user=697f0c6abf35c0528ff06954, is_transit_question=False",
+        "2026-06-12 13:28:59,356 - server - INFO - [MIRROR_CHAT] === REQUEST COMPLETED === user_id=697f0c6abf35c0528ff06954, duration=3.35s, response_length=269",
+        "2026-06-12 13:28:59,356 - server - INFO - [MIRROR_CHAT][evidence-drawer-v2] evidence_emitted=True keys=['marker', 'calibration']",
+        "2026-06-12 13:53:32,612 - server - INFO - [MIRROR_CHAT] === REQUEST RECEIVED === user_id=697f0c6abf35c0528ff06954, lens=None, message_length=38",
+        "2026-06-12 13:53:32,813 - server - INFO - [MIRROR_CHAT][phase4-intent-v2] block_emitted=True signals=['primary=career', 'phrases=1', 'founder_hits', 'enforcement_founder']",
+        "2026-06-12 13:53:32,817 - server - INFO - [MIRROR_CHAT][phase4-timeline-v2] events=8 dominant_state=exploring",
+        "2026-06-12 13:53:32,832 - server - INFO - [MIRROR_CHAT][phase4-founder-context] signals=['trigger:primary=career/conf=0.7/phrase=True', 'events=5', 'patterns=3']",
+        "2026-06-12 13:53:32,846 - server - INFO - [MIRROR_CHAT] Starting LLM call: mode=reflection_chat, user=697f0c6abf35c0528ff06954, is_transit_question=False",
+        "2026-06-12 13:53:36,563 - server - INFO - [MIRROR_CHAT] === REQUEST COMPLETED === user_id=697f0c6abf35c0528ff06954, duration=3.95s, response_length=764",
+        "2026-06-12 13:53:36,563 - server - INFO - [MIRROR_CHAT][evidence-drawer-v2] evidence_emitted=True keys=['marker', 'calibration']",
+        "2026-06-12 13:53:38,073 - server - INFO - [MIRROR_CHAT] === REQUEST RECEIVED === user_id=697f0c6abf35c0528ff06954, lens=None, message_length=32",
+        "2026-06-12 13:53:38,086 - server - INFO - [MIRROR_CHAT][phase4-intent-v2] block_emitted=True signals=['target_unresolved:Pulsifi']",
+        "2026-06-12 13:53:38,087 - server - INFO - [MIRROR_CHAT][phase4-timeline-v2] events=8 dominant_state=exploring",
+        "2026-06-12 13:53:38,089 - server - INFO - [MIRROR_CHAT] Starting LLM call: mode=reflection_chat, user=697f0c6abf35c0528ff06954, is_transit_question=False",
+        "2026-06-12 13:53:41,312 - server - INFO - [MIRROR_CHAT] === REQUEST COMPLETED === user_id=697f0c6abf35c0528ff06954, duration=3.24s, response_length=496",
+        "2026-06-12 13:53:41,312 - server - INFO - [MIRROR_CHAT][evidence-drawer-v2] evidence_emitted=True keys=['marker', 'calibration']",
+        "2026-06-12 13:53:42,819 - server - INFO - [MIRROR_CHAT] === REQUEST RECEIVED === user_id=697f0c6abf35c0528ff06954, lens=None, message_length=40",
+        "2026-06-12 13:53:42,829 - server - INFO - [MIRROR_CHAT][phase4-timeline-v2] events=8 dominant_state=exploring",
+        "2026-06-12 13:53:42,831 - server - INFO - [MIRROR_CHAT] Starting LLM call: mode=reflection_chat, user=697f0c6abf35c0528ff06954, is_transit_question=False",
+        "2026-06-12 13:53:46,514 - server - INFO - [MIRROR_CHAT] === REQUEST COMPLETED === user_id=697f0c6abf35c0528ff06954, duration=3.70s, response_length=754",
+        "2026-06-12 13:53:46,514 - server - INFO - [MIRROR_CHAT][evidence-drawer-v2] evidence_emitted=True keys=['marker', 'calibration']"
+      ],
+      "score": {
+        "len_words": 117,
+        "mentions_target_name": false,
+        "mentions_target_role": false,
+        "mentions_primary_domain": false,
+        "mentions_secondary_lens": [],
+        "mentions_founder_term": [
+          "leadership"
+        ],
+        "mentions_forum_name": [],
+        "category": "Founder",
+        "matched_phrases_in_router": {}
+      }
+    },
+    {
+      "probe_index": 4,
+      "category": "Founder",
+      "intent_key": "founder_growth_edge",
+      "user_label": "Pete",
+      "user_id": "697f0c6abf35c0528ff06954",
+      "message": "What is my next growth edge as a founder?",
+      "live": {
+        "ok": true,
+        "status": 200,
+        "response": "You're stepping into a moment of synthesis as a founder, where the lines between leading, integrating, and aligning your vision with your team are especially active. With your recent shifts, there's an invitation to refine how you balance your strategic presence between decision-making velocity and the nuanced needs of your team. Your Midheaven in Virgo suggests a call towards precise, methodical leadership. It invites you to consider how to weave clarity and detail into your expansive vision. This translates into fine-tuning processes and communication so that they mirror the precision you naturally align with. Chiron in Pisces, House 3, highlights a potential growth area in embracing vulnerability and emotional truth within professional exchanges. Engaging openly with these subtle layers in your communication could deepen trust and foster a more cohesive team dynamic. As you stand at this threshold, what part of your leadership feels like it wants more attention right now?",
+        "debug": {
+          "pattern_memory": {
+            "marker": "pattern-memory-v1",
+            "matched_patterns": [],
+            "surfaceable_count": 0,
+            "growth_shifts_count": 0,
+            "surfaced_keys": [],
+            "growth_keys": []
+          },
+          "micro_reflection": {
+            "marker": "micro-reflection-v2",
+            "growth_score": 0,
+            "resistance_score": 0,
+            "resonance_score": 0,
+            "total_recent": 0,
+            "softened_patterns": [],
+            "stuck_patterns": [],
+            "loop_applied": null
+          },
+          "contradictions": {
+            "marker": "contradiction-intelligence-v1",
+            "scope": "individual",
+            "contradiction_level": "LOW",
+            "contradiction_types": [],
+            "surfaced": false,
+            "softened_by_reflection": false,
+            "forum_related": false,
+            "recurrence_overlap": []
+          }
+        },
+        "session_id": "f7bd94f6-f7ee-4ef6-912b-9971e4527b13",
+        "elapsed_s": 3.7850422859191895,
+        "error": null
+      },
+      "receipt": {
+        "request_id": "mc-5a46b18e-63ff-4cdf-bf49-f885164aca08",
+        "shadow_mode": true,
+        "router_version": "intent_router_v2.1.0",
+        "routing_status": "PASS",
+        "domain_selected": "career",
+        "frame_source": {
+          "lens": null,
+          "life_domain": null,
+          "derived_frame": "self",
+          "forum_topology_supplied": false,
+          "forum_topology_active_member_id": null
+        },
+        "intent_envelope": {
+          "primary_domain": "career",
+          "confidence": 0.7381,
+          "margin": 0.4762,
+          "secondary_domains": [],
+          "frame_resolved": "self",
+          "target_resolved": "907b832e-4386-43cc-b98b-0a160af3fb0b",
+          "relationship_relevant": true,
+          "timeline_relevant": true,
+          "matched_phrases": {
+            "career": [
+              "founder",
+              "as a founder"
+            ]
+          }
+        },
+        "relationship_resolution": {
+          "self_user_id": "697f0c6abf35c0528ff06954",
+          "target": "907b832e-4386-43cc-b98b-0a160af3fb0b",
+          "role": "friend",
+          "closeness": 0.5,
+          "relationship_weight": 0.5,
+          "active_frame": "self",
+          "context_mode": "RELATIONAL",
+          "resolution_path": [
+            "mentioned_name"
+          ],
+          "conflicts": [],
+          "missing_data": [],
+          "target_unresolved_name": null,
+          "proposed_action": null,
+          "router_version": "relationship_router_v2.1.0"
+        },
+        "forum_topology_resolution": {
+          "topology_supplied": false,
+          "active_member_id": null,
+          "active_member_in_members": false,
+          "topology_member_count": 0,
+          "resolver_frame": "self",
+          "frame_consistent": true
+        },
+        "p3_orchestration": {
+          "rule_bucket": "close_friend",
+          "framing_hint": "closeness",
+          "domain_bias": "relationship",
+          "replanned_after_topology": null,
+          "topology_role_type": null
+        },
+        "target_resolution_source": "saved_people",
+        "context_retrieved": {
+          "user_chart": false,
+          "target_chart": false,
+          "timeline_window": null,
+          "lens_payloads": []
+        },
+        "mandatory_modules_invoked": [
+          "astrology_domain_context",
+          "cross_lens_synthesis",
+          "timeline"
+        ],
+        "mandatory_modules_missing": [],
+        "retrieval_status": "PASS",
+        "validation_status": "PASS"
+      },
+      "log_lines": [
+        "2026-06-12 13:28:56,014 - server - INFO - [MIRROR_CHAT][phase4-intent-v2] block_emitted=True signals=['target_unresolved:Jay']",
+        "2026-06-12 13:28:56,015 - server - INFO - [MIRROR_CHAT][phase4-timeline-v2] events=8 dominant_state=exploring",
+        "2026-06-12 13:28:56,017 - server - INFO - [MIRROR_CHAT] Starting LLM call: mode=reflection_chat, user=697f0c6abf35c0528ff06954, is_transit_question=False",
+        "2026-06-12 13:28:59,356 - server - INFO - [MIRROR_CHAT] === REQUEST COMPLETED === user_id=697f0c6abf35c0528ff06954, duration=3.35s, response_length=269",
+        "2026-06-12 13:28:59,356 - server - INFO - [MIRROR_CHAT][evidence-drawer-v2] evidence_emitted=True keys=['marker', 'calibration']",
+        "2026-06-12 13:53:32,612 - server - INFO - [MIRROR_CHAT] === REQUEST RECEIVED === user_id=697f0c6abf35c0528ff06954, lens=None, message_length=38",
+        "2026-06-12 13:53:32,813 - server - INFO - [MIRROR_CHAT][phase4-intent-v2] block_emitted=True signals=['primary=career', 'phrases=1', 'founder_hits', 'enforcement_founder']",
+        "2026-06-12 13:53:32,817 - server - INFO - [MIRROR_CHAT][phase4-timeline-v2] events=8 dominant_state=exploring",
+        "2026-06-12 13:53:32,832 - server - INFO - [MIRROR_CHAT][phase4-founder-context] signals=['trigger:primary=career/conf=0.7/phrase=True', 'events=5', 'patterns=3']",
+        "2026-06-12 13:53:32,846 - server - INFO - [MIRROR_CHAT] Starting LLM call: mode=reflection_chat, user=697f0c6abf35c0528ff06954, is_transit_question=False",
+        "2026-06-12 13:53:36,563 - server - INFO - [MIRROR_CHAT] === REQUEST COMPLETED === user_id=697f0c6abf35c0528ff06954, duration=3.95s, response_length=764",
+        "2026-06-12 13:53:36,563 - server - INFO - [MIRROR_CHAT][evidence-drawer-v2] evidence_emitted=True keys=['marker', 'calibration']",
+        "2026-06-12 13:53:38,073 - server - INFO - [MIRROR_CHAT] === REQUEST RECEIVED === user_id=697f0c6abf35c0528ff06954, lens=None, message_length=32",
+        "2026-06-12 13:53:38,086 - server - INFO - [MIRROR_CHAT][phase4-intent-v2] block_emitted=True signals=['target_unresolved:Pulsifi']",
+        "2026-06-12 13:53:38,087 - server - INFO - [MIRROR_CHAT][phase4-timeline-v2] events=8 dominant_state=exploring",
+        "2026-06-12 13:53:38,089 - server - INFO - [MIRROR_CHAT] Starting LLM call: mode=reflection_chat, user=697f0c6abf35c0528ff06954, is_transit_question=False",
+        "2026-06-12 13:53:41,312 - server - INFO - [MIRROR_CHAT] === REQUEST COMPLETED === user_id=697f0c6abf35c0528ff06954, duration=3.24s, response_length=496",
+        "2026-06-12 13:53:41,312 - server - INFO - [MIRROR_CHAT][evidence-drawer-v2] evidence_emitted=True keys=['marker', 'calibration']",
+        "2026-06-12 13:53:42,819 - server - INFO - [MIRROR_CHAT] === REQUEST RECEIVED === user_id=697f0c6abf35c0528ff06954, lens=None, message_length=40",
+        "2026-06-12 13:53:42,829 - server - INFO - [MIRROR_CHAT][phase4-timeline-v2] events=8 dominant_state=exploring",
+        "2026-06-12 13:53:42,831 - server - INFO - [MIRROR_CHAT] Starting LLM call: mode=reflection_chat, user=697f0c6abf35c0528ff06954, is_transit_question=False",
+        "2026-06-12 13:53:46,514 - server - INFO - [MIRROR_CHAT] === REQUEST COMPLETED === user_id=697f0c6abf35c0528ff06954, duration=3.70s, response_length=754",
+        "2026-06-12 13:53:46,514 - server - INFO - [MIRROR_CHAT][evidence-drawer-v2] evidence_emitted=True keys=['marker', 'calibration']",
+        "2026-06-12 13:53:48,021 - server - INFO - [MIRROR_CHAT] === REQUEST RECEIVED === user_id=697f0c6abf35c0528ff06954, lens=None, message_length=41",
+        "2026-06-12 13:53:48,028 - server - INFO - [MIRROR_CHAT][phase4-intent-v2] block_emitted=True signals=['primary=career', 'phrases=2', 'founder_hits', 'enforcement_founder', 'target_bound:friend']",
+        "2026-06-12 13:53:48,029 - server - INFO - [MIRROR_CHAT][phase4-timeline-v2] events=8 dominant_state=integrating",
+        "2026-06-12 13:53:48,030 - server - INFO - [MIRROR_CHAT][phase4-founder-context] signals=['trigger:primary=career/conf=0.7381/phrase=True', 'events=5', 'patterns=3']",
+        "2026-06-12 13:53:48,032 - server - INFO - [MIRROR_CHAT] Starting LLM call: mode=reflection_chat, user=697f0c6abf35c0528ff06954, is_transit_question=False",
+        "2026-06-12 13:53:51,803 - server - INFO - [MIRROR_CHAT] === REQUEST COMPLETED === user_id=697f0c6abf35c0528ff06954, duration=3.78s, response_length=989",
+        "2026-06-12 13:53:51,803 - server - INFO - [MIRROR_CHAT][evidence-drawer-v2] evidence_emitted=True keys=['marker', 'calibration']"
+      ],
+      "score": {
+        "len_words": 151,
+        "mentions_target_name": false,
+        "mentions_target_role": false,
+        "mentions_primary_domain": false,
+        "mentions_secondary_lens": [],
+        "mentions_founder_term": [
+          "founder",
+          "leadership",
+          "team"
+        ],
+        "mentions_forum_name": [],
+        "category": "Founder",
+        "resolved_target_role": "friend",
+        "primary_domain": "career",
+        "matched_phrases_in_router": {
+          "career": [
+            "founder",
+            "as a founder"
+          ]
+        }
+      }
+    },
+    {
+      "probe_index": 5,
+      "category": "Relationship",
+      "intent_key": "tell_about_mel",
+      "user_label": "Pete",
+      "user_id": "697f0c6abf35c0528ff06954",
+      "message": "Tell me about Mel",
+      "live": {
+        "ok": true,
+        "status": 200,
+        "response": "You're thinking about your relationship with Mel. This is an important space for you, and it seems you\u2019re reflecting on the dynamics involved. In your unique interactions, your Enthusiast tendencies likely play a role. There's a quality of seeking new experiences and sometimes juggling multiple interests, which might influence how you connect with Mel. When it comes to how you express your emotions, your Human Design type as a Manifestor means that initiating communication could be significant, perhaps informing Mel before taking new steps might smooth interactions. With these elements in mind, what's currently alive in your connection with Mel that you feel drawn to explore further?",
+        "debug": {
+          "pattern_memory": {
+            "marker": "pattern-memory-v1",
+            "matched_patterns": [],
+            "surfaceable_count": 0,
+            "growth_shifts_count": 0,
+            "surfaced_keys": [],
+            "growth_keys": []
+          },
+          "micro_reflection": {
+            "marker": "micro-reflection-v2",
+            "growth_score": 0,
+            "resistance_score": 0,
+            "resonance_score": 0,
+            "total_recent": 0,
+            "softened_patterns": [],
+            "stuck_patterns": [],
+            "loop_applied": null
+          },
+          "contradictions": {
+            "marker": "contradiction-intelligence-v1",
+            "scope": "individual",
+            "contradiction_level": "LOW",
+            "contradiction_types": [],
+            "surfaced": false,
+            "softened_by_reflection": false,
+            "forum_related": false,
+            "recurrence_overlap": []
+          }
+        },
+        "session_id": "09fed8b1-4004-4871-b065-8573ddaa3e0d",
+        "elapsed_s": 2.8511080741882324,
+        "error": null
+      },
+      "receipt": {
+        "request_id": "mc-6a072b4b-93aa-4fc9-ab4c-c6d85e1476f2",
+        "shadow_mode": true,
+        "router_version": "intent_router_v2.1.0",
+        "routing_status": "PASS",
+        "domain_selected": "relationship",
+        "frame_source": {
+          "lens": null,
+          "life_domain": null,
+          "derived_frame": "self",
+          "forum_topology_supplied": false,
+          "forum_topology_active_member_id": null
+        },
+        "intent_envelope": {
+          "primary_domain": "relationship",
+          "confidence": 1.0,
+          "margin": 1.0,
+          "secondary_domains": [],
+          "frame_resolved": "self",
+          "target_resolved": null,
+          "relationship_relevant": true,
+          "timeline_relevant": false,
+          "matched_phrases": {
+            "relationship": [
+              "tell me about mel",
+              "about mel"
+            ]
+          }
+        },
+        "relationship_resolution": {
+          "self_user_id": "697f0c6abf35c0528ff06954",
+          "target": "697ec826ad4b18f75bf42616",
+          "role": "spouse",
+          "closeness": 0.0,
+          "relationship_weight": 0.0,
+          "active_frame": "self",
+          "context_mode": "SELF",
+          "resolution_path": [
+            "none"
+          ],
+          "conflicts": [],
+          "missing_data": [
+            "target_unresolved"
+          ],
+          "target_unresolved_name": "Mel",
+          "proposed_action": {
+            "type": "add_to_circle",
+            "suggested_name": "Mel",
+            "reason": "name 'Mel' appears in message but is not in user's saved_people",
+            "source_text": "Tell me about Mel",
+            "confidence": 0.55
+          },
+          "router_version": "relationship_router_v2.1.0",
+          "target_name": "Mel",
+          "forum_id": "69dd05eaa333335fcbf3ad33",
+          "forum_name": "Pete & Mel",
+          "resolution_source": "pair_forum",
+          "topology_role_found": true,
+          "topology_role_type": "spouse",
+          "topology_confidence": "high",
+          "topology_inferred": false,
+          "topology_edge_id": "5beee835-8f27-43ca-8d36-e25e2915b84e"
+        },
+        "forum_topology_resolution": {
+          "topology_supplied": false,
+          "active_member_id": null,
+          "active_member_in_members": false,
+          "topology_member_count": 0,
+          "resolver_frame": "self",
+          "frame_consistent": true
+        },
+        "p3_orchestration": {
+          "rule_bucket": "spouse",
+          "framing_hint": "couple_dynamic",
+          "domain_bias": "relationship",
+          "replanned_after_topology": true,
+          "topology_role_type": "spouse"
+        },
+        "target_resolution_source": "pair_forum",
+        "context_retrieved": {
+          "user_chart": false,
+          "target_chart": false,
+          "timeline_window": null,
+          "lens_payloads": []
+        },
+        "mandatory_modules_invoked": [
+          "relationship_resolver",
+          "relationship_field",
+          "relationship_astrology_engine",
+          "relationship_3layer"
+        ],
+        "mandatory_modules_missing": [],
+        "retrieval_status": "PASS",
+        "validation_status": "PASS"
+      },
+      "log_lines": [
+        "2026-06-12 13:53:32,832 - server - INFO - [MIRROR_CHAT][phase4-founder-context] signals=['trigger:primary=career/conf=0.7/phrase=True', 'events=5', 'patterns=3']",
+        "2026-06-12 13:53:32,846 - server - INFO - [MIRROR_CHAT] Starting LLM call: mode=reflection_chat, user=697f0c6abf35c0528ff06954, is_transit_question=False",
+        "2026-06-12 13:53:36,563 - server - INFO - [MIRROR_CHAT] === REQUEST COMPLETED === user_id=697f0c6abf35c0528ff06954, duration=3.95s, response_length=764",
+        "2026-06-12 13:53:36,563 - server - INFO - [MIRROR_CHAT][evidence-drawer-v2] evidence_emitted=True keys=['marker', 'calibration']",
+        "2026-06-12 13:53:38,073 - server - INFO - [MIRROR_CHAT] === REQUEST RECEIVED === user_id=697f0c6abf35c0528ff06954, lens=None, message_length=32",
+        "2026-06-12 13:53:38,086 - server - INFO - [MIRROR_CHAT][phase4-intent-v2] block_emitted=True signals=['target_unresolved:Pulsifi']",
+        "2026-06-12 13:53:38,087 - server - INFO - [MIRROR_CHAT][phase4-timeline-v2] events=8 dominant_state=exploring",
+        "2026-06-12 13:53:38,089 - server - INFO - [MIRROR_CHAT] Starting LLM call: mode=reflection_chat, user=697f0c6abf35c0528ff06954, is_transit_question=False",
+        "2026-06-12 13:53:41,312 - server - INFO - [MIRROR_CHAT] === REQUEST COMPLETED === user_id=697f0c6abf35c0528ff06954, duration=3.24s, response_length=496",
+        "2026-06-12 13:53:41,312 - server - INFO - [MIRROR_CHAT][evidence-drawer-v2] evidence_emitted=True keys=['marker', 'calibration']",
+        "2026-06-12 13:53:42,819 - server - INFO - [MIRROR_CHAT] === REQUEST RECEIVED === user_id=697f0c6abf35c0528ff06954, lens=None, message_length=40",
+        "2026-06-12 13:53:42,829 - server - INFO - [MIRROR_CHAT][phase4-timeline-v2] events=8 dominant_state=exploring",
+        "2026-06-12 13:53:42,831 - server - INFO - [MIRROR_CHAT] Starting LLM call: mode=reflection_chat, user=697f0c6abf35c0528ff06954, is_transit_question=False",
+        "2026-06-12 13:53:46,514 - server - INFO - [MIRROR_CHAT] === REQUEST COMPLETED === user_id=697f0c6abf35c0528ff06954, duration=3.70s, response_length=754",
+        "2026-06-12 13:53:46,514 - server - INFO - [MIRROR_CHAT][evidence-drawer-v2] evidence_emitted=True keys=['marker', 'calibration']",
+        "2026-06-12 13:53:48,021 - server - INFO - [MIRROR_CHAT] === REQUEST RECEIVED === user_id=697f0c6abf35c0528ff06954, lens=None, message_length=41",
+        "2026-06-12 13:53:48,028 - server - INFO - [MIRROR_CHAT][phase4-intent-v2] block_emitted=True signals=['primary=career', 'phrases=2', 'founder_hits', 'enforcement_founder', 'target_bound:friend']",
+        "2026-06-12 13:53:48,029 - server - INFO - [MIRROR_CHAT][phase4-timeline-v2] events=8 dominant_state=integrating",
+        "2026-06-12 13:53:48,030 - server - INFO - [MIRROR_CHAT][phase4-founder-context] signals=['trigger:primary=career/conf=0.7381/phrase=True', 'events=5', 'patterns=3']",
+        "2026-06-12 13:53:48,032 - server - INFO - [MIRROR_CHAT] Starting LLM call: mode=reflection_chat, user=697f0c6abf35c0528ff06954, is_transit_question=False",
+        "2026-06-12 13:53:51,803 - server - INFO - [MIRROR_CHAT] === REQUEST COMPLETED === user_id=697f0c6abf35c0528ff06954, duration=3.78s, response_length=989",
+        "2026-06-12 13:53:51,803 - server - INFO - [MIRROR_CHAT][evidence-drawer-v2] evidence_emitted=True keys=['marker', 'calibration']",
+        "2026-06-12 13:53:53,310 - server - INFO - [MIRROR_CHAT] === REQUEST RECEIVED === user_id=697f0c6abf35c0528ff06954, lens=None, message_length=17",
+        "2026-06-12 13:53:53,323 - server - INFO - [MIRROR_CHAT][phase4-PFS2.1] target_resolved via pair_forum (topology_edge): name='Mel' role='spouse' topology_role_type='spouse' forum='Pete & Mel'",
+        "2026-06-12 13:53:53,323 - server - INFO - [MIRROR_CHAT][phase4-PFS2.3] re-planned: bucket='spouse' framing='couple_dynamic' domain_bias='relationship' (was bucket='self' framing='self_inquiry')",
+        "2026-06-12 13:53:53,323 - server - INFO - [MIRROR_CHAT][phase4-intent-v2] block_emitted=True signals=['primary=relationship', 'phrases=2', 'target_via_pair_forum:Mel', 'enforcement_target:Mel/spouse']",
+        "2026-06-12 13:53:53,324 - server - INFO - [MIRROR_CHAT][phase4-timeline-v2] events=8 dominant_state=integrating",
+        "2026-06-12 13:53:53,340 - server - INFO - [MIRROR_CHAT] Starting LLM call: mode=reflection_chat, user=697f0c6abf35c0528ff06954, is_transit_question=False",
+        "2026-06-12 13:53:56,158 - server - INFO - [MIRROR_CHAT] === REQUEST COMPLETED === user_id=697f0c6abf35c0528ff06954, duration=2.85s, response_length=692",
+        "2026-06-12 13:53:56,158 - server - INFO - [MIRROR_CHAT][evidence-drawer-v2] evidence_emitted=True keys=['marker', 'calibration']"
+      ],
+      "score": {
+        "len_words": 107,
+        "mentions_target_name": true,
+        "mentions_target_role": false,
+        "mentions_primary_domain": true,
+        "mentions_secondary_lens": [],
+        "mentions_founder_term": [],
+        "mentions_forum_name": [],
+        "category": "Relationship",
+        "resolved_target_name": "Mel",
+        "resolved_target_role": "spouse",
+        "primary_domain": "relationship",
+        "matched_phrases_in_router": {
+          "relationship": [
+            "tell me about mel",
+            "about mel"
+          ]
+        }
+      }
+    },
+    {
+      "probe_index": 6,
+      "category": "Relationship",
+      "intent_key": "mel_maps_to_me",
+      "user_label": "Pete",
+      "user_id": "697f0c6abf35c0528ff06954",
+      "message": "How does Mel map to me?",
+      "live": {
+        "ok": true,
+        "status": 200,
+        "response": "The way you and Mel connect offers an opportunity to explore dynamics influenced by your unique attributes and patterns. With your Sun in Pisces and Moon in Aries, there might be a blend of deep sensitivity and an instinct for action within you. This combination can create a curious mix of empathy and directness. In relation to Mel, you might find yourself drawn to both nurturing the bond and seeking excitement. Your Enneagram type, the 7 with a wing 8, often leads to seeking new experiences and maintaining a sense of enthusiasm. This could impact how you engage with Mel, potentially emphasizing adventure and spontaneity if it matches your desires. With Human Design, your defined centers may influence how you express yourself and the energy you bring into your relationship with Mel. Your defined Ego center suggests a strong sense of will, which might manifest in advocating for your relationship's needs.",
+        "debug": {
+          "pattern_memory": {
+            "marker": "pattern-memory-v1",
+            "matched_patterns": [],
+            "surfaceable_count": 0,
+            "growth_shifts_count": 0,
+            "surfaced_keys": [],
+            "growth_keys": []
+          },
+          "micro_reflection": {
+            "marker": "micro-reflection-v2",
+            "growth_score": 0,
+            "resistance_score": 0,
+            "resonance_score": 0,
+            "total_recent": 0,
+            "softened_patterns": [],
+            "stuck_patterns": [],
+            "loop_applied": null
+          },
+          "contradictions": {
+            "marker": "contradiction-intelligence-v1",
+            "scope": "individual",
+            "contradiction_level": "LOW",
+            "contradiction_types": [],
+            "surfaced": false,
+            "softened_by_reflection": false,
+            "forum_related": false,
+            "recurrence_overlap": []
+          }
+        },
+        "session_id": "38d3dd94-949a-46c5-9541-fdd50c6b66a6",
+        "elapsed_s": 5.90235710144043,
+        "error": null
+      },
+      "receipt": {
+        "request_id": "mc-2e8d8d36-7abe-4a3a-93e0-522a0c80b920",
+        "shadow_mode": true,
+        "router_version": "intent_router_v2.1.0",
+        "routing_status": "PASS",
+        "domain_selected": "relationship",
+        "frame_source": {
+          "lens": null,
+          "life_domain": null,
+          "derived_frame": "self",
+          "forum_topology_supplied": false,
+          "forum_topology_active_member_id": null
+        },
+        "intent_envelope": {
+          "primary_domain": "relationship",
+          "confidence": 1.0,
+          "margin": 1.0,
+          "secondary_domains": [],
+          "frame_resolved": "self",
+          "target_resolved": null,
+          "relationship_relevant": true,
+          "timeline_relevant": false,
+          "matched_phrases": {
+            "relationship": [
+              "does mel",
+              "how does mel"
+            ]
+          }
+        },
+        "relationship_resolution": {
+          "self_user_id": "697f0c6abf35c0528ff06954",
+          "target": "697ec826ad4b18f75bf42616",
+          "role": "spouse",
+          "closeness": 0.0,
+          "relationship_weight": 0.0,
+          "active_frame": "self",
+          "context_mode": "SELF",
+          "resolution_path": [
+            "none"
+          ],
+          "conflicts": [],
+          "missing_data": [
+            "target_unresolved"
+          ],
+          "target_unresolved_name": "Mel",
+          "proposed_action": {
+            "type": "add_to_circle",
+            "suggested_name": "Mel",
+            "reason": "name 'Mel' appears in message but is not in user's saved_people",
+            "source_text": "How does Mel map to me?",
+            "confidence": 0.55
+          },
+          "router_version": "relationship_router_v2.1.0",
+          "target_name": "Mel",
+          "forum_id": "69dd05eaa333335fcbf3ad33",
+          "forum_name": "Pete & Mel",
+          "resolution_source": "pair_forum",
+          "topology_role_found": true,
+          "topology_role_type": "spouse",
+          "topology_confidence": "high",
+          "topology_inferred": false,
+          "topology_edge_id": "5beee835-8f27-43ca-8d36-e25e2915b84e"
+        },
+        "forum_topology_resolution": {
+          "topology_supplied": false,
+          "active_member_id": null,
+          "active_member_in_members": false,
+          "topology_member_count": 0,
+          "resolver_frame": "self",
+          "frame_consistent": true
+        },
+        "p3_orchestration": {
+          "rule_bucket": "spouse",
+          "framing_hint": "couple_dynamic",
+          "domain_bias": "relationship",
+          "replanned_after_topology": true,
+          "topology_role_type": "spouse"
+        },
+        "target_resolution_source": "pair_forum",
+        "context_retrieved": {
+          "user_chart": false,
+          "target_chart": false,
+          "timeline_window": null,
+          "lens_payloads": []
+        },
+        "mandatory_modules_invoked": [
+          "relationship_resolver",
+          "relationship_field",
+          "relationship_astrology_engine",
+          "relationship_3layer"
+        ],
+        "mandatory_modules_missing": [],
+        "retrieval_status": "PASS",
+        "validation_status": "PASS"
+      },
+      "log_lines": [
+        "2026-06-12 13:53:41,312 - server - INFO - [MIRROR_CHAT] === REQUEST COMPLETED === user_id=697f0c6abf35c0528ff06954, duration=3.24s, response_length=496",
+        "2026-06-12 13:53:41,312 - server - INFO - [MIRROR_CHAT][evidence-drawer-v2] evidence_emitted=True keys=['marker', 'calibration']",
+        "2026-06-12 13:53:42,819 - server - INFO - [MIRROR_CHAT] === REQUEST RECEIVED === user_id=697f0c6abf35c0528ff06954, lens=None, message_length=40",
+        "2026-06-12 13:53:42,829 - server - INFO - [MIRROR_CHAT][phase4-timeline-v2] events=8 dominant_state=exploring",
+        "2026-06-12 13:53:42,831 - server - INFO - [MIRROR_CHAT] Starting LLM call: mode=reflection_chat, user=697f0c6abf35c0528ff06954, is_transit_question=False",
+        "2026-06-12 13:53:46,514 - server - INFO - [MIRROR_CHAT] === REQUEST COMPLETED === user_id=697f0c6abf35c0528ff06954, duration=3.70s, response_length=754",
+        "2026-06-12 13:53:46,514 - server - INFO - [MIRROR_CHAT][evidence-drawer-v2] evidence_emitted=True keys=['marker', 'calibration']",
+        "2026-06-12 13:53:48,021 - server - INFO - [MIRROR_CHAT] === REQUEST RECEIVED === user_id=697f0c6abf35c0528ff06954, lens=None, message_length=41",
+        "2026-06-12 13:53:48,028 - server - INFO - [MIRROR_CHAT][phase4-intent-v2] block_emitted=True signals=['primary=career', 'phrases=2', 'founder_hits', 'enforcement_founder', 'target_bound:friend']",
+        "2026-06-12 13:53:48,029 - server - INFO - [MIRROR_CHAT][phase4-timeline-v2] events=8 dominant_state=integrating",
+        "2026-06-12 13:53:48,030 - server - INFO - [MIRROR_CHAT][phase4-founder-context] signals=['trigger:primary=career/conf=0.7381/phrase=True', 'events=5', 'patterns=3']",
+        "2026-06-12 13:53:48,032 - server - INFO - [MIRROR_CHAT] Starting LLM call: mode=reflection_chat, user=697f0c6abf35c0528ff06954, is_transit_question=False",
+        "2026-06-12 13:53:51,803 - server - INFO - [MIRROR_CHAT] === REQUEST COMPLETED === user_id=697f0c6abf35c0528ff06954, duration=3.78s, response_length=989",
+        "2026-06-12 13:53:51,803 - server - INFO - [MIRROR_CHAT][evidence-drawer-v2] evidence_emitted=True keys=['marker', 'calibration']",
+        "2026-06-12 13:53:53,310 - server - INFO - [MIRROR_CHAT] === REQUEST RECEIVED === user_id=697f0c6abf35c0528ff06954, lens=None, message_length=17",
+        "2026-06-12 13:53:53,323 - server - INFO - [MIRROR_CHAT][phase4-PFS2.1] target_resolved via pair_forum (topology_edge): name='Mel' role='spouse' topology_role_type='spouse' forum='Pete & Mel'",
+        "2026-06-12 13:53:53,323 - server - INFO - [MIRROR_CHAT][phase4-PFS2.3] re-planned: bucket='spouse' framing='couple_dynamic' domain_bias='relationship' (was bucket='self' framing='self_inquiry')",
+        "2026-06-12 13:53:53,323 - server - INFO - [MIRROR_CHAT][phase4-intent-v2] block_emitted=True signals=['primary=relationship', 'phrases=2', 'target_via_pair_forum:Mel', 'enforcement_target:Mel/spouse']",
+        "2026-06-12 13:53:53,324 - server - INFO - [MIRROR_CHAT][phase4-timeline-v2] events=8 dominant_state=integrating",
+        "2026-06-12 13:53:53,340 - server - INFO - [MIRROR_CHAT] Starting LLM call: mode=reflection_chat, user=697f0c6abf35c0528ff06954, is_transit_question=False",
+        "2026-06-12 13:53:56,158 - server - INFO - [MIRROR_CHAT] === REQUEST COMPLETED === user_id=697f0c6abf35c0528ff06954, duration=2.85s, response_length=692",
+        "2026-06-12 13:53:56,158 - server - INFO - [MIRROR_CHAT][evidence-drawer-v2] evidence_emitted=True keys=['marker', 'calibration']",
+        "2026-06-12 13:53:57,664 - server - INFO - [MIRROR_CHAT] === REQUEST RECEIVED === user_id=697f0c6abf35c0528ff06954, lens=None, message_length=23",
+        "2026-06-12 13:53:57,674 - server - INFO - [MIRROR_CHAT][phase4-PFS2.1] target_resolved via pair_forum (topology_edge): name='Mel' role='spouse' topology_role_type='spouse' forum='Pete & Mel'",
+        "2026-06-12 13:53:57,674 - server - INFO - [MIRROR_CHAT][phase4-PFS2.3] re-planned: bucket='spouse' framing='couple_dynamic' domain_bias='relationship' (was bucket='self' framing='self_inquiry')",
+        "2026-06-12 13:53:57,674 - server - INFO - [MIRROR_CHAT][phase4-intent-v2] block_emitted=True signals=['primary=relationship', 'phrases=2', 'target_via_pair_forum:Mel', 'enforcement_target:Mel/spouse']",
+        "2026-06-12 13:53:57,675 - server - INFO - [MIRROR_CHAT][phase4-timeline-v2] events=8 dominant_state=integrating",
+        "2026-06-12 13:53:57,682 - server - INFO - [MIRROR_CHAT] Starting LLM call: mode=reflection_chat, user=697f0c6abf35c0528ff06954, is_transit_question=False",
+        "2026-06-12 13:54:03,564 - server - INFO - [MIRROR_CHAT] === REQUEST COMPLETED === user_id=697f0c6abf35c0528ff06954, duration=5.90s, response_length=916",
+        "2026-06-12 13:54:03,564 - server - INFO - [MIRROR_CHAT][evidence-drawer-v2] evidence_emitted=True keys=['marker', 'calibration']"
+      ],
+      "score": {
+        "len_words": 151,
+        "mentions_target_name": true,
+        "mentions_target_role": false,
+        "mentions_primary_domain": true,
+        "mentions_secondary_lens": [],
+        "mentions_founder_term": [],
+        "mentions_forum_name": [],
+        "category": "Relationship",
+        "resolved_target_name": "Mel",
+        "resolved_target_role": "spouse",
+        "primary_domain": "relationship",
+        "matched_phrases_in_router": {
+          "relationship": [
+            "does mel",
+            "how does mel"
+          ]
+        }
+      }
+    },
+    {
+      "probe_index": 7,
+      "category": "Relationship",
+      "intent_key": "mel_not_seeing",
+      "user_label": "Pete",
+      "user_id": "697f0c6abf35c0528ff06954",
+      "message": "What am I not seeing about Mel?",
+      "live": {
+        "ok": true,
+        "status": 200,
+        "response": "You're asking a profound question, something that's often hidden beneath what feels immediately apparent. In any relationship, especially one as intimate as yours with Mel, there can be layers that are easy to overlook or assume. Sometimes, patterns we fall into can cloud our perception. With Mel, you might notice a dynamic where certain needs or desires aren\u2019t verbally expressed but are still there. Perhaps there is an area where you both have settled into familiar roles, making it challenging to see things from a fresh perspective. Take a moment to reflect on your recent interactions with Mel. Is there a recurring feeling or pattern that seems to arise, especially one that isn't being openly named or confronted? What feels just beneath the surface?",
+        "debug": {
+          "pattern_memory": {
+            "marker": "pattern-memory-v1",
+            "matched_patterns": [],
+            "surfaceable_count": 0,
+            "growth_shifts_count": 0,
+            "surfaced_keys": [],
+            "growth_keys": []
+          },
+          "micro_reflection": {
+            "marker": "micro-reflection-v2",
+            "growth_score": 0,
+            "resistance_score": 0,
+            "resonance_score": 0,
+            "total_recent": 0,
+            "softened_patterns": [],
+            "stuck_patterns": [],
+            "loop_applied": null
+          },
+          "contradictions": {
+            "marker": "contradiction-intelligence-v1",
+            "scope": "individual",
+            "contradiction_level": "LOW",
+            "contradiction_types": [],
+            "surfaced": false,
+            "softened_by_reflection": false,
+            "forum_related": false,
+            "recurrence_overlap": []
+          }
+        },
+        "session_id": "f7d724bf-b6c4-459b-b92c-1befaf90a417",
+        "elapsed_s": 3.4276413917541504,
+        "error": null
+      },
+      "receipt": {
+        "request_id": "mc-f97f53f7-4e31-4a48-af55-c808e59e5059",
+        "shadow_mode": true,
+        "router_version": "intent_router_v2.1.0",
+        "routing_status": "PASS",
+        "domain_selected": "relationship",
+        "frame_source": {
+          "lens": null,
+          "life_domain": null,
+          "derived_frame": "self",
+          "forum_topology_supplied": false,
+          "forum_topology_active_member_id": null
+        },
+        "intent_envelope": {
+          "primary_domain": "relationship",
+          "confidence": 0.6,
+          "margin": 1.0,
+          "secondary_domains": [],
+          "frame_resolved": "self",
+          "target_resolved": null,
+          "relationship_relevant": true,
+          "timeline_relevant": false,
+          "matched_phrases": {
+            "relationship": [
+              "about mel"
+            ]
+          }
+        },
+        "relationship_resolution": {
+          "self_user_id": "697f0c6abf35c0528ff06954",
+          "target": "697ec826ad4b18f75bf42616",
+          "role": "spouse",
+          "closeness": 0.0,
+          "relationship_weight": 0.0,
+          "active_frame": "self",
+          "context_mode": "SELF",
+          "resolution_path": [
+            "none"
+          ],
+          "conflicts": [],
+          "missing_data": [
+            "target_unresolved"
+          ],
+          "target_unresolved_name": "Mel",
+          "proposed_action": {
+            "type": "add_to_circle",
+            "suggested_name": "Mel",
+            "reason": "name 'Mel' appears in message but is not in user's saved_people",
+            "source_text": "What am I not seeing about Mel?",
+            "confidence": 0.55
+          },
+          "router_version": "relationship_router_v2.1.0",
+          "target_name": "Mel",
+          "forum_id": "69dd05eaa333335fcbf3ad33",
+          "forum_name": "Pete & Mel",
+          "resolution_source": "pair_forum",
+          "topology_role_found": true,
+          "topology_role_type": "spouse",
+          "topology_confidence": "high",
+          "topology_inferred": false,
+          "topology_edge_id": "5beee835-8f27-43ca-8d36-e25e2915b84e"
+        },
+        "forum_topology_resolution": {
+          "topology_supplied": false,
+          "active_member_id": null,
+          "active_member_in_members": false,
+          "topology_member_count": 0,
+          "resolver_frame": "self",
+          "frame_consistent": true
+        },
+        "p3_orchestration": {
+          "rule_bucket": "spouse",
+          "framing_hint": "couple_dynamic",
+          "domain_bias": "relationship",
+          "replanned_after_topology": true,
+          "topology_role_type": "spouse"
+        },
+        "target_resolution_source": "pair_forum",
+        "context_retrieved": {
+          "user_chart": false,
+          "target_chart": false,
+          "timeline_window": null,
+          "lens_payloads": []
+        },
+        "mandatory_modules_invoked": [
+          "relationship_resolver",
+          "relationship_field",
+          "relationship_astrology_engine",
+          "relationship_3layer"
+        ],
+        "mandatory_modules_missing": [],
+        "retrieval_status": "PASS",
+        "validation_status": "PASS"
+      },
+      "log_lines": [
+        "2026-06-12 13:53:48,028 - server - INFO - [MIRROR_CHAT][phase4-intent-v2] block_emitted=True signals=['primary=career', 'phrases=2', 'founder_hits', 'enforcement_founder', 'target_bound:friend']",
+        "2026-06-12 13:53:48,029 - server - INFO - [MIRROR_CHAT][phase4-timeline-v2] events=8 dominant_state=integrating",
+        "2026-06-12 13:53:48,030 - server - INFO - [MIRROR_CHAT][phase4-founder-context] signals=['trigger:primary=career/conf=0.7381/phrase=True', 'events=5', 'patterns=3']",
+        "2026-06-12 13:53:48,032 - server - INFO - [MIRROR_CHAT] Starting LLM call: mode=reflection_chat, user=697f0c6abf35c0528ff06954, is_transit_question=False",
+        "2026-06-12 13:53:51,803 - server - INFO - [MIRROR_CHAT] === REQUEST COMPLETED === user_id=697f0c6abf35c0528ff06954, duration=3.78s, response_length=989",
+        "2026-06-12 13:53:51,803 - server - INFO - [MIRROR_CHAT][evidence-drawer-v2] evidence_emitted=True keys=['marker', 'calibration']",
+        "2026-06-12 13:53:53,310 - server - INFO - [MIRROR_CHAT] === REQUEST RECEIVED === user_id=697f0c6abf35c0528ff06954, lens=None, message_length=17",
+        "2026-06-12 13:53:53,323 - server - INFO - [MIRROR_CHAT][phase4-PFS2.1] target_resolved via pair_forum (topology_edge): name='Mel' role='spouse' topology_role_type='spouse' forum='Pete & Mel'",
+        "2026-06-12 13:53:53,323 - server - INFO - [MIRROR_CHAT][phase4-PFS2.3] re-planned: bucket='spouse' framing='couple_dynamic' domain_bias='relationship' (was bucket='self' framing='self_inquiry')",
+        "2026-06-12 13:53:53,323 - server - INFO - [MIRROR_CHAT][phase4-intent-v2] block_emitted=True signals=['primary=relationship', 'phrases=2', 'target_via_pair_forum:Mel', 'enforcement_target:Mel/spouse']",
+        "2026-06-12 13:53:53,324 - server - INFO - [MIRROR_CHAT][phase4-timeline-v2] events=8 dominant_state=integrating",
+        "2026-06-12 13:53:53,340 - server - INFO - [MIRROR_CHAT] Starting LLM call: mode=reflection_chat, user=697f0c6abf35c0528ff06954, is_transit_question=False",
+        "2026-06-12 13:53:56,158 - server - INFO - [MIRROR_CHAT] === REQUEST COMPLETED === user_id=697f0c6abf35c0528ff06954, duration=2.85s, response_length=692",
+        "2026-06-12 13:53:56,158 - server - INFO - [MIRROR_CHAT][evidence-drawer-v2] evidence_emitted=True keys=['marker', 'calibration']",
+        "2026-06-12 13:53:57,664 - server - INFO - [MIRROR_CHAT] === REQUEST RECEIVED === user_id=697f0c6abf35c0528ff06954, lens=None, message_length=23",
+        "2026-06-12 13:53:57,674 - server - INFO - [MIRROR_CHAT][phase4-PFS2.1] target_resolved via pair_forum (topology_edge): name='Mel' role='spouse' topology_role_type='spouse' forum='Pete & Mel'",
+        "2026-06-12 13:53:57,674 - server - INFO - [MIRROR_CHAT][phase4-PFS2.3] re-planned: bucket='spouse' framing='couple_dynamic' domain_bias='relationship' (was bucket='self' framing='self_inquiry')",
+        "2026-06-12 13:53:57,674 - server - INFO - [MIRROR_CHAT][phase4-intent-v2] block_emitted=True signals=['primary=relationship', 'phrases=2', 'target_via_pair_forum:Mel', 'enforcement_target:Mel/spouse']",
+        "2026-06-12 13:53:57,675 - server - INFO - [MIRROR_CHAT][phase4-timeline-v2] events=8 dominant_state=integrating",
+        "2026-06-12 13:53:57,682 - server - INFO - [MIRROR_CHAT] Starting LLM call: mode=reflection_chat, user=697f0c6abf35c0528ff06954, is_transit_question=False",
+        "2026-06-12 13:54:03,564 - server - INFO - [MIRROR_CHAT] === REQUEST COMPLETED === user_id=697f0c6abf35c0528ff06954, duration=5.90s, response_length=916",
+        "2026-06-12 13:54:03,564 - server - INFO - [MIRROR_CHAT][evidence-drawer-v2] evidence_emitted=True keys=['marker', 'calibration']",
+        "2026-06-12 13:54:05,070 - server - INFO - [MIRROR_CHAT] === REQUEST RECEIVED === user_id=697f0c6abf35c0528ff06954, lens=None, message_length=31",
+        "2026-06-12 13:54:05,081 - server - INFO - [MIRROR_CHAT][phase4-PFS2.1] target_resolved via pair_forum (topology_edge): name='Mel' role='spouse' topology_role_type='spouse' forum='Pete & Mel'",
+        "2026-06-12 13:54:05,081 - server - INFO - [MIRROR_CHAT][phase4-PFS2.3] re-planned: bucket='spouse' framing='couple_dynamic' domain_bias='relationship' (was bucket='self' framing='self_inquiry')",
+        "2026-06-12 13:54:05,081 - server - INFO - [MIRROR_CHAT][phase4-intent-v2] block_emitted=True signals=['primary=relationship', 'phrases=1', 'target_via_pair_forum:Mel', 'enforcement_target:Mel/spouse']",
+        "2026-06-12 13:54:05,082 - server - INFO - [MIRROR_CHAT][phase4-timeline-v2] events=8 dominant_state=exploring",
+        "2026-06-12 13:54:05,088 - server - INFO - [MIRROR_CHAT] Starting LLM call: mode=reflection_chat, user=697f0c6abf35c0528ff06954, is_transit_question=False",
+        "2026-06-12 13:54:08,495 - server - INFO - [MIRROR_CHAT] === REQUEST COMPLETED === user_id=697f0c6abf35c0528ff06954, duration=3.42s, response_length=760",
+        "2026-06-12 13:54:08,495 - server - INFO - [MIRROR_CHAT][evidence-drawer-v2] evidence_emitted=True keys=['marker', 'calibration']"
+      ],
+      "score": {
+        "len_words": 124,
+        "mentions_target_name": true,
+        "mentions_target_role": false,
+        "mentions_primary_domain": true,
+        "mentions_secondary_lens": [],
+        "mentions_founder_term": [],
+        "mentions_forum_name": [],
+        "category": "Relationship",
+        "resolved_target_name": "Mel",
+        "resolved_target_role": "spouse",
+        "primary_domain": "relationship",
+        "matched_phrases_in_router": {
+          "relationship": [
+            "about mel"
+          ]
+        }
+      }
+    },
+    {
+      "probe_index": 8,
+      "category": "Relationship",
+      "intent_key": "us_tension",
+      "user_label": "Pete",
+      "user_id": "697f0c6abf35c0528ff06954",
+      "message": "What tension exists between us?",
+      "live": {
+        "ok": true,
+        "status": 200,
+        "response": "You're asking this because something feels unsettled between you and someone else. In relationships, unresolved tension often stems from unspoken needs or misunderstood actions. It can feel like a subtle dance where each partner is trying to lead, but the steps are out of sync. Think about recent interactions. Is there a pattern where you almost address a concern but then hold back? That hesitance could be creating a quiet friction. What might be unsaid or unacknowledged between you two right now?",
+        "debug": {
+          "pattern_memory": {
+            "marker": "pattern-memory-v1",
+            "matched_patterns": [],
+            "surfaceable_count": 0,
+            "growth_shifts_count": 0,
+            "surfaced_keys": [],
+            "growth_keys": []
+          },
+          "micro_reflection": {
+            "marker": "micro-reflection-v2",
+            "growth_score": 0,
+            "resistance_score": 0,
+            "resonance_score": 0,
+            "total_recent": 0,
+            "softened_patterns": [],
+            "stuck_patterns": [],
+            "loop_applied": null
+          },
+          "contradictions": {
+            "marker": "contradiction-intelligence-v1",
+            "scope": "individual",
+            "contradiction_level": "LOW",
+            "contradiction_types": [],
+            "surfaced": false,
+            "softened_by_reflection": false,
+            "forum_related": false,
+            "recurrence_overlap": []
+          }
+        },
+        "session_id": "0dbe1ad8-fa7c-4639-92df-df164d0370d1",
+        "elapsed_s": 5.691192865371704,
+        "error": null
+      },
+      "receipt": {
+        "request_id": "mc-ac6a7b26-b91a-4515-a731-4193504dca28",
+        "shadow_mode": true,
+        "router_version": "intent_router_v2.1.0",
+        "routing_status": "PASS",
+        "domain_selected": "relationship",
+        "frame_source": {
+          "lens": null,
+          "life_domain": null,
+          "derived_frame": "self",
+          "forum_topology_supplied": false,
+          "forum_topology_active_member_id": null
+        },
+        "intent_envelope": {
+          "primary_domain": "relationship",
+          "confidence": 1.0,
+          "margin": 1.0,
+          "secondary_domains": [],
+          "frame_resolved": "self",
+          "target_resolved": "907b832e-4386-43cc-b98b-0a160af3fb0b",
+          "relationship_relevant": true,
+          "timeline_relevant": false,
+          "matched_phrases": {
+            "relationship": [
+              "between us",
+              "between"
+            ]
+          }
+        },
+        "relationship_resolution": {
+          "self_user_id": "697f0c6abf35c0528ff06954",
+          "target": "907b832e-4386-43cc-b98b-0a160af3fb0b",
+          "role": "friend",
+          "closeness": 0.5,
+          "relationship_weight": 0.5,
+          "active_frame": "self",
+          "context_mode": "RELATIONAL",
+          "resolution_path": [
+            "mentioned_name"
+          ],
+          "conflicts": [],
+          "missing_data": [],
+          "target_unresolved_name": null,
+          "proposed_action": null,
+          "router_version": "relationship_router_v2.1.0"
+        },
+        "forum_topology_resolution": {
+          "topology_supplied": false,
+          "active_member_id": null,
+          "active_member_in_members": false,
+          "topology_member_count": 0,
+          "resolver_frame": "self",
+          "frame_consistent": true
+        },
+        "p3_orchestration": {
+          "rule_bucket": "close_friend",
+          "framing_hint": "closeness",
+          "domain_bias": "relationship",
+          "replanned_after_topology": null,
+          "topology_role_type": null
+        },
+        "target_resolution_source": "saved_people",
+        "context_retrieved": {
+          "user_chart": false,
+          "target_chart": false,
+          "timeline_window": null,
+          "lens_payloads": []
+        },
+        "mandatory_modules_invoked": [
+          "relationship_resolver",
+          "relationship_field",
+          "relationship_astrology_engine",
+          "relationship_3layer"
+        ],
+        "mandatory_modules_missing": [],
+        "retrieval_status": "PASS",
+        "validation_status": "PASS"
+      },
+      "log_lines": [
+        "2026-06-12 13:53:53,310 - server - INFO - [MIRROR_CHAT] === REQUEST RECEIVED === user_id=697f0c6abf35c0528ff06954, lens=None, message_length=17",
+        "2026-06-12 13:53:53,323 - server - INFO - [MIRROR_CHAT][phase4-PFS2.1] target_resolved via pair_forum (topology_edge): name='Mel' role='spouse' topology_role_type='spouse' forum='Pete & Mel'",
+        "2026-06-12 13:53:53,323 - server - INFO - [MIRROR_CHAT][phase4-PFS2.3] re-planned: bucket='spouse' framing='couple_dynamic' domain_bias='relationship' (was bucket='self' framing='self_inquiry')",
+        "2026-06-12 13:53:53,323 - server - INFO - [MIRROR_CHAT][phase4-intent-v2] block_emitted=True signals=['primary=relationship', 'phrases=2', 'target_via_pair_forum:Mel', 'enforcement_target:Mel/spouse']",
+        "2026-06-12 13:53:53,324 - server - INFO - [MIRROR_CHAT][phase4-timeline-v2] events=8 dominant_state=integrating",
+        "2026-06-12 13:53:53,340 - server - INFO - [MIRROR_CHAT] Starting LLM call: mode=reflection_chat, user=697f0c6abf35c0528ff06954, is_transit_question=False",
+        "2026-06-12 13:53:56,158 - server - INFO - [MIRROR_CHAT] === REQUEST COMPLETED === user_id=697f0c6abf35c0528ff06954, duration=2.85s, response_length=692",
+        "2026-06-12 13:53:56,158 - server - INFO - [MIRROR_CHAT][evidence-drawer-v2] evidence_emitted=True keys=['marker', 'calibration']",
+        "2026-06-12 13:53:57,664 - server - INFO - [MIRROR_CHAT] === REQUEST RECEIVED === user_id=697f0c6abf35c0528ff06954, lens=None, message_length=23",
+        "2026-06-12 13:53:57,674 - server - INFO - [MIRROR_CHAT][phase4-PFS2.1] target_resolved via pair_forum (topology_edge): name='Mel' role='spouse' topology_role_type='spouse' forum='Pete & Mel'",
+        "2026-06-12 13:53:57,674 - server - INFO - [MIRROR_CHAT][phase4-PFS2.3] re-planned: bucket='spouse' framing='couple_dynamic' domain_bias='relationship' (was bucket='self' framing='self_inquiry')",
+        "2026-06-12 13:53:57,674 - server - INFO - [MIRROR_CHAT][phase4-intent-v2] block_emitted=True signals=['primary=relationship', 'phrases=2', 'target_via_pair_forum:Mel', 'enforcement_target:Mel/spouse']",
+        "2026-06-12 13:53:57,675 - server - INFO - [MIRROR_CHAT][phase4-timeline-v2] events=8 dominant_state=integrating",
+        "2026-06-12 13:53:57,682 - server - INFO - [MIRROR_CHAT] Starting LLM call: mode=reflection_chat, user=697f0c6abf35c0528ff06954, is_transit_question=False",
+        "2026-06-12 13:54:03,564 - server - INFO - [MIRROR_CHAT] === REQUEST COMPLETED === user_id=697f0c6abf35c0528ff06954, duration=5.90s, response_length=916",
+        "2026-06-12 13:54:03,564 - server - INFO - [MIRROR_CHAT][evidence-drawer-v2] evidence_emitted=True keys=['marker', 'calibration']",
+        "2026-06-12 13:54:05,070 - server - INFO - [MIRROR_CHAT] === REQUEST RECEIVED === user_id=697f0c6abf35c0528ff06954, lens=None, message_length=31",
+        "2026-06-12 13:54:05,081 - server - INFO - [MIRROR_CHAT][phase4-PFS2.1] target_resolved via pair_forum (topology_edge): name='Mel' role='spouse' topology_role_type='spouse' forum='Pete & Mel'",
+        "2026-06-12 13:54:05,081 - server - INFO - [MIRROR_CHAT][phase4-PFS2.3] re-planned: bucket='spouse' framing='couple_dynamic' domain_bias='relationship' (was bucket='self' framing='self_inquiry')",
+        "2026-06-12 13:54:05,081 - server - INFO - [MIRROR_CHAT][phase4-intent-v2] block_emitted=True signals=['primary=relationship', 'phrases=1', 'target_via_pair_forum:Mel', 'enforcement_target:Mel/spouse']",
+        "2026-06-12 13:54:05,082 - server - INFO - [MIRROR_CHAT][phase4-timeline-v2] events=8 dominant_state=exploring",
+        "2026-06-12 13:54:05,088 - server - INFO - [MIRROR_CHAT] Starting LLM call: mode=reflection_chat, user=697f0c6abf35c0528ff06954, is_transit_question=False",
+        "2026-06-12 13:54:08,495 - server - INFO - [MIRROR_CHAT] === REQUEST COMPLETED === user_id=697f0c6abf35c0528ff06954, duration=3.42s, response_length=760",
+        "2026-06-12 13:54:08,495 - server - INFO - [MIRROR_CHAT][evidence-drawer-v2] evidence_emitted=True keys=['marker', 'calibration']",
+        "2026-06-12 13:54:10,001 - server - INFO - [MIRROR_CHAT] === REQUEST RECEIVED === user_id=697f0c6abf35c0528ff06954, lens=None, message_length=31",
+        "2026-06-12 13:54:10,008 - server - INFO - [MIRROR_CHAT][phase4-intent-v2] block_emitted=True signals=['primary=relationship', 'phrases=2', 'target_bound:friend']",
+        "2026-06-12 13:54:10,008 - server - INFO - [MIRROR_CHAT][phase4-timeline-v2] events=8 dominant_state=exploring",
+        "2026-06-12 13:54:10,010 - server - INFO - [MIRROR_CHAT] Starting LLM call: mode=reflection_chat, user=697f0c6abf35c0528ff06954, is_transit_question=False",
+        "2026-06-12 13:54:15,689 - server - INFO - [MIRROR_CHAT] === REQUEST COMPLETED === user_id=697f0c6abf35c0528ff06954, duration=5.69s, response_length=502",
+        "2026-06-12 13:54:15,689 - server - INFO - [MIRROR_CHAT][evidence-drawer-v2] evidence_emitted=True keys=['marker', 'calibration']"
+      ],
+      "score": {
+        "len_words": 82,
+        "mentions_target_name": false,
+        "mentions_target_role": false,
+        "mentions_primary_domain": true,
+        "mentions_secondary_lens": [],
+        "mentions_founder_term": [],
+        "mentions_forum_name": [],
+        "category": "Relationship",
+        "resolved_target_role": "friend",
+        "primary_domain": "relationship",
+        "matched_phrases_in_router": {
+          "relationship": [
+            "between us",
+            "between"
+          ]
+        }
+      }
+    },
+    {
+      "probe_index": 9,
+      "category": "Forum",
+      "intent_key": "yoong_family",
+      "user_label": "Pete",
+      "user_id": "697f0c6abf35c0528ff06954",
+      "message": "What is happening in Yoong Family?",
+      "live": {
+        "ok": true,
+        "status": 200,
+        "response": "Within the dynamics of the Yoong family, you might be sensing areas of both connection and tension. As you navigate these relationships, especially with Thaddeus Yoong, consider how your own patterns of communication and emotional engagement might be playing a role. Your Moon in Aries in the fourth house suggests that family interactions can sometimes bring up strong emotions or a desire to assert your perspective. There's a potential for clarity here if you allow space for both your emotions and those of your family members to be expressed. What aspects of your family interactions feel most charged or alive to you right now?",
+        "debug": {
+          "pattern_memory": {
+            "marker": "pattern-memory-v1",
+            "matched_patterns": [],
+            "surfaceable_count": 0,
+            "growth_shifts_count": 0,
+            "surfaced_keys": [],
+            "growth_keys": []
+          },
+          "micro_reflection": {
+            "marker": "micro-reflection-v2",
+            "growth_score": 0,
+            "resistance_score": 0,
+            "resonance_score": 0,
+            "total_recent": 0,
+            "softened_patterns": [],
+            "stuck_patterns": [],
+            "loop_applied": null
+          },
+          "contradictions": {
+            "marker": "contradiction-intelligence-v1",
+            "scope": "individual",
+            "contradiction_level": "LOW",
+            "contradiction_types": [],
+            "surfaced": false,
+            "softened_by_reflection": false,
+            "forum_related": false,
+            "recurrence_overlap": []
+          }
+        },
+        "session_id": "04d4dc22-775d-46f6-bb5f-036393a6daae",
+        "elapsed_s": 3.4207956790924072,
+        "error": null
+      },
+      "receipt": {
+        "request_id": "mc-169e2a81-81ef-4212-9abd-7e438362016a",
+        "shadow_mode": true,
+        "router_version": "intent_router_v2.1.0",
+        "routing_status": "WARNING",
+        "domain_selected": "general",
+        "frame_source": {
+          "lens": null,
+          "life_domain": null,
+          "derived_frame": "self",
+          "forum_topology_supplied": false,
+          "forum_topology_active_member_id": null
+        },
+        "intent_envelope": {
+          "primary_domain": "general",
+          "confidence": 0.0,
+          "margin": 0.0,
+          "secondary_domains": [],
+          "frame_resolved": "self",
+          "target_resolved": null,
+          "relationship_relevant": false,
+          "timeline_relevant": false,
+          "matched_phrases": {}
+        },
+        "relationship_resolution": {
+          "self_user_id": "697f0c6abf35c0528ff06954",
+          "target": "69dd0b2cc92ba973f8838c11",
+          "role": "family",
+          "closeness": 0.0,
+          "relationship_weight": 0.0,
+          "active_frame": "self",
+          "context_mode": "SELF",
+          "resolution_path": [
+            "none"
+          ],
+          "conflicts": [],
+          "missing_data": [
+            "target_unresolved"
+          ],
+          "target_unresolved_name": "Yoong",
+          "proposed_action": {
+            "type": "add_to_circle",
+            "suggested_name": "Yoong",
+            "reason": "name 'Yoong' appears in message but is not in user's saved_people",
+            "source_text": "What is happening in Yoong Family?",
+            "confidence": 0.45
+          },
+          "router_version": "relationship_router_v2.1.0",
+          "target_name": "Thaddeus Yoong",
+          "forum_id": "69dda348de9cb1c83c0780fa",
+          "forum_name": "Yoong family",
+          "resolution_source": "family_forum",
+          "topology_role_found": false,
+          "topology_role_type": null,
+          "topology_confidence": null,
+          "topology_inferred": null,
+          "topology_edge_id": null
+        },
+        "forum_topology_resolution": {
+          "topology_supplied": false,
+          "active_member_id": null,
+          "active_member_in_members": false,
+          "topology_member_count": 0,
+          "resolver_frame": "self",
+          "frame_consistent": true
+        },
+        "p3_orchestration": {
+          "rule_bucket": "self",
+          "framing_hint": "self_inquiry",
+          "domain_bias": "self",
+          "replanned_after_topology": true,
+          "topology_role_type": null
+        },
+        "target_resolution_source": "family_forum",
+        "context_retrieved": {
+          "user_chart": false,
+          "target_chart": false,
+          "timeline_window": null,
+          "lens_payloads": []
+        },
+        "mandatory_modules_invoked": [
+          "cross_lens_atoms"
+        ],
+        "mandatory_modules_missing": [],
+        "retrieval_status": "PASS",
+        "validation_status": "PASS"
+      },
+      "log_lines": [
+        "2026-06-12 13:53:57,664 - server - INFO - [MIRROR_CHAT] === REQUEST RECEIVED === user_id=697f0c6abf35c0528ff06954, lens=None, message_length=23",
+        "2026-06-12 13:53:57,674 - server - INFO - [MIRROR_CHAT][phase4-PFS2.1] target_resolved via pair_forum (topology_edge): name='Mel' role='spouse' topology_role_type='spouse' forum='Pete & Mel'",
+        "2026-06-12 13:53:57,674 - server - INFO - [MIRROR_CHAT][phase4-PFS2.3] re-planned: bucket='spouse' framing='couple_dynamic' domain_bias='relationship' (was bucket='self' framing='self_inquiry')",
+        "2026-06-12 13:53:57,674 - server - INFO - [MIRROR_CHAT][phase4-intent-v2] block_emitted=True signals=['primary=relationship', 'phrases=2', 'target_via_pair_forum:Mel', 'enforcement_target:Mel/spouse']",
+        "2026-06-12 13:53:57,675 - server - INFO - [MIRROR_CHAT][phase4-timeline-v2] events=8 dominant_state=integrating",
+        "2026-06-12 13:53:57,682 - server - INFO - [MIRROR_CHAT] Starting LLM call: mode=reflection_chat, user=697f0c6abf35c0528ff06954, is_transit_question=False",
+        "2026-06-12 13:54:03,564 - server - INFO - [MIRROR_CHAT] === REQUEST COMPLETED === user_id=697f0c6abf35c0528ff06954, duration=5.90s, response_length=916",
+        "2026-06-12 13:54:03,564 - server - INFO - [MIRROR_CHAT][evidence-drawer-v2] evidence_emitted=True keys=['marker', 'calibration']",
+        "2026-06-12 13:54:05,070 - server - INFO - [MIRROR_CHAT] === REQUEST RECEIVED === user_id=697f0c6abf35c0528ff06954, lens=None, message_length=31",
+        "2026-06-12 13:54:05,081 - server - INFO - [MIRROR_CHAT][phase4-PFS2.1] target_resolved via pair_forum (topology_edge): name='Mel' role='spouse' topology_role_type='spouse' forum='Pete & Mel'",
+        "2026-06-12 13:54:05,081 - server - INFO - [MIRROR_CHAT][phase4-PFS2.3] re-planned: bucket='spouse' framing='couple_dynamic' domain_bias='relationship' (was bucket='self' framing='self_inquiry')",
+        "2026-06-12 13:54:05,081 - server - INFO - [MIRROR_CHAT][phase4-intent-v2] block_emitted=True signals=['primary=relationship', 'phrases=1', 'target_via_pair_forum:Mel', 'enforcement_target:Mel/spouse']",
+        "2026-06-12 13:54:05,082 - server - INFO - [MIRROR_CHAT][phase4-timeline-v2] events=8 dominant_state=exploring",
+        "2026-06-12 13:54:05,088 - server - INFO - [MIRROR_CHAT] Starting LLM call: mode=reflection_chat, user=697f0c6abf35c0528ff06954, is_transit_question=False",
+        "2026-06-12 13:54:08,495 - server - INFO - [MIRROR_CHAT] === REQUEST COMPLETED === user_id=697f0c6abf35c0528ff06954, duration=3.42s, response_length=760",
+        "2026-06-12 13:54:08,495 - server - INFO - [MIRROR_CHAT][evidence-drawer-v2] evidence_emitted=True keys=['marker', 'calibration']",
+        "2026-06-12 13:54:10,001 - server - INFO - [MIRROR_CHAT] === REQUEST RECEIVED === user_id=697f0c6abf35c0528ff06954, lens=None, message_length=31",
+        "2026-06-12 13:54:10,008 - server - INFO - [MIRROR_CHAT][phase4-intent-v2] block_emitted=True signals=['primary=relationship', 'phrases=2', 'target_bound:friend']",
+        "2026-06-12 13:54:10,008 - server - INFO - [MIRROR_CHAT][phase4-timeline-v2] events=8 dominant_state=exploring",
+        "2026-06-12 13:54:10,010 - server - INFO - [MIRROR_CHAT] Starting LLM call: mode=reflection_chat, user=697f0c6abf35c0528ff06954, is_transit_question=False",
+        "2026-06-12 13:54:15,689 - server - INFO - [MIRROR_CHAT] === REQUEST COMPLETED === user_id=697f0c6abf35c0528ff06954, duration=5.69s, response_length=502",
+        "2026-06-12 13:54:15,689 - server - INFO - [MIRROR_CHAT][evidence-drawer-v2] evidence_emitted=True keys=['marker', 'calibration']",
+        "2026-06-12 13:54:17,196 - server - INFO - [MIRROR_CHAT] === REQUEST RECEIVED === user_id=697f0c6abf35c0528ff06954, lens=None, message_length=34",
+        "2026-06-12 13:54:17,206 - server - INFO - [MIRROR_CHAT][phase4-PFS2.1] target_resolved via family_forum: name='Thaddeus Yoong' role='family' topology_role_type=None forum='Yoong family'",
+        "2026-06-12 13:54:17,206 - server - INFO - [MIRROR_CHAT][phase4-PFS2.3] re-planned: bucket='self' framing='self_inquiry' domain_bias='self' (was bucket='self' framing='self_inquiry')",
+        "2026-06-12 13:54:17,206 - server - INFO - [MIRROR_CHAT][phase4-intent-v2] block_emitted=True signals=['target_via_family_forum:Thaddeus Yoong', 'enforcement_target:Thaddeus Yoong/family']",
+        "2026-06-12 13:54:17,206 - server - INFO - [MIRROR_CHAT][phase4-timeline-v2] events=8 dominant_state=exploring",
+        "2026-06-12 13:54:17,213 - server - INFO - [MIRROR_CHAT] Starting LLM call: mode=reflection_chat, user=697f0c6abf35c0528ff06954, is_transit_question=False",
+        "2026-06-12 13:54:20,613 - server - INFO - [MIRROR_CHAT] === REQUEST COMPLETED === user_id=697f0c6abf35c0528ff06954, duration=3.42s, response_length=633",
+        "2026-06-12 13:54:20,613 - server - INFO - [MIRROR_CHAT][evidence-drawer-v2] evidence_emitted=True keys=['marker', 'calibration']"
+      ],
+      "score": {
+        "len_words": 104,
+        "mentions_target_name": true,
+        "mentions_target_role": true,
+        "mentions_primary_domain": false,
+        "mentions_secondary_lens": [],
+        "mentions_founder_term": [],
+        "mentions_forum_name": [
+          "yoong"
+        ],
+        "category": "Forum",
+        "resolved_target_name": "Thaddeus Yoong",
+        "resolved_target_role": "family",
+        "matched_phrases_in_router": {}
+      }
+    },
+    {
+      "probe_index": 10,
+      "category": "Forum",
+      "intent_key": "pulsifi_leadership",
+      "user_label": "Pete",
+      "user_id": "697f0c6abf35c0528ff06954",
+      "message": "What is happening in Pulsifi Leadership?",
+      "live": {
+        "ok": true,
+        "status": 200,
+        "response": "It sounds like you're seeking a clearer view of the current dynamics in Pulsifi Leadership. I'm here to offer some reflective insights, but it would help to know more about how you're involved with Pulsifi and what you're noticing lately. Is there a particular aspect of the leadership that's been on your mind or a specific change you're curious about?",
+        "debug": {
+          "pattern_memory": {
+            "marker": "pattern-memory-v1",
+            "matched_patterns": [],
+            "surfaceable_count": 0,
+            "growth_shifts_count": 0,
+            "surfaced_keys": [],
+            "growth_keys": []
+          },
+          "micro_reflection": {
+            "marker": "micro-reflection-v2",
+            "growth_score": 0,
+            "resistance_score": 0,
+            "resonance_score": 0,
+            "total_recent": 0,
+            "softened_patterns": [],
+            "stuck_patterns": [],
+            "loop_applied": null
+          },
+          "contradictions": {
+            "marker": "contradiction-intelligence-v1",
+            "scope": "individual",
+            "contradiction_level": "LOW",
+            "contradiction_types": [],
+            "surfaced": false,
+            "softened_by_reflection": false,
+            "forum_related": false,
+            "recurrence_overlap": []
+          }
+        },
+        "session_id": "5047fadf-573f-4509-a997-eb1a5309b4f5",
+        "elapsed_s": 5.050679683685303,
+        "error": null
+      },
+      "receipt": {
+        "request_id": "mc-61ae3ff8-12a7-4ef8-bcf4-6645c201c919",
+        "shadow_mode": true,
+        "router_version": "intent_router_v2.1.0",
+        "routing_status": "WARNING",
+        "domain_selected": "general",
+        "frame_source": {
+          "lens": null,
+          "life_domain": null,
+          "derived_frame": "self",
+          "forum_topology_supplied": false,
+          "forum_topology_active_member_id": null
+        },
+        "intent_envelope": {
+          "primary_domain": "general",
+          "confidence": 0.0,
+          "margin": 0.0,
+          "secondary_domains": [],
+          "frame_resolved": "self",
+          "target_resolved": null,
+          "relationship_relevant": false,
+          "timeline_relevant": false,
+          "matched_phrases": {}
+        },
+        "relationship_resolution": {
+          "self_user_id": "697f0c6abf35c0528ff06954",
+          "target": null,
+          "role": null,
+          "closeness": 0.0,
+          "relationship_weight": 0.0,
+          "active_frame": "self",
+          "context_mode": "SELF",
+          "resolution_path": [
+            "none"
+          ],
+          "conflicts": [],
+          "missing_data": [
+            "target_unresolved"
+          ],
+          "target_unresolved_name": "Pulsifi",
+          "proposed_action": {
+            "type": "add_to_circle",
+            "suggested_name": "Pulsifi",
+            "reason": "name 'Pulsifi' appears in message but is not in user's saved_people",
+            "source_text": "What is happening in Pulsifi Leadership?",
+            "confidence": 0.45
+          },
+          "router_version": "relationship_router_v2.1.0"
+        },
+        "forum_topology_resolution": {
+          "topology_supplied": false,
+          "active_member_id": null,
+          "active_member_in_members": false,
+          "topology_member_count": 0,
+          "resolver_frame": "self",
+          "frame_consistent": true
+        },
+        "p3_orchestration": {
+          "rule_bucket": "self",
+          "framing_hint": "self_inquiry",
+          "domain_bias": "self",
+          "replanned_after_topology": null,
+          "topology_role_type": null
+        },
+        "target_resolution_source": "unresolved",
+        "context_retrieved": {
+          "user_chart": false,
+          "target_chart": false,
+          "timeline_window": null,
+          "lens_payloads": []
+        },
+        "mandatory_modules_invoked": [
+          "cross_lens_atoms"
+        ],
+        "mandatory_modules_missing": [],
+        "retrieval_status": "PASS",
+        "validation_status": "PASS"
+      },
+      "log_lines": [
+        "2026-06-12 13:54:03,564 - server - INFO - [MIRROR_CHAT] === REQUEST COMPLETED === user_id=697f0c6abf35c0528ff06954, duration=5.90s, response_length=916",
+        "2026-06-12 13:54:03,564 - server - INFO - [MIRROR_CHAT][evidence-drawer-v2] evidence_emitted=True keys=['marker', 'calibration']",
+        "2026-06-12 13:54:05,070 - server - INFO - [MIRROR_CHAT] === REQUEST RECEIVED === user_id=697f0c6abf35c0528ff06954, lens=None, message_length=31",
+        "2026-06-12 13:54:05,081 - server - INFO - [MIRROR_CHAT][phase4-PFS2.1] target_resolved via pair_forum (topology_edge): name='Mel' role='spouse' topology_role_type='spouse' forum='Pete & Mel'",
+        "2026-06-12 13:54:05,081 - server - INFO - [MIRROR_CHAT][phase4-PFS2.3] re-planned: bucket='spouse' framing='couple_dynamic' domain_bias='relationship' (was bucket='self' framing='self_inquiry')",
+        "2026-06-12 13:54:05,081 - server - INFO - [MIRROR_CHAT][phase4-intent-v2] block_emitted=True signals=['primary=relationship', 'phrases=1', 'target_via_pair_forum:Mel', 'enforcement_target:Mel/spouse']",
+        "2026-06-12 13:54:05,082 - server - INFO - [MIRROR_CHAT][phase4-timeline-v2] events=8 dominant_state=exploring",
+        "2026-06-12 13:54:05,088 - server - INFO - [MIRROR_CHAT] Starting LLM call: mode=reflection_chat, user=697f0c6abf35c0528ff06954, is_transit_question=False",
+        "2026-06-12 13:54:08,495 - server - INFO - [MIRROR_CHAT] === REQUEST COMPLETED === user_id=697f0c6abf35c0528ff06954, duration=3.42s, response_length=760",
+        "2026-06-12 13:54:08,495 - server - INFO - [MIRROR_CHAT][evidence-drawer-v2] evidence_emitted=True keys=['marker', 'calibration']",
+        "2026-06-12 13:54:10,001 - server - INFO - [MIRROR_CHAT] === REQUEST RECEIVED === user_id=697f0c6abf35c0528ff06954, lens=None, message_length=31",
+        "2026-06-12 13:54:10,008 - server - INFO - [MIRROR_CHAT][phase4-intent-v2] block_emitted=True signals=['primary=relationship', 'phrases=2', 'target_bound:friend']",
+        "2026-06-12 13:54:10,008 - server - INFO - [MIRROR_CHAT][phase4-timeline-v2] events=8 dominant_state=exploring",
+        "2026-06-12 13:54:10,010 - server - INFO - [MIRROR_CHAT] Starting LLM call: mode=reflection_chat, user=697f0c6abf35c0528ff06954, is_transit_question=False",
+        "2026-06-12 13:54:15,689 - server - INFO - [MIRROR_CHAT] === REQUEST COMPLETED === user_id=697f0c6abf35c0528ff06954, duration=5.69s, response_length=502",
+        "2026-06-12 13:54:15,689 - server - INFO - [MIRROR_CHAT][evidence-drawer-v2] evidence_emitted=True keys=['marker', 'calibration']",
+        "2026-06-12 13:54:17,196 - server - INFO - [MIRROR_CHAT] === REQUEST RECEIVED === user_id=697f0c6abf35c0528ff06954, lens=None, message_length=34",
+        "2026-06-12 13:54:17,206 - server - INFO - [MIRROR_CHAT][phase4-PFS2.1] target_resolved via family_forum: name='Thaddeus Yoong' role='family' topology_role_type=None forum='Yoong family'",
+        "2026-06-12 13:54:17,206 - server - INFO - [MIRROR_CHAT][phase4-PFS2.3] re-planned: bucket='self' framing='self_inquiry' domain_bias='self' (was bucket='self' framing='self_inquiry')",
+        "2026-06-12 13:54:17,206 - server - INFO - [MIRROR_CHAT][phase4-intent-v2] block_emitted=True signals=['target_via_family_forum:Thaddeus Yoong', 'enforcement_target:Thaddeus Yoong/family']",
+        "2026-06-12 13:54:17,206 - server - INFO - [MIRROR_CHAT][phase4-timeline-v2] events=8 dominant_state=exploring",
+        "2026-06-12 13:54:17,213 - server - INFO - [MIRROR_CHAT] Starting LLM call: mode=reflection_chat, user=697f0c6abf35c0528ff06954, is_transit_question=False",
+        "2026-06-12 13:54:20,613 - server - INFO - [MIRROR_CHAT] === REQUEST COMPLETED === user_id=697f0c6abf35c0528ff06954, duration=3.42s, response_length=633",
+        "2026-06-12 13:54:20,613 - server - INFO - [MIRROR_CHAT][evidence-drawer-v2] evidence_emitted=True keys=['marker', 'calibration']",
+        "2026-06-12 13:54:22,120 - server - INFO - [MIRROR_CHAT] === REQUEST RECEIVED === user_id=697f0c6abf35c0528ff06954, lens=None, message_length=40",
+        "2026-06-12 13:54:22,132 - server - INFO - [MIRROR_CHAT][phase4-intent-v2] block_emitted=True signals=['target_unresolved:Pulsifi']",
+        "2026-06-12 13:54:22,132 - server - INFO - [MIRROR_CHAT][phase4-timeline-v2] events=8 dominant_state=exploring",
+        "2026-06-12 13:54:22,134 - server - INFO - [MIRROR_CHAT] Starting LLM call: mode=reflection_chat, user=697f0c6abf35c0528ff06954, is_transit_question=False",
+        "2026-06-12 13:54:27,167 - server - INFO - [MIRROR_CHAT] === REQUEST COMPLETED === user_id=697f0c6abf35c0528ff06954, duration=5.05s, response_length=353",
+        "2026-06-12 13:54:27,167 - server - INFO - [MIRROR_CHAT][evidence-drawer-v2] evidence_emitted=True keys=['marker', 'calibration']"
+      ],
+      "score": {
+        "len_words": 60,
+        "mentions_target_name": true,
+        "mentions_target_role": false,
+        "mentions_primary_domain": false,
+        "mentions_secondary_lens": [],
+        "mentions_founder_term": [
+          "leadership",
+          "pulsifi"
+        ],
+        "mentions_forum_name": [
+          "pulsifi leadership",
+          "pulsifi"
+        ],
+        "category": "Forum",
+        "resolved_target_name": "Pulsifi",
+        "matched_phrases_in_router": {}
+      }
+    },
+    {
+      "probe_index": 11,
+      "category": "Forum",
+      "intent_key": "tell_about_jh",
+      "user_label": "Pete",
+      "user_id": "697f0c6abf35c0528ff06954",
+      "message": "Tell me about JH",
+      "live": {
+        "ok": true,
+        "status": 200,
+        "response": "It sounds like you're curious about someone or something involving \"JH.\" Can you share a bit more about what you're looking to understand or explore regarding JH? this may help me offer more meaningful reflections or insights.",
+        "debug": {
+          "pattern_memory": {
+            "marker": "pattern-memory-v1",
+            "matched_patterns": [],
+            "surfaceable_count": 0,
+            "growth_shifts_count": 0,
+            "surfaced_keys": [],
+            "growth_keys": []
+          },
+          "micro_reflection": {
+            "marker": "micro-reflection-v2",
+            "growth_score": 0,
+            "resistance_score": 0,
+            "resonance_score": 0,
+            "total_recent": 0,
+            "softened_patterns": [],
+            "stuck_patterns": [],
+            "loop_applied": null
+          },
+          "contradictions": {
+            "marker": "contradiction-intelligence-v1",
+            "scope": "individual",
+            "contradiction_level": "LOW",
+            "contradiction_types": [],
+            "surfaced": false,
+            "softened_by_reflection": false,
+            "forum_related": false,
+            "recurrence_overlap": []
+          }
+        },
+        "session_id": "25496e68-69e8-4536-9130-82ec26eab5da",
+        "elapsed_s": 1.7705087661743164,
+        "error": null
+      },
+      "receipt": {
+        "request_id": "mc-dec83c25-42d3-49a6-845e-554cc117b85b",
+        "shadow_mode": true,
+        "router_version": "intent_router_v2.1.0",
+        "routing_status": "WARNING",
+        "domain_selected": "general",
+        "frame_source": {
+          "lens": null,
+          "life_domain": null,
+          "derived_frame": "self",
+          "forum_topology_supplied": false,
+          "forum_topology_active_member_id": null
+        },
+        "intent_envelope": {
+          "primary_domain": "general",
+          "confidence": 0.0,
+          "margin": 0.0,
+          "secondary_domains": [],
+          "frame_resolved": "self",
+          "target_resolved": null,
+          "relationship_relevant": false,
+          "timeline_relevant": false,
+          "matched_phrases": {}
+        },
+        "relationship_resolution": {
+          "self_user_id": "697f0c6abf35c0528ff06954",
+          "target": null,
+          "role": null,
+          "closeness": 0.0,
+          "relationship_weight": 0.0,
+          "active_frame": "self",
+          "context_mode": "SELF",
+          "resolution_path": [
+            "none"
+          ],
+          "conflicts": [],
+          "missing_data": [],
+          "target_unresolved_name": null,
+          "proposed_action": null,
+          "router_version": "relationship_router_v2.1.0"
+        },
+        "forum_topology_resolution": {
+          "topology_supplied": false,
+          "active_member_id": null,
+          "active_member_in_members": false,
+          "topology_member_count": 0,
+          "resolver_frame": "self",
+          "frame_consistent": true
+        },
+        "p3_orchestration": {
+          "rule_bucket": "self",
+          "framing_hint": "self_inquiry",
+          "domain_bias": "self",
+          "replanned_after_topology": null,
+          "topology_role_type": null
+        },
+        "target_resolution_source": "unresolved",
+        "context_retrieved": {
+          "user_chart": false,
+          "target_chart": false,
+          "timeline_window": null,
+          "lens_payloads": []
+        },
+        "mandatory_modules_invoked": [
+          "cross_lens_atoms"
+        ],
+        "mandatory_modules_missing": [],
+        "retrieval_status": "PASS",
+        "validation_status": "PASS"
+      },
+      "log_lines": [
+        "2026-06-12 13:54:05,081 - server - INFO - [MIRROR_CHAT][phase4-intent-v2] block_emitted=True signals=['primary=relationship', 'phrases=1', 'target_via_pair_forum:Mel', 'enforcement_target:Mel/spouse']",
+        "2026-06-12 13:54:05,082 - server - INFO - [MIRROR_CHAT][phase4-timeline-v2] events=8 dominant_state=exploring",
+        "2026-06-12 13:54:05,088 - server - INFO - [MIRROR_CHAT] Starting LLM call: mode=reflection_chat, user=697f0c6abf35c0528ff06954, is_transit_question=False",
+        "2026-06-12 13:54:08,495 - server - INFO - [MIRROR_CHAT] === REQUEST COMPLETED === user_id=697f0c6abf35c0528ff06954, duration=3.42s, response_length=760",
+        "2026-06-12 13:54:08,495 - server - INFO - [MIRROR_CHAT][evidence-drawer-v2] evidence_emitted=True keys=['marker', 'calibration']",
+        "2026-06-12 13:54:10,001 - server - INFO - [MIRROR_CHAT] === REQUEST RECEIVED === user_id=697f0c6abf35c0528ff06954, lens=None, message_length=31",
+        "2026-06-12 13:54:10,008 - server - INFO - [MIRROR_CHAT][phase4-intent-v2] block_emitted=True signals=['primary=relationship', 'phrases=2', 'target_bound:friend']",
+        "2026-06-12 13:54:10,008 - server - INFO - [MIRROR_CHAT][phase4-timeline-v2] events=8 dominant_state=exploring",
+        "2026-06-12 13:54:10,010 - server - INFO - [MIRROR_CHAT] Starting LLM call: mode=reflection_chat, user=697f0c6abf35c0528ff06954, is_transit_question=False",
+        "2026-06-12 13:54:15,689 - server - INFO - [MIRROR_CHAT] === REQUEST COMPLETED === user_id=697f0c6abf35c0528ff06954, duration=5.69s, response_length=502",
+        "2026-06-12 13:54:15,689 - server - INFO - [MIRROR_CHAT][evidence-drawer-v2] evidence_emitted=True keys=['marker', 'calibration']",
+        "2026-06-12 13:54:17,196 - server - INFO - [MIRROR_CHAT] === REQUEST RECEIVED === user_id=697f0c6abf35c0528ff06954, lens=None, message_length=34",
+        "2026-06-12 13:54:17,206 - server - INFO - [MIRROR_CHAT][phase4-PFS2.1] target_resolved via family_forum: name='Thaddeus Yoong' role='family' topology_role_type=None forum='Yoong family'",
+        "2026-06-12 13:54:17,206 - server - INFO - [MIRROR_CHAT][phase4-PFS2.3] re-planned: bucket='self' framing='self_inquiry' domain_bias='self' (was bucket='self' framing='self_inquiry')",
+        "2026-06-12 13:54:17,206 - server - INFO - [MIRROR_CHAT][phase4-intent-v2] block_emitted=True signals=['target_via_family_forum:Thaddeus Yoong', 'enforcement_target:Thaddeus Yoong/family']",
+        "2026-06-12 13:54:17,206 - server - INFO - [MIRROR_CHAT][phase4-timeline-v2] events=8 dominant_state=exploring",
+        "2026-06-12 13:54:17,213 - server - INFO - [MIRROR_CHAT] Starting LLM call: mode=reflection_chat, user=697f0c6abf35c0528ff06954, is_transit_question=False",
+        "2026-06-12 13:54:20,613 - server - INFO - [MIRROR_CHAT] === REQUEST COMPLETED === user_id=697f0c6abf35c0528ff06954, duration=3.42s, response_length=633",
+        "2026-06-12 13:54:20,613 - server - INFO - [MIRROR_CHAT][evidence-drawer-v2] evidence_emitted=True keys=['marker', 'calibration']",
+        "2026-06-12 13:54:22,120 - server - INFO - [MIRROR_CHAT] === REQUEST RECEIVED === user_id=697f0c6abf35c0528ff06954, lens=None, message_length=40",
+        "2026-06-12 13:54:22,132 - server - INFO - [MIRROR_CHAT][phase4-intent-v2] block_emitted=True signals=['target_unresolved:Pulsifi']",
+        "2026-06-12 13:54:22,132 - server - INFO - [MIRROR_CHAT][phase4-timeline-v2] events=8 dominant_state=exploring",
+        "2026-06-12 13:54:22,134 - server - INFO - [MIRROR_CHAT] Starting LLM call: mode=reflection_chat, user=697f0c6abf35c0528ff06954, is_transit_question=False",
+        "2026-06-12 13:54:27,167 - server - INFO - [MIRROR_CHAT] === REQUEST COMPLETED === user_id=697f0c6abf35c0528ff06954, duration=5.05s, response_length=353",
+        "2026-06-12 13:54:27,167 - server - INFO - [MIRROR_CHAT][evidence-drawer-v2] evidence_emitted=True keys=['marker', 'calibration']",
+        "2026-06-12 13:54:28,673 - server - INFO - [MIRROR_CHAT] === REQUEST RECEIVED === user_id=697f0c6abf35c0528ff06954, lens=None, message_length=16",
+        "2026-06-12 13:54:28,683 - server - INFO - [MIRROR_CHAT][phase4-timeline-v2] events=8 dominant_state=exploring",
+        "2026-06-12 13:54:28,685 - server - INFO - [MIRROR_CHAT] Starting LLM call: mode=reflection_chat, user=697f0c6abf35c0528ff06954, is_transit_question=False",
+        "2026-06-12 13:54:30,441 - server - INFO - [MIRROR_CHAT] === REQUEST COMPLETED === user_id=697f0c6abf35c0528ff06954, duration=1.77s, response_length=226",
+        "2026-06-12 13:54:30,441 - server - INFO - [MIRROR_CHAT][evidence-drawer-v2] evidence_emitted=True keys=['marker', 'calibration']"
+      ],
+      "score": {
+        "len_words": 37,
+        "mentions_target_name": false,
+        "mentions_target_role": false,
+        "mentions_primary_domain": false,
+        "mentions_secondary_lens": [],
+        "mentions_founder_term": [],
+        "mentions_forum_name": [],
+        "category": "Forum",
+        "matched_phrases_in_router": {}
+      }
+    },
+    {
+      "probe_index": 12,
+      "category": "Forum",
+      "intent_key": "tell_about_jay",
+      "user_label": "Pete",
+      "user_id": "697f0c6abf35c0528ff06954",
+      "message": "Tell me about Jay",
+      "live": {
+        "ok": true,
+        "status": 200,
+        "response": "I noticed you mentioned 'Jay,' but I don't have any specific information about them in our context here. Could you tell me a bit about who Jay is and what aspect of your connection with them you're curious about? this may help me reflect on the dynamics you're noticing.",
+        "debug": {
+          "pattern_memory": {
+            "marker": "pattern-memory-v1",
+            "matched_patterns": [],
+            "surfaceable_count": 0,
+            "growth_shifts_count": 0,
+            "surfaced_keys": [],
+            "growth_keys": []
+          },
+          "micro_reflection": {
+            "marker": "micro-reflection-v2",
+            "growth_score": 0,
+            "resistance_score": 0,
+            "resonance_score": 0,
+            "total_recent": 0,
+            "softened_patterns": [],
+            "stuck_patterns": [],
+            "loop_applied": null
+          },
+          "contradictions": {
+            "marker": "contradiction-intelligence-v1",
+            "scope": "individual",
+            "contradiction_level": "LOW",
+            "contradiction_types": [],
+            "surfaced": false,
+            "softened_by_reflection": false,
+            "forum_related": false,
+            "recurrence_overlap": []
+          }
+        },
+        "session_id": "5b4884ae-0c9b-46d6-ad8a-3376fa209e39",
+        "elapsed_s": 2.310617446899414,
+        "error": null
+      },
+      "receipt": {
+        "request_id": "mc-227c6110-24f3-48cd-8e90-d4c544c2f84d",
+        "shadow_mode": true,
+        "router_version": "intent_router_v2.1.0",
+        "routing_status": "WARNING",
+        "domain_selected": "general",
+        "frame_source": {
+          "lens": null,
+          "life_domain": null,
+          "derived_frame": "self",
+          "forum_topology_supplied": false,
+          "forum_topology_active_member_id": null
+        },
+        "intent_envelope": {
+          "primary_domain": "general",
+          "confidence": 0.0,
+          "margin": 0.0,
+          "secondary_domains": [],
+          "frame_resolved": "self",
+          "target_resolved": null,
+          "relationship_relevant": false,
+          "timeline_relevant": false,
+          "matched_phrases": {}
+        },
+        "relationship_resolution": {
+          "self_user_id": "697f0c6abf35c0528ff06954",
+          "target": null,
+          "role": null,
+          "closeness": 0.0,
+          "relationship_weight": 0.0,
+          "active_frame": "self",
+          "context_mode": "SELF",
+          "resolution_path": [
+            "none"
+          ],
+          "conflicts": [],
+          "missing_data": [
+            "target_unresolved"
+          ],
+          "target_unresolved_name": "Jay",
+          "proposed_action": {
+            "type": "add_to_circle",
+            "suggested_name": "Jay",
+            "reason": "name 'Jay' appears in message but is not in user's saved_people",
+            "source_text": "Tell me about Jay",
+            "confidence": 0.55
+          },
+          "router_version": "relationship_router_v2.1.0"
+        },
+        "forum_topology_resolution": {
+          "topology_supplied": false,
+          "active_member_id": null,
+          "active_member_in_members": false,
+          "topology_member_count": 0,
+          "resolver_frame": "self",
+          "frame_consistent": true
+        },
+        "p3_orchestration": {
+          "rule_bucket": "self",
+          "framing_hint": "self_inquiry",
+          "domain_bias": "self",
+          "replanned_after_topology": null,
+          "topology_role_type": null
+        },
+        "target_resolution_source": "unresolved",
+        "context_retrieved": {
+          "user_chart": false,
+          "target_chart": false,
+          "timeline_window": null,
+          "lens_payloads": []
+        },
+        "mandatory_modules_invoked": [
+          "cross_lens_atoms"
+        ],
+        "mandatory_modules_missing": [],
+        "retrieval_status": "PASS",
+        "validation_status": "PASS"
+      },
+      "log_lines": [
+        "2026-06-12 13:54:10,008 - server - INFO - [MIRROR_CHAT][phase4-intent-v2] block_emitted=True signals=['primary=relationship', 'phrases=2', 'target_bound:friend']",
+        "2026-06-12 13:54:10,008 - server - INFO - [MIRROR_CHAT][phase4-timeline-v2] events=8 dominant_state=exploring",
+        "2026-06-12 13:54:10,010 - server - INFO - [MIRROR_CHAT] Starting LLM call: mode=reflection_chat, user=697f0c6abf35c0528ff06954, is_transit_question=False",
+        "2026-06-12 13:54:15,689 - server - INFO - [MIRROR_CHAT] === REQUEST COMPLETED === user_id=697f0c6abf35c0528ff06954, duration=5.69s, response_length=502",
+        "2026-06-12 13:54:15,689 - server - INFO - [MIRROR_CHAT][evidence-drawer-v2] evidence_emitted=True keys=['marker', 'calibration']",
+        "2026-06-12 13:54:17,196 - server - INFO - [MIRROR_CHAT] === REQUEST RECEIVED === user_id=697f0c6abf35c0528ff06954, lens=None, message_length=34",
+        "2026-06-12 13:54:17,206 - server - INFO - [MIRROR_CHAT][phase4-PFS2.1] target_resolved via family_forum: name='Thaddeus Yoong' role='family' topology_role_type=None forum='Yoong family'",
+        "2026-06-12 13:54:17,206 - server - INFO - [MIRROR_CHAT][phase4-PFS2.3] re-planned: bucket='self' framing='self_inquiry' domain_bias='self' (was bucket='self' framing='self_inquiry')",
+        "2026-06-12 13:54:17,206 - server - INFO - [MIRROR_CHAT][phase4-intent-v2] block_emitted=True signals=['target_via_family_forum:Thaddeus Yoong', 'enforcement_target:Thaddeus Yoong/family']",
+        "2026-06-12 13:54:17,206 - server - INFO - [MIRROR_CHAT][phase4-timeline-v2] events=8 dominant_state=exploring",
+        "2026-06-12 13:54:17,213 - server - INFO - [MIRROR_CHAT] Starting LLM call: mode=reflection_chat, user=697f0c6abf35c0528ff06954, is_transit_question=False",
+        "2026-06-12 13:54:20,613 - server - INFO - [MIRROR_CHAT] === REQUEST COMPLETED === user_id=697f0c6abf35c0528ff06954, duration=3.42s, response_length=633",
+        "2026-06-12 13:54:20,613 - server - INFO - [MIRROR_CHAT][evidence-drawer-v2] evidence_emitted=True keys=['marker', 'calibration']",
+        "2026-06-12 13:54:22,120 - server - INFO - [MIRROR_CHAT] === REQUEST RECEIVED === user_id=697f0c6abf35c0528ff06954, lens=None, message_length=40",
+        "2026-06-12 13:54:22,132 - server - INFO - [MIRROR_CHAT][phase4-intent-v2] block_emitted=True signals=['target_unresolved:Pulsifi']",
+        "2026-06-12 13:54:22,132 - server - INFO - [MIRROR_CHAT][phase4-timeline-v2] events=8 dominant_state=exploring",
+        "2026-06-12 13:54:22,134 - server - INFO - [MIRROR_CHAT] Starting LLM call: mode=reflection_chat, user=697f0c6abf35c0528ff06954, is_transit_question=False",
+        "2026-06-12 13:54:27,167 - server - INFO - [MIRROR_CHAT] === REQUEST COMPLETED === user_id=697f0c6abf35c0528ff06954, duration=5.05s, response_length=353",
+        "2026-06-12 13:54:27,167 - server - INFO - [MIRROR_CHAT][evidence-drawer-v2] evidence_emitted=True keys=['marker', 'calibration']",
+        "2026-06-12 13:54:28,673 - server - INFO - [MIRROR_CHAT] === REQUEST RECEIVED === user_id=697f0c6abf35c0528ff06954, lens=None, message_length=16",
+        "2026-06-12 13:54:28,683 - server - INFO - [MIRROR_CHAT][phase4-timeline-v2] events=8 dominant_state=exploring",
+        "2026-06-12 13:54:28,685 - server - INFO - [MIRROR_CHAT] Starting LLM call: mode=reflection_chat, user=697f0c6abf35c0528ff06954, is_transit_question=False",
+        "2026-06-12 13:54:30,441 - server - INFO - [MIRROR_CHAT] === REQUEST COMPLETED === user_id=697f0c6abf35c0528ff06954, duration=1.77s, response_length=226",
+        "2026-06-12 13:54:30,441 - server - INFO - [MIRROR_CHAT][evidence-drawer-v2] evidence_emitted=True keys=['marker', 'calibration']",
+        "2026-06-12 13:54:31,947 - server - INFO - [MIRROR_CHAT] === REQUEST RECEIVED === user_id=697f0c6abf35c0528ff06954, lens=None, message_length=17",
+        "2026-06-12 13:54:31,958 - server - INFO - [MIRROR_CHAT][phase4-intent-v2] block_emitted=True signals=['target_unresolved:Jay']",
+        "2026-06-12 13:54:31,958 - server - INFO - [MIRROR_CHAT][phase4-timeline-v2] events=8 dominant_state=exploring",
+        "2026-06-12 13:54:31,960 - server - INFO - [MIRROR_CHAT] Starting LLM call: mode=reflection_chat, user=697f0c6abf35c0528ff06954, is_transit_question=False",
+        "2026-06-12 13:54:34,255 - server - INFO - [MIRROR_CHAT] === REQUEST COMPLETED === user_id=697f0c6abf35c0528ff06954, duration=2.31s, response_length=270",
+        "2026-06-12 13:54:34,255 - server - INFO - [MIRROR_CHAT][evidence-drawer-v2] evidence_emitted=True keys=['marker', 'calibration']"
+      ],
+      "score": {
+        "len_words": 49,
+        "mentions_target_name": true,
+        "mentions_target_role": false,
+        "mentions_primary_domain": false,
+        "mentions_secondary_lens": [],
+        "mentions_founder_term": [],
+        "mentions_forum_name": [],
+        "category": "Forum",
+        "resolved_target_name": "Jay",
+        "matched_phrases_in_router": {}
+      }
+    }
+  ]
+}

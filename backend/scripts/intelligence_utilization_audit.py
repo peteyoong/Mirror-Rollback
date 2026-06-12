@@ -290,7 +290,7 @@ async def main() -> int:
                   f"| resp_words={score['len_words']}")
             await asyncio.sleep(0.5)
 
-    out_path = "/app/backend/audit_reports/INTELLIGENCE_UTILIZATION_PROBES.json"
+    out_path = "/app/backend/audit_reports/INTELLIGENCE_UTILIZATION_PROBES_SPRINT2.json"
     with open(out_path, "w") as f:
         json.dump({
             "generated_at_iso": time.strftime("%Y-%m-%dT%H:%M:%SZ",

@@ -723,6 +723,32 @@ def build_intent_v2_prompt_block(
         )
         debug["founder_hits"] = founder_hits
         debug["intent_v2_signals"].append("founder_hits")
+        # Sprint-1 enforcement copy — when the router fires founder/
+        # operator signals, instruct the LLM to anchor in operator
+        # context rather than dropping into generic self-development
+        # language.  Same Phase-3 MANDATORY template.
+        lines.append(
+            "\nRESOLVED CONTEXT (FOUNDER / OPERATOR — HIGH CONFIDENCE)\n"
+            "  Detected: founder / operator question pattern.\n"
+            "  MANDATORY (Sprint-1 enforcement):\n"
+            "  • FRAME the response through founder / operator / "
+            "leadership context.\n"
+            "  • If the FOUNDER / OPERATOR CONTEXT block below has "
+            "concrete events or patterns, REFERENCE at least one of "
+            "them by name (e.g. fundraise window, hiring move, "
+            "CEO attention split).\n"
+            "  • AVOID generic Manifestor / Enneagram / Sun-sign "
+            "self-development language unless directly relevant to "
+            "the founder question being asked.\n"
+            "  • If the user named an organisation (e.g. their "
+            "company), TREAT that organisation as their company and "
+            "speak to it specifically — do not pivot to abstract "
+            "'people and situations' language.\n"
+            "  • Surface the specific decision-velocity, leverage, "
+            "or team-vs-self attention dynamics that the founder "
+            "block exposes."
+        )
+        debug["intent_v2_signals"].append("enforcement_founder")
 
     # Active frame
     frame = (v2_receipt.get("frame_source") or {}).get("derived_frame")
@@ -761,6 +787,55 @@ def build_intent_v2_prompt_block(
         )
         debug["intent_v2_signals"].append(
             f"target_via_{res_source}:{tgt_name}"
+        )
+        # Sprint-1 enforcement copy — Phase-3 style "MANDATORY" block.
+        # Activates whenever the router has a HIGH-CONFIDENCE resolved
+        # target via the topology / forum-member path.  Phase-3 proved
+        # that soft advisory copy is INERT; explicit MANDATE copy with
+        # "DO NOT SUBSTITUTE" instructions materially shifts the LLM
+        # output (MC/IC/DC/Chiron acceptance jumped 32/48 → 42/48
+        # PASS, 0 substitution leaks).  Same template re-used here.
+        role_display = (tgt_role or "the resolved person").replace("_", " ")
+        if role_display == "spouse":
+            role_clause = "the user's spouse"
+        elif role_display in ("partner",):
+            role_clause = "the user's partner"
+        elif role_display in ("family", "parent", "child",
+                              "sibling", "mother", "father"):
+            role_clause = (f"the user's {role_display}")
+        elif role_display in ("colleague", "co_founder", "co-founder",
+                              "founder", "team_member"):
+            role_clause = (
+                f"the user's {role_display} in their professional context"
+            )
+        else:
+            role_clause = (
+                f"the user's resolved {role_display} contact"
+            )
+        lines.append(
+            "\nRESOLVED TARGET (HIGH CONFIDENCE)\n"
+            f"  Target: {tgt_name}\n"
+            f"  Role: {role_display}\n"
+            f"  Resolution source: {res_source}"
+            + (f" · forum: {forum_name_hit}" if forum_name_hit else "")
+            + "\n"
+            "  MANDATORY (Sprint-1 enforcement):\n"
+            f"  • TREAT {tgt_name} AS {role_clause.upper()} — this is "
+              "RESOLVED, not inferred.\n"
+            f"  • DO NOT SUBSTITUTE another person; DO NOT generalise "
+              "into generic relationship advice.\n"
+            "  • When discussing dynamics, frame through this "
+            f"specific {role_display} relationship — name "
+            f"{tgt_name} explicitly.\n"
+            "  • If chart / synastry / topology data for "
+            f"{tgt_name} is available above, ANCHOR the reflection in "
+            "that data rather than archetype platitudes.\n"
+            "  • Do NOT default to Manifestor / HD-strategy / "
+            "Sun-sign filler when the user is asking about this "
+            "specific person."
+        )
+        debug["intent_v2_signals"].append(
+            f"enforcement_target:{tgt_name}/{tgt_role or '?'}"
         )
     elif tgt:
         role_part = f" (role: {tgt_role})" if tgt_role else ""
