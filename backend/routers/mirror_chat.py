@@ -1006,6 +1006,74 @@ SUPPORT STYLE: {v1_support}
                                 f"topology_role_type={_forum_resolved.get('topology_role_type')!r} "
                                 f"forum={_forum_resolved['forum_name']!r}"
                             )
+
+                            # ──────────────────────────────────────────
+                            # PFS-2.3 — Re-plan P3 lens orchestration
+                            # using the POST-TOPOLOGY role.  The shadow
+                            # builder already computed an initial plan
+                            # using the pre-topology role; we overwrite
+                            # it here so the persisted receipt reflects
+                            # the topology-aware bucket / framing /
+                            # lens-priority shift.  This step is
+                            # receipt-only — the live response path
+                            # still reads `lens_priority` from the
+                            # intent envelope, NOT from this plan.
+                            # ──────────────────────────────────────────
+                            try:
+                                from services.relationship_orchestration_v1 import (
+                                    plan_lens_priority as _pfs23_plan,
+                                )
+                                _new_role = _forum_resolved.get("resolved_role")
+                                _new_target = _forum_resolved.get("resolved_user_id")
+                                _envd_for_plan = (v2_receipt or {}).get("intent_envelope") or {}
+                                _ctx_mode = request.lens or getattr(request, "life_domain", None)
+                                _prev_plan = (v2_receipt or {}).get(
+                                    "relationship_orchestration_v1"
+                                ) or {}
+                                _new_plan = _pfs23_plan(
+                                    intent_envelope=_envd_for_plan,
+                                    relationship_role=_new_role,
+                                    target_resolved=_new_target,
+                                    forum_topology=getattr(request,
+                                                           "forum_topology", None),
+                                    context_mode=_ctx_mode,
+                                )
+                                # Preserve the pre-topology plan for
+                                # observability so dashboards can diff
+                                # PFS-2.3 impact without re-running.
+                                _new_plan["replanned_after_topology"] = True
+                                _new_plan["pre_topology_plan"] = {
+                                    "role_resolved":   _prev_plan.get("role_resolved"),
+                                    "rule_bucket":     _prev_plan.get("rule_bucket"),
+                                    "framing_hint":    _prev_plan.get("framing_hint"),
+                                    "domain_bias":     _prev_plan.get("domain_bias"),
+                                    "lens_priority_after":
+                                        _prev_plan.get("lens_priority_after"),
+                                    "applied_rules":   _prev_plan.get("applied_rules"),
+                                }
+                                _new_plan["topology_role_type"] = (
+                                    _forum_resolved.get("topology_role_type")
+                                )
+                                _new_plan["topology_confidence"] = (
+                                    _forum_resolved.get("topology_confidence")
+                                )
+                                _new_plan["topology_inferred"] = (
+                                    _forum_resolved.get("topology_inferred")
+                                )
+                                v2_receipt["relationship_orchestration_v1"] = _new_plan
+                                logger.info(
+                                    f"[MIRROR_CHAT][phase4-PFS2.3] re-planned: "
+                                    f"bucket={_new_plan.get('rule_bucket')!r} "
+                                    f"framing={_new_plan.get('framing_hint')!r} "
+                                    f"domain_bias={_new_plan.get('domain_bias')!r} "
+                                    f"(was bucket={_prev_plan.get('rule_bucket')!r} "
+                                    f"framing={_prev_plan.get('framing_hint')!r})"
+                                )
+                            except Exception as _pfs23_err:
+                                logger.warning(
+                                    f"[MIRROR_CHAT][phase4-PFS2.3] re-plan failed: "
+                                    f"{type(_pfs23_err).__name__}: {_pfs23_err}"
+                                )
                     elif v2_receipt:
                         # Already resolved via saved_people path
                         v2_receipt["target_resolution_source"] = "saved_people"

@@ -1,0 +1,79 @@
+==============================================================================
+PFS-2.3 SHADOW ORCHESTRATION PROBES
+Preview DB: test_database
+Run at: 2026-06-12T08:28:47.282330Z
+==============================================================================
+
+──────── PROBE: 1. Mel — spouse via topology edge ────────
+  resolver  : found=True role='spouse' topology=True topology_role_type='spouse'
+  PRE-2.3 plan : bucket='self' framing='self_inquiry' domain_bias='self'
+                 lens_priority=['astrology', 'human_design', 'enneagram', 'numerology', 'relationship', 'timeline']
+  POST-2.3 plan: bucket='spouse' framing='couple_dynamic' domain_bias='relationship'
+                 lens_priority=['astrology', 'human_design', 'relationship', 'enneagram', 'numerology', 'timeline']
+  LENS_DIFF    : reordered ✓
+  applied_rules (post): ['role_match:spouse:spouse', 'target_bound']
+
+──────── PROBE: 2. Isaac — family_forum heuristic (ENVIRONMENTAL N/A for topology) ────────
+  resolver  : found=True role='family' topology=False topology_role_type=None
+  PRE-2.3 plan : bucket='self' framing='self_inquiry' domain_bias='self'
+                 lens_priority=['astrology', 'human_design', 'enneagram', 'numerology', 'relationship', 'timeline']
+  POST-2.3 plan: bucket='self' framing='self_inquiry' domain_bias='self'
+                 lens_priority=['astrology', 'human_design', 'enneagram', 'numerology', 'relationship', 'timeline']
+  LENS_DIFF    : unchanged
+  applied_rules (post): ['self:target_bound_unknown_role', 'self:unknown_role_token:family']
+
+  [resolver-only sanity] Jaan resolved=False ← expected False in Preview
+
+──────── PROBE: 3. Jaan — synthetic cofounder injection (lexicon coverage demo) ────────
+  resolver  : found=False role=None topology=False topology_role_type=None
+  synthetic : role='cofounder' (no edge in Preview — demonstrating lexicon coverage)
+  PRE-2.3 plan : bucket='self' framing='self_inquiry' domain_bias='self'
+                 lens_priority=['astrology', 'human_design', 'enneagram', 'numerology', 'relationship', 'timeline']
+  POST-2.3 plan: bucket='cofounder' framing='cofounder_strategic' domain_bias='work'
+                 lens_priority=['astrology', 'human_design', 'enneagram', 'relationship', 'numerology', 'timeline']
+  LENS_DIFF    : reordered ✓
+  applied_rules (post): ['role_match:cofounder:cofounder', 'target_bound']
+
+──────── PROBE: 4. Advisor — synthetic advisor injection (lexicon coverage demo) ────────
+  synthetic : role='advisor' (no edge in Preview — demonstrating lexicon coverage)
+  PRE-2.3 plan : bucket='self' framing='self_inquiry' domain_bias='self'
+                 lens_priority=['astrology', 'human_design', 'enneagram', 'numerology', 'relationship', 'timeline']
+  POST-2.3 plan: bucket='advisor' framing='guidance' domain_bias='work'
+                 lens_priority=['astrology', 'human_design', 'enneagram', 'numerology', 'relationship', 'timeline']
+  LENS_DIFF    : unchanged
+  applied_rules (post): ['role_match:advisor:advisor', 'target_bound']
+
+==============================================================================
+ADDITIONAL LEXICON COVERAGE EXERCISE
+==============================================================================
+  role=spouse             → bucket=spouse             framing=couple_dynamic         domain_bias=relationship
+  role=former_partner     → bucket=former_partner     framing=closure_dynamic        domain_bias=relationship
+  role=child              → bucket=child              framing=parenting              domain_bias=relationship
+  role=parent             → bucket=parent             framing=lineage                domain_bias=relationship
+  role=sibling            → bucket=sibling            framing=family_dynamic         domain_bias=relationship
+  role=cofounder          → bucket=cofounder          framing=cofounder_strategic    domain_bias=work
+  role=business_partner   → bucket=cofounder          framing=cofounder_strategic    domain_bias=work
+  role=advisor            → bucket=advisor            framing=guidance               domain_bias=work
+  role=investor           → bucket=investor           framing=influence              domain_bias=work
+  role=manager            → bucket=manager            framing=authority              domain_bias=work
+  role=employee           → bucket=employee           framing=responsibility         domain_bias=work
+  role=collaborator       → bucket=collaborator       framing=partnership            domain_bias=work
+  role=mentor             → bucket=mentor             framing=development_giving     domain_bias=work_self
+  role=mentee             → bucket=mentee             framing=development_receiving  domain_bias=self
+  role=coach              → bucket=coach              framing=growth_giving          domain_bias=self_work
+  role=coachee            → bucket=coachee            framing=growth_receiving       domain_bias=self
+  role=authority_figure   → bucket=authority_figure   framing=power_dynamics         domain_bias=self_work
+  role=close_friend       → bucket=close_friend       framing=closeness              domain_bias=relationship
+  role=forum_mate         → bucket=forum_member       framing=forum_member_dynamic   domain_bias=forum
+  role=other              → bucket=forum_member       framing=forum_member_dynamic   domain_bias=forum
+
+==============================================================================
+REGRESSION — UNKNOWN ROLE / NO ROLE
+==============================================================================
+  role=None               → bucket=self         framing=self_inquiry           applied=['self:default']
+  role=empty string       → bucket=self         framing=self_inquiry           applied=['self:default']
+  role=unknown_token      → bucket=self         framing=self_inquiry           applied=['self:default']
+
+==============================================================================
+PROBE RUN COMPLETE
+==============================================================================

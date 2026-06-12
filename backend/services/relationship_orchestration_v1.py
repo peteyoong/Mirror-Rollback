@@ -67,26 +67,64 @@ from __future__ import annotations
 
 from typing import Any, Dict, List, Optional, Tuple
 
-VERSION = "relationship_orchestration_v1.0.0"
+VERSION = "relationship_orchestration_v1.1.0"
 
 # Role lexicon — first match wins in `_resolve_role_bucket`.
 # Keys are role-noun tokens (lower-cased, substring-friendly).
-_SPOUSE_ROLES    = {"spouse", "partner", "wife", "husband",
-                    "girlfriend", "boyfriend", "fiance", "fiancee"}
-_CHILD_ROLES     = {"child", "son", "daughter", "kid", "teen",
-                    "baby", "toddler"}
-_COFOUNDER_ROLES = {"cofounder", "co-founder", "co_founder",
-                    "business_partner", "biz_partner"}
-_COLLEAGUE_ROLES = {"colleague", "coworker", "teammate", "boss",
-                    "report", "direct_report", "manager"}
+#
+# PFS-2.3 — lexicon expanded to cover the full `forum_relationship_edges.role_type`
+# vocabulary defined in `services/forum_topology.py`:
+#   FAMILY:        parent, child, sibling, spouse, former_partner
+#   PROFESSIONAL:  cofounder, manager, employee, investor, advisor,
+#                  mentor, mentee, coach, coachee, business_partner
+#   SOCIAL:        close_friend, forum_mate, authority_figure,
+#                  collaborator, other
+# Each topology role lands in an INTENTIONAL bucket — no role silently
+# falls through to `forum_member` / `self` unless that is the intended
+# orchestration shape for that role.
+_SPOUSE_ROLES         = {"spouse", "partner", "wife", "husband",
+                         "girlfriend", "boyfriend", "fiance", "fiancee"}
+_FORMER_PARTNER_ROLES = {"former_partner", "ex", "ex_wife", "ex_husband",
+                         "ex_partner", "ex_spouse", "former_spouse"}
+_CHILD_ROLES          = {"child", "son", "daughter", "kid", "teen",
+                         "baby", "toddler"}
+_PARENT_ROLES         = {"parent", "mom", "mother", "dad", "father",
+                         "mama", "papa", "mum"}
+_SIBLING_ROLES        = {"sibling", "brother", "sister", "twin"}
+_COFOUNDER_ROLES      = {"cofounder", "co-founder", "co_founder",
+                         "business_partner", "biz_partner"}
+_ADVISOR_ROLES        = {"advisor", "adviser"}
+_INVESTOR_ROLES       = {"investor", "lp", "limited_partner",
+                         "lead_investor"}
+_MENTOR_ROLES         = {"mentor"}
+_MENTEE_ROLES         = {"mentee", "protege", "protégé"}
+_COACH_ROLES          = {"coach"}
+_COACHEE_ROLES        = {"coachee", "client"}
+_MANAGER_ROLES        = {"manager", "boss", "supervisor", "lead", "head"}
+_EMPLOYEE_ROLES       = {"employee", "report", "direct_report",
+                         "subordinate"}
+_AUTHORITY_ROLES      = {"authority_figure", "authority"}
+_COLLABORATOR_ROLES   = {"collaborator"}
+_CLOSE_FRIEND_ROLES   = {"close_friend", "best_friend", "friend"}
+_FORUM_MATE_ROLES     = {"forum_mate", "forum_member", "other"}
 
 # Per-bucket lens modulation (additive). Keys MUST match the lens names
 # used by intent_router_v2.LENS_WEIGHTS_PER_DOMAIN.
+# All modulations are intentionally moderate (≤0.40) so they re-rank
+# without overwhelming the envelope's primary domain signal.
 LENS_MODULATIONS: Dict[str, Dict[str, float]] = {
+    # ── Relationship family ────────────────────────────────────────
     "spouse": {
         "astrology":    0.30,
         "relationship": 0.40,
         "human_design": 0.20,
+        "timeline":     0.10,
+    },
+    "former_partner": {
+        "astrology":    0.20,
+        "relationship": 0.40,
+        "human_design": 0.20,
+        "enneagram":    0.15,
         "timeline":     0.10,
     },
     "child": {
@@ -96,11 +134,105 @@ LENS_MODULATIONS: Dict[str, Dict[str, float]] = {
         "timeline":     0.20,
         "relationship": 0.10,
     },
+    "parent": {
+        "astrology":    0.25,
+        "human_design": 0.20,
+        "enneagram":    0.20,
+        "relationship": 0.20,
+        "timeline":     0.15,
+    },
+    "sibling": {
+        "astrology":    0.20,
+        "human_design": 0.20,
+        "relationship": 0.30,
+        "enneagram":    0.15,
+        "timeline":     0.05,
+    },
+    # ── Work / founder family ──────────────────────────────────────
     "cofounder": {
         "human_design": 0.30,
         "astrology":    0.15,
         "enneagram":    0.25,
         "relationship": 0.20,
+        "timeline":     0.10,
+    },
+    "advisor": {
+        "human_design": 0.30,
+        "astrology":    0.20,
+        "enneagram":    0.20,
+        "relationship": 0.15,
+        "timeline":     0.10,
+    },
+    "investor": {
+        "human_design": 0.30,
+        "astrology":    0.20,
+        "enneagram":    0.15,
+        "relationship": 0.15,
+        "timeline":     0.10,
+    },
+    "manager": {
+        "human_design": 0.25,
+        "enneagram":    0.25,
+        "astrology":    0.15,
+        "relationship": 0.20,
+        "timeline":     0.10,
+    },
+    "employee": {
+        "human_design": 0.25,
+        "enneagram":    0.25,
+        "astrology":    0.15,
+        "relationship": 0.20,
+        "timeline":     0.10,
+    },
+    # ── Development family (mentor / coach axis) ───────────────────
+    "mentor": {
+        "human_design": 0.30,
+        "enneagram":    0.30,
+        "astrology":    0.15,
+        "relationship": 0.10,
+        "timeline":     0.10,
+    },
+    "mentee": {
+        "human_design": 0.25,
+        "enneagram":    0.30,
+        "astrology":    0.15,
+        "relationship": 0.10,
+        "timeline":     0.20,
+    },
+    "coach": {
+        "human_design": 0.30,
+        "enneagram":    0.30,
+        "astrology":    0.15,
+        "relationship": 0.10,
+        "timeline":     0.15,
+    },
+    "coachee": {
+        "human_design": 0.25,
+        "enneagram":    0.30,
+        "astrology":    0.15,
+        "relationship": 0.10,
+        "timeline":     0.20,
+    },
+    # ── Social / generic ───────────────────────────────────────────
+    "authority_figure": {
+        "human_design": 0.20,
+        "enneagram":    0.30,
+        "astrology":    0.20,
+        "relationship": 0.20,
+        "timeline":     0.10,
+    },
+    "collaborator": {
+        "relationship": 0.25,
+        "human_design": 0.20,
+        "astrology":    0.20,
+        "enneagram":    0.15,
+        "timeline":     0.10,
+    },
+    "close_friend": {
+        "relationship": 0.35,
+        "astrology":    0.20,
+        "human_design": 0.20,
+        "enneagram":    0.15,
         "timeline":     0.10,
     },
     "forum_member": {
@@ -114,12 +246,52 @@ LENS_MODULATIONS: Dict[str, Dict[str, float]] = {
 
 # Friendly framing hint per bucket — useful for downstream rendering
 # but never consumed by the live response path in this iteration.
+# Phrases follow the PFS-2.3 spec (strategy column).
 FRAMING_HINT: Dict[str, str] = {
-    "spouse":       "spouse_focus",
-    "child":        "child_developmental",
-    "cofounder":    "cofounder_strategic",
-    "forum_member": "forum_member_dynamic",
-    "self":         "self_inquiry",
+    "spouse":           "couple_dynamic",
+    "former_partner":   "closure_dynamic",
+    "child":            "parenting",
+    "parent":           "lineage",
+    "sibling":          "family_dynamic",
+    "cofounder":        "cofounder_strategic",
+    "advisor":          "guidance",
+    "investor":         "influence",
+    "manager":          "authority",
+    "employee":         "responsibility",
+    "mentor":           "development_giving",
+    "mentee":           "development_receiving",
+    "coach":            "growth_giving",
+    "coachee":          "growth_receiving",
+    "authority_figure": "power_dynamics",
+    "collaborator":     "partnership",
+    "close_friend":     "closeness",
+    "forum_member":     "forum_member_dynamic",
+    "self":             "self_inquiry",
+}
+
+# PFS-2.3 — domain bias label per bucket. Useful for dashboard splits
+# and for downstream consumers that want a quick relationship/work/self
+# axis tag without re-deriving it from the bucket name.
+DOMAIN_BIAS: Dict[str, str] = {
+    "spouse":           "relationship",
+    "former_partner":   "relationship",
+    "child":            "relationship",
+    "parent":           "relationship",
+    "sibling":          "relationship",
+    "cofounder":        "work",
+    "advisor":          "work",
+    "investor":         "work",
+    "manager":          "work",
+    "employee":         "work",
+    "mentor":           "work_self",
+    "mentee":           "self",
+    "coach":            "self_work",
+    "coachee":          "self",
+    "authority_figure": "self_work",
+    "collaborator":     "work",
+    "close_friend":     "relationship",
+    "forum_member":     "forum",
+    "self":             "self",
 }
 
 
@@ -138,42 +310,168 @@ def _resolve_role_bucket(
 ) -> Tuple[str, List[str]]:
     """Return (bucket, applied_rules).
 
-    Order matters: spouse > child > cofounder > forum_member > self.
-    `applied_rules` is a list of human-readable reasons the rule fired
-    so dashboards can audit the routing.
+    Order matters — most specific match wins. PFS-2.3 expanded the
+    lexicon so every `forum_relationship_edges.role_type` lands in an
+    intentional bucket (relationship / work / development / social /
+    self) rather than silently falling through to `forum_member` or
+    `self`.
+
+    Resolution ladder:
+      1. relationship family  — spouse, former_partner, child, parent,
+                                sibling, close_friend
+      2. development family   — mentor, mentee, coach, coachee
+      3. work family          — cofounder, advisor, investor, manager,
+                                employee, collaborator
+      4. authority            — authority_figure
+      5. collegial fallback   — colleague + leadership/career intent
+                                → cofounder (legacy heuristic kept)
+      6. forum_member         — active_member_id in topology with no
+                                role-noun match above
+      7. self                 — default
     """
     rules: List[str] = []
     role = _normalize_role(relationship_role)
 
-    # 1. spouse — direct role match
+    # 1a. spouse — relationship-family direct match
     if role in _SPOUSE_ROLES:
         rules.append(f"role_match:spouse:{role}")
         if target_resolved:
             rules.append("target_bound")
         return "spouse", rules
 
-    # 2. child — direct role match
+    # 1b. former_partner — relationship-family, closure framing
+    if role in _FORMER_PARTNER_ROLES:
+        rules.append(f"role_match:former_partner:{role}")
+        if target_resolved:
+            rules.append("target_bound")
+        return "former_partner", rules
+
+    # 1c. child — relationship-family, parenting framing (user is parent)
     if role in _CHILD_ROLES:
         rules.append(f"role_match:child:{role}")
         if target_resolved:
             rules.append("target_bound")
         return "child", rules
 
-    # 3. cofounder — direct role match
+    # 1d. parent — relationship-family, lineage framing (user is child)
+    if role in _PARENT_ROLES:
+        rules.append(f"role_match:parent:{role}")
+        if target_resolved:
+            rules.append("target_bound")
+        return "parent", rules
+
+    # 1e. sibling — relationship-family, family_dynamic framing
+    if role in _SIBLING_ROLES:
+        rules.append(f"role_match:sibling:{role}")
+        if target_resolved:
+            rules.append("target_bound")
+        return "sibling", rules
+
+    # 1f. close_friend — relationship-family, closeness framing
+    if role in _CLOSE_FRIEND_ROLES:
+        rules.append(f"role_match:close_friend:{role}")
+        if target_resolved:
+            rules.append("target_bound")
+        return "close_friend", rules
+
+    # 2a. mentor (giver) — development family
+    if role in _MENTOR_ROLES:
+        rules.append(f"role_match:mentor:{role}")
+        if target_resolved:
+            rules.append("target_bound")
+        return "mentor", rules
+
+    # 2b. mentee (receiver) — development family
+    if role in _MENTEE_ROLES:
+        rules.append(f"role_match:mentee:{role}")
+        if target_resolved:
+            rules.append("target_bound")
+        return "mentee", rules
+
+    # 2c. coach (giver) — growth family
+    if role in _COACH_ROLES:
+        rules.append(f"role_match:coach:{role}")
+        if target_resolved:
+            rules.append("target_bound")
+        return "coach", rules
+
+    # 2d. coachee (receiver) — growth family
+    if role in _COACHEE_ROLES:
+        rules.append(f"role_match:coachee:{role}")
+        if target_resolved:
+            rules.append("target_bound")
+        return "coachee", rules
+
+    # 3a. cofounder / business_partner — work-family, leadership framing
     if role in _COFOUNDER_ROLES:
         rules.append(f"role_match:cofounder:{role}")
         if target_resolved:
             rules.append("target_bound")
         return "cofounder", rules
 
-    # 3b. cofounder via colleague + leadership/career intent
-    if role in _COLLEAGUE_ROLES and primary_domain in ("leadership", "career"):
+    # 3b. advisor — work-family, guidance framing
+    if role in _ADVISOR_ROLES:
+        rules.append(f"role_match:advisor:{role}")
+        if target_resolved:
+            rules.append("target_bound")
+        return "advisor", rules
+
+    # 3c. investor — work-family, influence framing
+    if role in _INVESTOR_ROLES:
+        rules.append(f"role_match:investor:{role}")
+        if target_resolved:
+            rules.append("target_bound")
+        return "investor", rules
+
+    # 3d. manager — work-family, authority framing
+    if role in _MANAGER_ROLES:
+        rules.append(f"role_match:manager:{role}")
+        if target_resolved:
+            rules.append("target_bound")
+        return "manager", rules
+
+    # 3e. employee — work-family, responsibility framing
+    if role in _EMPLOYEE_ROLES:
+        rules.append(f"role_match:employee:{role}")
+        if target_resolved:
+            rules.append("target_bound")
+        return "employee", rules
+
+    # 3f. collaborator — work-family, partnership framing
+    if role in _COLLABORATOR_ROLES:
+        rules.append(f"role_match:collaborator:{role}")
+        if target_resolved:
+            rules.append("target_bound")
+        return "collaborator", rules
+
+    # 4. authority_figure — self/work axis, power_dynamics framing
+    if role in _AUTHORITY_ROLES:
+        rules.append(f"role_match:authority_figure:{role}")
+        if target_resolved:
+            rules.append("target_bound")
+        return "authority_figure", rules
+
+    # 4b. explicit forum_mate / other / forum_member tokens (topology
+    #     social-family) land on the generic forum_member bucket — this
+    #     is the INTENDED bucket, not a silent fallthrough.
+    if role in _FORUM_MATE_ROLES:
+        rules.append(f"role_match:forum_member:{role}")
+        if target_resolved:
+            rules.append("target_bound")
+        return "forum_member", rules
+
+    # 5. Legacy heuristic: colleague-style role + leadership/career
+    #    intent → cofounder. Kept for back-compat with the V2 router
+    #    free-text role classifier.
+    _LEGACY_COLLEAGUE = {"colleague", "coworker", "teammate",
+                         "co_worker", "boss"}
+    if role in _LEGACY_COLLEAGUE and primary_domain in ("leadership", "career"):
         rules.append(f"role_match:cofounder:via_colleague_leadership:{role}")
         if target_resolved:
             rules.append("target_bound")
         return "cofounder", rules
 
-    # 4. forum_member — topology with active member binding
+    # 6. forum_member — topology with active member binding
     ft = forum_topology or {}
     active_id = ft.get("active_member_id")
     if active_id:
@@ -184,11 +482,15 @@ def _resolve_role_bucket(
             rules.append("forum_member:active_in_members")
         return "forum_member", rules
 
-    # 5. self — default
+    # 7. self — default
     if target_resolved:
         # Target bound but no recognized role — treat as relationship-leaning
         # self frame; still self bucket but flag for dashboards.
         rules.append("self:target_bound_unknown_role")
+        if role:
+            # PFS-2.3 telemetry: record the unknown role so observers
+            # can spot lexicon-coverage drift in production.
+            rules.append(f"self:unknown_role_token:{role}")
     else:
         rules.append("self:default")
     return "self", rules
@@ -284,6 +586,7 @@ def plan_lens_priority(
             "lens_priority_after":    lens_priority_after,
             "lens_weight_modulation": dict(modulation),
             "framing_hint":           FRAMING_HINT.get(bucket, "self_inquiry"),
+            "domain_bias":            DOMAIN_BIAS.get(bucket, "self"),
             "context_mode":           mode,
             "target_resolved":        target_resolved,
             "active_member_id":       (forum_topology or {}).get("active_member_id"),

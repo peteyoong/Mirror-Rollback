@@ -27,7 +27,8 @@ def _make_envelope(primary="relationship",
 # ─────────────────────────────────────────────────────────────────────
 
 def test_version_pinned():
-    assert VERSION == "relationship_orchestration_v1.0.0"
+    # PFS-2.3 bumped minor: lexicon + buckets expanded.
+    assert VERSION == "relationship_orchestration_v1.1.0"
 
 
 def test_lens_outputs_preserved_on_success():
@@ -82,7 +83,8 @@ def test_child_bucket(role):
         target_resolved="kid-001",
     )
     assert plan["rule_bucket"] == "child"
-    assert plan["framing_hint"] == "child_developmental"
+    # PFS-2.3: framing hint aligned with user spec ("parenting" = user is parent).
+    assert plan["framing_hint"] == "parenting"
 
 
 @pytest.mark.parametrize("role", ["cofounder", "co-founder", "business partner"])
