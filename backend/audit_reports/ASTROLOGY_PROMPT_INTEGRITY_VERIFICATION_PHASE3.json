@@ -1,0 +1,4005 @@
+{
+  "generated_at_iso": "2026-06-12T12:36:16Z",
+  "chart_summaries": {
+    "Pete": {
+      "name": "Pete",
+      "Sun": "Pisces",
+      "Moon": "Aries",
+      "Rising": "Sagittarius",
+      "MC": "Virgo",
+      "DC": "Gemini",
+      "IC": "Pisces",
+      "Chiron": "Pisces",
+      "ChironHouse": 3,
+      "MC_formatted": "28\u00b0Virgo",
+      "DC_formatted": "18\u00b0Gemini",
+      "IC_formatted": "31\u00b0Pisces",
+      "Chiron_formatted": "11\u00b0Pisces"
+    },
+    "Mel": {
+      "name": "Mel",
+      "Sun": "Gemini",
+      "Moon": "Scorpio",
+      "Rising": "Cancer",
+      "MC": "Aries",
+      "DC": "Sagittarius",
+      "IC": "Virgo",
+      "Chiron": "Taurus",
+      "ChironHouse": 10,
+      "MC_formatted": "2\u00b0Aries",
+      "DC_formatted": "33\u00b0Sagittarius",
+      "IC_formatted": "41\u00b0Virgo",
+      "Chiron_formatted": "1\u00b0Taurus"
+    },
+    "Isaac": {
+      "name": "Isaac",
+      "Sun": "Pisces",
+      "Moon": "Leo",
+      "Rising": "Aquarius",
+      "MC": "Ophiuchus",
+      "DC": "Leo",
+      "IC": "Taurus",
+      "Chiron": "Aquarius",
+      "ChironHouse": 12,
+      "MC_formatted": "2\u00b0Ophiuchus",
+      "DC_formatted": "30\u00b0Leo",
+      "IC_formatted": "26\u00b0Taurus",
+      "Chiron_formatted": "11\u00b0Aquarius"
+    },
+    "Jaan": {
+      "name": "Jaan",
+      "Sun": "Ophiuchus",
+      "Moon": "Taurus",
+      "Rising": "Cancer",
+      "MC": "Aries",
+      "DC": "Capricorn",
+      "IC": "Virgo",
+      "Chiron": "Pisces",
+      "ChironHouse": 9,
+      "MC_formatted": "5\u00b0Aries",
+      "DC_formatted": "3\u00b0Capricorn",
+      "IC_formatted": "44\u00b0Virgo",
+      "Chiron_formatted": "27\u00b0Pisces"
+    }
+  },
+  "results": [
+    {
+      "user": "Pete",
+      "user_id": "697f0c6abf35c0528ff06954",
+      "category": "MC",
+      "intent_key": "career_contribution",
+      "message": "What am I here to contribute?",
+      "verdict": "PASS",
+      "prompt_has_point": true,
+      "injection": {
+        "injected_points": [
+          "Midheaven / MC: 28\u00b0Virgo (Virgo)",
+          "Chiron: 11\u00b0Pisces (Pisces) House 3"
+        ],
+        "weighting_blocks": [
+          "MC_WEIGHTING"
+        ],
+        "triggers_seen": {
+          "MC": true,
+          "DC": false,
+          "IC": false,
+          "purpose": false,
+          "chiron": false
+        },
+        "stored_values": {
+          "MC": {
+            "sign": "Virgo",
+            "formatted": "28\u00b0Virgo"
+          },
+          "Chiron": {
+            "sign": "Pisces",
+            "house": 3,
+            "formatted": "11\u00b0Pisces"
+          },
+          "DC": {
+            "sign": "Gemini",
+            "formatted": "18\u00b0Gemini"
+          },
+          "IC": {
+            "sign": "Pisces",
+            "formatted": "31\u00b0Pisces"
+          }
+        }
+      },
+      "live": {
+        "ok": true,
+        "status": 200,
+        "response": "You're asking about contribution, which taps into threads of purpose and vocation. This curiosity often speaks to your Midheaven, a key part of how you express yourself publicly and leave a mark on the world. With your Midheaven in Virgo, there's an inclination towards bringing order, precision, and discernment into the spaces you engage with. You may notice a calling to refine processes, improve systems, or offer practical solutions that aid others in tangible ways. This pattern suggests a focus on service and detail, possibly within environments where your methodical approach can make a true difference. There's a potential here to cultivate environments or systems where clarity and improvement are paramount. This is about finding value in the small steps, the incremental improvements that lead to significant impact. Reflecting on this, what areas of your life feel most aligned with these qualities?",
+        "session_id": "46bf8ec4-e24f-46a3-beef-1acc5d78d63c",
+        "elapsed_s": 5.609263896942139
+      },
+      "evidence": {
+        "mentions_expected_point": true,
+        "mentions_expected_sign": true,
+        "mentions_expected_house": false,
+        "leak_sun_substitution": false,
+        "leak_asc_substitution": false,
+        "leak_moon_substitution": false,
+        "evidence_quotes": [
+          "\u2026f purpose and vocation. This curiosity often speaks to your Midheaven, a key part of how you express yourself publicly and leave a mark on the world. With your Midheaven in Virgo, there's a\u2026",
+          "\u2026yourself publicly and leave a mark on the world. With your Midheaven in Virgo, there's an inclination towards bringing order, precision, and discernment into the spaces you engage with. Yo\u2026"
+        ]
+      },
+      "chart_points": {
+        "MC": {
+          "sign": "Virgo",
+          "formatted": "28\u00b0Virgo"
+        },
+        "DC": {
+          "sign": "Gemini",
+          "formatted": "18\u00b0Gemini"
+        },
+        "IC": {
+          "sign": "Pisces",
+          "formatted": "31\u00b0Pisces"
+        },
+        "Chiron": {
+          "sign": "Pisces",
+          "house": 3,
+          "formatted": "11\u00b0Pisces"
+        }
+      }
+    },
+    {
+      "user": "Pete",
+      "user_id": "697f0c6abf35c0528ff06954",
+      "category": "MC",
+      "intent_key": "public_role",
+      "message": "What is my public role?",
+      "verdict": "PASS",
+      "prompt_has_point": true,
+      "injection": {
+        "injected_points": [
+          "Midheaven / MC: 28\u00b0Virgo (Virgo)",
+          "Chiron: 11\u00b0Pisces (Pisces) House 3"
+        ],
+        "weighting_blocks": [
+          "MC_WEIGHTING"
+        ],
+        "triggers_seen": {
+          "MC": true,
+          "DC": false,
+          "IC": false,
+          "purpose": false,
+          "chiron": false
+        },
+        "stored_values": {
+          "MC": {
+            "sign": "Virgo",
+            "formatted": "28\u00b0Virgo"
+          },
+          "Chiron": {
+            "sign": "Pisces",
+            "house": 3,
+            "formatted": "11\u00b0Pisces"
+          },
+          "DC": {
+            "sign": "Gemini",
+            "formatted": "18\u00b0Gemini"
+          },
+          "IC": {
+            "sign": "Pisces",
+            "formatted": "31\u00b0Pisces"
+          }
+        }
+      },
+      "live": {
+        "ok": true,
+        "status": 200,
+        "response": "Looking at your chart, your Midheaven, or MC, is in Virgo. This often suggests a path where attention to detail, service, and a drive for practicality play significant roles in your public life. Your approach might involve analyzing systems or improving processes, where your contributions are often about making things work better in tangible, organized ways. Alongside this, your Human Design as a Manifestor offers a different layer. Manifestors are often initiators, like sparks that get things started. You may find that this combination encourages you to initiate improvements or projects that bring more order and efficiency to your environment. What do you notice about how these themes show up in your current pursuits or roles?",
+        "session_id": "86e5444c-0010-4d1f-bb11-bdf54f148626",
+        "elapsed_s": 6.032622575759888
+      },
+      "evidence": {
+        "mentions_expected_point": true,
+        "mentions_expected_sign": true,
+        "mentions_expected_house": false,
+        "leak_sun_substitution": false,
+        "leak_asc_substitution": false,
+        "leak_moon_substitution": false,
+        "evidence_quotes": [
+          "\u2026Looking at your chart, your Midheaven, or MC, is in Virgo. This often suggests a path where attention to detail, service, and a drive for practicality play signific\u2026",
+          "\u2026Looking at your chart, your Midheaven, or MC, is in Virgo. This often suggests a path where attention to detail, service, and a drive for practicality play s\u2026"
+        ]
+      },
+      "chart_points": {
+        "MC": {
+          "sign": "Virgo",
+          "formatted": "28\u00b0Virgo"
+        },
+        "DC": {
+          "sign": "Gemini",
+          "formatted": "18\u00b0Gemini"
+        },
+        "IC": {
+          "sign": "Pisces",
+          "formatted": "31\u00b0Pisces"
+        },
+        "Chiron": {
+          "sign": "Pisces",
+          "house": 3,
+          "formatted": "11\u00b0Pisces"
+        }
+      }
+    },
+    {
+      "user": "Pete",
+      "user_id": "697f0c6abf35c0528ff06954",
+      "category": "MC",
+      "intent_key": "leadership_style",
+      "message": "What is my leadership style?",
+      "verdict": "PASS",
+      "prompt_has_point": true,
+      "injection": {
+        "injected_points": [
+          "Midheaven / MC: 28\u00b0Virgo (Virgo)",
+          "Chiron: 11\u00b0Pisces (Pisces) House 3"
+        ],
+        "weighting_blocks": [
+          "MC_WEIGHTING"
+        ],
+        "triggers_seen": {
+          "MC": true,
+          "DC": false,
+          "IC": false,
+          "purpose": false,
+          "chiron": false
+        },
+        "stored_values": {
+          "MC": {
+            "sign": "Virgo",
+            "formatted": "28\u00b0Virgo"
+          },
+          "Chiron": {
+            "sign": "Pisces",
+            "house": 3,
+            "formatted": "11\u00b0Pisces"
+          },
+          "DC": {
+            "sign": "Gemini",
+            "formatted": "18\u00b0Gemini"
+          },
+          "IC": {
+            "sign": "Pisces",
+            "formatted": "31\u00b0Pisces"
+          }
+        }
+      },
+      "live": {
+        "ok": true,
+        "status": 200,
+        "response": "Your leadership style carries a blend of practicality and sensitivity, with a focus on analysis and service. Your Midheaven in Virgo suggests a drive for precision, organization, and a desire to make meaningful contributions. This can often appear as a leadership approach that values detailed planning and clear communication. At the same time, your Pisces Sun lends a compassionate and intuitive touch, allowing for empathetic connections with those you lead. This combination might manifest in a leadership style that is both data-driven and people-focused, where creating structure serves as a foundation for supporting others. Reflecting on this blend, how do you see your approach to leadership impacting those around you?",
+        "session_id": "bafa8d27-58fc-438f-9320-f1e9b6f68783",
+        "elapsed_s": 4.6889870166778564
+      },
+      "evidence": {
+        "mentions_expected_point": true,
+        "mentions_expected_sign": true,
+        "mentions_expected_house": false,
+        "leak_sun_substitution": false,
+        "leak_asc_substitution": false,
+        "leak_moon_substitution": false,
+        "evidence_quotes": [
+          "\u2026and sensitivity, with a focus on analysis and service. Your Midheaven in Virgo suggests a drive for precision, organization, and a desire to make meaningful contributions. This can often ap\u2026"
+        ]
+      },
+      "chart_points": {
+        "MC": {
+          "sign": "Virgo",
+          "formatted": "28\u00b0Virgo"
+        },
+        "DC": {
+          "sign": "Gemini",
+          "formatted": "18\u00b0Gemini"
+        },
+        "IC": {
+          "sign": "Pisces",
+          "formatted": "31\u00b0Pisces"
+        },
+        "Chiron": {
+          "sign": "Pisces",
+          "house": 3,
+          "formatted": "11\u00b0Pisces"
+        }
+      }
+    },
+    {
+      "user": "Pete",
+      "user_id": "697f0c6abf35c0528ff06954",
+      "category": "MC",
+      "intent_key": "becoming",
+      "message": "What am I becoming?",
+      "verdict": "PASS",
+      "prompt_has_point": true,
+      "injection": {
+        "injected_points": [
+          "Midheaven / MC: 28\u00b0Virgo (Virgo)",
+          "Chiron: 11\u00b0Pisces (Pisces) House 3"
+        ],
+        "weighting_blocks": [
+          "MC_WEIGHTING"
+        ],
+        "triggers_seen": {
+          "MC": true,
+          "DC": false,
+          "IC": false,
+          "purpose": false,
+          "chiron": false
+        },
+        "stored_values": {
+          "MC": {
+            "sign": "Virgo",
+            "formatted": "28\u00b0Virgo"
+          },
+          "Chiron": {
+            "sign": "Pisces",
+            "house": 3,
+            "formatted": "11\u00b0Pisces"
+          },
+          "DC": {
+            "sign": "Gemini",
+            "formatted": "18\u00b0Gemini"
+          },
+          "IC": {
+            "sign": "Pisces",
+            "formatted": "31\u00b0Pisces"
+          }
+        }
+      },
+      "live": {
+        "ok": true,
+        "status": 200,
+        "response": "You're exploring a question that opens up endless possibilities. Your Midheaven in Virgo speaks to a potential identity that's grounded in detail, service, and the pursuit of precision in your vocation or public role. It's about refining your path, tending to the small things that build toward a greater purpose. Your role is not preordained but created through your choices and experiences. There's a quality of turning your unique way of thinking and expressing into impactful contributions. Take a breath. Let your curiosity guide you. What small shifts are you noticing that point toward who you're becoming?",
+        "session_id": "e7d77262-6832-4137-838f-9567c758a78d",
+        "elapsed_s": 4.289317846298218
+      },
+      "evidence": {
+        "mentions_expected_point": true,
+        "mentions_expected_sign": true,
+        "mentions_expected_house": false,
+        "leak_sun_substitution": false,
+        "leak_asc_substitution": false,
+        "leak_moon_substitution": false,
+        "evidence_quotes": [
+          "\u2026loring a question that opens up endless possibilities. Your Midheaven in Virgo speaks to a potential identity that's grounded in detail, service, and the pursuit of precision in your vocati\u2026"
+        ]
+      },
+      "chart_points": {
+        "MC": {
+          "sign": "Virgo",
+          "formatted": "28\u00b0Virgo"
+        },
+        "DC": {
+          "sign": "Gemini",
+          "formatted": "18\u00b0Gemini"
+        },
+        "IC": {
+          "sign": "Pisces",
+          "formatted": "31\u00b0Pisces"
+        },
+        "Chiron": {
+          "sign": "Pisces",
+          "house": 3,
+          "formatted": "11\u00b0Pisces"
+        }
+      }
+    },
+    {
+      "user": "Pete",
+      "user_id": "697f0c6abf35c0528ff06954",
+      "category": "DC",
+      "intent_key": "partnership_seek",
+      "message": "What do I seek in partnership?",
+      "verdict": "WEAK (no overt evidence)",
+      "prompt_has_point": true,
+      "injection": {
+        "injected_points": [
+          "Midheaven / MC: 28\u00b0Virgo (Virgo)",
+          "Chiron: 11\u00b0Pisces (Pisces) House 3",
+          "Descendant / DC: 18\u00b0Gemini (Gemini)"
+        ],
+        "weighting_blocks": [
+          "DC_WEIGHTING"
+        ],
+        "triggers_seen": {
+          "MC": false,
+          "DC": true,
+          "IC": false,
+          "purpose": false,
+          "chiron": false
+        },
+        "stored_values": {
+          "MC": {
+            "sign": "Virgo",
+            "formatted": "28\u00b0Virgo"
+          },
+          "Chiron": {
+            "sign": "Pisces",
+            "house": 3,
+            "formatted": "11\u00b0Pisces"
+          },
+          "DC": {
+            "sign": "Gemini",
+            "formatted": "18\u00b0Gemini"
+          },
+          "IC": {
+            "sign": "Pisces",
+            "formatted": "31\u00b0Pisces"
+          }
+        }
+      },
+      "live": {
+        "ok": true,
+        "status": 200,
+        "response": "In partnership, you may find yourself drawn to the qualities of curiosity, communication, and adaptability. These relationships often spark your interest when there's a dynamic exchange of ideas and a sense of lively interaction. You're likely to value partners who can engage you intellectually and meet your need for variety and movement in the relationship. This search for dynamic communication and variety comes from a combination of factors in your chart, showing your focus on engaging conversations and mutual understanding. There can also be a theme of learning and growth together, which keeps the partnership fresh and evolving. What stands out to you about this dynamic approach to relationship?",
+        "session_id": "08146d28-26ab-48f1-a475-83b0b5768e3b",
+        "elapsed_s": 6.325441360473633
+      },
+      "evidence": {
+        "mentions_expected_point": false,
+        "mentions_expected_sign": false,
+        "mentions_expected_house": false,
+        "leak_sun_substitution": false,
+        "leak_asc_substitution": false,
+        "leak_moon_substitution": false,
+        "evidence_quotes": []
+      },
+      "chart_points": {
+        "MC": {
+          "sign": "Virgo",
+          "formatted": "28\u00b0Virgo"
+        },
+        "DC": {
+          "sign": "Gemini",
+          "formatted": "18\u00b0Gemini"
+        },
+        "IC": {
+          "sign": "Pisces",
+          "formatted": "31\u00b0Pisces"
+        },
+        "Chiron": {
+          "sign": "Pisces",
+          "house": 3,
+          "formatted": "11\u00b0Pisces"
+        }
+      }
+    },
+    {
+      "user": "Pete",
+      "user_id": "697f0c6abf35c0528ff06954",
+      "category": "DC",
+      "intent_key": "relationship_pattern",
+      "message": "What relationship pattern keeps repeating?",
+      "verdict": "WEAK (no overt evidence)",
+      "prompt_has_point": true,
+      "injection": {
+        "injected_points": [
+          "Midheaven / MC: 28\u00b0Virgo (Virgo)",
+          "Chiron: 11\u00b0Pisces (Pisces) House 3",
+          "Descendant / DC: 18\u00b0Gemini (Gemini)"
+        ],
+        "weighting_blocks": [
+          "CHIRON_FOCUS",
+          "DC_WEIGHTING",
+          "DEVELOPMENTAL_AXIS_WEIGHTING"
+        ],
+        "triggers_seen": {
+          "MC": false,
+          "DC": true,
+          "IC": false,
+          "purpose": true,
+          "chiron": true
+        },
+        "stored_values": {
+          "MC": {
+            "sign": "Virgo",
+            "formatted": "28\u00b0Virgo"
+          },
+          "Chiron": {
+            "sign": "Pisces",
+            "house": 3,
+            "formatted": "11\u00b0Pisces"
+          },
+          "DC": {
+            "sign": "Gemini",
+            "formatted": "18\u00b0Gemini"
+          },
+          "IC": {
+            "sign": "Pisces",
+            "formatted": "31\u00b0Pisces"
+          }
+        }
+      },
+      "live": {
+        "ok": true,
+        "status": 200,
+        "response": "You're curious about the cycles in your relationships. One recurring theme may be a focus on stimulating communication and dynamic exchanges. There's a draw toward partners who offer mental stimulation and versatility. This could sometimes lead to relationships that feel light-hearted but maybe lack depth in certain moments. The interaction often has an element of excitement or learning at its core. This pattern might be rooted in a search for variety and new experiences within partnerships. There's a part of you that seeks out the curious, the talkative, and the adaptable\u2014those who can engage your mind in various ways. This can sometimes make it challenging to feel settled or fully anchored if the relationship doesn't also meet the depth of connection you seek.",
+        "session_id": "1e852f11-635c-40fc-b56b-95f6404f1529",
+        "elapsed_s": 6.531007289886475
+      },
+      "evidence": {
+        "mentions_expected_point": false,
+        "mentions_expected_sign": false,
+        "mentions_expected_house": false,
+        "leak_sun_substitution": false,
+        "leak_asc_substitution": false,
+        "leak_moon_substitution": false,
+        "evidence_quotes": []
+      },
+      "chart_points": {
+        "MC": {
+          "sign": "Virgo",
+          "formatted": "28\u00b0Virgo"
+        },
+        "DC": {
+          "sign": "Gemini",
+          "formatted": "18\u00b0Gemini"
+        },
+        "IC": {
+          "sign": "Pisces",
+          "formatted": "31\u00b0Pisces"
+        },
+        "Chiron": {
+          "sign": "Pisces",
+          "house": 3,
+          "formatted": "11\u00b0Pisces"
+        }
+      }
+    },
+    {
+      "user": "Pete",
+      "user_id": "697f0c6abf35c0528ff06954",
+      "category": "Chiron",
+      "intent_key": "wound",
+      "message": "What wound am I working through?",
+      "verdict": "PASS",
+      "prompt_has_point": true,
+      "injection": {
+        "injected_points": [
+          "Midheaven / MC: 28\u00b0Virgo (Virgo)",
+          "Chiron: 11\u00b0Pisces (Pisces) House 3"
+        ],
+        "weighting_blocks": [
+          "CHIRON_FOCUS",
+          "DEVELOPMENTAL_AXIS_WEIGHTING"
+        ],
+        "triggers_seen": {
+          "MC": false,
+          "DC": false,
+          "IC": false,
+          "purpose": true,
+          "chiron": true
+        },
+        "stored_values": {
+          "MC": {
+            "sign": "Virgo",
+            "formatted": "28\u00b0Virgo"
+          },
+          "Chiron": {
+            "sign": "Pisces",
+            "house": 3,
+            "formatted": "11\u00b0Pisces"
+          },
+          "DC": {
+            "sign": "Gemini",
+            "formatted": "18\u00b0Gemini"
+          },
+          "IC": {
+            "sign": "Pisces",
+            "formatted": "31\u00b0Pisces"
+          }
+        }
+      },
+      "live": {
+        "ok": true,
+        "status": 200,
+        "response": "It seems you're exploring a significant aspect of growth centered around the archetype of Chiron in Pisces, located in the third house of communication and thought. This often revolves around a wound related to feeling misunderstood or having difficulty expressing your true voice and ideas. There might be an underlying yearning for a deeper connection or understanding with others, which feels elusive at times. This pattern invites reflection on how you can cultivate trust in your own insights and interactions. It's about finding peace with a sense of fluidity in how you communicate and express what truly matters to you. What comes up for you when you consider the role of healing in how you share your thoughts and connect with others?",
+        "session_id": "80d0db03-84a9-46dc-81b6-90a0fff10a1d",
+        "elapsed_s": 5.327208518981934
+      },
+      "evidence": {
+        "mentions_expected_point": true,
+        "mentions_expected_sign": true,
+        "mentions_expected_house": false,
+        "leak_sun_substitution": false,
+        "leak_asc_substitution": false,
+        "leak_moon_substitution": false,
+        "evidence_quotes": [
+          "\u2026gnificant aspect of growth centered around the archetype of Chiron in Pisces, located in the third house of communication and thought. This often revolves around a wound related to feeli\u2026"
+        ]
+      },
+      "chart_points": {
+        "MC": {
+          "sign": "Virgo",
+          "formatted": "28\u00b0Virgo"
+        },
+        "DC": {
+          "sign": "Gemini",
+          "formatted": "18\u00b0Gemini"
+        },
+        "IC": {
+          "sign": "Pisces",
+          "formatted": "31\u00b0Pisces"
+        },
+        "Chiron": {
+          "sign": "Pisces",
+          "house": 3,
+          "formatted": "11\u00b0Pisces"
+        }
+      }
+    },
+    {
+      "user": "Pete",
+      "user_id": "697f0c6abf35c0528ff06954",
+      "category": "Chiron",
+      "intent_key": "healing",
+      "message": "What am I here to heal?",
+      "verdict": "PASS",
+      "prompt_has_point": true,
+      "injection": {
+        "injected_points": [
+          "Midheaven / MC: 28\u00b0Virgo (Virgo)",
+          "Chiron: 11\u00b0Pisces (Pisces) House 3"
+        ],
+        "weighting_blocks": [
+          "CHIRON_FOCUS",
+          "DEVELOPMENTAL_AXIS_WEIGHTING"
+        ],
+        "triggers_seen": {
+          "MC": false,
+          "DC": false,
+          "IC": false,
+          "purpose": true,
+          "chiron": true
+        },
+        "stored_values": {
+          "MC": {
+            "sign": "Virgo",
+            "formatted": "28\u00b0Virgo"
+          },
+          "Chiron": {
+            "sign": "Pisces",
+            "house": 3,
+            "formatted": "11\u00b0Pisces"
+          },
+          "DC": {
+            "sign": "Gemini",
+            "formatted": "18\u00b0Gemini"
+          },
+          "IC": {
+            "sign": "Pisces",
+            "formatted": "31\u00b0Pisces"
+          }
+        }
+      },
+      "live": {
+        "ok": true,
+        "status": 200,
+        "response": "You've touched on something deep. In your sidereal astrology, Chiron in Pisces in House 3 speaks to a core pattern around communication, expression, and perhaps feeling misunderstood. This placement often invites you to explore how you connect with others, and how you can convey your inner world more authentically. It's about healing any wounds related to feeling unheard or disconnected in your exchanges. The journey here might revolve around finding and trusting your voice, even when it feels vulnerable. You may notice times when your thoughts and emotions feel tumultuous, hinting at deeper layers of this healing process. As you consider this, what comes up when you reflect on your communication with those closest to you?",
+        "session_id": "1981017a-24df-49d6-b69c-77822fd72a6f",
+        "elapsed_s": 6.246286392211914
+      },
+      "evidence": {
+        "mentions_expected_point": true,
+        "mentions_expected_sign": true,
+        "mentions_expected_house": true,
+        "leak_sun_substitution": false,
+        "leak_asc_substitution": false,
+        "leak_moon_substitution": false,
+        "evidence_quotes": [
+          "\u2026u've touched on something deep. In your sidereal astrology, Chiron in Pisces in House 3 speaks to a core pattern around communication, expression, and perhaps feeling misunderstood. This\u2026"
+        ]
+      },
+      "chart_points": {
+        "MC": {
+          "sign": "Virgo",
+          "formatted": "28\u00b0Virgo"
+        },
+        "DC": {
+          "sign": "Gemini",
+          "formatted": "18\u00b0Gemini"
+        },
+        "IC": {
+          "sign": "Pisces",
+          "formatted": "31\u00b0Pisces"
+        },
+        "Chiron": {
+          "sign": "Pisces",
+          "house": 3,
+          "formatted": "11\u00b0Pisces"
+        }
+      }
+    },
+    {
+      "user": "Pete",
+      "user_id": "697f0c6abf35c0528ff06954",
+      "category": "Chiron",
+      "intent_key": "repeating_life",
+      "message": "What keeps repeating in my life?",
+      "verdict": "WEAK (no overt evidence)",
+      "prompt_has_point": true,
+      "injection": {
+        "injected_points": [
+          "Midheaven / MC: 28\u00b0Virgo (Virgo)",
+          "Chiron: 11\u00b0Pisces (Pisces) House 3"
+        ],
+        "weighting_blocks": [
+          "CHIRON_FOCUS",
+          "DEVELOPMENTAL_AXIS_WEIGHTING"
+        ],
+        "triggers_seen": {
+          "MC": false,
+          "DC": false,
+          "IC": false,
+          "purpose": true,
+          "chiron": true
+        },
+        "stored_values": {
+          "MC": {
+            "sign": "Virgo",
+            "formatted": "28\u00b0Virgo"
+          },
+          "Chiron": {
+            "sign": "Pisces",
+            "house": 3,
+            "formatted": "11\u00b0Pisces"
+          },
+          "DC": {
+            "sign": "Gemini",
+            "formatted": "18\u00b0Gemini"
+          },
+          "IC": {
+            "sign": "Pisces",
+            "formatted": "31\u00b0Pisces"
+          }
+        }
+      },
+      "live": {
+        "ok": true,
+        "status": 200,
+        "response": "Your chart keeps circling the same pressure: permeability. This theme often shows up when there is a sense of navigating boundaries and the integration of feelings and ideas. Underneath this, there's the tension between precision and permeability, suggesting a dynamic where the clarity and structure you seek sometimes meet the fluid, ever-changing currents of life. One key area where this pressure accumulates is in communication and the consequences of speech. This could mean that conversations and the words you share often carry significant weight in your life, shaping your experiences and interactions. It's not just about what is spoken, but how it resonates and reverberates through your relationships and internal world. At times, there may also be a tendency to present an outward intensity, possibly to compensate for a more internalized, perhaps suppressed, aspect of yourself. This external force could act like a shield, masking a more nuanced, fluid interior landscape.",
+        "session_id": "e47997da-4ec9-41e0-bc00-88fefd42bbd3",
+        "elapsed_s": 5.376971244812012
+      },
+      "evidence": {
+        "mentions_expected_point": false,
+        "mentions_expected_sign": false,
+        "mentions_expected_house": false,
+        "leak_sun_substitution": false,
+        "leak_asc_substitution": false,
+        "leak_moon_substitution": false,
+        "evidence_quotes": []
+      },
+      "chart_points": {
+        "MC": {
+          "sign": "Virgo",
+          "formatted": "28\u00b0Virgo"
+        },
+        "DC": {
+          "sign": "Gemini",
+          "formatted": "18\u00b0Gemini"
+        },
+        "IC": {
+          "sign": "Pisces",
+          "formatted": "31\u00b0Pisces"
+        },
+        "Chiron": {
+          "sign": "Pisces",
+          "house": 3,
+          "formatted": "11\u00b0Pisces"
+        }
+      }
+    },
+    {
+      "user": "Pete",
+      "user_id": "697f0c6abf35c0528ff06954",
+      "category": "IC",
+      "intent_key": "home_meaning",
+      "message": "What does home mean to me?",
+      "verdict": "PASS",
+      "prompt_has_point": true,
+      "injection": {
+        "injected_points": [
+          "Midheaven / MC: 28\u00b0Virgo (Virgo)",
+          "Chiron: 11\u00b0Pisces (Pisces) House 3",
+          "IC / Imum Coeli: 31\u00b0Pisces (Pisces)"
+        ],
+        "weighting_blocks": [
+          "IC_WEIGHTING"
+        ],
+        "triggers_seen": {
+          "MC": false,
+          "DC": false,
+          "IC": true,
+          "purpose": false,
+          "chiron": false
+        },
+        "stored_values": {
+          "MC": {
+            "sign": "Virgo",
+            "formatted": "28\u00b0Virgo"
+          },
+          "Chiron": {
+            "sign": "Pisces",
+            "house": 3,
+            "formatted": "11\u00b0Pisces"
+          },
+          "DC": {
+            "sign": "Gemini",
+            "formatted": "18\u00b0Gemini"
+          },
+          "IC": {
+            "sign": "Pisces",
+            "formatted": "31\u00b0Pisces"
+          }
+        }
+      },
+      "live": {
+        "ok": true,
+        "status": 200,
+        "response": "You're inquiring about home, which touches on deep roots and the essence of where you come from. With your Imum Coeli (IC) in Pisces, there's often a mystical and fluid quality to how you perceive home. It could suggest a space not only of tangible belonging but also one of emotional sanctuary, a place that resonates with intuition and imagination. In this context, home might not be a fixed place but rather an emotional undercurrent, a feeling you carry with you. It often invites exploration of how your early experiences and family dynamics shape your current sense of belonging and security. As you reflect on this, consider: What sensations, memories, or emotions arise when you imagine your ideal home?",
+        "session_id": "8f3045bc-91ae-454d-9f27-5a4792435c0e",
+        "elapsed_s": 4.51564359664917
+      },
+      "evidence": {
+        "mentions_expected_point": true,
+        "mentions_expected_sign": true,
+        "mentions_expected_house": false,
+        "leak_sun_substitution": false,
+        "leak_asc_substitution": false,
+        "leak_moon_substitution": false,
+        "evidence_quotes": [
+          "\u2026You're inquiring about home, which touches on deep roots and the essence of where you come from. With your Imum Coeli (IC) in Pisces, there's often a mys\u2026",
+          "\u2026d the essence of where you come from. With your Imum Coeli (IC) in Pisces, there's often a mystical and fluid quality to how you perceive home. It could suggest a space not only of t\u2026"
+        ]
+      },
+      "chart_points": {
+        "MC": {
+          "sign": "Virgo",
+          "formatted": "28\u00b0Virgo"
+        },
+        "DC": {
+          "sign": "Gemini",
+          "formatted": "18\u00b0Gemini"
+        },
+        "IC": {
+          "sign": "Pisces",
+          "formatted": "31\u00b0Pisces"
+        },
+        "Chiron": {
+          "sign": "Pisces",
+          "house": 3,
+          "formatted": "11\u00b0Pisces"
+        }
+      }
+    },
+    {
+      "user": "Pete",
+      "user_id": "697f0c6abf35c0528ff06954",
+      "category": "IC",
+      "intent_key": "roots_pattern",
+      "message": "What patterns come from my roots?",
+      "verdict": "PASS",
+      "prompt_has_point": true,
+      "injection": {
+        "injected_points": [
+          "Midheaven / MC: 28\u00b0Virgo (Virgo)",
+          "Chiron: 11\u00b0Pisces (Pisces) House 3",
+          "IC / Imum Coeli: 31\u00b0Pisces (Pisces)"
+        ],
+        "weighting_blocks": [
+          "IC_WEIGHTING"
+        ],
+        "triggers_seen": {
+          "MC": false,
+          "DC": false,
+          "IC": true,
+          "purpose": false,
+          "chiron": false
+        },
+        "stored_values": {
+          "MC": {
+            "sign": "Virgo",
+            "formatted": "28\u00b0Virgo"
+          },
+          "Chiron": {
+            "sign": "Pisces",
+            "house": 3,
+            "formatted": "11\u00b0Pisces"
+          },
+          "DC": {
+            "sign": "Gemini",
+            "formatted": "18\u00b0Gemini"
+          },
+          "IC": {
+            "sign": "Pisces",
+            "formatted": "31\u00b0Pisces"
+          }
+        }
+      },
+      "live": {
+        "ok": true,
+        "status": 200,
+        "response": "Your curiosity goes straight to the foundation. With your IC in Pisces, there's often a depth of feeling tied to your roots. This position suggests a childhood where imagination and sensitivity played significant roles. There might be themes around seeking connection and understanding within your family dynamic, perhaps even feeling a bit misunderstood at times. The tension here could lie within a need to balance that deep emotional world with the practical realms of everyday life. The essence of Pisces is about fluidity and empathy, sometimes making boundaries a little porous. As you reflect on these roots, what memories or feelings seem most vivid to you right now?",
+        "session_id": "07ac2c95-aa8b-4ce6-bbd9-6dd442246842",
+        "elapsed_s": 3.9880659580230713
+      },
+      "evidence": {
+        "mentions_expected_point": true,
+        "mentions_expected_sign": true,
+        "mentions_expected_house": false,
+        "leak_sun_substitution": false,
+        "leak_asc_substitution": false,
+        "leak_moon_substitution": false,
+        "evidence_quotes": [
+          "\u2026Your curiosity goes straight to the foundation. With your IC in Pisces, there's often a depth of feeling tied to your roots. This position suggests a childhood where imagination an\u2026",
+          "\u2026a childhood where imagination and sensitivity played significant roles. There might be themes around seeking connection and understanding within your family dynamic, perhaps even fe\u2026"
+        ]
+      },
+      "chart_points": {
+        "MC": {
+          "sign": "Virgo",
+          "formatted": "28\u00b0Virgo"
+        },
+        "DC": {
+          "sign": "Gemini",
+          "formatted": "18\u00b0Gemini"
+        },
+        "IC": {
+          "sign": "Pisces",
+          "formatted": "31\u00b0Pisces"
+        },
+        "Chiron": {
+          "sign": "Pisces",
+          "house": 3,
+          "formatted": "11\u00b0Pisces"
+        }
+      }
+    },
+    {
+      "user": "Pete",
+      "user_id": "697f0c6abf35c0528ff06954",
+      "category": "IC",
+      "intent_key": "childhood",
+      "message": "What am I carrying from childhood?",
+      "verdict": "PASS",
+      "prompt_has_point": true,
+      "injection": {
+        "injected_points": [
+          "Midheaven / MC: 28\u00b0Virgo (Virgo)",
+          "Chiron: 11\u00b0Pisces (Pisces) House 3",
+          "IC / Imum Coeli: 31\u00b0Pisces (Pisces)"
+        ],
+        "weighting_blocks": [
+          "IC_WEIGHTING"
+        ],
+        "triggers_seen": {
+          "MC": false,
+          "DC": false,
+          "IC": true,
+          "purpose": false,
+          "chiron": false
+        },
+        "stored_values": {
+          "MC": {
+            "sign": "Virgo",
+            "formatted": "28\u00b0Virgo"
+          },
+          "Chiron": {
+            "sign": "Pisces",
+            "house": 3,
+            "formatted": "11\u00b0Pisces"
+          },
+          "DC": {
+            "sign": "Gemini",
+            "formatted": "18\u00b0Gemini"
+          },
+          "IC": {
+            "sign": "Pisces",
+            "formatted": "31\u00b0Pisces"
+          }
+        }
+      },
+      "live": {
+        "ok": true,
+        "status": 200,
+        "response": "Your IC in Pisces hints at a soft, fluid foundation in your early life. This placement often suggests a sense of dreaming or imagination interwoven with your roots. Perhaps you were sensitive, perceiving emotions like they were the air you breathed. There's a possibility of absorbing the moods and energies around you, shaping your understanding of safety and belonging. Childhood might have felt like an ocean, both vast and unpredictable. How do those early emotional tides continue to influence your sense of home or belonging today?",
+        "session_id": "0772a169-b5ee-4b04-8b2f-9927a5c326b7",
+        "elapsed_s": 4.0597734451293945
+      },
+      "evidence": {
+        "mentions_expected_point": true,
+        "mentions_expected_sign": true,
+        "mentions_expected_house": false,
+        "leak_sun_substitution": false,
+        "leak_asc_substitution": false,
+        "leak_moon_substitution": false,
+        "evidence_quotes": [
+          "\u2026Your IC in Pisces hints at a soft, fluid foundation in your early life. This placement often suggests a sense of dreaming or im\u2026",
+          "\u2026hildhood might have felt like an ocean, both vast and unpredictable. How do those early emotional tides continue to influence your sense of home or belonging today?\u2026"
+        ]
+      },
+      "chart_points": {
+        "MC": {
+          "sign": "Virgo",
+          "formatted": "28\u00b0Virgo"
+        },
+        "DC": {
+          "sign": "Gemini",
+          "formatted": "18\u00b0Gemini"
+        },
+        "IC": {
+          "sign": "Pisces",
+          "formatted": "31\u00b0Pisces"
+        },
+        "Chiron": {
+          "sign": "Pisces",
+          "house": 3,
+          "formatted": "11\u00b0Pisces"
+        }
+      }
+    },
+    {
+      "user": "Mel",
+      "user_id": "697ec826ad4b18f75bf42616",
+      "category": "MC",
+      "intent_key": "career_contribution",
+      "message": "What am I here to contribute?",
+      "verdict": "PASS",
+      "prompt_has_point": true,
+      "injection": {
+        "injected_points": [
+          "Midheaven / MC: 2\u00b0Aries (Aries)",
+          "Chiron: 1\u00b0Taurus (Taurus) House 10"
+        ],
+        "weighting_blocks": [
+          "MC_WEIGHTING"
+        ],
+        "triggers_seen": {
+          "MC": true,
+          "DC": false,
+          "IC": false,
+          "purpose": false,
+          "chiron": false
+        },
+        "stored_values": {
+          "MC": {
+            "sign": "Aries",
+            "formatted": "2\u00b0Aries"
+          },
+          "Chiron": {
+            "sign": "Taurus",
+            "house": 10,
+            "formatted": "1\u00b0Taurus"
+          },
+          "DC": {
+            "sign": "Sagittarius",
+            "formatted": "33\u00b0Sagittarius"
+          },
+          "IC": {
+            "sign": "Virgo",
+            "formatted": "41\u00b0Virgo"
+          }
+        }
+      },
+      "live": {
+        "ok": true,
+        "status": 200,
+        "response": "You're asking about your unique contribution to the world. Let's piece together some threads. With your Midheaven in Aries, there's a drive towards pioneering, leading, and breaking new ground in your public role or career. This often invites you to step into roles where you can act decisively and inspire others with your courage. Your Reflector type in Human Design suggests that your strength lies in your ability to reflect the health of your environment and provide insight into what is aligning or needs adjustment. Combined with your Gemini Sun, there's a natural curiosity and adaptability that can make you an effective communicator or connector of ideas and people. Does this invitation toward leadership and innovation resonate with you? What\u2019s one area you feel drawn to explore or develop further?",
+        "session_id": "41e6dbd9-59f5-4891-9973-cbdbcb8c4b0a",
+        "elapsed_s": 5.969022035598755
+      },
+      "evidence": {
+        "mentions_expected_point": true,
+        "mentions_expected_sign": true,
+        "mentions_expected_house": false,
+        "leak_sun_substitution": false,
+        "leak_asc_substitution": false,
+        "leak_moon_substitution": false,
+        "evidence_quotes": [
+          "\u2026to the world. Let's piece together some threads. With your Midheaven in Aries, there's a drive towards pioneering, leading, and breaking new ground in your public role or career. This ofte\u2026"
+        ]
+      },
+      "chart_points": {
+        "MC": {
+          "sign": "Aries",
+          "formatted": "2\u00b0Aries"
+        },
+        "DC": {
+          "sign": "Sagittarius",
+          "formatted": "33\u00b0Sagittarius"
+        },
+        "IC": {
+          "sign": "Virgo",
+          "formatted": "41\u00b0Virgo"
+        },
+        "Chiron": {
+          "sign": "Taurus",
+          "house": 10,
+          "formatted": "1\u00b0Taurus"
+        }
+      }
+    },
+    {
+      "user": "Mel",
+      "user_id": "697ec826ad4b18f75bf42616",
+      "category": "MC",
+      "intent_key": "public_role",
+      "message": "What is my public role?",
+      "verdict": "PASS",
+      "prompt_has_point": true,
+      "injection": {
+        "injected_points": [
+          "Midheaven / MC: 2\u00b0Aries (Aries)",
+          "Chiron: 1\u00b0Taurus (Taurus) House 10"
+        ],
+        "weighting_blocks": [
+          "MC_WEIGHTING"
+        ],
+        "triggers_seen": {
+          "MC": true,
+          "DC": false,
+          "IC": false,
+          "purpose": false,
+          "chiron": false
+        },
+        "stored_values": {
+          "MC": {
+            "sign": "Aries",
+            "formatted": "2\u00b0Aries"
+          },
+          "Chiron": {
+            "sign": "Taurus",
+            "house": 10,
+            "formatted": "1\u00b0Taurus"
+          },
+          "DC": {
+            "sign": "Sagittarius",
+            "formatted": "33\u00b0Sagittarius"
+          },
+          "IC": {
+            "sign": "Virgo",
+            "formatted": "41\u00b0Virgo"
+          }
+        }
+      },
+      "live": {
+        "ok": true,
+        "status": 200,
+        "response": "Your Midheaven in Aries suggests a public role that often involves leadership, initiative, and pioneering energy. There can be a quality of forging new paths and taking bold steps in your career or public life. This placement tends to highlight a natural inclination for being at the forefront, whether in a professional setting or within a broader community. In the context of your role, there might be a pattern of embracing challenges and taking decisive action. Others may look to you for courage and leadership, expecting you to set an example or lead the charge. Reflect on how these themes play out in your life. Are there moments where you feel particularly drawn to stepping into a leadership position or starting something new? How do these align with what you currently envision for your public persona?",
+        "session_id": "7eb8176f-8189-43f5-9049-87b37fb4cc83",
+        "elapsed_s": 4.850376129150391
+      },
+      "evidence": {
+        "mentions_expected_point": true,
+        "mentions_expected_sign": true,
+        "mentions_expected_house": false,
+        "leak_sun_substitution": false,
+        "leak_asc_substitution": false,
+        "leak_moon_substitution": false,
+        "evidence_quotes": [
+          "\u2026Your Midheaven in Aries suggests a public role that often involves leadership, initiative, and pioneering energy. There can be a quali\u2026"
+        ]
+      },
+      "chart_points": {
+        "MC": {
+          "sign": "Aries",
+          "formatted": "2\u00b0Aries"
+        },
+        "DC": {
+          "sign": "Sagittarius",
+          "formatted": "33\u00b0Sagittarius"
+        },
+        "IC": {
+          "sign": "Virgo",
+          "formatted": "41\u00b0Virgo"
+        },
+        "Chiron": {
+          "sign": "Taurus",
+          "house": 10,
+          "formatted": "1\u00b0Taurus"
+        }
+      }
+    },
+    {
+      "user": "Mel",
+      "user_id": "697ec826ad4b18f75bf42616",
+      "category": "MC",
+      "intent_key": "leadership_style",
+      "message": "What is my leadership style?",
+      "verdict": "PASS",
+      "prompt_has_point": true,
+      "injection": {
+        "injected_points": [
+          "Midheaven / MC: 2\u00b0Aries (Aries)",
+          "Chiron: 1\u00b0Taurus (Taurus) House 10"
+        ],
+        "weighting_blocks": [
+          "MC_WEIGHTING"
+        ],
+        "triggers_seen": {
+          "MC": true,
+          "DC": false,
+          "IC": false,
+          "purpose": false,
+          "chiron": false
+        },
+        "stored_values": {
+          "MC": {
+            "sign": "Aries",
+            "formatted": "2\u00b0Aries"
+          },
+          "Chiron": {
+            "sign": "Taurus",
+            "house": 10,
+            "formatted": "1\u00b0Taurus"
+          },
+          "DC": {
+            "sign": "Sagittarius",
+            "formatted": "33\u00b0Sagittarius"
+          },
+          "IC": {
+            "sign": "Virgo",
+            "formatted": "41\u00b0Virgo"
+          }
+        }
+      },
+      "live": {
+        "ok": true,
+        "status": 200,
+        "response": "You're exploring this from the angle of your Midheaven in Aries. Aries brings a certain boldness and pioneering energy to your leadership style. It's about initiating and taking charge, often leading with a sense of decisiveness and courage. In your leadership, there might be a natural inclination to forge new paths and push boundaries. This can inspire those around you to rally behind a shared vision, but it can also require careful balancing to ensure inclusivity and collaboration. How do you feel this pioneering energy surfaces in your leadership experiences?",
+        "session_id": "e25c3278-5de0-4809-afb4-dbdb347fae62",
+        "elapsed_s": 4.04341459274292
+      },
+      "evidence": {
+        "mentions_expected_point": true,
+        "mentions_expected_sign": true,
+        "mentions_expected_house": false,
+        "leak_sun_substitution": false,
+        "leak_asc_substitution": false,
+        "leak_moon_substitution": false,
+        "evidence_quotes": [
+          "\u2026You're exploring this from the angle of your Midheaven in Aries. Aries brings a certain boldness and pioneering energy to your leadership style. It's about initiating and tak\u2026"
+        ]
+      },
+      "chart_points": {
+        "MC": {
+          "sign": "Aries",
+          "formatted": "2\u00b0Aries"
+        },
+        "DC": {
+          "sign": "Sagittarius",
+          "formatted": "33\u00b0Sagittarius"
+        },
+        "IC": {
+          "sign": "Virgo",
+          "formatted": "41\u00b0Virgo"
+        },
+        "Chiron": {
+          "sign": "Taurus",
+          "house": 10,
+          "formatted": "1\u00b0Taurus"
+        }
+      }
+    },
+    {
+      "user": "Mel",
+      "user_id": "697ec826ad4b18f75bf42616",
+      "category": "MC",
+      "intent_key": "becoming",
+      "message": "What am I becoming?",
+      "verdict": "PASS",
+      "prompt_has_point": true,
+      "injection": {
+        "injected_points": [
+          "Midheaven / MC: 2\u00b0Aries (Aries)",
+          "Chiron: 1\u00b0Taurus (Taurus) House 10"
+        ],
+        "weighting_blocks": [
+          "MC_WEIGHTING"
+        ],
+        "triggers_seen": {
+          "MC": true,
+          "DC": false,
+          "IC": false,
+          "purpose": false,
+          "chiron": false
+        },
+        "stored_values": {
+          "MC": {
+            "sign": "Aries",
+            "formatted": "2\u00b0Aries"
+          },
+          "Chiron": {
+            "sign": "Taurus",
+            "house": 10,
+            "formatted": "1\u00b0Taurus"
+          },
+          "DC": {
+            "sign": "Sagittarius",
+            "formatted": "33\u00b0Sagittarius"
+          },
+          "IC": {
+            "sign": "Virgo",
+            "formatted": "41\u00b0Virgo"
+          }
+        }
+      },
+      "live": {
+        "ok": true,
+        "status": 200,
+        "response": "You're reflecting on what you're growing into, and there's a quality of curiosity in that question. Your Midheaven in Aries suggests that your path may involve pioneering new directions, embracing leadership, or pursuing ways to assert your individuality in the public sphere. There's often an invitation to navigate boldness and initiative with balance, crafting a role that feels authentically yours. Think about what leadership or creativity looks like for you. Are there aspects of your public or vocational life that feel ready for growth or reinvention? What possibilities are you open to exploring in your journey?",
+        "session_id": "1cab16c7-dd94-42c4-9e9f-00e2b097a2ae",
+        "elapsed_s": 4.768205642700195
+      },
+      "evidence": {
+        "mentions_expected_point": true,
+        "mentions_expected_sign": true,
+        "mentions_expected_house": false,
+        "leak_sun_substitution": false,
+        "leak_asc_substitution": false,
+        "leak_moon_substitution": false,
+        "evidence_quotes": [
+          "\u2026, and there's a quality of curiosity in that question. Your Midheaven in Aries suggests that your path may involve pioneering new directions, embracing leadership, or pursuing ways to asser\u2026"
+        ]
+      },
+      "chart_points": {
+        "MC": {
+          "sign": "Aries",
+          "formatted": "2\u00b0Aries"
+        },
+        "DC": {
+          "sign": "Sagittarius",
+          "formatted": "33\u00b0Sagittarius"
+        },
+        "IC": {
+          "sign": "Virgo",
+          "formatted": "41\u00b0Virgo"
+        },
+        "Chiron": {
+          "sign": "Taurus",
+          "house": 10,
+          "formatted": "1\u00b0Taurus"
+        }
+      }
+    },
+    {
+      "user": "Mel",
+      "user_id": "697ec826ad4b18f75bf42616",
+      "category": "DC",
+      "intent_key": "partnership_seek",
+      "message": "What do I seek in partnership?",
+      "verdict": "PASS",
+      "prompt_has_point": true,
+      "injection": {
+        "injected_points": [
+          "Midheaven / MC: 2\u00b0Aries (Aries)",
+          "Chiron: 1\u00b0Taurus (Taurus) House 10",
+          "Descendant / DC: 33\u00b0Sagittarius (Sagittarius)"
+        ],
+        "weighting_blocks": [
+          "DC_WEIGHTING"
+        ],
+        "triggers_seen": {
+          "MC": false,
+          "DC": true,
+          "IC": false,
+          "purpose": false,
+          "chiron": false
+        },
+        "stored_values": {
+          "MC": {
+            "sign": "Aries",
+            "formatted": "2\u00b0Aries"
+          },
+          "Chiron": {
+            "sign": "Taurus",
+            "house": 10,
+            "formatted": "1\u00b0Taurus"
+          },
+          "DC": {
+            "sign": "Sagittarius",
+            "formatted": "33\u00b0Sagittarius"
+          },
+          "IC": {
+            "sign": "Virgo",
+            "formatted": "41\u00b0Virgo"
+          }
+        }
+      },
+      "live": {
+        "ok": true,
+        "status": 200,
+        "response": "In partnership, there's something about exploring freedom and adventure that resonates with you. You might find yourself drawn to relationships that encourage growth and learning, spaces where both you and your partner can expand and explore new ideas together. This often involves a need for a certain level of independence within the relationship, where each partner's individuality is respected and even celebrated. Additionally, there's a tendency to value honest communication and mutual understanding. The exchange of ideas might play a significant role, highlighting the importance of intellectual connection. These qualities invite partnerships where both parties can challenge and inspire each other. Why this shows up involves several influences: your Descendant sign is Sagittarius, suggesting a draw toward partners offering growth and exploration. With Jupiter ruling your 7th House, and positioned in Virgo, you might look for qualities like reliability and thoughtfulness in how your partner engages with the world.",
+        "session_id": "b29d0fd9-53ff-4fcd-82af-539f67985e6b",
+        "elapsed_s": 6.188225507736206
+      },
+      "evidence": {
+        "mentions_expected_point": true,
+        "mentions_expected_sign": true,
+        "mentions_expected_house": false,
+        "leak_sun_substitution": false,
+        "leak_asc_substitution": false,
+        "leak_moon_substitution": false,
+        "evidence_quotes": [
+          "\u2026other. Why this shows up involves several influences: your Descendant sign is Sagittarius, suggesting a draw toward partners offering growth and exploration. With Jupiter ruling your 7th Ho\u2026",
+          "\u2026s offering growth and exploration. With Jupiter ruling your 7th House, and positioned in Virgo, you might look for qualities like reliability and thoughtfulness in how your partner engages\u2026"
+        ]
+      },
+      "chart_points": {
+        "MC": {
+          "sign": "Aries",
+          "formatted": "2\u00b0Aries"
+        },
+        "DC": {
+          "sign": "Sagittarius",
+          "formatted": "33\u00b0Sagittarius"
+        },
+        "IC": {
+          "sign": "Virgo",
+          "formatted": "41\u00b0Virgo"
+        },
+        "Chiron": {
+          "sign": "Taurus",
+          "house": 10,
+          "formatted": "1\u00b0Taurus"
+        }
+      }
+    },
+    {
+      "user": "Mel",
+      "user_id": "697ec826ad4b18f75bf42616",
+      "category": "DC",
+      "intent_key": "relationship_pattern",
+      "message": "What relationship pattern keeps repeating?",
+      "verdict": "PASS",
+      "prompt_has_point": true,
+      "injection": {
+        "injected_points": [
+          "Midheaven / MC: 2\u00b0Aries (Aries)",
+          "Chiron: 1\u00b0Taurus (Taurus) House 10",
+          "Descendant / DC: 33\u00b0Sagittarius (Sagittarius)"
+        ],
+        "weighting_blocks": [
+          "CHIRON_FOCUS",
+          "DC_WEIGHTING",
+          "DEVELOPMENTAL_AXIS_WEIGHTING"
+        ],
+        "triggers_seen": {
+          "MC": false,
+          "DC": true,
+          "IC": false,
+          "purpose": true,
+          "chiron": true
+        },
+        "stored_values": {
+          "MC": {
+            "sign": "Aries",
+            "formatted": "2\u00b0Aries"
+          },
+          "Chiron": {
+            "sign": "Taurus",
+            "house": 10,
+            "formatted": "1\u00b0Taurus"
+          },
+          "DC": {
+            "sign": "Sagittarius",
+            "formatted": "33\u00b0Sagittarius"
+          },
+          "IC": {
+            "sign": "Virgo",
+            "formatted": "41\u00b0Virgo"
+          }
+        }
+      },
+      "live": {
+        "ok": true,
+        "status": 200,
+        "response": "In your relationship dynamics, there's an invitation to explore adventure and growth with partners. This often means you're drawn to relationships that spark a sense of exploration and learning. There's a tendency to seek partners who embody a sense of freedom or who challenge you to expand your worldview. This shows up because your partnership architecture is influenced by Sagittarius. This means there's often a pursuit of greater understanding or experiences through relationships. With Jupiter, your 7th house ruler, in Virgo, there's also a focus on refining these partnerships, making them more practical and grounded. Another layer to this is your Venus in Leo, which adds a desire for passion and creativity within these partnerships. There's a magnetic energy present, drawing in relationships that can enliven your sense of self while also pushing for that deeper adventure.",
+        "session_id": "005b9232-095c-407c-aff1-20bbc3bf44fc",
+        "elapsed_s": 5.8966224193573
+      },
+      "evidence": {
+        "mentions_expected_point": true,
+        "mentions_expected_sign": true,
+        "mentions_expected_house": false,
+        "leak_sun_substitution": false,
+        "leak_asc_substitution": false,
+        "leak_moon_substitution": false,
+        "evidence_quotes": [
+          "\u2026ng or experiences through relationships. With Jupiter, your 7th house ruler, in Virgo, there's also a focus on refining these partnerships, making them more practical and grounded. Another\u2026"
+        ]
+      },
+      "chart_points": {
+        "MC": {
+          "sign": "Aries",
+          "formatted": "2\u00b0Aries"
+        },
+        "DC": {
+          "sign": "Sagittarius",
+          "formatted": "33\u00b0Sagittarius"
+        },
+        "IC": {
+          "sign": "Virgo",
+          "formatted": "41\u00b0Virgo"
+        },
+        "Chiron": {
+          "sign": "Taurus",
+          "house": 10,
+          "formatted": "1\u00b0Taurus"
+        }
+      }
+    },
+    {
+      "user": "Mel",
+      "user_id": "697ec826ad4b18f75bf42616",
+      "category": "Chiron",
+      "intent_key": "wound",
+      "message": "What wound am I working through?",
+      "verdict": "PASS",
+      "prompt_has_point": true,
+      "injection": {
+        "injected_points": [
+          "Midheaven / MC: 2\u00b0Aries (Aries)",
+          "Chiron: 1\u00b0Taurus (Taurus) House 10"
+        ],
+        "weighting_blocks": [
+          "CHIRON_FOCUS",
+          "DEVELOPMENTAL_AXIS_WEIGHTING"
+        ],
+        "triggers_seen": {
+          "MC": false,
+          "DC": false,
+          "IC": false,
+          "purpose": true,
+          "chiron": true
+        },
+        "stored_values": {
+          "MC": {
+            "sign": "Aries",
+            "formatted": "2\u00b0Aries"
+          },
+          "Chiron": {
+            "sign": "Taurus",
+            "house": 10,
+            "formatted": "1\u00b0Taurus"
+          },
+          "DC": {
+            "sign": "Sagittarius",
+            "formatted": "33\u00b0Sagittarius"
+          },
+          "IC": {
+            "sign": "Virgo",
+            "formatted": "41\u00b0Virgo"
+          }
+        }
+      },
+      "live": {
+        "ok": true,
+        "status": 200,
+        "response": "Looking at your astrology profile, your Chiron is in Taurus, located in the 10th house. This points to a theme of healing and growth around self-worth and stability, particularly in terms of your public life or career. You may find that there are times when you're confronted with feelings of insecurity about your contributions or value in the world. When these themes arise, it can be an opportunity to redefine what stability and success mean to you, moving beyond external validation toward a deeper internal sense of value. The invitation here isn't to \"fix\" yourself but to nurture a relationship with your own sense of worth that consistently supports you. As you navigate this journey, how do you currently perceive your value in the roles you play publicly or in your professional life?",
+        "session_id": "7e96a263-c455-4c2b-a715-6af49abcf017",
+        "elapsed_s": 5.229961395263672
+      },
+      "evidence": {
+        "mentions_expected_point": true,
+        "mentions_expected_sign": true,
+        "mentions_expected_house": true,
+        "leak_sun_substitution": false,
+        "leak_asc_substitution": false,
+        "leak_moon_substitution": false,
+        "evidence_quotes": [
+          "\u2026Looking at your astrology profile, your Chiron is in Taurus, located in the 10th house. This points to a theme of healing and growth around self-worth and stability,\u2026"
+        ]
+      },
+      "chart_points": {
+        "MC": {
+          "sign": "Aries",
+          "formatted": "2\u00b0Aries"
+        },
+        "DC": {
+          "sign": "Sagittarius",
+          "formatted": "33\u00b0Sagittarius"
+        },
+        "IC": {
+          "sign": "Virgo",
+          "formatted": "41\u00b0Virgo"
+        },
+        "Chiron": {
+          "sign": "Taurus",
+          "house": 10,
+          "formatted": "1\u00b0Taurus"
+        }
+      }
+    },
+    {
+      "user": "Mel",
+      "user_id": "697ec826ad4b18f75bf42616",
+      "category": "Chiron",
+      "intent_key": "healing",
+      "message": "What am I here to heal?",
+      "verdict": "PASS",
+      "prompt_has_point": true,
+      "injection": {
+        "injected_points": [
+          "Midheaven / MC: 2\u00b0Aries (Aries)",
+          "Chiron: 1\u00b0Taurus (Taurus) House 10"
+        ],
+        "weighting_blocks": [
+          "CHIRON_FOCUS",
+          "DEVELOPMENTAL_AXIS_WEIGHTING"
+        ],
+        "triggers_seen": {
+          "MC": false,
+          "DC": false,
+          "IC": false,
+          "purpose": true,
+          "chiron": true
+        },
+        "stored_values": {
+          "MC": {
+            "sign": "Aries",
+            "formatted": "2\u00b0Aries"
+          },
+          "Chiron": {
+            "sign": "Taurus",
+            "house": 10,
+            "formatted": "1\u00b0Taurus"
+          },
+          "DC": {
+            "sign": "Sagittarius",
+            "formatted": "33\u00b0Sagittarius"
+          },
+          "IC": {
+            "sign": "Virgo",
+            "formatted": "41\u00b0Virgo"
+          }
+        }
+      },
+      "live": {
+        "ok": true,
+        "status": 200,
+        "response": "You're touching on a deep question. In the realm of astrology, your Chiron in Taurus in the 10th House is a significant place to start when considering patterns of healing and growth. This setup often speaks to wounds around self-worth, resources, or the tangible world, and how these might intersect with your public life or career. It suggests themes around feeling valued for what you contribute and recognizing your inherent worth beyond material success or external validation. This placement invites you to explore where you might have felt unappreciated or where stability feels elusive. The healing journey here is about grounding yourself in your own value, independent of outer achievements. Reflect on how you define your worth and how that impacts your sense of accomplishment. What would change if you saw your value as inherent and not tied to what you produce or how others perceive you?",
+        "session_id": "d1937023-7082-4fe7-bbd3-55dc235b144c",
+        "elapsed_s": 6.497217655181885
+      },
+      "evidence": {
+        "mentions_expected_point": true,
+        "mentions_expected_sign": true,
+        "mentions_expected_house": true,
+        "leak_sun_substitution": false,
+        "leak_asc_substitution": false,
+        "leak_moon_substitution": false,
+        "evidence_quotes": [
+          "\u2026ouching on a deep question. In the realm of astrology, your Chiron in Taurus in the 10th House is a significant place to start when considering patterns of healing and growth. This setup\u2026"
+        ]
+      },
+      "chart_points": {
+        "MC": {
+          "sign": "Aries",
+          "formatted": "2\u00b0Aries"
+        },
+        "DC": {
+          "sign": "Sagittarius",
+          "formatted": "33\u00b0Sagittarius"
+        },
+        "IC": {
+          "sign": "Virgo",
+          "formatted": "41\u00b0Virgo"
+        },
+        "Chiron": {
+          "sign": "Taurus",
+          "house": 10,
+          "formatted": "1\u00b0Taurus"
+        }
+      }
+    },
+    {
+      "user": "Mel",
+      "user_id": "697ec826ad4b18f75bf42616",
+      "category": "Chiron",
+      "intent_key": "repeating_life",
+      "message": "What keeps repeating in my life?",
+      "verdict": "WEAK (no overt evidence)",
+      "prompt_has_point": true,
+      "injection": {
+        "injected_points": [
+          "Midheaven / MC: 2\u00b0Aries (Aries)",
+          "Chiron: 1\u00b0Taurus (Taurus) House 10"
+        ],
+        "weighting_blocks": [
+          "CHIRON_FOCUS",
+          "DEVELOPMENTAL_AXIS_WEIGHTING"
+        ],
+        "triggers_seen": {
+          "MC": false,
+          "DC": false,
+          "IC": false,
+          "purpose": true,
+          "chiron": true
+        },
+        "stored_values": {
+          "MC": {
+            "sign": "Aries",
+            "formatted": "2\u00b0Aries"
+          },
+          "Chiron": {
+            "sign": "Taurus",
+            "house": 10,
+            "formatted": "1\u00b0Taurus"
+          },
+          "DC": {
+            "sign": "Sagittarius",
+            "formatted": "33\u00b0Sagittarius"
+          },
+          "IC": {
+            "sign": "Virgo",
+            "formatted": "41\u00b0Virgo"
+          }
+        }
+      },
+      "live": {
+        "ok": true,
+        "status": 200,
+        "response": "Your chart keeps circling the same pressure: precision and standards. This core theme pervades your experiences, often pulling you into scenarios where clarity and meticulousness become both a challenge and a solution. You may notice how your interactions and choices are influenced by a need for flawlessness or exactitude, presenting both opportunities for excellence and moments of frustration. The primary tension in your life is organized around intensity\u2014specifically, the control over what is shown to others. There's a push and pull between revealing and concealing, creating a careful dance of authentic expression while managing how much of yourself you allow to be seen. This control may lead you to engage in overstriving for perfection in communications and the consequences of your words, which is where pressure tends to accumulate. This field of precision threads through your communications, encouraging you to voice your thoughts clearly but also guarding against misunderstandings and misinterpretations. It's a space where your drive for high standards can significantly shape your contributions to others, but might also create tension in how you perceive the need to manage these expressions.",
+        "session_id": "0c0745b0-3833-4229-b804-95dd3c049ca4",
+        "elapsed_s": 11.689265012741089
+      },
+      "evidence": {
+        "mentions_expected_point": false,
+        "mentions_expected_sign": false,
+        "mentions_expected_house": false,
+        "leak_sun_substitution": false,
+        "leak_asc_substitution": false,
+        "leak_moon_substitution": false,
+        "evidence_quotes": []
+      },
+      "chart_points": {
+        "MC": {
+          "sign": "Aries",
+          "formatted": "2\u00b0Aries"
+        },
+        "DC": {
+          "sign": "Sagittarius",
+          "formatted": "33\u00b0Sagittarius"
+        },
+        "IC": {
+          "sign": "Virgo",
+          "formatted": "41\u00b0Virgo"
+        },
+        "Chiron": {
+          "sign": "Taurus",
+          "house": 10,
+          "formatted": "1\u00b0Taurus"
+        }
+      }
+    },
+    {
+      "user": "Mel",
+      "user_id": "697ec826ad4b18f75bf42616",
+      "category": "IC",
+      "intent_key": "home_meaning",
+      "message": "What does home mean to me?",
+      "verdict": "PASS",
+      "prompt_has_point": true,
+      "injection": {
+        "injected_points": [
+          "Midheaven / MC: 2\u00b0Aries (Aries)",
+          "Chiron: 1\u00b0Taurus (Taurus) House 10",
+          "IC / Imum Coeli: 41\u00b0Virgo (Virgo)"
+        ],
+        "weighting_blocks": [
+          "IC_WEIGHTING"
+        ],
+        "triggers_seen": {
+          "MC": false,
+          "DC": false,
+          "IC": true,
+          "purpose": false,
+          "chiron": false
+        },
+        "stored_values": {
+          "MC": {
+            "sign": "Aries",
+            "formatted": "2\u00b0Aries"
+          },
+          "Chiron": {
+            "sign": "Taurus",
+            "house": 10,
+            "formatted": "1\u00b0Taurus"
+          },
+          "DC": {
+            "sign": "Sagittarius",
+            "formatted": "33\u00b0Sagittarius"
+          },
+          "IC": {
+            "sign": "Virgo",
+            "formatted": "41\u00b0Virgo"
+          }
+        }
+      },
+      "live": {
+        "ok": true,
+        "status": 200,
+        "response": "Home can carry many layers of meaning, and it often shifts over time. Your IC in Virgo might suggest that you find comfort in spaces that offer order, practicality, and a sense of functionality. There could be a desire for your environment to reflect aspects of efficiency and care. With Uranus in your fourth house, there might also be a part of you that craves freedom within the home space, perhaps seeking change or innovation in how you define or create this sense of belonging. This duality suggests an interesting tension between wanting stability and seeking novelty. Where do you notice your idea of home evolving the most?",
+        "session_id": "a0344e12-5567-4809-9408-c538d5c4b3c2",
+        "elapsed_s": 5.099005937576294
+      },
+      "evidence": {
+        "mentions_expected_point": true,
+        "mentions_expected_sign": true,
+        "mentions_expected_house": false,
+        "leak_sun_substitution": false,
+        "leak_asc_substitution": false,
+        "leak_moon_substitution": false,
+        "evidence_quotes": [
+          "\u2026many layers of meaning, and it often shifts over time. Your IC in Virgo might suggest that you find comfort in spaces that offer order, practicality, and a sense of functionality. Th\u2026",
+          "\u2026gest that you find comfort in spaces that offer order, practicality, and a sense of functionality. There could be a desire for your environment to reflect aspects of efficiency and c\u2026"
+        ]
+      },
+      "chart_points": {
+        "MC": {
+          "sign": "Aries",
+          "formatted": "2\u00b0Aries"
+        },
+        "DC": {
+          "sign": "Sagittarius",
+          "formatted": "33\u00b0Sagittarius"
+        },
+        "IC": {
+          "sign": "Virgo",
+          "formatted": "41\u00b0Virgo"
+        },
+        "Chiron": {
+          "sign": "Taurus",
+          "house": 10,
+          "formatted": "1\u00b0Taurus"
+        }
+      }
+    },
+    {
+      "user": "Mel",
+      "user_id": "697ec826ad4b18f75bf42616",
+      "category": "IC",
+      "intent_key": "roots_pattern",
+      "message": "What patterns come from my roots?",
+      "verdict": "PASS",
+      "prompt_has_point": true,
+      "injection": {
+        "injected_points": [
+          "Midheaven / MC: 2\u00b0Aries (Aries)",
+          "Chiron: 1\u00b0Taurus (Taurus) House 10",
+          "IC / Imum Coeli: 41\u00b0Virgo (Virgo)"
+        ],
+        "weighting_blocks": [
+          "IC_WEIGHTING"
+        ],
+        "triggers_seen": {
+          "MC": false,
+          "DC": false,
+          "IC": true,
+          "purpose": false,
+          "chiron": false
+        },
+        "stored_values": {
+          "MC": {
+            "sign": "Aries",
+            "formatted": "2\u00b0Aries"
+          },
+          "Chiron": {
+            "sign": "Taurus",
+            "house": 10,
+            "formatted": "1\u00b0Taurus"
+          },
+          "DC": {
+            "sign": "Sagittarius",
+            "formatted": "33\u00b0Sagittarius"
+          },
+          "IC": {
+            "sign": "Virgo",
+            "formatted": "41\u00b0Virgo"
+          }
+        }
+      },
+      "live": {
+        "ok": true,
+        "status": 200,
+        "response": "Your curiosity about roots and family suggests a desire to understand foundational influences in your life. With your IC in Virgo, there's often a theme of seeking order and clarity from those early formative experiences. This may manifest as a need for precision or a grounded approach to life's nuances, perhaps inherited from your upbringing. This Virgo influence might bring a focus on details, a desire for routines, or a connection to nature and healing. It's not that this defines you, but rather it offers a backdrop against which other patterns in your life play out. In considering your roots, what memories or traits stand out as shaping who you feel you are today?",
+        "session_id": "f6f19107-6b6a-44ac-bab7-d76d1eae6013",
+        "elapsed_s": 5.775157451629639
+      },
+      "evidence": {
+        "mentions_expected_point": true,
+        "mentions_expected_sign": true,
+        "mentions_expected_house": false,
+        "leak_sun_substitution": false,
+        "leak_asc_substitution": false,
+        "leak_moon_substitution": false,
+        "evidence_quotes": [
+          "\u2026understand foundational influences in your life. With your IC in Virgo, there's often a theme of seeking order and clarity from those early formative experiences. This may manifest\u2026",
+          "\u2026this defines you, but rather it offers a backdrop against which other patterns in your life play out. In considering your roots, what memories or traits stand out as shaping who you\u2026"
+        ]
+      },
+      "chart_points": {
+        "MC": {
+          "sign": "Aries",
+          "formatted": "2\u00b0Aries"
+        },
+        "DC": {
+          "sign": "Sagittarius",
+          "formatted": "33\u00b0Sagittarius"
+        },
+        "IC": {
+          "sign": "Virgo",
+          "formatted": "41\u00b0Virgo"
+        },
+        "Chiron": {
+          "sign": "Taurus",
+          "house": 10,
+          "formatted": "1\u00b0Taurus"
+        }
+      }
+    },
+    {
+      "user": "Mel",
+      "user_id": "697ec826ad4b18f75bf42616",
+      "category": "IC",
+      "intent_key": "childhood",
+      "message": "What am I carrying from childhood?",
+      "verdict": "PASS",
+      "prompt_has_point": true,
+      "injection": {
+        "injected_points": [
+          "Midheaven / MC: 2\u00b0Aries (Aries)",
+          "Chiron: 1\u00b0Taurus (Taurus) House 10",
+          "IC / Imum Coeli: 41\u00b0Virgo (Virgo)"
+        ],
+        "weighting_blocks": [
+          "IC_WEIGHTING"
+        ],
+        "triggers_seen": {
+          "MC": false,
+          "DC": false,
+          "IC": true,
+          "purpose": false,
+          "chiron": false
+        },
+        "stored_values": {
+          "MC": {
+            "sign": "Aries",
+            "formatted": "2\u00b0Aries"
+          },
+          "Chiron": {
+            "sign": "Taurus",
+            "house": 10,
+            "formatted": "1\u00b0Taurus"
+          },
+          "DC": {
+            "sign": "Sagittarius",
+            "formatted": "33\u00b0Sagittarius"
+          },
+          "IC": {
+            "sign": "Virgo",
+            "formatted": "41\u00b0Virgo"
+          }
+        }
+      },
+      "live": {
+        "ok": true,
+        "status": 200,
+        "response": "When you reflect on what shapes you from childhood, your IC in Virgo offers an interesting lens. This can sometimes reflect early experiences that called for attention to detail, cultivating order, or instilling a sense of duty and service. Patterns might emerge in your adult life where you feel drawn to create precision or structure, possibly in response to the foundational environment you grew up in. It's like you might carry with you a quiet vigilance, watching for what needs fixing or improving. How do you see this playing out in your current life? Are there specific patterns that you trace back to your childhood experiences?",
+        "session_id": "5b7ee69c-59a5-4822-9765-cf428c161283",
+        "elapsed_s": 4.771698474884033
+      },
+      "evidence": {
+        "mentions_expected_point": true,
+        "mentions_expected_sign": true,
+        "mentions_expected_house": false,
+        "leak_sun_substitution": false,
+        "leak_asc_substitution": false,
+        "leak_moon_substitution": false,
+        "evidence_quotes": [
+          "\u2026When you reflect on what shapes you from childhood, your IC in Virgo offers an interesting lens. This can sometimes reflect early experiences that called for attention to detail,\u2026",
+          "\u2026l, cultivating order, or instilling a sense of duty and service. Patterns might emerge in your adult life where you feel drawn to create precision or structure, possibly in response\u2026"
+        ]
+      },
+      "chart_points": {
+        "MC": {
+          "sign": "Aries",
+          "formatted": "2\u00b0Aries"
+        },
+        "DC": {
+          "sign": "Sagittarius",
+          "formatted": "33\u00b0Sagittarius"
+        },
+        "IC": {
+          "sign": "Virgo",
+          "formatted": "41\u00b0Virgo"
+        },
+        "Chiron": {
+          "sign": "Taurus",
+          "house": 10,
+          "formatted": "1\u00b0Taurus"
+        }
+      }
+    },
+    {
+      "user": "Isaac",
+      "user_id": "69dda348de9cb1c83c0780f8",
+      "category": "MC",
+      "intent_key": "career_contribution",
+      "message": "What am I here to contribute?",
+      "verdict": "PASS",
+      "prompt_has_point": true,
+      "injection": {
+        "injected_points": [
+          "Midheaven / MC: 2\u00b0Ophiuchus (Ophiuchus)",
+          "Chiron: 11\u00b0Aquarius (Aquarius) House 12"
+        ],
+        "weighting_blocks": [
+          "MC_WEIGHTING"
+        ],
+        "triggers_seen": {
+          "MC": true,
+          "DC": false,
+          "IC": false,
+          "purpose": false,
+          "chiron": false
+        },
+        "stored_values": {
+          "MC": {
+            "sign": "Ophiuchus",
+            "formatted": "2\u00b0Ophiuchus"
+          },
+          "Chiron": {
+            "sign": "Aquarius",
+            "house": 12,
+            "formatted": "11\u00b0Aquarius"
+          },
+          "DC": {
+            "sign": "Leo",
+            "formatted": "30\u00b0Leo"
+          },
+          "IC": {
+            "sign": "Taurus",
+            "formatted": "26\u00b0Taurus"
+          }
+        }
+      },
+      "live": {
+        "ok": true,
+        "status": 200,
+        "response": "You're searching for meaning in your contribution. Let's look through the lens of your astrological chart, specifically your Midheaven, which offers insights into vocational identity and public roles. With your Midheaven in Ophiuchus, there's a natural pull to explore and integrate diverse perspectives. This placement often invites the blending of disciplines, a healing touch, or a need to bring forward deeper, often hidden knowledge. It suggests a vocation where transformation and the merging of different elements are key. Exploring this further might reveal areas where you can channel your curiosity and intuitive understanding to offer something unique. Reflect on what aspects of integration and transformation resonate with you. Where do you feel drawn to merge ideas or introduce new ways of thinking?",
+        "session_id": "67c270c7-e5fa-4ca7-aeff-580443206727",
+        "elapsed_s": 5.076038360595703
+      },
+      "evidence": {
+        "mentions_expected_point": true,
+        "mentions_expected_sign": true,
+        "mentions_expected_house": false,
+        "leak_sun_substitution": false,
+        "leak_asc_substitution": false,
+        "leak_moon_substitution": false,
+        "evidence_quotes": [
+          "\u2026ough the lens of your astrological chart, specifically your Midheaven, which offers insights into vocational identity and public roles. With your Midheaven in Ophiuchus, there's a natural p\u2026",
+          "\u2026sights into vocational identity and public roles. With your Midheaven in Ophiuchus, there's a natural pull to explore and integrate diverse perspectives. This placement often invites the bl\u2026"
+        ]
+      },
+      "chart_points": {
+        "MC": {
+          "sign": "Ophiuchus",
+          "formatted": "2\u00b0Ophiuchus"
+        },
+        "DC": {
+          "sign": "Leo",
+          "formatted": "30\u00b0Leo"
+        },
+        "IC": {
+          "sign": "Taurus",
+          "formatted": "26\u00b0Taurus"
+        },
+        "Chiron": {
+          "sign": "Aquarius",
+          "house": 12,
+          "formatted": "11\u00b0Aquarius"
+        }
+      }
+    },
+    {
+      "user": "Isaac",
+      "user_id": "69dda348de9cb1c83c0780f8",
+      "category": "MC",
+      "intent_key": "public_role",
+      "message": "What is my public role?",
+      "verdict": "PASS",
+      "prompt_has_point": true,
+      "injection": {
+        "injected_points": [
+          "Midheaven / MC: 2\u00b0Ophiuchus (Ophiuchus)",
+          "Chiron: 11\u00b0Aquarius (Aquarius) House 12"
+        ],
+        "weighting_blocks": [
+          "MC_WEIGHTING"
+        ],
+        "triggers_seen": {
+          "MC": true,
+          "DC": false,
+          "IC": false,
+          "purpose": false,
+          "chiron": false
+        },
+        "stored_values": {
+          "MC": {
+            "sign": "Ophiuchus",
+            "formatted": "2\u00b0Ophiuchus"
+          },
+          "Chiron": {
+            "sign": "Aquarius",
+            "house": 12,
+            "formatted": "11\u00b0Aquarius"
+          },
+          "DC": {
+            "sign": "Leo",
+            "formatted": "30\u00b0Leo"
+          },
+          "IC": {
+            "sign": "Taurus",
+            "formatted": "26\u00b0Taurus"
+          }
+        }
+      },
+      "live": {
+        "ok": true,
+        "status": 200,
+        "response": "You're considering your direction and how you might shape your public role. Your Midheaven, or MC, in Ophiuchus suggests a path that isn't always conventional. It often presents a call toward healing, transformation, and a deep understanding of the mysteries of life. Generosity and responsiveness might naturally emerge through your defined channels in Human Design, indicating that your impact comes from engaging deeply with what emerges around you. There can be a beautiful convergence of intellectual inquiry and intuitive response in how you contribute. Your life path, with its emphasis on freedom and adventure, might also influence how you interact with the world around you. What possibilities do you see for yourself when you think about integrating these qualities?",
+        "session_id": "deb02ce0-2e92-45c6-8d55-24f47eabced0",
+        "elapsed_s": 5.694639682769775
+      },
+      "evidence": {
+        "mentions_expected_point": true,
+        "mentions_expected_sign": true,
+        "mentions_expected_house": false,
+        "leak_sun_substitution": false,
+        "leak_asc_substitution": false,
+        "leak_moon_substitution": false,
+        "evidence_quotes": [
+          "\u2026nd how you might shape your public role. Your Midheaven, or MC, in Ophiuchus suggests a path that isn't always conventional. It often presents a call toward healing, transformation,\u2026",
+          "\u2026ur direction and how you might shape your public role. Your Midheaven, or MC, in Ophiuchus suggests a path that isn't always conventional. It often presents a call toward healing, transform\u2026"
+        ]
+      },
+      "chart_points": {
+        "MC": {
+          "sign": "Ophiuchus",
+          "formatted": "2\u00b0Ophiuchus"
+        },
+        "DC": {
+          "sign": "Leo",
+          "formatted": "30\u00b0Leo"
+        },
+        "IC": {
+          "sign": "Taurus",
+          "formatted": "26\u00b0Taurus"
+        },
+        "Chiron": {
+          "sign": "Aquarius",
+          "house": 12,
+          "formatted": "11\u00b0Aquarius"
+        }
+      }
+    },
+    {
+      "user": "Isaac",
+      "user_id": "69dda348de9cb1c83c0780f8",
+      "category": "MC",
+      "intent_key": "leadership_style",
+      "message": "What is my leadership style?",
+      "verdict": "PASS",
+      "prompt_has_point": true,
+      "injection": {
+        "injected_points": [
+          "Midheaven / MC: 2\u00b0Ophiuchus (Ophiuchus)",
+          "Chiron: 11\u00b0Aquarius (Aquarius) House 12"
+        ],
+        "weighting_blocks": [
+          "MC_WEIGHTING"
+        ],
+        "triggers_seen": {
+          "MC": true,
+          "DC": false,
+          "IC": false,
+          "purpose": false,
+          "chiron": false
+        },
+        "stored_values": {
+          "MC": {
+            "sign": "Ophiuchus",
+            "formatted": "2\u00b0Ophiuchus"
+          },
+          "Chiron": {
+            "sign": "Aquarius",
+            "house": 12,
+            "formatted": "11\u00b0Aquarius"
+          },
+          "DC": {
+            "sign": "Leo",
+            "formatted": "30\u00b0Leo"
+          },
+          "IC": {
+            "sign": "Taurus",
+            "formatted": "26\u00b0Taurus"
+          }
+        }
+      },
+      "live": {
+        "ok": true,
+        "status": 200,
+        "response": "You're exploring your leadership from a place where your Midheaven in Ophiuchus hints at transformative qualities. This might show up as a tendency to pursue profound change or innovation in your leadership role. There's an aspect of seeking out deeper truths and bringing hidden potentials to light, both in yourself and others. With Pluto in your 10th house, there can be an intensity to how you engage with your public or vocational roles. This suggests that your leadership may often involve significant shifts or requiring you to lead through challenging, transformative periods. It's less about maintaining the status quo and more about guiding through transformation. Mars in the 6th house brings a practical, driven energy to your daily work and routines. This suggests a hands-on approach, where taking direct action and making tangible progress are essential aspects of how you lead.",
+        "session_id": "c788fe20-c19e-45ad-937a-4f08a5ba04f3",
+        "elapsed_s": 5.995882987976074
+      },
+      "evidence": {
+        "mentions_expected_point": true,
+        "mentions_expected_sign": true,
+        "mentions_expected_house": false,
+        "leak_sun_substitution": false,
+        "leak_asc_substitution": false,
+        "leak_moon_substitution": false,
+        "evidence_quotes": [
+          "\u2026You're exploring your leadership from a place where your Midheaven in Ophiuchus hints at transformative qualities. This might show up as a tendency to pursue profound change or innovatio\u2026",
+          "\u2026s to light, both in yourself and others. With Pluto in your 10th house, there can be an intensity to how you engage with your public or vocational roles. This suggests that your leadership m\u2026"
+        ]
+      },
+      "chart_points": {
+        "MC": {
+          "sign": "Ophiuchus",
+          "formatted": "2\u00b0Ophiuchus"
+        },
+        "DC": {
+          "sign": "Leo",
+          "formatted": "30\u00b0Leo"
+        },
+        "IC": {
+          "sign": "Taurus",
+          "formatted": "26\u00b0Taurus"
+        },
+        "Chiron": {
+          "sign": "Aquarius",
+          "house": 12,
+          "formatted": "11\u00b0Aquarius"
+        }
+      }
+    },
+    {
+      "user": "Isaac",
+      "user_id": "69dda348de9cb1c83c0780f8",
+      "category": "MC",
+      "intent_key": "becoming",
+      "message": "What am I becoming?",
+      "verdict": "PASS",
+      "prompt_has_point": true,
+      "injection": {
+        "injected_points": [
+          "Midheaven / MC: 2\u00b0Ophiuchus (Ophiuchus)",
+          "Chiron: 11\u00b0Aquarius (Aquarius) House 12"
+        ],
+        "weighting_blocks": [
+          "MC_WEIGHTING"
+        ],
+        "triggers_seen": {
+          "MC": true,
+          "DC": false,
+          "IC": false,
+          "purpose": false,
+          "chiron": false
+        },
+        "stored_values": {
+          "MC": {
+            "sign": "Ophiuchus",
+            "formatted": "2\u00b0Ophiuchus"
+          },
+          "Chiron": {
+            "sign": "Aquarius",
+            "house": 12,
+            "formatted": "11\u00b0Aquarius"
+          },
+          "DC": {
+            "sign": "Leo",
+            "formatted": "30\u00b0Leo"
+          },
+          "IC": {
+            "sign": "Taurus",
+            "formatted": "26\u00b0Taurus"
+          }
+        }
+      },
+      "live": {
+        "ok": true,
+        "status": 200,
+        "response": "You're sensing a desire to understand your path and direction. Your Midheaven in Ophiuchus suggests a journey where healing, transformation, and a connection to deeper truths might play significant roles. This placement often invites a touch of the mysterious, asking you to explore things that others might overlook. Yet, your life isn't limited to any one role. The Sun in Pisces often encourages empathy and imagination, while your Moon in Leo adds a sense of playfulness and need for expression. What are you noticing about the paths opening up before you now?",
+        "session_id": "ea068fc2-463e-49a4-bf42-7e8677da334a",
+        "elapsed_s": 4.670145750045776
+      },
+      "evidence": {
+        "mentions_expected_point": true,
+        "mentions_expected_sign": true,
+        "mentions_expected_house": false,
+        "leak_sun_substitution": false,
+        "leak_asc_substitution": false,
+        "leak_moon_substitution": false,
+        "evidence_quotes": [
+          "\u2026ensing a desire to understand your path and direction. Your Midheaven in Ophiuchus suggests a journey where healing, transformation, and a connection to deeper truths might play significant\u2026"
+        ]
+      },
+      "chart_points": {
+        "MC": {
+          "sign": "Ophiuchus",
+          "formatted": "2\u00b0Ophiuchus"
+        },
+        "DC": {
+          "sign": "Leo",
+          "formatted": "30\u00b0Leo"
+        },
+        "IC": {
+          "sign": "Taurus",
+          "formatted": "26\u00b0Taurus"
+        },
+        "Chiron": {
+          "sign": "Aquarius",
+          "house": 12,
+          "formatted": "11\u00b0Aquarius"
+        }
+      }
+    },
+    {
+      "user": "Isaac",
+      "user_id": "69dda348de9cb1c83c0780f8",
+      "category": "DC",
+      "intent_key": "partnership_seek",
+      "message": "What do I seek in partnership?",
+      "verdict": "PASS",
+      "prompt_has_point": true,
+      "injection": {
+        "injected_points": [
+          "Midheaven / MC: 2\u00b0Ophiuchus (Ophiuchus)",
+          "Chiron: 11\u00b0Aquarius (Aquarius) House 12",
+          "Descendant / DC: 30\u00b0Leo (Leo)"
+        ],
+        "weighting_blocks": [
+          "DC_WEIGHTING"
+        ],
+        "triggers_seen": {
+          "MC": false,
+          "DC": true,
+          "IC": false,
+          "purpose": false,
+          "chiron": false
+        },
+        "stored_values": {
+          "MC": {
+            "sign": "Ophiuchus",
+            "formatted": "2\u00b0Ophiuchus"
+          },
+          "Chiron": {
+            "sign": "Aquarius",
+            "house": 12,
+            "formatted": "11\u00b0Aquarius"
+          },
+          "DC": {
+            "sign": "Leo",
+            "formatted": "30\u00b0Leo"
+          },
+          "IC": {
+            "sign": "Taurus",
+            "formatted": "26\u00b0Taurus"
+          }
+        }
+      },
+      "live": {
+        "ok": true,
+        "status": 200,
+        "response": "In partnerships, you often find yourself drawn to a sense of vitality and exuberance. There's an attraction to the dynamic energy of people who are expressive and perhaps even a bit dramatic. This may be because you are seeking a partner who can match or complement your own sense of enthusiasm and creativity. The partnership for you is a stage where both can shine, and there's a desire for mutual admiration and recognition. This comes from how your 7th house, ruled by the Sun in Pisces, highlights the importance of merging compassionate understanding with shared visions and dreams. In relationships, there might be an innate longing for someone who feels larger than life \u2014 someone who embodies warmth and can both share and inspire your creative endeavors. Why this shows up: Your Descendant in Leo, along with your Moon in Leo, points to this need for a vibrant and sustaining connection. The Sun, your 7th House ruler, being in Pisces, adds a layer of emotional depth and empathy to what you look for in partners.",
+        "session_id": "6d4ba893-2bdf-40c2-a0ab-c27ec8100b67",
+        "elapsed_s": 6.044698715209961
+      },
+      "evidence": {
+        "mentions_expected_point": true,
+        "mentions_expected_sign": true,
+        "mentions_expected_house": false,
+        "leak_sun_substitution": false,
+        "leak_asc_substitution": false,
+        "leak_moon_substitution": false,
+        "evidence_quotes": [
+          "\u2026nd inspire your creative endeavors. Why this shows up: Your Descendant in Leo, along with your Moon in Leo, points to this need for a vibrant and sustaining connection. The Sun, your 7th Hou\u2026",
+          "\u2026mutual admiration and recognition. This comes from how your 7th house, ruled by the Sun in Pisces, highlights the importance of merging compassionate understanding with shared visions and d\u2026"
+        ]
+      },
+      "chart_points": {
+        "MC": {
+          "sign": "Ophiuchus",
+          "formatted": "2\u00b0Ophiuchus"
+        },
+        "DC": {
+          "sign": "Leo",
+          "formatted": "30\u00b0Leo"
+        },
+        "IC": {
+          "sign": "Taurus",
+          "formatted": "26\u00b0Taurus"
+        },
+        "Chiron": {
+          "sign": "Aquarius",
+          "house": 12,
+          "formatted": "11\u00b0Aquarius"
+        }
+      }
+    },
+    {
+      "user": "Isaac",
+      "user_id": "69dda348de9cb1c83c0780f8",
+      "category": "DC",
+      "intent_key": "relationship_pattern",
+      "message": "What relationship pattern keeps repeating?",
+      "verdict": "PASS",
+      "prompt_has_point": true,
+      "injection": {
+        "injected_points": [
+          "Midheaven / MC: 2\u00b0Ophiuchus (Ophiuchus)",
+          "Chiron: 11\u00b0Aquarius (Aquarius) House 12",
+          "Descendant / DC: 30\u00b0Leo (Leo)"
+        ],
+        "weighting_blocks": [
+          "CHIRON_FOCUS",
+          "DC_WEIGHTING",
+          "DEVELOPMENTAL_AXIS_WEIGHTING"
+        ],
+        "triggers_seen": {
+          "MC": false,
+          "DC": true,
+          "IC": false,
+          "purpose": true,
+          "chiron": true
+        },
+        "stored_values": {
+          "MC": {
+            "sign": "Ophiuchus",
+            "formatted": "2\u00b0Ophiuchus"
+          },
+          "Chiron": {
+            "sign": "Aquarius",
+            "house": 12,
+            "formatted": "11\u00b0Aquarius"
+          },
+          "DC": {
+            "sign": "Leo",
+            "formatted": "30\u00b0Leo"
+          },
+          "IC": {
+            "sign": "Taurus",
+            "formatted": "26\u00b0Taurus"
+          }
+        }
+      },
+      "live": {
+        "ok": true,
+        "status": 200,
+        "response": "You're noticing something recurring in your relationships. There's a focus on your experience with partnerships, where the need for self-expression and being seen is a central theme. This often leads to moments where you seek to be recognized and appreciated for who you are. However, this can sometimes feel at odds with the comfort of just \"being\" in a relationship without needing constant validation. This pattern can often show up as a balancing act between being yourself and desiring acknowledgment, inviting you to explore how you can feel fulfilled without always seeking external approval. Why this shows up:\n\n- Your Descendant in Leo suggests an attraction to vibrant and creative partners who share your zest for life. - With the 7th House also in Leo, being in relationships where your creativity and enthusiasm are mirrored back to you is vital. - The Moon's position amplifies emotional needs around being seen and appreciated.",
+        "session_id": "4f08d973-44d7-4543-88cf-91ea356ee27b",
+        "elapsed_s": 5.194155931472778
+      },
+      "evidence": {
+        "mentions_expected_point": true,
+        "mentions_expected_sign": true,
+        "mentions_expected_house": false,
+        "leak_sun_substitution": false,
+        "leak_asc_substitution": false,
+        "leak_moon_substitution": false,
+        "evidence_quotes": [
+          "\u2026lways seeking external approval. Why this shows up:  - Your Descendant in Leo suggests an attraction to vibrant and creative partners who share your zest for life. - With the 7th House also\u2026",
+          "\u2026creative partners who share your zest for life. - With the 7th House also in Leo, being in relationships where your creativity and enthusiasm are mirrored back to you is vital. - The Moon'\u2026"
+        ]
+      },
+      "chart_points": {
+        "MC": {
+          "sign": "Ophiuchus",
+          "formatted": "2\u00b0Ophiuchus"
+        },
+        "DC": {
+          "sign": "Leo",
+          "formatted": "30\u00b0Leo"
+        },
+        "IC": {
+          "sign": "Taurus",
+          "formatted": "26\u00b0Taurus"
+        },
+        "Chiron": {
+          "sign": "Aquarius",
+          "house": 12,
+          "formatted": "11\u00b0Aquarius"
+        }
+      }
+    },
+    {
+      "user": "Isaac",
+      "user_id": "69dda348de9cb1c83c0780f8",
+      "category": "Chiron",
+      "intent_key": "wound",
+      "message": "What wound am I working through?",
+      "verdict": "PASS",
+      "prompt_has_point": true,
+      "injection": {
+        "injected_points": [
+          "Midheaven / MC: 2\u00b0Ophiuchus (Ophiuchus)",
+          "Chiron: 11\u00b0Aquarius (Aquarius) House 12"
+        ],
+        "weighting_blocks": [
+          "CHIRON_FOCUS",
+          "DEVELOPMENTAL_AXIS_WEIGHTING"
+        ],
+        "triggers_seen": {
+          "MC": false,
+          "DC": false,
+          "IC": false,
+          "purpose": true,
+          "chiron": true
+        },
+        "stored_values": {
+          "MC": {
+            "sign": "Ophiuchus",
+            "formatted": "2\u00b0Ophiuchus"
+          },
+          "Chiron": {
+            "sign": "Aquarius",
+            "house": 12,
+            "formatted": "11\u00b0Aquarius"
+          },
+          "DC": {
+            "sign": "Leo",
+            "formatted": "30\u00b0Leo"
+          },
+          "IC": {
+            "sign": "Taurus",
+            "formatted": "26\u00b0Taurus"
+          }
+        }
+      },
+      "live": {
+        "ok": true,
+        "status": 200,
+        "response": "Your journey appears to be closely tied to Chiron in Aquarius, sitting in the twelfth house. There's a theme here of healing in spaces that may feel hidden or deeply personal, often tied to how you perceive yourself within the collective or larger groups. Chiron in Aquarius often touches on wounds around feeling different from the group, perhaps a sense of being on the outside looking in. In the twelfth house, these feelings might be more subconscious, surfacing when you're alone or during quiet moments of self-reflection. The work here involves embracing your uniqueness and finding a sense of belonging within yourself rather than looking externally. What feelings come up when you think about your place in larger groups or communities?",
+        "session_id": "6556577c-9ab2-4a61-ada2-7122ee02d8f5",
+        "elapsed_s": 7.05698299407959
+      },
+      "evidence": {
+        "mentions_expected_point": true,
+        "mentions_expected_sign": true,
+        "mentions_expected_house": false,
+        "leak_sun_substitution": false,
+        "leak_asc_substitution": false,
+        "leak_moon_substitution": false,
+        "evidence_quotes": [
+          "\u2026Your journey appears to be closely tied to Chiron in Aquarius, sitting in the twelfth house. There's a theme here of healing in spaces that may feel hidden or deeply per\u2026",
+          "\u2026u perceive yourself within the collective or larger groups. Chiron in Aquarius often touches on wounds around feeling different from the group, perhaps a sense of being on the outside lo\u2026"
+        ]
+      },
+      "chart_points": {
+        "MC": {
+          "sign": "Ophiuchus",
+          "formatted": "2\u00b0Ophiuchus"
+        },
+        "DC": {
+          "sign": "Leo",
+          "formatted": "30\u00b0Leo"
+        },
+        "IC": {
+          "sign": "Taurus",
+          "formatted": "26\u00b0Taurus"
+        },
+        "Chiron": {
+          "sign": "Aquarius",
+          "house": 12,
+          "formatted": "11\u00b0Aquarius"
+        }
+      }
+    },
+    {
+      "user": "Isaac",
+      "user_id": "69dda348de9cb1c83c0780f8",
+      "category": "Chiron",
+      "intent_key": "healing",
+      "message": "What am I here to heal?",
+      "verdict": "PASS",
+      "prompt_has_point": true,
+      "injection": {
+        "injected_points": [
+          "Midheaven / MC: 2\u00b0Ophiuchus (Ophiuchus)",
+          "Chiron: 11\u00b0Aquarius (Aquarius) House 12"
+        ],
+        "weighting_blocks": [
+          "CHIRON_FOCUS",
+          "DEVELOPMENTAL_AXIS_WEIGHTING"
+        ],
+        "triggers_seen": {
+          "MC": false,
+          "DC": false,
+          "IC": false,
+          "purpose": true,
+          "chiron": true
+        },
+        "stored_values": {
+          "MC": {
+            "sign": "Ophiuchus",
+            "formatted": "2\u00b0Ophiuchus"
+          },
+          "Chiron": {
+            "sign": "Aquarius",
+            "house": 12,
+            "formatted": "11\u00b0Aquarius"
+          },
+          "DC": {
+            "sign": "Leo",
+            "formatted": "30\u00b0Leo"
+          },
+          "IC": {
+            "sign": "Taurus",
+            "formatted": "26\u00b0Taurus"
+          }
+        }
+      },
+      "live": {
+        "ok": true,
+        "status": 200,
+        "response": "Your question invites a deep exploration into the patterns and themes that may seek healing in your life. In the context of your chart, Chiron in Aquarius in House 12 suggests a journey around healing themes related to individuality, belonging, and the boundary between the personal and the collective. This pattern often shows up as feeling a sense of separation or being misunderstood in group settings, or finding it challenging to balance your unique insights with societal norms. The twelfth house adds a layer of introspection and the potential for past wounds or hidden aspects to surface. Healing might involve embracing your uniqueness while finding peace in solitude or spiritual practices that connect you with something greater than yourself. What does the idea of healing around individuality and connection stir in you?",
+        "session_id": "a01e06ac-a2c5-49c6-ad6c-52e380888693",
+        "elapsed_s": 5.663799285888672
+      },
+      "evidence": {
+        "mentions_expected_point": true,
+        "mentions_expected_sign": true,
+        "mentions_expected_house": true,
+        "leak_sun_substitution": false,
+        "leak_asc_substitution": false,
+        "leak_moon_substitution": false,
+        "evidence_quotes": [
+          "\u2026ay seek healing in your life. In the context of your chart, Chiron in Aquarius in House 12 suggests a journey around healing themes related to individuality, belonging, and the boundary\u2026"
+        ]
+      },
+      "chart_points": {
+        "MC": {
+          "sign": "Ophiuchus",
+          "formatted": "2\u00b0Ophiuchus"
+        },
+        "DC": {
+          "sign": "Leo",
+          "formatted": "30\u00b0Leo"
+        },
+        "IC": {
+          "sign": "Taurus",
+          "formatted": "26\u00b0Taurus"
+        },
+        "Chiron": {
+          "sign": "Aquarius",
+          "house": 12,
+          "formatted": "11\u00b0Aquarius"
+        }
+      }
+    },
+    {
+      "user": "Isaac",
+      "user_id": "69dda348de9cb1c83c0780f8",
+      "category": "Chiron",
+      "intent_key": "repeating_life",
+      "message": "What keeps repeating in my life?",
+      "verdict": "WEAK (no overt evidence)",
+      "prompt_has_point": true,
+      "injection": {
+        "injected_points": [
+          "Midheaven / MC: 2\u00b0Ophiuchus (Ophiuchus)",
+          "Chiron: 11\u00b0Aquarius (Aquarius) House 12"
+        ],
+        "weighting_blocks": [
+          "CHIRON_FOCUS",
+          "DEVELOPMENTAL_AXIS_WEIGHTING"
+        ],
+        "triggers_seen": {
+          "MC": false,
+          "DC": false,
+          "IC": false,
+          "purpose": true,
+          "chiron": true
+        },
+        "stored_values": {
+          "MC": {
+            "sign": "Ophiuchus",
+            "formatted": "2\u00b0Ophiuchus"
+          },
+          "Chiron": {
+            "sign": "Aquarius",
+            "house": 12,
+            "formatted": "11\u00b0Aquarius"
+          },
+          "DC": {
+            "sign": "Leo",
+            "formatted": "30\u00b0Leo"
+          },
+          "IC": {
+            "sign": "Taurus",
+            "formatted": "26\u00b0Taurus"
+          }
+        }
+      },
+      "live": {
+        "ok": true,
+        "status": 200,
+        "response": "Your chart keeps circling the same pressure: permeability. This theme manifests primarily through your Pisces Sun, Mercury, and Uranus. It speaks to a tendency where boundaries can feel less defined, leading to experiences where you might absorb or reflect the emotions and energies of those around you. This permeability makes you highly attuned to your environment, yet it can occasionally create challenges in maintaining a sense of distinct identity or personal space. The primary tension in your chart arises from an organized intensity centered around the Sun, linked to a Sun-Pluto square. This translates to a strong drive to control what is visible or shared with the outside world. This intensity is often used as a strategy to mask deeper vulnerabilities or feelings of suppression. Consequently, you might find yourself exerting considerable effort to project a certain image or manage perceptions, even while navigating the porous boundaries associated with your Pisces placements.",
+        "session_id": "a46ff43f-3b59-4d57-8868-020c44a86269",
+        "elapsed_s": 7.345376968383789
+      },
+      "evidence": {
+        "mentions_expected_point": false,
+        "mentions_expected_sign": false,
+        "mentions_expected_house": false,
+        "leak_sun_substitution": false,
+        "leak_asc_substitution": false,
+        "leak_moon_substitution": false,
+        "evidence_quotes": []
+      },
+      "chart_points": {
+        "MC": {
+          "sign": "Ophiuchus",
+          "formatted": "2\u00b0Ophiuchus"
+        },
+        "DC": {
+          "sign": "Leo",
+          "formatted": "30\u00b0Leo"
+        },
+        "IC": {
+          "sign": "Taurus",
+          "formatted": "26\u00b0Taurus"
+        },
+        "Chiron": {
+          "sign": "Aquarius",
+          "house": 12,
+          "formatted": "11\u00b0Aquarius"
+        }
+      }
+    },
+    {
+      "user": "Isaac",
+      "user_id": "69dda348de9cb1c83c0780f8",
+      "category": "IC",
+      "intent_key": "home_meaning",
+      "message": "What does home mean to me?",
+      "verdict": "PASS",
+      "prompt_has_point": true,
+      "injection": {
+        "injected_points": [
+          "Midheaven / MC: 2\u00b0Ophiuchus (Ophiuchus)",
+          "Chiron: 11\u00b0Aquarius (Aquarius) House 12",
+          "IC / Imum Coeli: 26\u00b0Taurus (Taurus)"
+        ],
+        "weighting_blocks": [
+          "IC_WEIGHTING"
+        ],
+        "triggers_seen": {
+          "MC": false,
+          "DC": false,
+          "IC": true,
+          "purpose": false,
+          "chiron": false
+        },
+        "stored_values": {
+          "MC": {
+            "sign": "Ophiuchus",
+            "formatted": "2\u00b0Ophiuchus"
+          },
+          "Chiron": {
+            "sign": "Aquarius",
+            "house": 12,
+            "formatted": "11\u00b0Aquarius"
+          },
+          "DC": {
+            "sign": "Leo",
+            "formatted": "30\u00b0Leo"
+          },
+          "IC": {
+            "sign": "Taurus",
+            "formatted": "26\u00b0Taurus"
+          }
+        }
+      },
+      "live": {
+        "ok": true,
+        "status": 200,
+        "response": "When considering what \"home\" means, it often aligns with where your sense of grounding and belonging takes root. With your Imum Coeli in Taurus, there's a potential that stability, comfort, and a connection to the physical and natural environment could be significant themes for you in this area of life. This placement might bring a desire for a secure, tactile space that allows for deep relaxation and a sense of being part of something enduring. Taurus energy can often refer to a need for tangible security and an appreciation for the slower, more sensory experiences of home life. You might find that moments of calm, where you can indulge in the simple pleasures, contribute to a feeling of 'home'. What qualities or experiences make you feel most at home within yourself and in your surroundings?",
+        "session_id": "eed1ed3b-5d95-435d-b50c-e0935a8a8544",
+        "elapsed_s": 3.3433732986450195
+      },
+      "evidence": {
+        "mentions_expected_point": true,
+        "mentions_expected_sign": true,
+        "mentions_expected_house": false,
+        "leak_sun_substitution": false,
+        "leak_asc_substitution": false,
+        "leak_moon_substitution": false,
+        "evidence_quotes": [
+          "\u2026ential that stability, comfort, and a connection to the physical and natural environment could be significant themes for you in this area of life. This placement might bring a desire\u2026",
+          "\u2026tion to the physical and natural environment could be significant themes for you in this area of life. This placement might bring a desire for a secure, tactile space that allows for\u2026"
+        ]
+      },
+      "chart_points": {
+        "MC": {
+          "sign": "Ophiuchus",
+          "formatted": "2\u00b0Ophiuchus"
+        },
+        "DC": {
+          "sign": "Leo",
+          "formatted": "30\u00b0Leo"
+        },
+        "IC": {
+          "sign": "Taurus",
+          "formatted": "26\u00b0Taurus"
+        },
+        "Chiron": {
+          "sign": "Aquarius",
+          "house": 12,
+          "formatted": "11\u00b0Aquarius"
+        }
+      }
+    },
+    {
+      "user": "Isaac",
+      "user_id": "69dda348de9cb1c83c0780f8",
+      "category": "IC",
+      "intent_key": "roots_pattern",
+      "message": "What patterns come from my roots?",
+      "verdict": "PASS",
+      "prompt_has_point": true,
+      "injection": {
+        "injected_points": [
+          "Midheaven / MC: 2\u00b0Ophiuchus (Ophiuchus)",
+          "Chiron: 11\u00b0Aquarius (Aquarius) House 12",
+          "IC / Imum Coeli: 26\u00b0Taurus (Taurus)"
+        ],
+        "weighting_blocks": [
+          "IC_WEIGHTING"
+        ],
+        "triggers_seen": {
+          "MC": false,
+          "DC": false,
+          "IC": true,
+          "purpose": false,
+          "chiron": false
+        },
+        "stored_values": {
+          "MC": {
+            "sign": "Ophiuchus",
+            "formatted": "2\u00b0Ophiuchus"
+          },
+          "Chiron": {
+            "sign": "Aquarius",
+            "house": 12,
+            "formatted": "11\u00b0Aquarius"
+          },
+          "DC": {
+            "sign": "Leo",
+            "formatted": "30\u00b0Leo"
+          },
+          "IC": {
+            "sign": "Taurus",
+            "formatted": "26\u00b0Taurus"
+          }
+        }
+      },
+      "live": {
+        "ok": true,
+        "status": 200,
+        "response": "In looking at the patterns that emerge from your roots, your IC in Taurus could suggest a foundational pull toward stability and comfort. This placement may symbolize a deep-seated appreciation for security and a steady environment, potentially grounded in physical or material comforts. Such patterns might emerge in how you seek out consistency or create a sense of home and belonging. Your journey as a Generator type also emphasizes the importance of responding to life as it unfolds, rather than pushing against the natural flows. This can resonate with seeking roots that provide a nurturing space for your responsive nature to thrive. Reflecting on these elements, how do you see them showing up in your life today?",
+        "session_id": "7e4f525f-6300-4af2-b8f8-5e6f8a56e39c",
+        "elapsed_s": 4.602642059326172
+      },
+      "evidence": {
+        "mentions_expected_point": true,
+        "mentions_expected_sign": true,
+        "mentions_expected_house": false,
+        "leak_sun_substitution": false,
+        "leak_asc_substitution": false,
+        "leak_moon_substitution": false,
+        "evidence_quotes": [
+          "\u2026n looking at the patterns that emerge from your roots, your IC in Taurus could suggest a foundational pull toward stability and comfort. This placement may symbolize a deep-seated ap\u2026",
+          "\u2026urity and a steady environment, potentially grounded in physical or material comforts. Such patterns might emerge in how you seek out consistency or create a sense of home and belong\u2026"
+        ]
+      },
+      "chart_points": {
+        "MC": {
+          "sign": "Ophiuchus",
+          "formatted": "2\u00b0Ophiuchus"
+        },
+        "DC": {
+          "sign": "Leo",
+          "formatted": "30\u00b0Leo"
+        },
+        "IC": {
+          "sign": "Taurus",
+          "formatted": "26\u00b0Taurus"
+        },
+        "Chiron": {
+          "sign": "Aquarius",
+          "house": 12,
+          "formatted": "11\u00b0Aquarius"
+        }
+      }
+    },
+    {
+      "user": "Isaac",
+      "user_id": "69dda348de9cb1c83c0780f8",
+      "category": "IC",
+      "intent_key": "childhood",
+      "message": "What am I carrying from childhood?",
+      "verdict": "PASS",
+      "prompt_has_point": true,
+      "injection": {
+        "injected_points": [
+          "Midheaven / MC: 2\u00b0Ophiuchus (Ophiuchus)",
+          "Chiron: 11\u00b0Aquarius (Aquarius) House 12",
+          "IC / Imum Coeli: 26\u00b0Taurus (Taurus)"
+        ],
+        "weighting_blocks": [
+          "IC_WEIGHTING"
+        ],
+        "triggers_seen": {
+          "MC": false,
+          "DC": false,
+          "IC": true,
+          "purpose": false,
+          "chiron": false
+        },
+        "stored_values": {
+          "MC": {
+            "sign": "Ophiuchus",
+            "formatted": "2\u00b0Ophiuchus"
+          },
+          "Chiron": {
+            "sign": "Aquarius",
+            "house": 12,
+            "formatted": "11\u00b0Aquarius"
+          },
+          "DC": {
+            "sign": "Leo",
+            "formatted": "30\u00b0Leo"
+          },
+          "IC": {
+            "sign": "Taurus",
+            "formatted": "26\u00b0Taurus"
+          }
+        }
+      },
+      "live": {
+        "ok": true,
+        "status": 200,
+        "response": "Your IC in Taurus often points to a childhood foundation grounded in stability and comfort. There's a chance this period emphasized finding security and value in the tangible world\u2014whether through family traditions, material comforts, or a sense of place. This can shape how you seek safety and belonging today, possibly valuing consistency and reliability. Yet, it might also be inviting you to explore areas where you may feel a need to hold onto the familiar. What parts of your upbringing feel most present in your life today?",
+        "session_id": "5c8ea452-157a-4b3b-adb6-d3027bd5561d",
+        "elapsed_s": 3.228013277053833
+      },
+      "evidence": {
+        "mentions_expected_point": true,
+        "mentions_expected_sign": true,
+        "mentions_expected_house": false,
+        "leak_sun_substitution": false,
+        "leak_asc_substitution": false,
+        "leak_moon_substitution": false,
+        "evidence_quotes": [
+          "\u2026Your IC in Taurus often points to a childhood foundation grounded in stability and comfort. There's a chance this period emphas\u2026"
+        ]
+      },
+      "chart_points": {
+        "MC": {
+          "sign": "Ophiuchus",
+          "formatted": "2\u00b0Ophiuchus"
+        },
+        "DC": {
+          "sign": "Leo",
+          "formatted": "30\u00b0Leo"
+        },
+        "IC": {
+          "sign": "Taurus",
+          "formatted": "26\u00b0Taurus"
+        },
+        "Chiron": {
+          "sign": "Aquarius",
+          "house": 12,
+          "formatted": "11\u00b0Aquarius"
+        }
+      }
+    },
+    {
+      "user": "Jaan",
+      "user_id": "69894cc932380843ba87d121",
+      "category": "MC",
+      "intent_key": "career_contribution",
+      "message": "What am I here to contribute?",
+      "verdict": "PASS",
+      "prompt_has_point": true,
+      "injection": {
+        "injected_points": [
+          "Midheaven / MC: 5\u00b0Aries (Aries)",
+          "Chiron: 27\u00b0Pisces (Pisces) House 9"
+        ],
+        "weighting_blocks": [
+          "MC_WEIGHTING"
+        ],
+        "triggers_seen": {
+          "MC": true,
+          "DC": false,
+          "IC": false,
+          "purpose": false,
+          "chiron": false
+        },
+        "stored_values": {
+          "MC": {
+            "sign": "Aries",
+            "formatted": "5\u00b0Aries"
+          },
+          "Chiron": {
+            "sign": "Pisces",
+            "house": 9,
+            "formatted": "27\u00b0Pisces"
+          },
+          "DC": {
+            "sign": "Capricorn",
+            "formatted": "3\u00b0Capricorn"
+          },
+          "IC": {
+            "sign": "Virgo",
+            "formatted": "44\u00b0Virgo"
+          }
+        }
+      },
+      "live": {
+        "ok": true,
+        "status": 200,
+        "response": "You're exploring your place in the world and how you can make a meaningful contribution. With your Midheaven in Aries, there's a dynamic energy around your vocational path. This often suggests a call to take initiative, lead with courage, and perhaps break new ground in what you do. The Aries Midheaven can invite you to explore roles where independence, leadership, and a pioneering spirit are necessary. As a Manifesting Generator in Human Design, you're wired to respond with energy and enthusiasm to the things that excite you, and this dynamic can play a critical role in your contributions. There's a pattern of needing variety and motion, which means your contributions might be diverse and multifaceted. Your Life Path number 5 in numerology hints at a journey involving change, adaptation, and exploration. It suggests a contribution through embracing freedom, openness, and the spirit of adventure.",
+        "session_id": "dcca50e1-a98d-4489-b5a2-4099a4aedc3f",
+        "elapsed_s": 5.9747772216796875
+      },
+      "evidence": {
+        "mentions_expected_point": true,
+        "mentions_expected_sign": true,
+        "mentions_expected_house": false,
+        "leak_sun_substitution": false,
+        "leak_asc_substitution": false,
+        "leak_moon_substitution": false,
+        "evidence_quotes": [
+          "\u2026d and how you can make a meaningful contribution. With your Midheaven in Aries, there's a dynamic energy around your vocational path. This often suggests a call to take initiative, lead wit\u2026",
+          "\u2026age, and perhaps break new ground in what you do. The Aries Midheaven can invite you to explore roles where independence, leadership, and a pioneering spirit are necessary. As a Manifesting\u2026"
+        ]
+      },
+      "chart_points": {
+        "MC": {
+          "sign": "Aries",
+          "formatted": "5\u00b0Aries"
+        },
+        "DC": {
+          "sign": "Capricorn",
+          "formatted": "3\u00b0Capricorn"
+        },
+        "IC": {
+          "sign": "Virgo",
+          "formatted": "44\u00b0Virgo"
+        },
+        "Chiron": {
+          "sign": "Pisces",
+          "house": 9,
+          "formatted": "27\u00b0Pisces"
+        }
+      }
+    },
+    {
+      "user": "Jaan",
+      "user_id": "69894cc932380843ba87d121",
+      "category": "MC",
+      "intent_key": "public_role",
+      "message": "What is my public role?",
+      "verdict": "PASS",
+      "prompt_has_point": true,
+      "injection": {
+        "injected_points": [
+          "Midheaven / MC: 5\u00b0Aries (Aries)",
+          "Chiron: 27\u00b0Pisces (Pisces) House 9"
+        ],
+        "weighting_blocks": [
+          "MC_WEIGHTING"
+        ],
+        "triggers_seen": {
+          "MC": true,
+          "DC": false,
+          "IC": false,
+          "purpose": false,
+          "chiron": false
+        },
+        "stored_values": {
+          "MC": {
+            "sign": "Aries",
+            "formatted": "5\u00b0Aries"
+          },
+          "Chiron": {
+            "sign": "Pisces",
+            "house": 9,
+            "formatted": "27\u00b0Pisces"
+          },
+          "DC": {
+            "sign": "Capricorn",
+            "formatted": "3\u00b0Capricorn"
+          },
+          "IC": {
+            "sign": "Virgo",
+            "formatted": "44\u00b0Virgo"
+          }
+        }
+      },
+      "live": {
+        "ok": true,
+        "status": 200,
+        "response": "Your Midheaven in Aries speaks to a public role that often involves leadership and pioneering. There may be an innate drive to initiate projects, take charge, or blaze your own trail. People with this placement tend to thrive when they have the freedom to act on their instincts and bring fresh ideas into their public sphere. This energy is supported by your Manifesting Generator Human Design type. You may notice a dynamic, responsive quality to your career path \u2014 one where being flexible and adaptable is essential. The ability to pivot and generate innovative solutions can be a hallmark of your public contribution. Given these insights, what aspects of leadership and innovation are coming alive for you currently?",
+        "session_id": "595e7a8a-782f-4244-a69f-a84284649532",
+        "elapsed_s": 5.24590802192688
+      },
+      "evidence": {
+        "mentions_expected_point": true,
+        "mentions_expected_sign": true,
+        "mentions_expected_house": false,
+        "leak_sun_substitution": false,
+        "leak_asc_substitution": false,
+        "leak_moon_substitution": false,
+        "evidence_quotes": [
+          "\u2026Your Midheaven in Aries speaks to a public role that often involves leadership and pioneering. There may be an innate drive to initiat\u2026"
+        ]
+      },
+      "chart_points": {
+        "MC": {
+          "sign": "Aries",
+          "formatted": "5\u00b0Aries"
+        },
+        "DC": {
+          "sign": "Capricorn",
+          "formatted": "3\u00b0Capricorn"
+        },
+        "IC": {
+          "sign": "Virgo",
+          "formatted": "44\u00b0Virgo"
+        },
+        "Chiron": {
+          "sign": "Pisces",
+          "house": 9,
+          "formatted": "27\u00b0Pisces"
+        }
+      }
+    },
+    {
+      "user": "Jaan",
+      "user_id": "69894cc932380843ba87d121",
+      "category": "MC",
+      "intent_key": "leadership_style",
+      "message": "What is my leadership style?",
+      "verdict": "PASS",
+      "prompt_has_point": true,
+      "injection": {
+        "injected_points": [
+          "Midheaven / MC: 5\u00b0Aries (Aries)",
+          "Chiron: 27\u00b0Pisces (Pisces) House 9"
+        ],
+        "weighting_blocks": [
+          "MC_WEIGHTING"
+        ],
+        "triggers_seen": {
+          "MC": true,
+          "DC": false,
+          "IC": false,
+          "purpose": false,
+          "chiron": false
+        },
+        "stored_values": {
+          "MC": {
+            "sign": "Aries",
+            "formatted": "5\u00b0Aries"
+          },
+          "Chiron": {
+            "sign": "Pisces",
+            "house": 9,
+            "formatted": "27\u00b0Pisces"
+          },
+          "DC": {
+            "sign": "Capricorn",
+            "formatted": "3\u00b0Capricorn"
+          },
+          "IC": {
+            "sign": "Virgo",
+            "formatted": "44\u00b0Virgo"
+          }
+        }
+      },
+      "live": {
+        "ok": true,
+        "status": 200,
+        "response": "Your leadership style can be illuminated by the traits indicated by your Midheaven in Aries. This position often suggests a leader who is assertive, pioneering, and ready to take initiative. There's a proactive energy that may drive you to spearhead projects and boldly navigate new territories. It's a style that commonly values directness and inspires others through example and momentum. Reflecting on your Human Design as a Manifesting Generator, you might notice a natural ability to juggle many tasks, bringing energy and practical solutions to your leadership approach. This can enable you to align quickly with changes and new opportunities, keeping your team adaptive and dynamic. The grounding influence of your Moon in Taurus may bring a stable, steady quality to this otherwise active and assertive style, offering a reliable presence that others might find reassuring in times of change. Consider how these messages resonate with your real-life experiences in leadership roles.",
+        "session_id": "97616010-d9aa-489d-addd-492b514a077b",
+        "elapsed_s": 4.57989239692688
+      },
+      "evidence": {
+        "mentions_expected_point": true,
+        "mentions_expected_sign": true,
+        "mentions_expected_house": false,
+        "leak_sun_substitution": false,
+        "leak_asc_substitution": false,
+        "leak_moon_substitution": false,
+        "evidence_quotes": [
+          "\u2026ip style can be illuminated by the traits indicated by your Midheaven in Aries. This position often suggests a leader who is assertive, pioneering, and ready to take initiative. There's a p\u2026"
+        ]
+      },
+      "chart_points": {
+        "MC": {
+          "sign": "Aries",
+          "formatted": "5\u00b0Aries"
+        },
+        "DC": {
+          "sign": "Capricorn",
+          "formatted": "3\u00b0Capricorn"
+        },
+        "IC": {
+          "sign": "Virgo",
+          "formatted": "44\u00b0Virgo"
+        },
+        "Chiron": {
+          "sign": "Pisces",
+          "house": 9,
+          "formatted": "27\u00b0Pisces"
+        }
+      }
+    },
+    {
+      "user": "Jaan",
+      "user_id": "69894cc932380843ba87d121",
+      "category": "MC",
+      "intent_key": "becoming",
+      "message": "What am I becoming?",
+      "verdict": "PASS",
+      "prompt_has_point": true,
+      "injection": {
+        "injected_points": [
+          "Midheaven / MC: 5\u00b0Aries (Aries)",
+          "Chiron: 27\u00b0Pisces (Pisces) House 9"
+        ],
+        "weighting_blocks": [
+          "MC_WEIGHTING"
+        ],
+        "triggers_seen": {
+          "MC": true,
+          "DC": false,
+          "IC": false,
+          "purpose": false,
+          "chiron": false
+        },
+        "stored_values": {
+          "MC": {
+            "sign": "Aries",
+            "formatted": "5\u00b0Aries"
+          },
+          "Chiron": {
+            "sign": "Pisces",
+            "house": 9,
+            "formatted": "27\u00b0Pisces"
+          },
+          "DC": {
+            "sign": "Capricorn",
+            "formatted": "3\u00b0Capricorn"
+          },
+          "IC": {
+            "sign": "Virgo",
+            "formatted": "44\u00b0Virgo"
+          }
+        }
+      },
+      "live": {
+        "ok": true,
+        "status": 200,
+        "response": "You're wondering about the direction of your journey and what you're evolving into. There's a curiosity here, a searching for identity or purpose perhaps. When we look at your Midheaven in Aries, it often speaks to pioneering energy\u2014a drive to lead, innovate, and perhaps break new ground in your vocational life. There's usually an urge to carve your own path, moving boldly towards your ambitions. Yet, with your Moon in Taurus, there's a steady, grounding influence. This can invite moments of reflection amidst your quests, seeking comfort and security within your achievements. Consider how these energies might play out in your life. Are there places where you\u2019re feeling pulled to forge ahead and others where you're craving more stability?",
+        "session_id": "b1f8a169-bc05-42ee-aa44-dadc0df19c96",
+        "elapsed_s": 4.458901882171631
+      },
+      "evidence": {
+        "mentions_expected_point": true,
+        "mentions_expected_sign": true,
+        "mentions_expected_house": false,
+        "leak_sun_substitution": false,
+        "leak_asc_substitution": false,
+        "leak_moon_substitution": false,
+        "evidence_quotes": [
+          "\u2026ching for identity or purpose perhaps. When we look at your Midheaven in Aries, it often speaks to pioneering energy\u2014a drive to lead, innovate, and perhaps break new ground in your vocation\u2026"
+        ]
+      },
+      "chart_points": {
+        "MC": {
+          "sign": "Aries",
+          "formatted": "5\u00b0Aries"
+        },
+        "DC": {
+          "sign": "Capricorn",
+          "formatted": "3\u00b0Capricorn"
+        },
+        "IC": {
+          "sign": "Virgo",
+          "formatted": "44\u00b0Virgo"
+        },
+        "Chiron": {
+          "sign": "Pisces",
+          "house": 9,
+          "formatted": "27\u00b0Pisces"
+        }
+      }
+    },
+    {
+      "user": "Jaan",
+      "user_id": "69894cc932380843ba87d121",
+      "category": "DC",
+      "intent_key": "partnership_seek",
+      "message": "What do I seek in partnership?",
+      "verdict": "PASS",
+      "prompt_has_point": true,
+      "injection": {
+        "injected_points": [
+          "Midheaven / MC: 5\u00b0Aries (Aries)",
+          "Chiron: 27\u00b0Pisces (Pisces) House 9",
+          "Descendant / DC: 3\u00b0Capricorn (Capricorn)"
+        ],
+        "weighting_blocks": [
+          "DC_WEIGHTING"
+        ],
+        "triggers_seen": {
+          "MC": false,
+          "DC": true,
+          "IC": false,
+          "purpose": false,
+          "chiron": false
+        },
+        "stored_values": {
+          "MC": {
+            "sign": "Aries",
+            "formatted": "5\u00b0Aries"
+          },
+          "Chiron": {
+            "sign": "Pisces",
+            "house": 9,
+            "formatted": "27\u00b0Pisces"
+          },
+          "DC": {
+            "sign": "Capricorn",
+            "formatted": "3\u00b0Capricorn"
+          },
+          "IC": {
+            "sign": "Virgo",
+            "formatted": "44\u00b0Virgo"
+          }
+        }
+      },
+      "live": {
+        "ok": true,
+        "status": 200,
+        "response": "In partnership, you may often find yourself drawn to dynamics where stability and structure are valued, yet there's a layer of deep introspection involved. This can mean you're attracted to connections that offer both a solid foundation and the opportunity for intellectual growth or shared goals. A sense of groundedness can be important, along with a shared purpose or vision. This desire for stability might blend with a need to communicate and explore ideas. It's not just about building a life together but also about what you can learn from each other and how you can grow within the partnership. Why this might show up: With your Descendant in Capricorn, partnerships tend to highlight themes of responsibility and long-term commitment. The 7th House, also in Capricorn, signifies a similar inclination toward enduring relationships. Additionally, your 7th House ruler, Saturn, sitting in Gemini, brings in a flavor of communication and learning as vital parts of your relational framework.",
+        "session_id": "a6e551c4-3317-4312-b348-2bb9ab9ef608",
+        "elapsed_s": 4.055579662322998
+      },
+      "evidence": {
+        "mentions_expected_point": true,
+        "mentions_expected_sign": true,
+        "mentions_expected_house": false,
+        "leak_sun_substitution": false,
+        "leak_asc_substitution": false,
+        "leak_moon_substitution": false,
+        "evidence_quotes": [
+          "\u2026w within the partnership. Why this might show up: With your Descendant in Capricorn, partnerships tend to highlight themes of responsibility and long-term commitment. The 7th House, also in\u2026",
+          "\u2026ight themes of responsibility and long-term commitment. The 7th House, also in Capricorn, signifies a similar inclination toward enduring relationships. Additionally, your 7th House ruler,\u2026"
+        ]
+      },
+      "chart_points": {
+        "MC": {
+          "sign": "Aries",
+          "formatted": "5\u00b0Aries"
+        },
+        "DC": {
+          "sign": "Capricorn",
+          "formatted": "3\u00b0Capricorn"
+        },
+        "IC": {
+          "sign": "Virgo",
+          "formatted": "44\u00b0Virgo"
+        },
+        "Chiron": {
+          "sign": "Pisces",
+          "house": 9,
+          "formatted": "27\u00b0Pisces"
+        }
+      }
+    },
+    {
+      "user": "Jaan",
+      "user_id": "69894cc932380843ba87d121",
+      "category": "DC",
+      "intent_key": "relationship_pattern",
+      "message": "What relationship pattern keeps repeating?",
+      "verdict": "PASS",
+      "prompt_has_point": true,
+      "injection": {
+        "injected_points": [
+          "Midheaven / MC: 5\u00b0Aries (Aries)",
+          "Chiron: 27\u00b0Pisces (Pisces) House 9",
+          "Descendant / DC: 3\u00b0Capricorn (Capricorn)"
+        ],
+        "weighting_blocks": [
+          "CHIRON_FOCUS",
+          "DC_WEIGHTING",
+          "DEVELOPMENTAL_AXIS_WEIGHTING"
+        ],
+        "triggers_seen": {
+          "MC": false,
+          "DC": true,
+          "IC": false,
+          "purpose": true,
+          "chiron": true
+        },
+        "stored_values": {
+          "MC": {
+            "sign": "Aries",
+            "formatted": "5\u00b0Aries"
+          },
+          "Chiron": {
+            "sign": "Pisces",
+            "house": 9,
+            "formatted": "27\u00b0Pisces"
+          },
+          "DC": {
+            "sign": "Capricorn",
+            "formatted": "3\u00b0Capricorn"
+          },
+          "IC": {
+            "sign": "Virgo",
+            "formatted": "44\u00b0Virgo"
+          }
+        }
+      },
+      "live": {
+        "ok": true,
+        "status": 200,
+        "response": "In the realm of relationships, there's a theme that revolves around structure and responsibility. There's an underlying desire for stability and commitment, often seen in spaces like partnerships or collaborations. Your 7th House is expressed through Capricorn, which brings a focus on discipline and ambition in relational connections. Jupiter inhabits this space too, suggesting that relationships can expand and bring opportunities, but they also invite you to consider your own boundaries and foundations. The presence of Capricorn suggests that relationships often reflect a need for clear goals and mutual respect. One might find themselves drawn to partnerships that test their resilience or challenge them to grow in tangible, measured ways. With Venus also in Capricorn, there's a love for practicality and reliability. Partnerships may mature over time, growing steadily rather than burning intensely.",
+        "session_id": "ee641961-6957-4208-ba5a-611b37375c72",
+        "elapsed_s": 3.9450039863586426
+      },
+      "evidence": {
+        "mentions_expected_point": true,
+        "mentions_expected_sign": true,
+        "mentions_expected_house": false,
+        "leak_sun_substitution": false,
+        "leak_asc_substitution": false,
+        "leak_moon_substitution": false,
+        "evidence_quotes": [
+          "\u2026en seen in spaces like partnerships or collaborations. Your 7th House is expressed through Capricorn, which brings a focus on discipline and ambition in relational connections. Jupiter inha\u2026"
+        ]
+      },
+      "chart_points": {
+        "MC": {
+          "sign": "Aries",
+          "formatted": "5\u00b0Aries"
+        },
+        "DC": {
+          "sign": "Capricorn",
+          "formatted": "3\u00b0Capricorn"
+        },
+        "IC": {
+          "sign": "Virgo",
+          "formatted": "44\u00b0Virgo"
+        },
+        "Chiron": {
+          "sign": "Pisces",
+          "house": 9,
+          "formatted": "27\u00b0Pisces"
+        }
+      }
+    },
+    {
+      "user": "Jaan",
+      "user_id": "69894cc932380843ba87d121",
+      "category": "Chiron",
+      "intent_key": "wound",
+      "message": "What wound am I working through?",
+      "verdict": "PASS",
+      "prompt_has_point": true,
+      "injection": {
+        "injected_points": [
+          "Midheaven / MC: 5\u00b0Aries (Aries)",
+          "Chiron: 27\u00b0Pisces (Pisces) House 9"
+        ],
+        "weighting_blocks": [
+          "CHIRON_FOCUS",
+          "DEVELOPMENTAL_AXIS_WEIGHTING"
+        ],
+        "triggers_seen": {
+          "MC": false,
+          "DC": false,
+          "IC": false,
+          "purpose": true,
+          "chiron": true
+        },
+        "stored_values": {
+          "MC": {
+            "sign": "Aries",
+            "formatted": "5\u00b0Aries"
+          },
+          "Chiron": {
+            "sign": "Pisces",
+            "house": 9,
+            "formatted": "27\u00b0Pisces"
+          },
+          "DC": {
+            "sign": "Capricorn",
+            "formatted": "3\u00b0Capricorn"
+          },
+          "IC": {
+            "sign": "Virgo",
+            "formatted": "44\u00b0Virgo"
+          }
+        }
+      },
+      "live": {
+        "ok": true,
+        "status": 200,
+        "response": "Chiron in Pisces, located in House 9, points to a journey involving the exploration of beliefs, spirituality, and the expansive nature of understanding. This placement often surfaces themes around seeking a deeper connection with something larger than oneself, perhaps facing disillusionment or skepticism along the way. The wound here might manifest as a longing for spiritual or existential meaning and healing a tendency to feel disconnected or misunderstood in these areas. It could invite questions about how you integrate beliefs with the realities of everyday life. In this exploration, what resonates or feels alive for you when considering where you seek deeper meaning or understanding?",
+        "session_id": "1a2cdabc-989a-4c17-b877-b2fbca43a17f",
+        "elapsed_s": 2.8524787425994873
+      },
+      "evidence": {
+        "mentions_expected_point": true,
+        "mentions_expected_sign": true,
+        "mentions_expected_house": true,
+        "leak_sun_substitution": false,
+        "leak_asc_substitution": false,
+        "leak_moon_substitution": false,
+        "evidence_quotes": [
+          "\u2026Chiron in Pisces, located in House 9, points to a journey involving the exploration of beliefs, spirituality, and the expansiv\u2026"
+        ]
+      },
+      "chart_points": {
+        "MC": {
+          "sign": "Aries",
+          "formatted": "5\u00b0Aries"
+        },
+        "DC": {
+          "sign": "Capricorn",
+          "formatted": "3\u00b0Capricorn"
+        },
+        "IC": {
+          "sign": "Virgo",
+          "formatted": "44\u00b0Virgo"
+        },
+        "Chiron": {
+          "sign": "Pisces",
+          "house": 9,
+          "formatted": "27\u00b0Pisces"
+        }
+      }
+    },
+    {
+      "user": "Jaan",
+      "user_id": "69894cc932380843ba87d121",
+      "category": "Chiron",
+      "intent_key": "healing",
+      "message": "What am I here to heal?",
+      "verdict": "PASS",
+      "prompt_has_point": true,
+      "injection": {
+        "injected_points": [
+          "Midheaven / MC: 5\u00b0Aries (Aries)",
+          "Chiron: 27\u00b0Pisces (Pisces) House 9"
+        ],
+        "weighting_blocks": [
+          "CHIRON_FOCUS",
+          "DEVELOPMENTAL_AXIS_WEIGHTING"
+        ],
+        "triggers_seen": {
+          "MC": false,
+          "DC": false,
+          "IC": false,
+          "purpose": true,
+          "chiron": true
+        },
+        "stored_values": {
+          "MC": {
+            "sign": "Aries",
+            "formatted": "5\u00b0Aries"
+          },
+          "Chiron": {
+            "sign": "Pisces",
+            "house": 9,
+            "formatted": "27\u00b0Pisces"
+          },
+          "DC": {
+            "sign": "Capricorn",
+            "formatted": "3\u00b0Capricorn"
+          },
+          "IC": {
+            "sign": "Virgo",
+            "formatted": "44\u00b0Virgo"
+          }
+        }
+      },
+      "live": {
+        "ok": true,
+        "status": 200,
+        "response": "In looking at your chart, healing could be centered around what is represented by Chiron in Pisces in the 9th House. This often points to themes related to spirituality, belief systems, and the search for a deeper truth. There might be wounds tied to your faith or trust in the universe, struggles with feeling isolated in your quest for understanding, or a sense of disconnection from a bigger picture. What you decide to explore in this area is up to you, but engaging with these themes could invite healing. How does this resonate with what you've been experiencing?",
+        "session_id": "47cf47cd-77aa-480b-a4b9-6e6538eff7db",
+        "elapsed_s": 5.919174432754517
+      },
+      "evidence": {
+        "mentions_expected_point": true,
+        "mentions_expected_sign": true,
+        "mentions_expected_house": true,
+        "leak_sun_substitution": false,
+        "leak_asc_substitution": false,
+        "leak_moon_substitution": false,
+        "evidence_quotes": [
+          "\u2026rt, healing could be centered around what is represented by Chiron in Pisces in the 9th House. This often points to themes related to spirituality, belief systems, and the search for a d\u2026"
+        ]
+      },
+      "chart_points": {
+        "MC": {
+          "sign": "Aries",
+          "formatted": "5\u00b0Aries"
+        },
+        "DC": {
+          "sign": "Capricorn",
+          "formatted": "3\u00b0Capricorn"
+        },
+        "IC": {
+          "sign": "Virgo",
+          "formatted": "44\u00b0Virgo"
+        },
+        "Chiron": {
+          "sign": "Pisces",
+          "house": 9,
+          "formatted": "27\u00b0Pisces"
+        }
+      }
+    },
+    {
+      "user": "Jaan",
+      "user_id": "69894cc932380843ba87d121",
+      "category": "Chiron",
+      "intent_key": "repeating_life",
+      "message": "What keeps repeating in my life?",
+      "verdict": "WEAK (no overt evidence)",
+      "prompt_has_point": true,
+      "injection": {
+        "injected_points": [
+          "Midheaven / MC: 5\u00b0Aries (Aries)",
+          "Chiron: 27\u00b0Pisces (Pisces) House 9"
+        ],
+        "weighting_blocks": [
+          "CHIRON_FOCUS",
+          "DEVELOPMENTAL_AXIS_WEIGHTING"
+        ],
+        "triggers_seen": {
+          "MC": false,
+          "DC": false,
+          "IC": false,
+          "purpose": true,
+          "chiron": true
+        },
+        "stored_values": {
+          "MC": {
+            "sign": "Aries",
+            "formatted": "5\u00b0Aries"
+          },
+          "Chiron": {
+            "sign": "Pisces",
+            "house": 9,
+            "formatted": "27\u00b0Pisces"
+          },
+          "DC": {
+            "sign": "Capricorn",
+            "formatted": "3\u00b0Capricorn"
+          },
+          "IC": {
+            "sign": "Virgo",
+            "formatted": "44\u00b0Virgo"
+          }
+        }
+      },
+      "live": {
+        "ok": true,
+        "status": 200,
+        "response": "Your chart often circles around the theme of life pulling you into groups or your chosen world. This isn't something that merely happens on occasion; it's a repetitive pull, almost like a tide that keeps drawing you back. When you're in these environments, there's a noticeable accumulation of pressure in how you engage within groups and communities, shaping your sense of belonging and identity. This field of group involvement sees intersections between expression and authorship. There\u2019s a balancing act between presenting your authentic self and aligning with the collective ethos. It's as if every time you enter a new group setting, there is a subtle yet persistent call to express who you are while navigating the dynamics therein. While there are no major tensions or overcompensation patterns, the activation of communication and the consequences of speech play a significant role. You're drawn towards expressing your ideas and observing how they ripple through your circles, shaping interactions and how you fit within the group.",
+        "session_id": "b5fc2cfe-a780-4dd5-a38d-c6edc35b61d2",
+        "elapsed_s": 7.214239835739136
+      },
+      "evidence": {
+        "mentions_expected_point": false,
+        "mentions_expected_sign": false,
+        "mentions_expected_house": false,
+        "leak_sun_substitution": false,
+        "leak_asc_substitution": false,
+        "leak_moon_substitution": false,
+        "evidence_quotes": []
+      },
+      "chart_points": {
+        "MC": {
+          "sign": "Aries",
+          "formatted": "5\u00b0Aries"
+        },
+        "DC": {
+          "sign": "Capricorn",
+          "formatted": "3\u00b0Capricorn"
+        },
+        "IC": {
+          "sign": "Virgo",
+          "formatted": "44\u00b0Virgo"
+        },
+        "Chiron": {
+          "sign": "Pisces",
+          "house": 9,
+          "formatted": "27\u00b0Pisces"
+        }
+      }
+    },
+    {
+      "user": "Jaan",
+      "user_id": "69894cc932380843ba87d121",
+      "category": "IC",
+      "intent_key": "home_meaning",
+      "message": "What does home mean to me?",
+      "verdict": "PASS",
+      "prompt_has_point": true,
+      "injection": {
+        "injected_points": [
+          "Midheaven / MC: 5\u00b0Aries (Aries)",
+          "Chiron: 27\u00b0Pisces (Pisces) House 9",
+          "IC / Imum Coeli: 44\u00b0Virgo (Virgo)"
+        ],
+        "weighting_blocks": [
+          "IC_WEIGHTING"
+        ],
+        "triggers_seen": {
+          "MC": false,
+          "DC": false,
+          "IC": true,
+          "purpose": false,
+          "chiron": false
+        },
+        "stored_values": {
+          "MC": {
+            "sign": "Aries",
+            "formatted": "5\u00b0Aries"
+          },
+          "Chiron": {
+            "sign": "Pisces",
+            "house": 9,
+            "formatted": "27\u00b0Pisces"
+          },
+          "DC": {
+            "sign": "Capricorn",
+            "formatted": "3\u00b0Capricorn"
+          },
+          "IC": {
+            "sign": "Virgo",
+            "formatted": "44\u00b0Virgo"
+          }
+        }
+      },
+      "live": {
+        "ok": true,
+        "status": 200,
+        "response": "Your question about home touches on a deep and personal aspect of life. With your IC (Imum Coeli) in Virgo, there's often a sense that home and your roots are connected to themes of order, practicality, and nurturing through small, intentional actions. This positioning sometimes suggests that you might feel most at ease when your environment is organized and offers a sense of predictability and calm. This Virgo influence might invite you to create spaces that support both physical well-being and mental clarity. There can be a deep-seated desire to contribute and be of service to those you consider family, nurturing them in practical and tangible ways. Reflecting on this, you might ask yourself: What specific qualities or experiences make a place feel like 'home' to you?",
+        "session_id": "e745b985-1ed1-4856-b42b-c04333f76e23",
+        "elapsed_s": 4.396448612213135
+      },
+      "evidence": {
+        "mentions_expected_point": true,
+        "mentions_expected_sign": true,
+        "mentions_expected_house": false,
+        "leak_sun_substitution": false,
+        "leak_asc_substitution": false,
+        "leak_moon_substitution": false,
+        "evidence_quotes": [
+          "\u2026me touches on a deep and personal aspect of life. With your IC (Imum Coeli) in Virgo, there's often a sense that home and your roots are connected to themes of order, practicality, a\u2026",
+          "\u2026home and your roots are connected to themes of order, practicality, and nurturing through small, intentional actions. This positioning sometimes suggests that you might feel most at\u2026"
+        ]
+      },
+      "chart_points": {
+        "MC": {
+          "sign": "Aries",
+          "formatted": "5\u00b0Aries"
+        },
+        "DC": {
+          "sign": "Capricorn",
+          "formatted": "3\u00b0Capricorn"
+        },
+        "IC": {
+          "sign": "Virgo",
+          "formatted": "44\u00b0Virgo"
+        },
+        "Chiron": {
+          "sign": "Pisces",
+          "house": 9,
+          "formatted": "27\u00b0Pisces"
+        }
+      }
+    },
+    {
+      "user": "Jaan",
+      "user_id": "69894cc932380843ba87d121",
+      "category": "IC",
+      "intent_key": "roots_pattern",
+      "message": "What patterns come from my roots?",
+      "verdict": "PASS",
+      "prompt_has_point": true,
+      "injection": {
+        "injected_points": [
+          "Midheaven / MC: 5\u00b0Aries (Aries)",
+          "Chiron: 27\u00b0Pisces (Pisces) House 9",
+          "IC / Imum Coeli: 44\u00b0Virgo (Virgo)"
+        ],
+        "weighting_blocks": [
+          "IC_WEIGHTING"
+        ],
+        "triggers_seen": {
+          "MC": false,
+          "DC": false,
+          "IC": true,
+          "purpose": false,
+          "chiron": false
+        },
+        "stored_values": {
+          "MC": {
+            "sign": "Aries",
+            "formatted": "5\u00b0Aries"
+          },
+          "Chiron": {
+            "sign": "Pisces",
+            "house": 9,
+            "formatted": "27\u00b0Pisces"
+          },
+          "DC": {
+            "sign": "Capricorn",
+            "formatted": "3\u00b0Capricorn"
+          },
+          "IC": {
+            "sign": "Virgo",
+            "formatted": "44\u00b0Virgo"
+          }
+        }
+      },
+      "live": {
+        "ok": true,
+        "status": 200,
+        "response": "You've tapped into a foundational question, one that's intricately connected to your sense of belonging and where you come from. With your IC in Virgo, there\u2019s often a quality of seeking stability and order in your early environment. This can manifest as a strong drive for perfectionism or a meticulous approach to managing life. You might have grown up valuing routines, clarity, and the tangible benefits of hard work. This grounding in practicality could translate into a tendency to seek predictability and control in your current life, perhaps to avoid the discomfort of uncertainty. It can lead to a struggle with allowing yourself to be flexible and to adapt when things don't go as planned. What resonates with you or feels most familiar about this? How does this shape how you navigate your life today?",
+        "session_id": "1e84eb6b-46ea-4808-8003-13b585111bd1",
+        "elapsed_s": 5.565351486206055
+      },
+      "evidence": {
+        "mentions_expected_point": true,
+        "mentions_expected_sign": true,
+        "mentions_expected_house": false,
+        "leak_sun_substitution": false,
+        "leak_asc_substitution": false,
+        "leak_moon_substitution": false,
+        "evidence_quotes": [
+          "\u2026You've tapped into a foundational question, one that's intricately connected to your sense of belonging and where you come from. With your IC in Virgo, there\u2019s often a quality of se\u2026",
+          "\u2026your sense of belonging and where you come from. With your IC in Virgo, there\u2019s often a quality of seeking stability and order in your early environment. This can manifest as a stro\u2026"
+        ]
+      },
+      "chart_points": {
+        "MC": {
+          "sign": "Aries",
+          "formatted": "5\u00b0Aries"
+        },
+        "DC": {
+          "sign": "Capricorn",
+          "formatted": "3\u00b0Capricorn"
+        },
+        "IC": {
+          "sign": "Virgo",
+          "formatted": "44\u00b0Virgo"
+        },
+        "Chiron": {
+          "sign": "Pisces",
+          "house": 9,
+          "formatted": "27\u00b0Pisces"
+        }
+      }
+    },
+    {
+      "user": "Jaan",
+      "user_id": "69894cc932380843ba87d121",
+      "category": "IC",
+      "intent_key": "childhood",
+      "message": "What am I carrying from childhood?",
+      "verdict": "PASS",
+      "prompt_has_point": true,
+      "injection": {
+        "injected_points": [
+          "Midheaven / MC: 5\u00b0Aries (Aries)",
+          "Chiron: 27\u00b0Pisces (Pisces) House 9",
+          "IC / Imum Coeli: 44\u00b0Virgo (Virgo)"
+        ],
+        "weighting_blocks": [
+          "IC_WEIGHTING"
+        ],
+        "triggers_seen": {
+          "MC": false,
+          "DC": false,
+          "IC": true,
+          "purpose": false,
+          "chiron": false
+        },
+        "stored_values": {
+          "MC": {
+            "sign": "Aries",
+            "formatted": "5\u00b0Aries"
+          },
+          "Chiron": {
+            "sign": "Pisces",
+            "house": 9,
+            "formatted": "27\u00b0Pisces"
+          },
+          "DC": {
+            "sign": "Capricorn",
+            "formatted": "3\u00b0Capricorn"
+          },
+          "IC": {
+            "sign": "Virgo",
+            "formatted": "44\u00b0Virgo"
+          }
+        }
+      },
+      "live": {
+        "ok": true,
+        "status": 200,
+        "response": "You're reaching into those early layers of experience. With your IC in Virgo, there's an earthy, detailed quality to what forms your roots. It suggests you might be carrying a sense of duty or a desire for order and precision from your upbringing. There might have been an emphasis on being practical, responsible, or grounded in the world around you. This can shape how you approach your current life, perhaps driving you to seek perfection or clarity in details. It's worth considering what parts of this serve you today, and where you might feel constrained. What childhood pattern or belief feels most present in your life right now?",
+        "session_id": "8b5c50b7-83bd-4f4e-ab82-fa06580c189b",
+        "elapsed_s": 5.025539875030518
+      },
+      "evidence": {
+        "mentions_expected_point": true,
+        "mentions_expected_sign": true,
+        "mentions_expected_house": false,
+        "leak_sun_substitution": false,
+        "leak_asc_substitution": false,
+        "leak_moon_substitution": false,
+        "evidence_quotes": [
+          "\u2026e reaching into those early layers of experience. With your IC in Virgo, there's an earthy, detailed quality to what forms your roots. It suggests you might be carrying a sense of du\u2026",
+          "\u2026upbringing. There might have been an emphasis on being practical, responsible, or grounded in the world around you. This can shape how you approach your current life, perhaps driving\u2026"
+        ]
+      },
+      "chart_points": {
+        "MC": {
+          "sign": "Aries",
+          "formatted": "5\u00b0Aries"
+        },
+        "DC": {
+          "sign": "Capricorn",
+          "formatted": "3\u00b0Capricorn"
+        },
+        "IC": {
+          "sign": "Virgo",
+          "formatted": "44\u00b0Virgo"
+        },
+        "Chiron": {
+          "sign": "Pisces",
+          "house": 9,
+          "formatted": "27\u00b0Pisces"
+        }
+      }
+    }
+  ]
+}

@@ -310,6 +310,13 @@ def register(
                         # team role, professional direction, calling, or
                         # purpose-in-work.  This avoids over-applying MC
                         # to relationship / emotional-life turns.
+                        # Phase-3 (Weighting Hardening) — vocabulary expansion.
+                        # Adds: becoming / evolving / future-self / next-chapter
+                        # / growing-into / legacy / direction so vocational-
+                        # identity questions framed as transformation /
+                        # evolution turns also activate MC weighting (the
+                        # Phase-2 verification proved these phrasings were
+                        # leaking to Sun-sign storytelling).
                         _mc_weight_triggers = (
                             "career", "leadership", "founder",
                             "public role", "public life", "reputation",
@@ -322,23 +329,58 @@ def register(
                             "leadership style", "leadership team",
                             "midheaven", "\u00a0mc\u00a0", " mc ", "mc:",
                             "mc says", "mc say",
+                            # Phase-3 additions — transformation / evolution
+                            # phrasing that still maps to the MC (vocational
+                            # identity) axis:
+                            "becoming", "evolving", "evolve",
+                            "future self", "future-self",
+                            "next chapter", "next-chapter",
+                            "growing into", "grow into",
+                            "who am i growing into",
+                            "what am i becoming",
+                            "what am i growing into",
+                            "legacy",
+                            "direction",  # broad — but matches "life direction"
+                                          # and "what direction am i headed"
                         )
                         _msg_lc = (request.message or "").lower()
                         _mc_triggered = any(t.strip() in _msg_lc
                                             for t in _mc_weight_triggers)
                         if _mc_triggered:
+                            # Phase-3 weighting hardening — stronger primacy
+                            # instructions + explicit mandate to name the
+                            # MC sign.  The Phase-2 verification showed that
+                            # even when this block fired, the LLM sometimes
+                            # anchored on Sun + Moon (Mel "What am I here to
+                            # contribute?" → Gemini Sun / Scorpio Moon, MC
+                            # Aries unnamed).  The new copy treats MC as the
+                            # primary vocational identity signal and
+                            # explicitly forbids Sun/Moon/Rising substitution
+                            # unless they directly support MC.
                             context_parts.append(
-                                "Midheaven / MC weighting: For career, "
-                                "leadership, vocation, public-role, "
-                                "founder, and team-role questions, "
-                                "PRIORITIZE the Midheaven / MC over the "
-                                "Sun sign when interpreting public "
-                                "contribution, role, visibility, and "
-                                "leadership expression. Do NOT make MC "
-                                "dominate relationship or emotional-life "
-                                "questions unless the user explicitly "
-                                "asks about public role / career / "
-                                "leadership."
+                                "MIDHEAVEN / MC FOCUS (PRIMARY VOCATIONAL "
+                                "IDENTITY SIGNAL):  When the user asks "
+                                "about career, leadership, vocation, "
+                                "public role, founder identity, "
+                                "contribution, calling, legacy, direction, "
+                                "future self, becoming, evolving, or what "
+                                "they are growing into — TREAT THE "
+                                "MIDHEAVEN / MC AS THE PRIMARY SIGNAL.  "
+                                "Do NOT substitute Sun, Moon, or Rising "
+                                "for the MC unless those points DIRECTLY "
+                                "support the MC interpretation.  EXPLICITLY "
+                                "NAME the MC sign (e.g., 'your Midheaven "
+                                "in <sign>') at least once in the answer "
+                                "when the response addresses vocational "
+                                "identity, public role, contribution, or "
+                                "what the user is becoming / growing into.  "
+                                "If the Sun or Moon is referenced, it must "
+                                "be in service of the MC, not as a "
+                                "replacement.  Do NOT make MC dominate "
+                                "relationship or emotional-life questions "
+                                "unless the user explicitly asks about "
+                                "public role / career / leadership / "
+                                "becoming / direction."
                             )
 
                     # ── Phase-2 prompt integrity — Chiron, Descendant, IC ─
@@ -357,6 +399,63 @@ def register(
                             f"Chiron: {chiron_doc.get('formatted') or chiron_doc.get('sign')} "
                             f"({chiron_doc.get('sign')}){_c_house_s}"
                         )
+                        # ── Phase-3 dedicated Chiron weighting block ──
+                        # Previously Chiron was only surfaced via the
+                        # broader DEVELOPMENTAL AXIS block (gated on
+                        # "purpose / growth / healing / shadow / wound").
+                        # That left the Phase-2 verification with 8/12
+                        # WEAK Chiron verdicts — the spec-flagged
+                        # Mel-Chiron-Taurus-H10 and Pete-Chiron-Pisces-H3
+                        # placements were not observable in
+                        # "healing" / "keeps repeating" responses
+                        # because Chiron sat inert in the profile block.
+                        #
+                        # This standalone CHIRON FOCUS block treats
+                        # Chiron as the *primary* growth/healing signal
+                        # and is gated on a richer healing /
+                        # repeating-pattern / shadow vocabulary.
+                        _chiron_triggers = (
+                            "heal", "healing", "healing journey",
+                            "wound", "wound i carry", "core wound",
+                            "what am i meant to heal",
+                            "what am i here to heal",
+                            "repeating pattern", "recurring pattern",
+                            "keeps repeating", "keeps coming up",
+                            "pattern i can't shake",
+                            "pattern i cant shake",
+                            "stuck pattern", "stuck in",
+                            "shadow", "integration",
+                            "growth edge", "life lesson",
+                            "chiron",
+                        )
+                        if any(t in _msg_lc_p2 for t in _chiron_triggers):
+                            _c_sign = chiron_doc.get("sign")
+                            _c_house_label = (
+                                f" in House {_c_house}" if _c_house else ""
+                            )
+                            context_parts.append(
+                                "CHIRON FOCUS (PRIMARY GROWTH / HEALING "
+                                "SIGNAL):  When the user asks about "
+                                "healing, what they are meant to heal, "
+                                "core wounds, recurring patterns, "
+                                "patterns they can't shake, stuck "
+                                "patterns, shadow material, integration, "
+                                "growth edges, or life lessons — TREAT "
+                                "CHIRON AS THE PRIMARY SIGNAL.  Prioritize "
+                                "the Chiron sign and house "
+                                f"(Chiron in {_c_sign}{_c_house_label}) "
+                                "BEFORE any generic Sun-sign growth "
+                                "narrative.  EXPLICITLY NAME 'Chiron in "
+                                f"{_c_sign}" + (f", House {_c_house}'" if _c_house else "'") +
+                                " at least once in the answer when the "
+                                "response addresses wounds / healing / "
+                                "repeating patterns / shadow / "
+                                "integration / growth.  Do NOT substitute "
+                                "Sun, Moon, or Rising for Chiron in these "
+                                "domains.  Use only the stored Chiron "
+                                "values listed above; do not invent a "
+                                "different Chiron sign or house."
+                            )
 
                     # Descendant — relationship / forum_relationship /
                     # between_you_today / forum_dynamics triggers.
@@ -390,17 +489,45 @@ def register(
                             "belonging", "safety", "parents", "mother",
                             "father", "lineage", "ancestry", "inherited",
                             "where i come from", "my origins",
+                            # Phase-3 additions for stronger coverage of
+                            # foundation / formative-influence phrasing
+                            # that previously leaked to Rising / Moon:
+                            "what shaped me", "shaped me", "early years",
+                            "growing up", "grew up", "upbringing",
+                            "carrying from childhood", "from childhood",
+                            "patterns from my roots", "where i'm from",
+                            "where im from", "foundations",
                         )
                         if any(t in _msg_lc_p2 for t in _ic_triggers):
+                            _ic_sign = ic_doc.get("sign")
                             context_parts.append(
-                                f"IC / Imum Coeli: {ic_doc.get('formatted') or ic_doc.get('sign')} "
-                                f"({ic_doc.get('sign')})"
+                                f"IC / Imum Coeli: {ic_doc.get('formatted') or _ic_sign} "
+                                f"({_ic_sign})"
                             )
+                            # Phase-3 IC weighting hardening — explicit
+                            # mandate to NAME the IC sign and to refuse
+                            # Rising / Moon / Sun substitution.  The
+                            # Phase-2 verification proved Pete's
+                            # "What patterns come from my roots?" turn
+                            # leaked to Sagittarius rising despite IC
+                            # Pisces being injected.
                             context_parts.append(
-                                "IC weighting: For family / home / "
-                                "childhood / roots / belonging questions, "
-                                "use the IC as the foundation / lineage "
-                                "axis. Use only the stored value above."
+                                "IC / IMUM COELI FOCUS (PRIMARY "
+                                "FOUNDATION SIGNAL):  When the user asks "
+                                "about roots, family, childhood, home, "
+                                "belonging, where they come from, what "
+                                "shaped them, upbringing, lineage, "
+                                "ancestry, or the patterns they carry "
+                                "from their roots — TREAT THE IC AS THE "
+                                "PRIMARY FOUNDATION SIGNAL.  Do NOT "
+                                "substitute Rising, Moon, or Sun for the "
+                                "IC when an IC value is available above.  "
+                                "EXPLICITLY NAME the IC sign (e.g., 'your "
+                                f"IC in {_ic_sign}') at least once in the "
+                                "answer.  Use only the stored IC value "
+                                "listed above; do not infer IC from the "
+                                "opposite of the MC unless the stored "
+                                "value is missing."
                             )
 
                     # Purpose / growth / healing developmental axis —
@@ -411,6 +538,14 @@ def register(
                         "life-direction", "healing", "spirituality",
                         "shadow", "integration", "wound", "calling",
                         "my soul", "soul's", "evolution",
+                        # Phase-3 — add bare-verb `heal` plus repeating /
+                        # pattern phrasing that the Phase-2 verification
+                        # showed were leaving Chiron dormant.
+                        "heal", "healing journey",
+                        "keeps repeating", "recurring pattern",
+                        "pattern i can't shake", "pattern i cant shake",
+                        "what am i meant to heal",
+                        "growth edge", "life lesson",
                     )
                     if any(t in _msg_lc_p2 for t in _purpose_triggers):
                         context_parts.append(

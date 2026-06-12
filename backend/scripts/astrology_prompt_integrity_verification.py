@@ -88,7 +88,7 @@ def build_chart_point_injection(chart: Dict[str, Any], message: str) -> Dict[str
     out = {
         "injected_points": [],
         "weighting_blocks": [],
-        "triggers_seen": {"MC": False, "DC": False, "IC": False, "purpose": False},
+        "triggers_seen": {"MC": False, "DC": False, "IC": False, "purpose": False, "chiron": False},
         "stored_values": {},
     }
     if not chart:
@@ -123,12 +123,21 @@ def build_chart_point_injection(chart: Dict[str, Any], message: str) -> Dict[str
             "leadership style", "leadership team",
             "midheaven", "\u00a0mc\u00a0", " mc ", "mc:",
             "mc says", "mc say",
+            # Phase-3 additions
+            "becoming", "evolving", "evolve",
+            "future self", "future-self",
+            "next chapter", "next-chapter",
+            "growing into", "grow into",
+            "who am i growing into",
+            "what am i becoming",
+            "what am i growing into",
+            "legacy", "direction",
         )
         if any(t.strip() in msg_lc for t in mc_triggers):
             out["triggers_seen"]["MC"] = True
             out["weighting_blocks"].append("MC_WEIGHTING")
 
-    # Chiron — unconditional injection
+    # Chiron — unconditional injection (+ Phase-3 dedicated weighting)
     chiron_doc = planets.get("Chiron") or {}
     if chiron_doc.get("sign"):
         c_house = chiron_doc.get("house")
@@ -141,6 +150,23 @@ def build_chart_point_injection(chart: Dict[str, Any], message: str) -> Dict[str
             "house": c_house,
             "formatted": chiron_doc.get("formatted"),
         }
+        chiron_triggers = (
+            "heal", "healing", "healing journey",
+            "wound", "wound i carry", "core wound",
+            "what am i meant to heal",
+            "what am i here to heal",
+            "repeating pattern", "recurring pattern",
+            "keeps repeating", "keeps coming up",
+            "pattern i can't shake",
+            "pattern i cant shake",
+            "stuck pattern", "stuck in",
+            "shadow", "integration",
+            "growth edge", "life lesson",
+            "chiron",
+        )
+        if any(t in msg_lc_p2 for t in chiron_triggers):
+            out["triggers_seen"]["chiron"] = True
+            out["weighting_blocks"].append("CHIRON_FOCUS")
 
     # Descendant — relationship-gated
     dc_doc = angles_doc.get("dc") or angles_doc.get("descendant") or {}
@@ -172,6 +198,12 @@ def build_chart_point_injection(chart: Dict[str, Any], message: str) -> Dict[str
             "belonging", "safety", "parents", "mother",
             "father", "lineage", "ancestry", "inherited",
             "where i come from", "my origins",
+            # Phase-3 additions
+            "what shaped me", "shaped me", "early years",
+            "growing up", "grew up", "upbringing",
+            "carrying from childhood", "from childhood",
+            "patterns from my roots", "where i'm from",
+            "where im from", "foundations",
         )
         out["stored_values"]["IC"] = {
             "sign": ic_doc.get("sign"),
@@ -191,6 +223,12 @@ def build_chart_point_injection(chart: Dict[str, Any], message: str) -> Dict[str
         "life-direction", "healing", "spirituality",
         "shadow", "integration", "wound", "calling",
         "my soul", "soul's", "evolution",
+        # Phase-3 additions
+        "heal", "healing journey",
+        "keeps repeating", "recurring pattern",
+        "pattern i can't shake", "pattern i cant shake",
+        "what am i meant to heal",
+        "growth edge", "life lesson",
     )
     if any(t in msg_lc_p2 for t in purpose_triggers):
         out["triggers_seen"]["purpose"] = True
@@ -493,7 +531,7 @@ async def main() -> int:
     # Persist raw JSON
     out_dir = "/app/backend/audit_reports"
     os.makedirs(out_dir, exist_ok=True)
-    raw_path = os.path.join(out_dir, "ASTROLOGY_PROMPT_INTEGRITY_VERIFICATION.json")
+    raw_path = os.path.join(out_dir, "ASTROLOGY_PROMPT_INTEGRITY_VERIFICATION_PHASE3.json")
     with open(raw_path, "w") as f:
         json.dump({
             "generated_at_iso": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
