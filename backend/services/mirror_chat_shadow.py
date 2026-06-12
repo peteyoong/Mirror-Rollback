@@ -164,6 +164,64 @@ async def emit_shadow_receipt(
         receipt["stage1_bucket"] = decision["stage1_bucket"]
         receipt["cutover_decision"] = decision
 
+        # ──────────────────────────────────────────────────────────────
+        # Cross-Lens Synthesis Phase 2  (cross_lens_synthesis_v2.1.0)
+        #
+        # Receipt-only enrichment that surfaces agreement / tension /
+        # polarity patterns across the lens space. ADDITIVE: existing
+        # lens outputs (`lens_payloads`, `lens_priority`,
+        # `intent_envelope`) are preserved verbatim.
+        # Never raises (helper catches its own errors and returns a
+        # `computed=false` payload instead).
+        # ──────────────────────────────────────────────────────────────
+        try:
+            receipt["cross_lens_synthesis_v2"] = compute_synthesis_v2(
+                intent_envelope=envd, message=message,
+            )
+        except Exception as _cl_exc:
+            log.warning(f"[Shadow] cross_lens_synthesis_v2 failed: {_cl_exc!r}")
+            receipt["cross_lens_synthesis_v2"] = {
+                "version": "cross_lens_synthesis_v2.1.0",
+                "computed": False,
+                "error": f"{type(_cl_exc).__name__}: {_cl_exc!s}",
+                "lens_outputs_preserved": True,
+            }
+
+        # ──────────────────────────────────────────────────────────────
+        # P4 v2 — Forum-topology resolution telemetry.
+        # Captures how the topology was used, frame-disambiguation
+        # signal, and topology breadth so dashboards can monitor P4
+        # plumbing health on real traffic. Receipt-only.
+        # ──────────────────────────────────────────────────────────────
+        try:
+            _topology_members = (forum_topology or {}).get("members") or []
+            _active_id = (forum_topology or {}).get("active_member_id")
+            _active_found = bool(
+                _active_id and any(
+                    m.get("id") == _active_id for m in _topology_members
+                )
+            )
+            # Frame disambiguation — was the resolver's frame consistent
+            # with the topology presence? Surfaces forum-vs-self drift.
+            _frame_consistent = (
+                (frame == "forum" and bool(_active_id))
+                or (frame != "forum" and not _active_id)
+            )
+            receipt["forum_topology_resolution"] = {
+                "topology_supplied":        bool(forum_topology),
+                "active_member_id":         _active_id,
+                "active_member_in_members": _active_found,
+                "topology_member_count":    len(_topology_members),
+                "resolver_frame":           frame,
+                "frame_consistent":         _frame_consistent,
+            }
+        except Exception as _ft_exc:
+            log.warning(f"[Shadow] forum_topology_resolution failed: {_ft_exc!r}")
+            receipt["forum_topology_resolution"] = {
+                "topology_supplied": bool(forum_topology),
+                "error": f"{type(_ft_exc).__name__}: {_ft_exc!s}",
+            }
+
         if db is not None:
             await persist_receipt(db, receipt)
         log.info(format_log_line(receipt))

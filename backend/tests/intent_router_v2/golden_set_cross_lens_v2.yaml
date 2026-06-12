@@ -1,0 +1,46 @@
+# Cross-lens synthesis Phase 2 — tension/agreement/polarity validation suite
+# (cross_lens_synthesis_v2, 2026-06-12).
+#
+# These cases each probe a known polarity pair and assert the
+# `compute_synthesis_v2()` helper produces the expected polarity label
+# alongside the existing intent envelope (which is preserved untouched).
+#
+# Ids prefixed `CL`. NOTE: these cases are consumed by
+# `tests/test_cross_lens_synthesis_v2.py`, NOT by the standard intent
+# router benchmark (which expects `expected_primary`).
+
+- id: CL1
+  message: "My wife is pissed I'm always at the office, but my board is pushing for more growth."
+  active_frame: self
+  expected_polarity: founder_with_spouse_pull
+  expected_tension_pair: [relationship, leadership]
+
+- id: CL2
+  message: "I'm burned out but the team needs me to lead through this quarter."
+  active_frame: self
+  expected_polarity: leading_through_burnout
+  expected_tension_pair: [leadership, health]
+
+- id: CL3
+  message: "Should I take this VP role at a bigger company or stay in my own startup?"
+  active_frame: self
+  expected_polarity: role_purpose_misalignment
+  expected_tension_pair: [career, purpose]
+
+- id: CL4
+  message: "We have 6 months of runway but the mission still matters more."
+  active_frame: self
+  expected_polarity: runway_vs_mission
+  expected_tension_pair: [money, purpose]
+
+- id: CL5
+  message: "I want to grow as my own person but my family keeps me anchored to who I was."
+  active_frame: self
+  expected_polarity: individuation_vs_roots
+  expected_tension_pair: [growth, family]
+
+- id: CL6
+  message: "Who am I when I'm not with my partner?"
+  active_frame: self
+  expected_polarity: self_vs_partnered_self
+  expected_tension_pair: [identity, relationship]

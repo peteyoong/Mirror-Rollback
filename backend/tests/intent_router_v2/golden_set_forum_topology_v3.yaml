@@ -1,0 +1,82 @@
+# Forum-topology disambiguation suite v3 (P4-v3, 2026-06-14).
+# Iteration 3 extension. Probes:
+#   * Third-person forum-member descriptors (the founder/the ceo/this person)
+#     in forum frame should route to relationship, NOT self-frame career.
+#   * Identity-in-context queries ("show up here vs at home") should
+#     route to identity even in forum frame.
+#   * active_member_id resolution under multiple-member topologies.
+# Ids prefixed `FT`.
+
+- id: FT17
+  message: "How does the operator show up in this forum?"
+  active_frame: forum
+  forum_topology:
+    forum_id: "forum-001"
+    active_member_id: "kara-001"
+  expected_primary: relationship
+  expected_secondary_in: [career, leadership]
+
+- id: FT18
+  message: "How does the ceo come across in this group?"
+  active_frame: forum
+  forum_topology:
+    forum_id: "forum-001"
+    active_member_id: "kara-001"
+  expected_primary: relationship
+  expected_secondary_in: [leadership]
+
+- id: FT19
+  message: "What's it like working with this executive?"
+  active_frame: forum
+  forum_topology:
+    forum_id: "forum-001"
+    active_member_id: "kara-001"
+  expected_primary: relationship
+  expected_secondary_in: [work, career]
+
+- id: FT20
+  message: "Why does this person trigger me here?"
+  active_frame: forum
+  forum_topology:
+    forum_id: "forum-001"
+    active_member_id: "kara-001"
+  expected_primary: relationship
+  expected_secondary_in: [identity, growth]
+
+- id: FT21
+  message: "Am I the same person here as I am at home?"
+  active_frame: forum
+  forum_topology:
+    forum_id: "forum-001"
+    active_member_id: "kara-001"
+  expected_primary: identity
+  expected_secondary_in: [relationship]
+
+- id: FT22
+  message: "Tell me about Patricia and Mel together."
+  active_frame: forum
+  forum_topology:
+    forum_id: "forum-002"
+    active_member_id: "patricia-001"
+    members:
+      - {id: "patricia-001", name: "Patricia"}
+      - {id: "mel-001",      name: "Mel"}
+  expected_primary: relationship
+
+- id: FT23
+  message: "What does this leader bring to the group dynamic?"
+  active_frame: forum
+  forum_topology:
+    forum_id: "forum-001"
+    active_member_id: "kara-001"
+  expected_primary: relationship
+  expected_secondary_in: [leadership]
+
+- id: FT24
+  message: "How do I stop avoiding hard conversations with this person?"
+  active_frame: forum
+  forum_topology:
+    forum_id: "forum-001"
+    active_member_id: "kara-001"
+  expected_primary: relationship
+  expected_secondary_in: [growth, identity]

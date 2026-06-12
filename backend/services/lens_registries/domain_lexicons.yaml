@@ -16,6 +16,13 @@ identity:
     - {p: "feel like myself",  w: 0.7}
     - {p: "how am i showing up", w: 0.7}
     - {p: "showing up as",     w: 0.45}
+    # --- B3.1-v3 / P4-v3 (2026-06-14) identity-in-context patterns ---
+    # "Showing up here vs at home" — identity across contexts.
+    - {p: "how i show up",     w: 0.7}
+    - {p: "the way i show up", w: 0.85}
+    - {p: "way i show up",     w: 0.7}
+    - {p: "show up at home",   w: 0.85}
+    - {p: "showing up here",   w: 0.6}
     # --- B3.2 founder/operator: identity-mode self-questioning ---
     - {p: "am i avoiding",     w: 0.9}
     - {p: "avoiding a decision", w: 0.95}
@@ -59,6 +66,48 @@ identity:
     - {p: "incarnation cross", w: 0.8}
     - {p: "my incarnation cross", w: 0.95}
     - {p: "my aspects",        w: 0.55}
+    # --- B3.1-v2 (2026-06-12) educational lens-jargon → identity ---
+    # These bare lens terms route to `identity` (self-inquiry through a
+    # lens). Contextual cues (e.g. "in my chiron return right now")
+    # still pick up `growth` / `relationship` via the contextual-cue
+    # regex (which subtracts EDUCATIONAL_MODE_NATURAL_PENALTY).
+    - {p: "chiron return",     w: 0.6}
+    - {p: "my chiron return",  w: 0.75}
+    - {p: "progressed moon",   w: 0.6}
+    - {p: "my progressed moon", w: 0.75}
+    - {p: "solar return chart", w: 0.7}
+    - {p: "solar return",      w: 0.45}
+    - {p: "lunar return chart", w: 0.7}
+    - {p: "vertex",            w: 0.55}
+    - {p: "anti-vertex",       w: 0.65}
+    - {p: "anti vertex",       w: 0.65}
+    - {p: "my vertex",         w: 0.7}
+    - {p: "lilith",            w: 0.55}
+    - {p: "lilith placement",  w: 0.7}
+    - {p: "lilith placements", w: 0.7}
+    - {p: "composite chart",   w: 0.5}    # also exists in relationship lexicon
+    - {p: "synastry chart",    w: 0.6}
+    # --- B3.1-v3 (2026-06-14) asteroids + minor points ---
+    - {p: "my descendant",     w: 0.7}
+    - {p: "the descendant",    w: 0.5}
+    - {p: "descendant",        w: 0.4}
+    - {p: "my juno",           w: 0.75}
+    - {p: "juno",              w: 0.5}
+    - {p: "my ceres",          w: 0.7}
+    - {p: "ceres",             w: 0.5}
+    - {p: "my pallas",         w: 0.7}
+    - {p: "pallas",            w: 0.5}
+    - {p: "my vesta",          w: 0.7}
+    - {p: "vesta",             w: 0.5}
+    - {p: "my ic",             w: 0.65}
+    - {p: "ic sign",           w: 0.7}
+    - {p: "stellium",          w: 0.5}
+    - {p: "my stellium",       w: 0.75}
+    - {p: "grand trine",       w: 0.5}
+    - {p: "yod",               w: 0.45}
+    - {p: "out of bounds",     w: 0.5}
+    - {p: "what is a",         w: 0.4}
+    - {p: "what is the",       w: 0.35}
 
     # --- B1.3 lens-jargon: HUMAN DESIGN (self-inquiry catchall) ---
     - {p: "my human design",   w: 0.9}
@@ -301,6 +350,30 @@ career:
     - {p: "company direction", w: 0.8}
     - {p: "capital allocation", w: 0.8}
     - {p: "cofounder",         w: 0.5}
+    # --- B3.2-v2 (2026-06-12) operator vocabulary ---
+    - {p: "operator role",     w: 0.85}
+    - {p: "as an operator",    w: 0.85}
+    - {p: "operator path",     w: 0.7}
+    - {p: "ic role",           w: 0.6}
+    - {p: "individual contributor", w: 0.65}
+    - {p: "scaling myself",    w: 0.7}
+    - {p: "scale myself",      w: 0.7}
+    - {p: "scaling the team",  w: 0.85}
+    - {p: "scaling the business", w: 0.85}
+    - {p: "stage of the company", w: 0.8}
+    - {p: "stage of company",  w: 0.75}
+    # --- B3.2-v3 (2026-06-14) fundraising / PMF / exit / cap-table ---
+    - {p: "product market fit", w: 0.95}
+    - {p: "product-market fit", w: 0.95}
+    - {p: "find pmf",          w: 0.95}
+    - {p: "pmf",               w: 0.7}
+    - {p: "go to market",      w: 0.85}
+    - {p: "go-to-market",      w: 0.85}
+    - {p: "gtm motion",        w: 0.9}
+    - {p: "gtm",               w: 0.55}
+    - {p: "ipo",               w: 0.8}
+    - {p: "go public",         w: 0.7}
+    - {p: "m&a",               w: 0.7}
 
 work:
   phrases:
@@ -399,6 +472,79 @@ leadership:
     - {p: "next growth constraint", w: 0.95}
     - {p: "bottleneck",       w: 0.55}
     - {p: "the bottleneck",   w: 0.65}
+    # --- B3.2-v2 (2026-06-12) board / restructure / strategic risk ---
+    - {p: "the board",        w: 0.7}
+    - {p: "my board",         w: 0.9}
+    - {p: "board meeting",    w: 0.85}
+    - {p: "board call",       w: 0.8}
+    - {p: "board wants",      w: 0.9}
+    - {p: "board is pushing", w: 0.9}
+    - {p: "answer to the board", w: 0.9}
+    - {p: "board-level decision", w: 0.95}
+    - {p: "board level decision", w: 0.9}
+    - {p: "operating partner", w: 0.9}
+    - {p: "my operating partner", w: 0.95}
+    - {p: "operating partners", w: 0.85}
+    - {p: "an operating partner", w: 0.9}
+    - {p: "bring on an operating partner", w: 0.95}
+    - {p: "restructure",      w: 0.8}
+    - {p: "restructuring",    w: 0.85}
+    - {p: "reorg",            w: 0.85}
+    - {p: "reorganize",       w: 0.8}
+    - {p: "reorganization",   w: 0.85}
+    - {p: "the reorg",        w: 0.9}
+    - {p: "company restructure", w: 0.95}
+    - {p: "restructure the company", w: 0.95}
+    - {p: "restructure the org", w: 0.95}
+    - {p: "org chart",        w: 0.7}
+    - {p: "strategic risk",   w: 0.85}
+    - {p: "strategic risks",  w: 0.85}
+    - {p: "organizational decision", w: 0.9}
+    - {p: "org decision",     w: 0.8}
+    - {p: "scaling the company", w: 0.9}
+    - {p: "scale the company", w: 0.85}
+    - {p: "scale the org",    w: 0.85}
+    - {p: "scale the business", w: 0.85}
+    - {p: "organizational change", w: 0.85}
+    - {p: "leadership pipeline", w: 0.95}
+    - {p: "succession plan",  w: 0.9}
+    - {p: "need a succession plan", w: 0.95}
+    - {p: "management team isn't scaling", w: 0.95}
+    - {p: "story to tell",    w: 0.4}
+    # --- B3.2-v3 (2026-06-14) hiring plan / perf reviews / founder mode ---
+    - {p: "hiring plan",      w: 0.85}
+    - {p: "the hiring plan",  w: 0.9}
+    - {p: "annual hiring plan", w: 0.95}
+    - {p: "compensation plan", w: 0.85}
+    - {p: "comp plan",        w: 0.8}
+    - {p: "performance review", w: 0.85}
+    - {p: "perf review",      w: 0.8}
+    - {p: "performance improvement plan", w: 0.95}
+    - {p: "put on a pip",     w: 0.95}
+    - {p: "founder mode",     w: 0.9}
+    - {p: "in founder mode",  w: 0.95}
+    - {p: "founder burnout",  w: 0.95}
+    - {p: "leadership offsite", w: 0.9}
+    - {p: "exec offsite",     w: 0.9}
+    - {p: "okrs",             w: 0.7}
+    - {p: "set okrs",         w: 0.85}
+    - {p: "annual planning",  w: 0.75}
+    - {p: "quarterly planning", w: 0.8}
+    - {p: "extend runway",    w: 0.85}
+    - {p: "extending runway", w: 0.85}
+    - {p: "cut burn",         w: 0.85}
+    - {p: "reduce burn",      w: 0.85}
+    # --- B3.2-v3 (2026-06-14) strategic exit / CEO transition ---
+    - {p: "exit the company",       w: 0.95}
+    - {p: "selling the company",    w: 0.95}
+    - {p: "sell the company",       w: 0.95}
+    - {p: "acquisition offer",      w: 0.95}
+    - {p: "founder ceo transition", w: 0.95}
+    - {p: "transition out of ceo",  w: 0.95}
+    - {p: "step back as ceo",       w: 0.95}
+    - {p: "step down as ceo",       w: 0.95}
+    - {p: "succeed me as ceo",      w: 0.95}
+    - {p: "someone to run the company", w: 0.95}
 
 money:
   phrases:
@@ -423,6 +569,30 @@ money:
     - {p: "2nd house",     w: 0.65}
     - {p: "second house",  w: 0.7}
     - {p: "my values",     w: 0.4}
+    # --- B3.2-v3 (2026-06-14) fundraising / valuation / dilution ---
+    - {p: "term sheet",        w: 0.95}
+    - {p: "the term sheet",    w: 0.95}
+    - {p: "valuation",         w: 0.7}
+    - {p: "our valuation",     w: 0.9}
+    - {p: "dilution",          w: 0.85}
+    - {p: "diluted",           w: 0.7}
+    - {p: "cap table",         w: 0.95}
+    - {p: "the cap table",     w: 0.95}
+    - {p: "equity grant",      w: 0.85}
+    - {p: "equity grants",     w: 0.85}
+    - {p: "raise a round",     w: 0.95}
+    - {p: "raising a round",   w: 0.95}
+    - {p: "raise the round",   w: 0.95}
+    - {p: "next round",        w: 0.6}
+    - {p: "series a",          w: 0.7}
+    - {p: "series b",          w: 0.7}
+    - {p: "series c",          w: 0.7}
+    - {p: "bridge round",      w: 0.85}
+    - {p: "down round",        w: 0.95}
+    - {p: "investor update",   w: 0.85}
+    - {p: "lp update",         w: 0.85}
+    - {p: "lead investor",     w: 0.8}
+    - {p: "out of runway",     w: 0.95}
 
 purpose:
   phrases:
@@ -493,15 +663,14 @@ growth:
     - {p: "current transits", w: 0.55}
     - {p: "transits",         w: 0.2}
     - {p: "this transit",     w: 0.5}
-    - {p: "solar return",     w: 0.55}
-    - {p: "lunar return",     w: 0.55}
+    - {p: "solar return",     w: 0.30}
+    - {p: "lunar return",     w: 0.30}
     - {p: "current astrology", w: 0.55}
     - {p: "my evolution",     w: 0.75}
-    # --- B3.1 lens-term compounds (growth-coded transits) ---
-    - {p: "progressed moon",  w: 0.85}
-    - {p: "my progressed moon", w: 0.9}
-    - {p: "chiron return",    w: 0.8}
-    - {p: "my chiron return", w: 0.85}
+    # B3.1-v2: chiron return / progressed moon / solar return moved OUT of
+    # `growth` since bare educational queries should route to `identity`.
+    # Contextual cues (e.g. "in my chiron return right now") still pick
+    # up `growth` via the educational-mode contextual-cue regex.
 
 life_direction:
   phrases:
@@ -514,6 +683,27 @@ life_direction:
     - {p: "crossroads",        w: 0.85}
     - {p: "next step",         w: 0.7}
     - {p: "big decision",      w: 0.75}
+    - {p: "or start something",w: 0.35}
+    - {p: "start something new", w: 0.5}
+    - {p: "new chapter",       w: 0.8}
+    - {p: "pivot",             w: 0.55}
+    - {p: "in this company or", w: 0.7}
+    - {p: "or leave",          w: 0.55}
+    - {p: "stay or go",        w: 0.9}
+    - {p: "stay as ceo",       w: 0.6}
+    - {p: "hand it off",       w: 0.55}
+    - {p: "acquisition offer", w: 0.75}
+    - {p: "keep building",     w: 0.5}
+    # --- B3.1 lens-term compounds (timing-event lens jargon) ---
+    - {p: "saturn return",     w: 0.95}
+    - {p: "my saturn return",  w: 0.95}
+    - {p: "nodal return",      w: 0.85}
+    - {p: "north node return", w: 0.85}
+    - {p: "mid-life crisis",   w: 0.9}
+    - {p: "midlife crisis",    w: 0.9}
+    - {p: "mid-life return",   w: 0.85}
+    - {p: "midlife return",    w: 0.85}
+
     - {p: "or start something",w: 0.35}
     - {p: "start something new", w: 0.5}
     - {p: "new chapter",       w: 0.8}

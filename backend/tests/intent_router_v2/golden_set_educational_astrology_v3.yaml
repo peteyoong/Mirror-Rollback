@@ -1,0 +1,67 @@
+# Educational astrology / lens-term routing suite v3 (B3.1-v3, 2026-06-14).
+# Iteration 3 extension. Probes:
+#   * Descendant, IC, MC, Juno, Ceres, Pallas (asteroid points)
+#   * "What is X" educational pattern (bare lens-term inquiry)
+#   * Distinguishing educational inquiry from contextual life-domain
+# Ids prefixed `EA`.
+
+- id: EA21
+  message: "What is my descendant?"
+  active_frame: self
+  expected_primary: identity
+  expected_secondary_in: [growth, life_direction]
+
+- id: EA22
+  message: "What is the IC in astrology?"
+  active_frame: self
+  expected_primary: identity
+  expected_secondary_in: [growth, family]
+
+- id: EA23
+  message: "Tell me about my juno."
+  active_frame: self
+  expected_primary: identity
+  expected_secondary_in: [relationship]
+
+- id: EA24
+  message: "What is ceres in my chart?"
+  active_frame: self
+  expected_primary: identity
+  expected_secondary_in: [growth]
+
+- id: EA25
+  message: "Explain pallas in astrology."
+  active_frame: self
+  expected_primary: identity
+  expected_secondary_in: [growth]
+
+- id: EA26
+  message: "What does my MC sign mean?"
+  active_frame: self
+  expected_primary: identity
+  expected_secondary_in: [career]
+
+- id: EA27
+  message: "What is the difference between vertex and anti-vertex?"
+  active_frame: self
+  expected_primary: identity
+  expected_secondary_in: [growth, life_direction]
+
+- id: EA28
+  message: "What is a stellium?"
+  active_frame: self
+  expected_primary: identity
+  expected_secondary_in: [growth]
+
+# Contextual counter-cases (educational mode must NOT fire)
+- id: EA29
+  message: "My juno is conjunct my wife's sun — what does that mean for us?"
+  active_frame: self
+  expected_primary: relationship
+  expected_secondary_in: [identity]
+
+- id: EA30
+  message: "My MC is being squared by transiting Saturn and I'm losing my job."
+  active_frame: self
+  expected_primary: career
+  expected_secondary_in: [life_direction]

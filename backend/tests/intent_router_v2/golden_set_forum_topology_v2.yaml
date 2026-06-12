@@ -1,0 +1,61 @@
+# Forum-topology disambiguation suite (P4-v2, 2026-06-12).
+# Extends `golden_set_forum_topology.yaml` (FT1-FT10) with cases that
+# probe the spouse/member/self/forum frame ambiguity. The router should:
+#   * keep `forum` frame with topology supplied → relationship (member)
+#   * keep `self` frame with no topology → NOT relationship
+#   * disambiguate spouse mentions on a forum surface to relationship
+#     but flagged differently than a member query
+# Ids prefixed `FT`.
+
+- id: FT11
+  message: "How does this person work with my wife?"
+  active_frame: forum
+  forum_topology:
+    forum_id: "forum-001"
+    active_member_id: "kara-001"
+  expected_primary: relationship
+
+- id: FT12
+  message: "What pattern shows up between this member and Mel?"
+  active_frame: forum
+  forum_topology:
+    forum_id: "forum-001"
+    active_member_id: "kara-001"
+  expected_primary: relationship
+
+- id: FT13
+  message: "Am I showing up here the way I show up at home?"
+  active_frame: forum
+  forum_topology:
+    forum_id: "forum-001"
+    active_member_id: "kara-001"
+  expected_primary: identity
+  expected_secondary_in: [relationship, growth]
+
+- id: FT14
+  message: "What's my actual role in this group?"
+  active_frame: forum
+  forum_topology:
+    forum_id: "forum-001"
+    active_member_id: "kara-001"
+  expected_primary: relationship
+  expected_secondary_in: [identity]
+
+- id: FT15
+  message: "How does the founder show up across this forum?"
+  active_frame: forum
+  forum_topology:
+    forum_id: "forum-001"
+    active_member_id: "kara-001"
+  expected_primary: relationship
+  expected_secondary_in: [career, leadership]
+
+- id: FT16
+  message: "Can you tell me about Patricia in this forum?"
+  active_frame: forum
+  forum_topology:
+    forum_id: "forum-002"
+    active_member_id: "patricia-001"
+    members:
+      - {id: "patricia-001", name: "Patricia"}
+  expected_primary: relationship

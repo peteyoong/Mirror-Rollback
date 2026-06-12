@@ -1,0 +1,95 @@
+# Founder / operator regression suite v2 (B3.2-v2, 2026-06-12).
+# Expands the original suite with board, restructuring, operating-partner,
+# strategic-risk, organizational-decision, growth-constraint, and
+# leadership-pipeline vocabulary. Ids prefixed `F`. Existing F1-F15 are
+# retained in `golden_set_founder.yaml`; the new cases here are F16-F30.
+
+- id: F16
+  message: "The board wants me to focus on profitability over growth."
+  active_frame: self
+  expected_primary: leadership
+  expected_secondary_in: [career, money]
+
+- id: F17
+  message: "I have a board meeting tomorrow and I don't know what story to tell."
+  active_frame: self
+  expected_primary: leadership
+  expected_secondary_in: [career]
+
+- id: F18
+  message: "Should I bring on an operating partner to take some of this off me?"
+  active_frame: self
+  expected_primary: leadership
+  expected_secondary_in: [career, growth]
+
+- id: F19
+  message: "We need to restructure the company before the next round."
+  active_frame: self
+  expected_primary: leadership
+  expected_secondary_in: [career, money]
+
+- id: F20
+  message: "What's the next growth constraint in the business?"
+  active_frame: self
+  expected_primary: career
+  expected_secondary_in: [leadership, life_direction]
+
+- id: F21
+  message: "How do I think about strategic risk at this stage of the company?"
+  active_frame: self
+  expected_primary: leadership
+  expected_secondary_in: [career, life_direction]
+
+- id: F22
+  message: "It's time for an organizational decision I've been avoiding."
+  active_frame: self
+  expected_primary: leadership
+  expected_secondary_in: [identity, career]
+
+- id: F23
+  message: "My management team isn't scaling with the company."
+  active_frame: self
+  expected_primary: leadership
+  expected_secondary_in: [career]
+
+- id: F24
+  message: "How do I scale the business without losing the soul?"
+  active_frame: self
+  expected_primary: leadership
+  expected_secondary_in: [purpose, career]
+
+- id: F25
+  message: "I think the reorg is necessary but it will be brutal."
+  active_frame: self
+  expected_primary: leadership
+  expected_secondary_in: [career]
+
+- id: F26
+  message: "We're at the point where I need a succession plan."
+  active_frame: self
+  expected_primary: leadership
+  expected_secondary_in: [life_direction, career]
+
+- id: F27
+  message: "My operating partner and I disagree about product direction."
+  active_frame: self
+  expected_primary: leadership
+  expected_secondary_in: [career]
+
+- id: F28
+  message: "Am I in the right role at this stage of the company?"
+  active_frame: self
+  expected_primary: career
+  expected_secondary_in: [identity, life_direction, purpose]
+
+- id: F29
+  message: "The leadership pipeline is thin."
+  active_frame: self
+  expected_primary: leadership
+  expected_secondary_in: [career]
+
+- id: F30
+  message: "I need to think about downsizing my exec team."
+  active_frame: self
+  expected_primary: leadership
+  expected_secondary_in: [career, money]

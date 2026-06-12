@@ -107,9 +107,16 @@ TARGET_ACTIVE_BONUS = 0.20
 _EDU_LENS_TERM_RE = re.compile(
     r"\b("
     r"saturn|venus|mars|jupiter|pluto|mercury|sun|moon|uranus|neptune|"
-    r"chiron|north\s+node|south\s+node|nodes?|"
+    r"chiron|north\s+node|south\s+node|nodes?|lilith|vertex|anti[-\s]?vertex|"
     r"\d+(st|nd|rd|th)\s+house|"
-    r"natal|transit|return|ascendant|midheaven|descendant|ic\b|"
+    r"natal|transit|return|ascendant|midheaven|descendant|ic\b|mc\b|"
+    r"chiron\s+return|saturn\s+return|jupiter\s+return|"
+    r"nodal\s+return|north\s+node\s+return|"
+    r"solar\s+return|lunar\s+return|progressed|progression|"
+    r"synastry|composite\s+chart|composite|"
+    # B3.1-v3 — asteroids + minor points + stellium
+    r"juno|ceres|pallas|vesta|stellium|grand\s+trine|t[-\s]?square|"
+    r"yod|kite|grand\s+cross|fixed\s+star|out\s+of\s+bounds|oob\b|"
     r"manifestor|generator|projector|reflector|sacral|splenic|"
     r"emotional\s+authority|gate\s+\d+|channel\s+\d+|profile\s+\d|"
     r"\d/\d\s*profile|defined\s+\w+\s+center|undefined\s+\w+\s+center|"
@@ -118,7 +125,8 @@ _EDU_LENS_TERM_RE = re.compile(
     r"chart|natal\s+chart|birth\s+chart|astrology|human\s+design|"
     r"hd\s+type|type|profile|authority|strategy|incarnation\s+cross|"
     r"enneagram|tritype|wing|life\s+path|expression|destiny\s+number|"
-    r"soul\s+urge|bazi|day\s+master|gene\s+keys)"
+    r"soul\s+urge|bazi|day\s+master|gene\s+keys|vertex|lilith|"
+    r"descendant|juno|ceres|pallas|vesta|ic|mc)"
     r")\b",
     re.I)
 
@@ -220,6 +228,34 @@ _PROPER_NAME_FILTER_LC = {
 }
 
 TEAM_RELATIONSHIP_PENALTY = 0.35
+
+# ---------------------------------------------------------------------------
+# P4-v3 — Forum-frame third-person descriptor boost
+# ---------------------------------------------------------------------------
+# When the user is on a `forum` frame with topology supplied AND the
+# message refers to a forum member generically ("the founder", "this
+# person", "this member", "the ceo", etc.) — boost relationship so the
+# router does not misread the descriptor as a self-frame founder/career
+# query. Strictly bounded; only fires when no proper-name candidate is
+# present (a proper name handles the binding on its own).
+#
+# Telemetry block `forum_descriptor_boost` is emitted into evidence so
+# dashboards can see when this rule fired.
+
+_FORUM_DESCRIPTOR_RE = re.compile(
+    r"\b("
+    r"the\s+(founder|founders|ceo|cto|coo|cfo|exec(utive)?|"
+    r"leader|leaders|chair|director|operator|partner|"
+    r"person|member|colleague|teammate)|"
+    r"this\s+(founder|ceo|cto|coo|cfo|exec(utive)?|"
+    r"leader|chair|director|operator|partner|"
+    r"person|member|colleague|teammate)|"
+    r"how\s+does\s+(the|this)\s+\w+\s+(show|come|present)"
+    r")\b",
+    re.I)
+
+FORUM_DESCRIPTOR_RELATIONSHIP_BONUS = 0.55
+FORUM_DESCRIPTOR_CAREER_PENALTY     = 0.40
 
 
 def _has_proper_name_candidate(text: str) -> bool:
@@ -392,6 +428,25 @@ def classify_intent_v2(
         )
         team_penalty_applied = True
 
+    # 5b-ii. P4-v3 — forum-frame third-person descriptor boost.
+    # When the user is in a forum frame with topology AND refers to a
+    # forum member generically ("the founder", "this person", …) — push
+    # relationship up and career/leadership down so the descriptor isn't
+    # misread as a self-frame founder/career question.
+    forum_descriptor_applied = False
+    if (active_frame == "forum"
+            and forum_context
+            and _FORUM_DESCRIPTOR_RE.search(text)
+            and not _has_proper_name_candidate(text)):
+        raw_scores["relationship"] = (
+            raw_scores.get("relationship", 0.0) + FORUM_DESCRIPTOR_RELATIONSHIP_BONUS
+        )
+        for _d in ("career", "leadership"):
+            cur = raw_scores.get(_d, 0.0)
+            if cur > 0:
+                raw_scores[_d] = max(0.0, cur - FORUM_DESCRIPTOR_CAREER_PENALTY)
+        forum_descriptor_applied = True
+
     # 5c. B3.1 — educational-mode disambiguation.
     # When a lens term is present without any contextual cue, prefer
     # the contextually neutral `identity` synthesis lane.  Skip when
@@ -486,6 +541,7 @@ def classify_intent_v2(
             "role_bias_applied":   ROLE_BIAS.get(role_lc, {}),
             "target_active_bonus": TARGET_ACTIVE_BONUS if current_target_id else 0.0,
             "team_penalty_applied": team_penalty_applied,
+            "forum_descriptor_applied": forum_descriptor_applied,
             "educational_mode_applied": educational_mode_applied,
             "top_score":           round(top_score, 4),
             "second":              second,

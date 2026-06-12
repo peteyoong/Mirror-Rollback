@@ -1,0 +1,60 @@
+# Educational-astrology disambiguation v2 (B3.1-v2, 2026-06-12).
+# Extends the original EA1-EA10 with chiron return, vertex, north node,
+# synastry, solar/lunar return, progressed moon, and IC/MC. Per B3.1, a
+# bare educational query without any contextual cue should route to
+# `identity` (with `life_direction` as a valid compound-lane exception
+# for explicit timing/return events).
+# Ids prefixed `EA`.
+
+- id: EA11
+  message: "Tell me about my Chiron return"
+  active_frame: self
+  expected_primary: identity
+  expected_secondary_in: [growth, life_direction]
+
+- id: EA12
+  message: "What is my vertex about?"
+  active_frame: self
+  expected_primary: identity
+
+- id: EA13
+  message: "Tell me about my anti-vertex"
+  active_frame: self
+  expected_primary: identity
+
+- id: EA14
+  message: "Explain my north node"
+  active_frame: self
+  expected_primary: identity
+  expected_secondary_in: [life_direction]
+
+- id: EA15
+  message: "What is synastry?"
+  active_frame: self
+  expected_primary: identity
+
+- id: EA16
+  message: "What's a solar return chart?"
+  active_frame: self
+  expected_primary: identity
+
+- id: EA17
+  message: "Tell me about my progressed moon"
+  active_frame: self
+  expected_primary: identity
+  expected_secondary_in: [growth]
+
+- id: EA18
+  message: "What does my IC mean?"
+  active_frame: self
+  expected_primary: identity
+
+- id: EA19
+  message: "Tell me about Lilith placements"
+  active_frame: self
+  expected_primary: identity
+
+- id: EA20
+  message: "What is a composite chart?"
+  active_frame: self
+  expected_primary: identity

@@ -1,0 +1,95 @@
+# Founder / operator regression suite v3 (B3.2-v3, 2026-06-14).
+# Iteration 3 extension: fundraising, valuation, dilution, cap-table,
+# product-market fit, hiring plan, OKR/planning, performance reviews,
+# founder-mode / founder-burnout, exit / M&A / IPO, runway management.
+# Ids prefixed `F`. F31-F45 are new.
+
+- id: F31
+  message: "We're starting to raise a round next month."
+  active_frame: self
+  expected_primary: money
+  expected_secondary_in: [career, leadership]
+
+- id: F32
+  message: "I got the term sheet and I'm not sure about the valuation."
+  active_frame: self
+  expected_primary: money
+  expected_secondary_in: [career]
+
+- id: F33
+  message: "The cap table is getting messy after this round."
+  active_frame: self
+  expected_primary: money
+  expected_secondary_in: [career, leadership]
+
+- id: F34
+  message: "How do I think about dilution for the next round?"
+  active_frame: self
+  expected_primary: money
+  expected_secondary_in: [career]
+
+- id: F35
+  message: "We're trying to find product-market fit and it's killing me."
+  active_frame: self
+  expected_primary: career
+  expected_secondary_in: [leadership, health]
+
+- id: F36
+  message: "I need to put together the annual hiring plan."
+  active_frame: self
+  expected_primary: leadership
+  expected_secondary_in: [career]
+
+- id: F37
+  message: "Performance review season is here and I dread it."
+  active_frame: self
+  expected_primary: leadership
+  expected_secondary_in: [career]
+
+- id: F38
+  message: "I'm in founder mode and I can't tell if it's serving me."
+  active_frame: self
+  expected_primary: leadership
+  expected_secondary_in: [identity, career]
+
+- id: F39
+  message: "I think this is founder burnout."
+  active_frame: self
+  expected_primary: leadership
+  expected_secondary_in: [health, identity]
+
+- id: F40
+  message: "We have an acquisition offer and I don't know what to do."
+  active_frame: self
+  expected_primary: leadership
+  expected_secondary_in: [money, life_direction]
+
+- id: F41
+  message: "I'm thinking about selling the company."
+  active_frame: self
+  expected_primary: leadership
+  expected_secondary_in: [money, life_direction]
+
+- id: F42
+  message: "I need to extend runway by another six months."
+  active_frame: self
+  expected_primary: money
+  expected_secondary_in: [career, leadership]
+
+- id: F43
+  message: "We're heading into a down round."
+  active_frame: self
+  expected_primary: money
+  expected_secondary_in: [career, leadership]
+
+- id: F44
+  message: "Time to set OKRs for the next quarter."
+  active_frame: self
+  expected_primary: leadership
+  expected_secondary_in: [career]
+
+- id: F45
+  message: "Should I step back as CEO and find someone to run the company?"
+  active_frame: self
+  expected_primary: leadership
+  expected_secondary_in: [life_direction, identity]
