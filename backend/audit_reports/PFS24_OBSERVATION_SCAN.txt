@@ -1,0 +1,323 @@
+# PFS-2.4 observation scan — DB=test_database
+# run_at=2026-06-12T08:35:50.895907Z
+# topology+receipt collections present: ['forum_relationship_edges', 'mirror_chat_retrieval_receipts']
+# mirror_chat_retrieval_receipts total = 101
+
+# receipts inspected: 101
+
+## bucket distribution
+{
+  "(missing)": 71,
+  "self": 30
+}
+
+## framing_hint distribution
+{
+  "(missing)": 71,
+  "self_inquiry": 30
+}
+
+## domain_bias distribution
+{
+  "(missing)": 98,
+  "self": 3
+}
+
+## resolution_source distribution
+{
+  "(missing)": 93,
+  "pair_forum": 5,
+  "family_forum": 3
+}
+
+## topology_role_type distribution
+{}
+
+## topology_role_found distribution
+{
+  "None": 101
+}
+
+## replanned_after_topology distribution
+{
+  "None": 101
+}
+
+## top target_name occurrences
+{
+  "Mel": 5,
+  "Isaac Yoong": 2,
+  "Thaddeus Yoong": 1
+}
+
+## unknown_role_token events (0)
+[]
+
+## self_fallback_with_bound_target (9)
+[
+  {
+    "request_id": "mc-99453607-4823-4486-9e0e-28035d2f3a90",
+    "target_name": "Mel",
+    "topology_role_type": null,
+    "resolution_source": "pair_forum",
+    "applied_rules": [
+      "self:default"
+    ]
+  },
+  {
+    "request_id": "mc-1e89a5bf-be29-4f7c-b371-cc2f808f6502",
+    "target_name": "Thaddeus Yoong",
+    "topology_role_type": null,
+    "resolution_source": "family_forum",
+    "applied_rules": [
+      "self:default"
+    ]
+  },
+  {
+    "request_id": "mc-60c83d11-89b3-4a1f-b885-716bbc7e6ac6",
+    "target_name": null,
+    "topology_role_type": null,
+    "resolution_source": null,
+    "applied_rules": [
+      "self:target_bound_unknown_role"
+    ]
+  },
+  {
+    "request_id": "mc-bec855c4-5e42-4352-b5f8-2f8d199d0f61",
+    "target_name": "Mel",
+    "topology_role_type": null,
+    "resolution_source": "pair_forum",
+    "applied_rules": [
+      "self:default"
+    ]
+  },
+  {
+    "request_id": "mc-77ea5231-bdad-4e40-97c8-9b610d74c5de",
+    "target_name": "Isaac Yoong",
+    "topology_role_type": null,
+    "resolution_source": "family_forum",
+    "applied_rules": [
+      "self:default"
+    ]
+  },
+  {
+    "request_id": "mc-c5f40224-e5eb-44dc-a0c8-c48849a4b6fc",
+    "target_name": "Mel",
+    "topology_role_type": null,
+    "resolution_source": "pair_forum",
+    "applied_rules": [
+      "self:default"
+    ]
+  },
+  {
+    "request_id": "mc-586873a4-f81f-4192-9bb4-319af6e51f5b",
+    "target_name": "Isaac Yoong",
+    "topology_role_type": null,
+    "resolution_source": "family_forum",
+    "applied_rules": [
+      "self:default"
+    ]
+  },
+  {
+    "request_id": "mc-6aeca8e1-d5c5-4f69-baa2-ac7c9e2bbb95",
+    "target_name": "Mel",
+    "topology_role_type": null,
+    "resolution_source": "pair_forum",
+    "applied_rules": [
+      "self:default"
+    ]
+  },
+  {
+    "request_id": "mc-562cfac2-beca-44d5-aa32-70e9520c9ef3",
+    "target_name": "Mel",
+    "topology_role_type": null,
+    "resolution_source": "pair_forum",
+    "applied_rules": [
+      "self:default"
+    ]
+  }
+]
+
+## sample receipts per bucket
+
+### bucket=self (5 sample(s))
+{
+  "request_id": "mc-0e0d9921-895c-4fbb-95f6-7fcaee568223",
+  "user_id": "697ec826ad4b18f75bf42616",
+  "target_name": null,
+  "resolved_role": null,
+  "rule_bucket": "self",
+  "framing_hint": "self_inquiry",
+  "domain_bias": null,
+  "replanned_after_topology": null,
+  "topology_role_found": null,
+  "topology_role_type": null,
+  "topology_confidence": null,
+  "topology_inferred": null,
+  "resolution_source": null,
+  "applied_rules": [
+    "self:default"
+  ],
+  "lens_priority_before": [
+    "relationship",
+    "astrology",
+    "human_design",
+    "enneagram",
+    "timeline",
+    "numerology"
+  ],
+  "lens_priority_after": [
+    "relationship",
+    "astrology",
+    "human_design",
+    "enneagram",
+    "timeline",
+    "numerology"
+  ],
+  "pre_topology_plan": null,
+  "forum_name": null
+}
+{
+  "request_id": "mc-b7bf6465-3193-432e-a65f-520e0e2d095b",
+  "user_id": "697ec826ad4b18f75bf42616",
+  "target_name": null,
+  "resolved_role": null,
+  "rule_bucket": "self",
+  "framing_hint": "self_inquiry",
+  "domain_bias": null,
+  "replanned_after_topology": null,
+  "topology_role_found": null,
+  "topology_role_type": null,
+  "topology_confidence": null,
+  "topology_inferred": null,
+  "resolution_source": null,
+  "applied_rules": [
+    "self:default"
+  ],
+  "lens_priority_before": [
+    "cross_lens_atoms"
+  ],
+  "lens_priority_after": [
+    "cross_lens_atoms"
+  ],
+  "pre_topology_plan": null,
+  "forum_name": null
+}
+{
+  "request_id": "mc-7fbb0d90-e381-43bc-95d2-0ad6c296ebb6",
+  "user_id": "697f0c6abf35c0528ff06954",
+  "target_name": null,
+  "resolved_role": null,
+  "rule_bucket": "self",
+  "framing_hint": "self_inquiry",
+  "domain_bias": null,
+  "replanned_after_topology": null,
+  "topology_role_found": null,
+  "topology_role_type": null,
+  "topology_confidence": null,
+  "topology_inferred": null,
+  "resolution_source": null,
+  "applied_rules": [
+    "self:default"
+  ],
+  "lens_priority_before": [
+    "astrology",
+    "timeline",
+    "human_design",
+    "enneagram",
+    "numerology",
+    "relationship"
+  ],
+  "lens_priority_after": [
+    "astrology",
+    "timeline",
+    "human_design",
+    "enneagram",
+    "numerology",
+    "relationship"
+  ],
+  "pre_topology_plan": null,
+  "forum_name": null
+}
+{
+  "request_id": "mc-6c7ad08f-0e20-4819-a174-8e757846acee",
+  "user_id": "697f0c6abf35c0528ff06954",
+  "target_name": null,
+  "resolved_role": null,
+  "rule_bucket": "self",
+  "framing_hint": "self_inquiry",
+  "domain_bias": null,
+  "replanned_after_topology": null,
+  "topology_role_found": null,
+  "topology_role_type": null,
+  "topology_confidence": null,
+  "topology_inferred": null,
+  "resolution_source": null,
+  "applied_rules": [
+    "self:default"
+  ],
+  "lens_priority_before": [
+    "relationship",
+    "astrology",
+    "human_design",
+    "enneagram",
+    "timeline",
+    "numerology"
+  ],
+  "lens_priority_after": [
+    "relationship",
+    "astrology",
+    "human_design",
+    "enneagram",
+    "timeline",
+    "numerology"
+  ],
+  "pre_topology_plan": null,
+  "forum_name": null
+}
+{
+  "request_id": "mc-7c053142-4a5e-4540-a304-f03190d9a684",
+  "user_id": "697f0c6abf35c0528ff06954",
+  "target_name": null,
+  "resolved_role": null,
+  "rule_bucket": "self",
+  "framing_hint": "self_inquiry",
+  "domain_bias": null,
+  "replanned_after_topology": null,
+  "topology_role_found": null,
+  "topology_role_type": null,
+  "topology_confidence": null,
+  "topology_inferred": null,
+  "resolution_source": null,
+  "applied_rules": [
+    "self:default"
+  ],
+  "lens_priority_before": [
+    "relationship",
+    "astrology",
+    "human_design",
+    "enneagram",
+    "timeline",
+    "numerology"
+  ],
+  "lens_priority_after": [
+    "relationship",
+    "astrology",
+    "human_design",
+    "enneagram",
+    "timeline",
+    "numerology"
+  ],
+  "pre_topology_plan": null,
+  "forum_name": null
+}
+
+## forum_relationship_edges health (this DB)
+{
+  "edges_total": 2,
+  "high_confidence_edges": 2,
+  "explicit_edges": 2,
+  "distinct_role_types": [
+    "spouse"
+  ]
+}
