@@ -276,6 +276,71 @@ def register(
                     context_parts.append(f"Moon: {moon.get('formatted', 'Unknown')} ({moon.get('sign', 'Unknown')})")
                     context_parts.append(f"Rising: {rising.get('formatted', 'Unknown')} ({rising.get('sign', 'Unknown')})")
 
+                    # P0-MC-FIX — always inject Midheaven / MC into the
+                    # base USER CONTEXT block.  Read from the canonical
+                    # `astrology.angles.mc` surface (sign + degree +
+                    # formatted).  The audit (P0_CHART_INTEGRITY_AUDIT.md
+                    # §3) proved MC was previously omitted for every
+                    # non-career intent, which let the LLM substitute
+                    # Sun-sign themes when answering career / leadership
+                    # / public-role / vocation questions.
+                    angles_doc = astro.get('angles') or {}
+                    mc_doc = angles_doc.get('mc') or angles_doc.get('midheaven') or {}
+                    mc_sign_val = mc_doc.get('sign')
+                    if mc_sign_val:
+                        mc_formatted = (
+                            mc_doc.get('formatted')
+                            or f"{mc_doc.get('degree', 0):.2f}\u00b0{mc_sign_val}"
+                        )
+                        context_parts.append(
+                            f"Midheaven / MC: {mc_formatted} ({mc_sign_val})"
+                        )
+                        # Anti-hallucination guardrail.
+                        context_parts.append(
+                            "IMPORTANT — Midheaven / MC integrity: Do NOT "
+                            "state a person's Midheaven / MC sign unless "
+                            "it is explicitly present in this ASTROLOGY "
+                            "PROFILE block. Never infer MC from Sun sign. "
+                            "If MC is not listed here, say so explicitly "
+                            "rather than guessing."
+                        )
+                        # Domain-weighting hint — only emitted when the
+                        # question / intent is about career, leadership,
+                        # public role, reputation, vocation, contribution,
+                        # team role, professional direction, calling, or
+                        # purpose-in-work.  This avoids over-applying MC
+                        # to relationship / emotional-life turns.
+                        _mc_weight_triggers = (
+                            "career", "leadership", "founder",
+                            "public role", "public life", "reputation",
+                            "vocation", "vocational",
+                            "contribution", "contribute",
+                            "team role", "team-role", "in the team",
+                            "professional direction", "calling",
+                            "purpose in work", "work purpose",
+                            "what role", "what do i contribute",
+                            "leadership style", "leadership team",
+                            "midheaven", "\u00a0mc\u00a0", " mc ", "mc:",
+                            "mc says", "mc say",
+                        )
+                        _msg_lc = (request.message or "").lower()
+                        _mc_triggered = any(t.strip() in _msg_lc
+                                            for t in _mc_weight_triggers)
+                        if _mc_triggered:
+                            context_parts.append(
+                                "Midheaven / MC weighting: For career, "
+                                "leadership, vocation, public-role, "
+                                "founder, and team-role questions, "
+                                "PRIORITIZE the Midheaven / MC over the "
+                                "Sun sign when interpreting public "
+                                "contribution, role, visibility, and "
+                                "leadership expression. Do NOT make MC "
+                                "dominate relationship or emotional-life "
+                                "questions unless the user explicitly "
+                                "asks about public role / career / "
+                                "leadership."
+                            )
+
                     # Add other planets if in astrology lens
                     if request.lens == "astrology":
                         for planet_name in ['Mercury', 'Venus', 'Mars', 'Jupiter', 'Saturn', 'Uranus', 'Neptune', 'Pluto']:
