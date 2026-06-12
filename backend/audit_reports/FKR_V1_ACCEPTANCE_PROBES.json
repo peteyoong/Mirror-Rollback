@@ -1,0 +1,221 @@
+{
+  "fixture_expected_thaddeus_cross": "Right Angle Cross of Sleeping Phoenix 1",
+  "probes": [
+    {
+      "name": "P1.FACT_LOOKUP \u2014 Thaddeus incarnation cross",
+      "message": "What is Thaddeus's Incarnation Cross?",
+      "asker": "697f0c6abf35c0528ff06954",
+      "forum_id": null,
+      "classified_modes": [
+        "FACT_LOOKUP"
+      ],
+      "expected_modes": [
+        "FACT_LOOKUP"
+      ],
+      "targets": [
+        {
+          "name": "you",
+          "role": "self",
+          "source": "asker"
+        },
+        {
+          "name": "Thaddeus",
+          "role": "forum_peer",
+          "source": "alias_match"
+        }
+      ],
+      "block_emitted": true,
+      "block_chars": 5082,
+      "must_contain": [
+        "FKR v1",
+        "Incarnation Cross",
+        "Right Angle Cross of Sleeping Phoenix 1"
+      ],
+      "must_not_contain": [
+        "Right Angle Cross of the Sphinx"
+      ],
+      "checks": {
+        "modes_overlap": true,
+        "must_contain": {
+          "FKR v1": true,
+          "Incarnation Cross": true,
+          "Right Angle Cross of Sleeping Phoenix 1": true
+        },
+        "must_not_contain": {
+          "Right Angle Cross of the Sphinx": true
+        }
+      },
+      "errors": [],
+      "block_preview": "============================================================\nFKR v1 \u2014 KNOWLEDGE RETRIEVAL EVIDENCE\nQuery modes: FACT_LOOKUP\n============================================================\n\nASKER (you)\n  Name: Pete\n  Birth date: 1968-04-01 00:00:00\n  -- HUMAN DESIGN --\n    Type: Manifestor\n    Strategy: To Inform\n    Authority: Emotional\n    Profile: 5/1\n    Definition: Split\n    Incarnation Cross: Left Angle Cross of Migration 1\n    Defined centers: Ego, Throat, Ajna, Head, Solar Plexus\n    Undefined centers: G Center, Sacral, Spleen, Root\n  -- ASTROLOGY --\n    Sun: 22\u00b0Pisces\n    Moon: 11\u00b0Aries\n    Ascendant: 19\u00b0Sagittarius\n    Midheaven / MC: 28\u00b0Virgo\n    IC: 31\u00b0Pisces\n    Descendant / DC: 18\u00b0Gemini\n    Mercury: 0\u00b0Pisces\n    Venus: 1\u00b0Pisces\n    Mars: 1\u00b0Aries\n    Jupiter: 12\u00b0Leo\n    Saturn: 25\u00b0Pisces\n    Uranus: 4\u00b0Virgo\n    Neptune: 14\u00b0Libra\n    Pluto: 36\u00b0Leo\n    Chiron: 11\u00b0Pisces\n    North Node: 29\u00b0Pisces\n    South Node: 26\u00b0Virgo\n  -- ENNEAGRAM --\n    inferred_core: 7\n    inferred_wing: 8\n    confidence: 0.4946\n    confidence_tier: high\n    enneagram_computed_details: {'center': 'head', 'hornevian_group': 'assertive', 'harmonic_group': 'positive_outlook', 'object_relations': 'frustra",
+      "pass": true
+    },
+    {
+      "name": "P2.FACT_LOOKUP \u2014 asker self placements",
+      "message": "What is my Midheaven, Sun and Moon?",
+      "asker": "697f0c6abf35c0528ff06954",
+      "forum_id": null,
+      "classified_modes": [
+        "FACT_LOOKUP"
+      ],
+      "expected_modes": [
+        "FACT_LOOKUP"
+      ],
+      "targets": [
+        {
+          "name": "you",
+          "role": "self",
+          "source": "asker"
+        }
+      ],
+      "block_emitted": true,
+      "block_chars": 3790,
+      "must_contain": [
+        "FKR v1",
+        "ASKER",
+        "Sun",
+        "Moon"
+      ],
+      "must_not_contain": [],
+      "checks": {
+        "modes_overlap": true,
+        "must_contain": {
+          "FKR v1": true,
+          "ASKER": true,
+          "Sun": true,
+          "Moon": true
+        },
+        "must_not_contain": {}
+      },
+      "errors": [],
+      "block_preview": "============================================================\nFKR v1 \u2014 KNOWLEDGE RETRIEVAL EVIDENCE\nQuery modes: FACT_LOOKUP\n============================================================\n\nASKER (you)\n  Name: Pete\n  Birth date: 1968-04-01 00:00:00\n  -- HUMAN DESIGN --\n    Type: Manifestor\n    Strategy: To Inform\n    Authority: Emotional\n    Profile: 5/1\n    Definition: Split\n    Incarnation Cross: Left Angle Cross of Migration 1\n    Defined centers: Ego, Throat, Ajna, Head, Solar Plexus\n    Undefined centers: G Center, Sacral, Spleen, Root\n  -- ASTROLOGY --\n    Sun: 22\u00b0Pisces\n    Moon: 11\u00b0Aries\n    Ascendant: 19\u00b0Sagittarius\n    Midheaven / MC: 28\u00b0Virgo\n    IC: 31\u00b0Pisces\n    Descendant / DC: 18\u00b0Gemini\n    Mercury: 0\u00b0Pisces\n    Venus: 1\u00b0Pisces\n    Mars: 1\u00b0Aries\n    Jupiter: 12\u00b0Leo\n    Saturn: 25\u00b0Pisces\n    Uranus: 4\u00b0Virgo\n    Neptune: 14\u00b0Libra\n    Pluto: 36\u00b0Leo\n    Chiron: 11\u00b0Pisces\n    North Node: 29\u00b0Pisces\n    South Node: 26\u00b0Virgo\n  -- ENNEAGRAM --\n    inferred_core: 7\n    inferred_wing: 8\n    confidence: 0.4946\n    confidence_tier: high\n    enneagram_computed_details: {'center': 'head', 'hornevian_group': 'assertive', 'harmonic_group': 'positive_outlook', 'object_relations': 'frustra",
+      "pass": true
+    },
+    {
+      "name": "P3.RELATIONSHIP \u2014 Pete and Mel dynamic",
+      "message": "How does Mel's chart map to me in our relationship?",
+      "asker": "697f0c6abf35c0528ff06954",
+      "forum_id": null,
+      "classified_modes": [
+        "RELATIONSHIP"
+      ],
+      "expected_modes": [
+        "RELATIONSHIP"
+      ],
+      "targets": [
+        {
+          "name": "you",
+          "role": "self",
+          "source": "asker"
+        },
+        {
+          "name": "Mel",
+          "role": "spouse",
+          "source": "alias_match"
+        }
+      ],
+      "block_emitted": true,
+      "block_chars": 5114,
+      "must_contain": [
+        "FKR v1",
+        "Mel",
+        "ASKER"
+      ],
+      "must_not_contain": [],
+      "checks": {
+        "modes_overlap": true,
+        "must_contain": {
+          "FKR v1": true,
+          "Mel": true,
+          "ASKER": true
+        },
+        "must_not_contain": {}
+      },
+      "errors": [],
+      "block_preview": "============================================================\nFKR v1 \u2014 KNOWLEDGE RETRIEVAL EVIDENCE\nQuery modes: RELATIONSHIP\n============================================================\n\nASKER (you)\n  Name: Pete\n  Birth date: 1968-04-01 00:00:00\n  -- HUMAN DESIGN --\n    Type: Manifestor\n    Strategy: To Inform\n    Authority: Emotional\n    Profile: 5/1\n    Definition: Split\n    Incarnation Cross: Left Angle Cross of Migration 1\n    Defined centers: Ego, Throat, Ajna, Head, Solar Plexus\n    Undefined centers: G Center, Sacral, Spleen, Root\n  -- ASTROLOGY --\n    Sun: 22\u00b0Pisces\n    Moon: 11\u00b0Aries\n    Ascendant: 19\u00b0Sagittarius\n    Midheaven / MC: 28\u00b0Virgo\n    IC: 31\u00b0Pisces\n    Descendant / DC: 18\u00b0Gemini\n    Mercury: 0\u00b0Pisces\n    Venus: 1\u00b0Pisces\n    Mars: 1\u00b0Aries\n    Jupiter: 12\u00b0Leo\n    Saturn: 25\u00b0Pisces\n    Uranus: 4\u00b0Virgo\n    Neptune: 14\u00b0Libra\n    Pluto: 36\u00b0Leo\n    Chiron: 11\u00b0Pisces\n    North Node: 29\u00b0Pisces\n    South Node: 26\u00b0Virgo\n  -- ENNEAGRAM --\n    inferred_core: 7\n    inferred_wing: 8\n    confidence: 0.4946\n    confidence_tier: high\n    enneagram_computed_details: {'center': 'head', 'hornevian_group': 'assertive', 'harmonic_group': 'positive_outlook', 'object_relations': 'frustr",
+      "pass": true
+    },
+    {
+      "name": "P4.COMPARISON \u2014 Pete vs Mel",
+      "message": "Compare my Sun and Moon with Mel's.",
+      "asker": "697f0c6abf35c0528ff06954",
+      "forum_id": null,
+      "classified_modes": [
+        "COMPARISON"
+      ],
+      "expected_modes": [
+        "COMPARISON",
+        "FACT_LOOKUP"
+      ],
+      "targets": [
+        {
+          "name": "you",
+          "role": "self",
+          "source": "asker"
+        },
+        {
+          "name": "Mel",
+          "role": "spouse",
+          "source": "alias_match"
+        }
+      ],
+      "block_emitted": true,
+      "block_chars": 5112,
+      "must_contain": [
+        "FKR v1",
+        "Mel"
+      ],
+      "must_not_contain": [],
+      "checks": {
+        "modes_overlap": true,
+        "must_contain": {
+          "FKR v1": true,
+          "Mel": true
+        },
+        "must_not_contain": {}
+      },
+      "errors": [],
+      "block_preview": "============================================================\nFKR v1 \u2014 KNOWLEDGE RETRIEVAL EVIDENCE\nQuery modes: COMPARISON\n============================================================\n\nASKER (you)\n  Name: Pete\n  Birth date: 1968-04-01 00:00:00\n  -- HUMAN DESIGN --\n    Type: Manifestor\n    Strategy: To Inform\n    Authority: Emotional\n    Profile: 5/1\n    Definition: Split\n    Incarnation Cross: Left Angle Cross of Migration 1\n    Defined centers: Ego, Throat, Ajna, Head, Solar Plexus\n    Undefined centers: G Center, Sacral, Spleen, Root\n  -- ASTROLOGY --\n    Sun: 22\u00b0Pisces\n    Moon: 11\u00b0Aries\n    Ascendant: 19\u00b0Sagittarius\n    Midheaven / MC: 28\u00b0Virgo\n    IC: 31\u00b0Pisces\n    Descendant / DC: 18\u00b0Gemini\n    Mercury: 0\u00b0Pisces\n    Venus: 1\u00b0Pisces\n    Mars: 1\u00b0Aries\n    Jupiter: 12\u00b0Leo\n    Saturn: 25\u00b0Pisces\n    Uranus: 4\u00b0Virgo\n    Neptune: 14\u00b0Libra\n    Pluto: 36\u00b0Leo\n    Chiron: 11\u00b0Pisces\n    North Node: 29\u00b0Pisces\n    South Node: 26\u00b0Virgo\n  -- ENNEAGRAM --\n    inferred_core: 7\n    inferred_wing: 8\n    confidence: 0.4946\n    confidence_tier: high\n    enneagram_computed_details: {'center': 'head', 'hornevian_group': 'assertive', 'harmonic_group': 'positive_outlook', 'object_relations': 'frustrat",
+      "pass": true
+    },
+    {
+      "name": "P5.TIMELINE \u2014 what is emerging for me",
+      "message": "What transits are emerging for me right now?",
+      "asker": "697f0c6abf35c0528ff06954",
+      "forum_id": null,
+      "classified_modes": [
+        "TIMELINE"
+      ],
+      "expected_modes": [
+        "TIMELINE"
+      ],
+      "targets": [
+        {
+          "name": "you",
+          "role": "self",
+          "source": "asker"
+        }
+      ],
+      "block_emitted": true,
+      "block_chars": 3787,
+      "must_contain": [
+        "FKR v1"
+      ],
+      "must_not_contain": [],
+      "checks": {
+        "modes_overlap": true,
+        "must_contain": {
+          "FKR v1": true
+        },
+        "must_not_contain": {}
+      },
+      "errors": [],
+      "block_preview": "============================================================\nFKR v1 \u2014 KNOWLEDGE RETRIEVAL EVIDENCE\nQuery modes: TIMELINE\n============================================================\n\nASKER (you)\n  Name: Pete\n  Birth date: 1968-04-01 00:00:00\n  -- HUMAN DESIGN --\n    Type: Manifestor\n    Strategy: To Inform\n    Authority: Emotional\n    Profile: 5/1\n    Definition: Split\n    Incarnation Cross: Left Angle Cross of Migration 1\n    Defined centers: Ego, Throat, Ajna, Head, Solar Plexus\n    Undefined centers: G Center, Sacral, Spleen, Root\n  -- ASTROLOGY --\n    Sun: 22\u00b0Pisces\n    Moon: 11\u00b0Aries\n    Ascendant: 19\u00b0Sagittarius\n    Midheaven / MC: 28\u00b0Virgo\n    IC: 31\u00b0Pisces\n    Descendant / DC: 18\u00b0Gemini\n    Mercury: 0\u00b0Pisces\n    Venus: 1\u00b0Pisces\n    Mars: 1\u00b0Aries\n    Jupiter: 12\u00b0Leo\n    Saturn: 25\u00b0Pisces\n    Uranus: 4\u00b0Virgo\n    Neptune: 14\u00b0Libra\n    Pluto: 36\u00b0Leo\n    Chiron: 11\u00b0Pisces\n    North Node: 29\u00b0Pisces\n    South Node: 26\u00b0Virgo\n  -- ENNEAGRAM --\n    inferred_core: 7\n    inferred_wing: 8\n    confidence: 0.4946\n    confidence_tier: high\n    enneagram_computed_details: {'center': 'head', 'hornevian_group': 'assertive', 'harmonic_group': 'positive_outlook', 'object_relations': 'frustratio",
+      "pass": true
+    }
+  ],
+  "summary": {
+    "total": 5,
+    "passed": 5,
+    "failed": 0
+  }
+}

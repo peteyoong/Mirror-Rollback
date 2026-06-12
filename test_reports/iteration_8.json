@@ -1,0 +1,57 @@
+{
+  "summary": "FKR v1 (Forum Knowledge Retrieval Layer) — END-TO-END HTTP TESTING: ALL GREEN. Created /app/backend/tests/test_fkr_v1_endpoints.py (10 tests, 10/10 PASS in 25.75s). The sprint-critical acceptance probe — Pete asking 'What is Thaddeus's Incarnation Cross?' via POST /api/mirror/chat — yields the LLM-generated response: \"Thaddeus's Incarnation Cross is the Right Angle Cross of Sleeping Phoenix 1.\" with ZERO mention of 'Sphinx'. All 5 chat POSTs (4 mirror + 1 forum) produced backend log lines '[MIRROR_CHAT][FKR-v1] block_emitted=True' / '[ForumChat][FKR-v1] block_emitted=True' with correct mode classifications (FACT_LOOKUP, RELATIONSHIP, COMPARISON) and target resolutions ([you, Thaddeus], [you, Mel]). Locked flags verified untouched in /app/backend/.env (INTENT_ROUTER_V2_CUTOVER=false, INTENT_ROUTER_V2_ROLLOUT_PERCENT=10, RELATIONSHIP_ORCHESTRATION_PROMPT=false, CROSS_LENS_PROMPT_SURFACE=false). GET /api/health returns 200 healthy. Pete's MC question correctly returns Virgo (matches stored 28°Virgo). Pete×Mel relationship and comparison questions correctly name Mel and acknowledge both placements. Forum chat at /api/forums/69dd05eaa333335fcbf3ad33/chat returns 200 with content referencing forum members. FKR v1 is ready to ship.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [],
+    "react_native_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_fkr_v1_endpoints.py (10/10 PASS)",
+    "/app/test_reports/pytest/fkr_v1_results.xml"
+  ],
+  "verified_guarantees": {
+    "thaddeus_cross_no_sphinx": "PASS — LLM response: 'Thaddeus's Incarnation Cross is the Right Angle Cross of Sleeping Phoenix 1.' Zero 'Sphinx' substring.",
+    "pete_midheaven_virgo": "PASS — Response references Virgo (stored MC=28°Virgo).",
+    "relationship_pete_mel": "PASS — Response names Mel and frames spouse relationship.",
+    "comparison_pete_mel": "PASS — Response names Mel and includes Sun/Moon placements.",
+    "forum_chat_pete_mel": "PASS — Forum POST returns 200; response references members.",
+    "fkr_log_mirror": "PASS — '[MIRROR_CHAT][FKR-v1] block_emitted=True' logged on all 4 mirror calls; chars 3790-5114; modes correctly classified.",
+    "fkr_log_forum": "PASS — '[ForumChat][FKR-v1] block_emitted=True modes=[RELATIONSHIP, TIMELINE] targets=[you, Mel]' logged on forum call.",
+    "locked_flags_untouched": "PASS — All 4 locked flags retain spec values in /app/backend/.env.",
+    "no_5xx_errors": "PASS — All 5 chat POSTs returned 200; health 200; all under 60s."
+  },
+  "live_response_sample": "Thaddeus's Incarnation Cross is the Right Angle Cross of Sleeping Phoenix 1.",
+  "fkr_log_lines_observed": [
+    "[MIRROR_CHAT][FKR-v1] block_emitted=True modes=['FACT_LOOKUP'] targets=['you', 'Thaddeus'] chars=5082",
+    "[MIRROR_CHAT][FKR-v1] block_emitted=True modes=['FACT_LOOKUP'] targets=['you'] chars=3790",
+    "[MIRROR_CHAT][FKR-v1] block_emitted=True modes=['RELATIONSHIP'] targets=['you', 'Mel'] chars=5114",
+    "[MIRROR_CHAT][FKR-v1] block_emitted=True modes=['COMPARISON'] targets=['you', 'Mel'] chars=5112",
+    "[ForumChat][FKR-v1] block_emitted=True modes=['RELATIONSHIP', 'TIMELINE'] targets=['you', 'Mel']"
+  ],
+  "action_items": [
+    "None — FKR v1 is fully validated end-to-end via HTTP with the LLM in the loop. Safe to ship."
+  ],
+  "critical_code_review_comments": [
+    "FKR service (/app/backend/services/forum_chat_knowledge_retrieval.py) — pure-read implementation, no mutations, correctly extracts incarnation_cross from multiple schema variants via _ic_name(). Good defensive None-handling.",
+    "Mirror router wiring (routers/mirror_chat.py) — FKR block is appended to system_prompt AFTER the V1/lens/keystone/preference blocks and BEFORE the emergent_generate() call; ordering looks correct.",
+    "Forum router wiring (routers/forums_chat.py:347-374) — FKR block injected after forum-mirror-orchestrator V8 anchor block; ordering is correct (FKR before mode hint).",
+    "Note (non-blocking): routers/mirror_chat.py is now ~2000+ lines and would benefit from extracting the chart-context builder into a helper module for future maintainability."
+  ],
+  "updated_files": [],
+  "files_created": [
+    "/app/backend/tests/test_fkr_v1_endpoints.py"
+  ],
+  "success_rate": {
+    "backend": "100% (10/10)",
+    "frontend": "n/a (backend-only per request)"
+  },
+  "seed_data_creation": "None — used existing Pete/Mel/Thaddeus fixtures.",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "FKR v1 is shipped and stable. Regression guard: /app/backend/tests/test_fkr_v1_endpoints.py — 10 tests covering health, locked flags, mirror chat (Thaddeus IC / Pete MC / relationship / comparison), forum chat (Pete & Mel), and backend FKR log emission. Run with: EXPO_PUBLIC_BACKEND_URL=<url> pytest backend/tests/test_fkr_v1_endpoints.py -v. The 'no Sphinx / yes Sleeping Phoenix' assertion in test_thaddeus_incarnation_cross_no_sphinx is the sprint-blocker probe — if this ever regresses, the FKR block injection or its ordering in routers/mirror_chat.py has broken."
+}

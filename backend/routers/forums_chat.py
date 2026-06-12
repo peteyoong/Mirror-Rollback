@@ -343,6 +343,36 @@ def register(
             if history_parts:
                 system_prompt += "\n" + "\n".join(history_parts)
 
+            # ── FKR v1 — Forum Knowledge Retrieval Layer ────────────────
+            # Single, deterministic retrieval pass against the graph
+            # (charts / users / forum_relationship_edges / forum_members
+            #  / forums / pattern_memory / user_timeline) so the LLM
+            # answers FACT_LOOKUP / RELATIONSHIP / COMPARISON /
+            # TIMELINE / FORUM_DYNAMICS / INTERPRETATION questions from
+            # evidence instead of from memory.
+            try:
+                from services.forum_chat_knowledge_retrieval import (
+                    build_fkr_evidence_block,
+                )
+                _fkr_block, _fkr_debug = await build_fkr_evidence_block(
+                    db=db,
+                    user_id=request.user_id,
+                    message=request.message,
+                    forum_id=forum_id,
+                )
+                if _fkr_block:
+                    system_prompt += "\n\n" + _fkr_block
+                    logger.info(
+                        f"[ForumChat][FKR-v1] block_emitted=True "
+                        f"modes={_fkr_debug.get('modes')} "
+                        f"targets={[t['name'] for t in _fkr_debug.get('targets', [])]}"
+                    )
+            except Exception as _fkr_err:
+                logger.warning(
+                    f"[ForumChat][FKR-v1] failed: "
+                    f"{type(_fkr_err).__name__}: {_fkr_err!r}"
+                )
+
             # Inject the orchestrator addendum BEFORE the generic mode
             # hint so the relational framing wins when both apply.
             resolved_target_block = (orchestrator_payload or {}).get("resolved_target")

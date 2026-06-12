@@ -2811,6 +2811,44 @@ USER SHOULD FEEL:
                     system_prompt += timeline_prompt
                     logger.info(f"[MIRROR_CHAT] MASTER ASTROLOGER TIMELINE prompt injected for user {request.user_id}")
 
+                # ── FKR v1 — Forum Knowledge Retrieval Layer ────────────────
+                # Final deterministic retrieval pass against the graph
+                # (charts / users / forum_relationship_edges / forum_members
+                #  / forums / pattern_memory / user_timeline) BEFORE the LLM
+                # call so FACT_LOOKUP / RELATIONSHIP / COMPARISON / TIMELINE
+                # / FORUM_DYNAMICS / INTERPRETATION queries are answered from
+                # evidence instead of memory.  Wraps /api/mirror/chat as
+                # mandated by FKR v1 acceptance criteria.
+                try:
+                    from services.forum_chat_knowledge_retrieval import (
+                        build_fkr_evidence_block,
+                    )
+                    _fkr_block, _fkr_debug = await build_fkr_evidence_block(
+                        db=db,
+                        user_id=request.user_id,
+                        message=request.message,
+                        forum_id=None,
+                    )
+                    if _fkr_block:
+                        system_prompt += "\n\n" + _fkr_block
+                        logger.info(
+                            f"[MIRROR_CHAT][FKR-v1] block_emitted=True "
+                            f"modes={_fkr_debug.get('modes')} "
+                            f"targets={[t['name'] for t in _fkr_debug.get('targets', [])]} "
+                            f"chars={_fkr_debug.get('block_chars')}"
+                        )
+                    else:
+                        logger.info(
+                            f"[MIRROR_CHAT][FKR-v1] block_emitted=False "
+                            f"modes={_fkr_debug.get('modes')} "
+                            f"targets={[t['name'] for t in _fkr_debug.get('targets', [])]}"
+                        )
+                except Exception as _fkr_err:
+                    logger.warning(
+                        f"[MIRROR_CHAT][FKR-v1] failed: "
+                        f"{type(_fkr_err).__name__}: {_fkr_err!r}"
+                    )
+
                 logger.info(f"[MIRROR_CHAT] Starting LLM call: mode={mode}, user={request.user_id}, is_transit_question={is_transit_question}")
 
                 # Build context for emergent_generate
