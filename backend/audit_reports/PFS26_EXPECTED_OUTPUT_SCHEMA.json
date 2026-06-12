@@ -1,0 +1,119 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "PFS-2.6 Production Audit Output",
+  "description": "Schema that the operator's production run (PFS26_OPERATOR_RUNBOOK.md Step 5) MUST produce. Used by the scoring agent to apply the rubric in PFS26_BLOCKER_REPORT.md §C.",
+  "type": "object",
+  "required": ["meta", "edges", "inverse_coverage", "integrity", "telemetry_30d", "priority_role_coverage", "pete_reality_check"],
+  "properties": {
+    "meta": {
+      "type": "object",
+      "required": ["environment", "db_name", "run_at_utc", "window_days"],
+      "properties": {
+        "environment": { "type": "string", "const": "production" },
+        "db_name":     { "type": "string" },
+        "run_at_utc":  { "type": "string", "format": "date-time" },
+        "window_days": { "type": "integer", "const": 30 }
+      }
+    },
+    "edges": {
+      "type": "object",
+      "required": ["total", "by_role_type", "by_confidence", "by_inferred_flag"],
+      "properties": {
+        "total": { "type": "integer", "minimum": 0 },
+        "by_role_type": {
+          "type": "object",
+          "description": "Map of role_type → count. Keys MUST be the production role_type values. Expected vocabulary: spouse, former_partner, child, parent, sibling, cofounder, business_partner, advisor, investor, manager, employee, collaborator, mentor, mentee, coach, coachee, authority_figure, close_friend, forum_mate, other.",
+          "additionalProperties": { "type": "integer", "minimum": 0 }
+        },
+        "by_confidence": {
+          "type": "object",
+          "description": "Map of confidence label → count. Expected keys: high, moderate, low (or null).",
+          "additionalProperties": { "type": "integer", "minimum": 0 }
+        },
+        "by_inferred_flag": {
+          "type": "object",
+          "description": "Map of inferred-flag stringified → count. Expected keys: 'True', 'False', 'None'.",
+          "additionalProperties": { "type": "integer", "minimum": 0 }
+        }
+      }
+    },
+    "inverse_coverage": {
+      "type": "object",
+      "required": ["pairs_total", "pairs_with_inverse", "inverse_coverage_pct"],
+      "properties": {
+        "pairs_total":         { "type": "integer", "minimum": 0 },
+        "pairs_with_inverse":  { "type": "integer", "minimum": 0 },
+        "inverse_coverage_pct":{ "type": "number", "minimum": 0, "maximum": 100 }
+      }
+    },
+    "integrity": {
+      "type": "object",
+      "required": ["duplicates", "contradictions"],
+      "properties": {
+        "duplicates":     { "type": "integer", "minimum": 0 },
+        "contradictions": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "telemetry_30d": {
+      "type": "object",
+      "required": ["receipts_total", "replanned_after_topology", "topology_role_found", "unknown_role_token", "topology_aware_pct", "unknown_role_token_pct"],
+      "properties": {
+        "receipts_total":            { "type": "integer", "minimum": 0 },
+        "replanned_after_topology":  { "type": "integer", "minimum": 0 },
+        "topology_role_found":       { "type": "integer", "minimum": 0 },
+        "unknown_role_token":        { "type": "integer", "minimum": 0 },
+        "topology_aware_pct":        { "type": "number", "minimum": 0, "maximum": 100 },
+        "unknown_role_token_pct":    { "type": "number", "minimum": 0, "maximum": 100 }
+      }
+    },
+    "priority_role_coverage": {
+      "type": "object",
+      "required": ["spouse", "child", "cofounder", "advisor", "mentor", "investor"],
+      "properties": {
+        "spouse":    { "type": "integer", "minimum": 0 },
+        "child":     { "type": "integer", "minimum": 0 },
+        "cofounder": { "type": "integer", "minimum": 0 },
+        "advisor":   { "type": "integer", "minimum": 0 },
+        "mentor":    { "type": "integer", "minimum": 0 },
+        "investor":  { "type": "integer", "minimum": 0 }
+      }
+    },
+    "pete_reality_check": {
+      "type": "object",
+      "required": ["user_id", "total_outbound_edges", "by_role_type", "edges"],
+      "properties": {
+        "user_id":              { "type": "string" },
+        "total_outbound_edges": { "type": "integer", "minimum": 0 },
+        "by_role_type": {
+          "type": "object",
+          "additionalProperties": { "type": "integer", "minimum": 0 }
+        },
+        "edges": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["forum_id", "to", "role_type", "confidence", "inferred"],
+            "properties": {
+              "forum_id":   { "type": ["string", "null"] },
+              "to":         { "type": ["string", "null"] },
+              "role_type":  { "type": ["string", "null"] },
+              "confidence": { "type": ["string", "null"] },
+              "inferred":   { "type": ["boolean", "null"] }
+            }
+          }
+        }
+      }
+    }
+  },
+  "x-scoring-rubric": {
+    "description": "PASS/FAIL rubric for ungating RELATIONSHIP_ORCHESTRATION_PROMPT. All six rows MUST be PASS.",
+    "rows": [
+      { "id": "role_coverage",          "field": "priority_role_coverage",                      "pass": "At least 3 of {spouse,child,cofounder,advisor,mentor,investor} have count ≥ 5" },
+      { "id": "edge_counts",            "field": "priority_role_coverage",                      "pass": "Each priority role counted in row 1 has count ≥ 5" },
+      { "id": "inverse_coverage",       "field": "inverse_coverage.inverse_coverage_pct",       "pass": "≥ 80 (OR schema declared directional with consumer parity)" },
+      { "id": "contradiction_rate",     "field": "integrity.contradictions",                    "pass": "= 0 (hard fail otherwise)" },
+      { "id": "unknown_role_token",     "field": "telemetry_30d.unknown_role_token_pct",        "pass": "< 5 AND telemetry_30d.replanned_after_topology ≥ 100" },
+      { "id": "topology_aware_pct",     "field": "telemetry_30d.topology_aware_pct",            "pass": "≥ 60 AND telemetry_30d.replanned_after_topology ≥ 100" }
+    ]
+  }
+}
