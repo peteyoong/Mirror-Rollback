@@ -1,0 +1,146 @@
+# P3 Relationship-Aware Orchestration golden set (2026-06-14).
+# Validates lens-priority modulation across the five relationship buckets:
+#   spouse / child / cofounder / forum_member / self
+# Each case asserts:
+#   * expected_bucket           — which orchestration rule fired
+#   * expected_top_lens         — first lens after re-ranking
+#   * expected_framing_hint     — surface label
+#   * expected_applied_rules_contains — telemetry sanity
+
+# ─── SPOUSE ────────────────────────────────────────────────────────────
+- id: R01
+  message: "How does Mel and I work together?"
+  relationship_role: spouse
+  target_resolved: "mel-001"
+  primary_domain: relationship
+  expected_bucket: spouse
+  expected_top_lens: relationship
+  expected_framing_hint: spouse_focus
+  expected_applied_rules_contains: ["role_match:spouse", "target_bound"]
+
+- id: R02
+  message: "What's our synastry showing?"
+  relationship_role: wife
+  target_resolved: "mel-001"
+  primary_domain: relationship
+  expected_bucket: spouse
+  expected_top_lens: relationship
+  expected_framing_hint: spouse_focus
+
+- id: R03
+  message: "My partner and I keep arguing about money."
+  relationship_role: partner
+  target_resolved: "mel-001"
+  primary_domain: money
+  expected_bucket: spouse
+  expected_top_lens: astrology
+  expected_framing_hint: spouse_focus
+
+# ─── CHILD ─────────────────────────────────────────────────────────────
+- id: R04
+  message: "How do I parent my teen daughter through this?"
+  relationship_role: daughter
+  target_resolved: "kid-001"
+  primary_domain: parenting
+  expected_bucket: child
+  expected_top_lens: human_design
+  expected_framing_hint: child_developmental
+
+- id: R05
+  message: "My son is going through a hard time at school."
+  relationship_role: son
+  target_resolved: "son-001"
+  primary_domain: parenting
+  expected_bucket: child
+  expected_framing_hint: child_developmental
+  expected_applied_rules_contains: ["role_match:child:son"]
+
+- id: R06
+  message: "How do I help my kid with their identity right now?"
+  relationship_role: kid
+  target_resolved: "kid-002"
+  primary_domain: identity
+  expected_bucket: child
+  expected_framing_hint: child_developmental
+
+# ─── COFOUNDER ─────────────────────────────────────────────────────────
+- id: R07
+  message: "My cofounder and I disagree about product direction."
+  relationship_role: cofounder
+  target_resolved: "cf-001"
+  primary_domain: leadership
+  expected_bucket: cofounder
+  expected_top_lens: human_design
+  expected_framing_hint: cofounder_strategic
+
+- id: R08
+  message: "How does my co-founder show up under pressure?"
+  relationship_role: co-founder
+  target_resolved: "cf-002"
+  primary_domain: leadership
+  expected_bucket: cofounder
+  expected_framing_hint: cofounder_strategic
+
+- id: R09
+  message: "How do I lead this colleague through the next quarter?"
+  relationship_role: colleague
+  target_resolved: "cl-001"
+  primary_domain: leadership
+  expected_bucket: cofounder
+  expected_framing_hint: cofounder_strategic
+  expected_applied_rules_contains: ["role_match:cofounder:via_colleague_leadership"]
+
+# ─── FORUM MEMBER ──────────────────────────────────────────────────────
+- id: R10
+  message: "How does this person show up in our forum?"
+  forum_topology:
+    forum_id: "forum-001"
+    active_member_id: "patricia-001"
+    members:
+      - {id: "patricia-001", name: "Patricia"}
+  primary_domain: relationship
+  expected_bucket: forum_member
+  expected_top_lens: relationship
+  expected_framing_hint: forum_member_dynamic
+  expected_applied_rules_contains:
+    - "forum_member:active_member_id_bound"
+    - "forum_member:active_in_members"
+
+- id: R11
+  message: "What pattern shows up between this member and Mel?"
+  forum_topology:
+    forum_id: "forum-001"
+    active_member_id: "patricia-001"
+    members:
+      - {id: "patricia-001", name: "Patricia"}
+      - {id: "mel-001",      name: "Mel"}
+  primary_domain: relationship
+  expected_bucket: forum_member
+  expected_framing_hint: forum_member_dynamic
+
+- id: R12
+  message: "How does the operator show up in this group?"
+  context_mode: forum
+  primary_domain: relationship
+  expected_bucket: forum_member
+  expected_framing_hint: forum_member_dynamic
+  expected_applied_rules_contains: ["forum_promotion:self_to_forum_member"]
+
+# ─── SELF ──────────────────────────────────────────────────────────────
+- id: R13
+  message: "What is my real purpose?"
+  primary_domain: purpose
+  expected_bucket: self
+  expected_framing_hint: self_inquiry
+
+- id: R14
+  message: "Who am I becoming right now?"
+  primary_domain: identity
+  expected_bucket: self
+  expected_framing_hint: self_inquiry
+
+- id: R15
+  message: "Am I in the right role at this stage of the company?"
+  primary_domain: career
+  expected_bucket: self
+  expected_framing_hint: self_inquiry

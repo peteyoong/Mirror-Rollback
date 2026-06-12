@@ -24,6 +24,8 @@ from services.intent_router_v2 import (
     shadow_mode_enabled,
 )
 from services.relationship_router_v2 import resolve_relationship_context
+from services.cross_lens_synthesis_v2 import compute_synthesis_v2
+from services.relationship_orchestration_v1 import plan_lens_priority
 from services.retrieval_validation_v1 import (
     build_receipt,
     format_log_line,
@@ -184,6 +186,32 @@ async def emit_shadow_receipt(
                 "version": "cross_lens_synthesis_v2.1.0",
                 "computed": False,
                 "error": f"{type(_cl_exc).__name__}: {_cl_exc!s}",
+                "lens_outputs_preserved": True,
+            }
+
+        # ──────────────────────────────────────────────────────────────
+        # P3 — Relationship-Aware Lens Orchestration (v1.0.0)
+        #
+        # Receipt-only enrichment that re-prioritizes the lens stack
+        # based on the resolved relationship context (spouse / child /
+        # cofounder / forum_member / self). ADDITIVE: the live response
+        # still reads `lens_priority` from the intent envelope. This
+        # plan is recorded for dashboard observation only.
+        # ──────────────────────────────────────────────────────────────
+        try:
+            receipt["relationship_orchestration_v1"] = plan_lens_priority(
+                intent_envelope=envd,
+                relationship_role=resolved_role,
+                target_resolved=resolved_target_id,
+                forum_topology=forum_topology,
+                context_mode=lens or life_domain,
+            )
+        except Exception as _ro_exc:
+            log.warning(f"[Shadow] relationship_orchestration_v1 failed: {_ro_exc!r}")
+            receipt["relationship_orchestration_v1"] = {
+                "version":  "relationship_orchestration_v1.0.0",
+                "computed": False,
+                "error":    f"{type(_ro_exc).__name__}: {_ro_exc!s}",
                 "lens_outputs_preserved": True,
             }
 
