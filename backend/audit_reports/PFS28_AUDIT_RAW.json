@@ -1,0 +1,254 @@
+{
+  "base_system_prompt": {
+    "label": "MIRROR_SYSTEM_PROMPT (base)",
+    "chars": 5888,
+    "tokens": 1487
+  },
+  "lens_preambles": {
+    "astrology": {
+      "label": "LENS_PROMPTS['astrology']",
+      "chars": 9582,
+      "tokens": 2660
+    },
+    "human_design": {
+      "label": "LENS_PROMPTS['human_design']",
+      "chars": 459,
+      "tokens": 94
+    },
+    "numerology": {
+      "label": "LENS_PROMPTS['numerology']",
+      "chars": 1750,
+      "tokens": 379
+    },
+    "bazi": {
+      "label": "LENS_PROMPTS['bazi']",
+      "chars": 1875,
+      "tokens": 414
+    },
+    "enneagram": {
+      "label": "LENS_PROMPTS['enneagram']",
+      "chars": 1094,
+      "tokens": 268
+    },
+    "zi_wei": {
+      "label": "LENS_PROMPTS['zi_wei']",
+      "chars": 1429,
+      "tokens": 361
+    }
+  },
+  "intent_v2_block_current_flags_off": {
+    "label": "intent_v2 prompt block (PFS-2.1/2.3 surface)",
+    "chars": 555,
+    "tokens": 121
+  },
+  "intent_v2_block_current_flags_off_debug": {
+    "intent_v2_block_emitted": true,
+    "intent_v2_signals": [
+      "primary=leadership",
+      "secondary=career,team_dynamics",
+      "phrases=3",
+      "frame=forum",
+      "target_via_business_forum:Jay",
+      "forum_topology_supplied"
+    ]
+  },
+  "intent_v2_block_hypothetical_flags_on": {
+    "label": "intent_v2 prompt block (HYPOTHETICAL with both flags=true)",
+    "chars": 666,
+    "tokens": 147
+  },
+  "intent_v2_block_hypothetical_flags_on_debug": {
+    "intent_v2_block_emitted": true,
+    "intent_v2_signals": [
+      "primary=leadership",
+      "secondary=career,team_dynamics",
+      "phrases=3",
+      "frame=forum",
+      "target_via_business_forum:Jay",
+      "forum_topology_supplied",
+      "framing=cofounder_strategic",
+      "contradiction:leadership>relationship"
+    ]
+  },
+  "founder_context_block": {
+    "label": "founder_context block (PFS phase4)",
+    "chars": 107,
+    "tokens": 21
+  },
+  "timeline_v2_block": {
+    "label": "timeline_v2 block (PFS phase4)",
+    "chars": 0,
+    "tokens": 0
+  },
+  "proof_block_source_proxies": [
+    {
+      "file": "services/house_inventory_engine.py",
+      "fn": "build_house_inventory_proof_block",
+      "source_lines": 59,
+      "source_chars": 3066,
+      "approx_output_tokens_lower_bound": 282,
+      "approx_output_tokens_upper_bound": 847,
+      "note": "lower=runtime output is shorter than source; upper=runtime output occasionally matches source verbatim. Treat as order-of-magnitude."
+    },
+    {
+      "file": "services/field_synthesis_engine.py",
+      "fn": "build_field_synthesis_proof_block",
+      "source_lines": 90,
+      "source_chars": 4201,
+      "approx_output_tokens_lower_bound": 372,
+      "approx_output_tokens_upper_bound": 1118,
+      "note": "lower=runtime output is shorter than source; upper=runtime output occasionally matches source verbatim. Treat as order-of-magnitude."
+    },
+    {
+      "file": "services/lifecycle_engine.py",
+      "fn": "build_lifecycle_proof_block",
+      "source_lines": 89,
+      "source_chars": 4373,
+      "approx_output_tokens_lower_bound": 351,
+      "approx_output_tokens_upper_bound": 1055,
+      "note": "lower=runtime output is shorter than source; upper=runtime output occasionally matches source verbatim. Treat as order-of-magnitude."
+    },
+    {
+      "file": "services/solar_return_engine.py",
+      "fn": "build_solar_return_proof_block",
+      "source_lines": 65,
+      "source_chars": 3646,
+      "approx_output_tokens_lower_bound": 329,
+      "approx_output_tokens_upper_bound": 988,
+      "note": "lower=runtime output is shorter than source; upper=runtime output occasionally matches source verbatim. Treat as order-of-magnitude."
+    },
+    {
+      "file": "services/natal_object_engine.py",
+      "fn": "build_natal_object_proof_block",
+      "source_lines": 58,
+      "source_chars": 2754,
+      "approx_output_tokens_lower_bound": 243,
+      "approx_output_tokens_upper_bound": 731,
+      "note": "lower=runtime output is shorter than source; upper=runtime output occasionally matches source verbatim. Treat as order-of-magnitude."
+    },
+    {
+      "file": "services/pressure_topology_engine.py",
+      "fn": "build_pressure_topology_proof_block",
+      "source_lines": 64,
+      "source_chars": 2983,
+      "approx_output_tokens_lower_bound": 252,
+      "approx_output_tokens_upper_bound": 758,
+      "note": "lower=runtime output is shorter than source; upper=runtime output occasionally matches source verbatim. Treat as order-of-magnitude."
+    },
+    {
+      "file": "services/astrology_chat_router.py",
+      "fn": "build_transit_object_proof_block",
+      "source_lines": 54,
+      "source_chars": 2600,
+      "approx_output_tokens_lower_bound": 222,
+      "approx_output_tokens_upper_bound": 667,
+      "note": "lower=runtime output is shorter than source; upper=runtime output occasionally matches source verbatim. Treat as order-of-magnitude."
+    },
+    {
+      "file": "services/relationship_resolver.py",
+      "fn": "build_relational_synthesis_block",
+      "source_lines": 77,
+      "source_chars": 4268,
+      "approx_output_tokens_lower_bound": 332,
+      "approx_output_tokens_upper_bound": 997,
+      "note": "lower=runtime output is shorter than source; upper=runtime output occasionally matches source verbatim. Treat as order-of-magnitude."
+    }
+  ],
+  "dominance_ranking_by_tokens_desc": [
+    {
+      "label": "LENS_PROMPTS[astrology]",
+      "chars": 9582,
+      "tokens": 2660
+    },
+    {
+      "label": "MIRROR_SYSTEM_PROMPT (base)",
+      "chars": 5888,
+      "tokens": 1487
+    },
+    {
+      "label": "build_field_synthesis_proof_block  (approx, source-proxy)",
+      "chars": 4201,
+      "tokens": 1118
+    },
+    {
+      "label": "build_lifecycle_proof_block  (approx, source-proxy)",
+      "chars": 4373,
+      "tokens": 1055
+    },
+    {
+      "label": "build_relational_synthesis_block  (approx, source-proxy)",
+      "chars": 4268,
+      "tokens": 997
+    },
+    {
+      "label": "build_solar_return_proof_block  (approx, source-proxy)",
+      "chars": 3646,
+      "tokens": 988
+    },
+    {
+      "label": "build_house_inventory_proof_block  (approx, source-proxy)",
+      "chars": 3066,
+      "tokens": 847
+    },
+    {
+      "label": "build_pressure_topology_proof_block  (approx, source-proxy)",
+      "chars": 2983,
+      "tokens": 758
+    },
+    {
+      "label": "build_natal_object_proof_block  (approx, source-proxy)",
+      "chars": 2754,
+      "tokens": 731
+    },
+    {
+      "label": "build_transit_object_proof_block  (approx, source-proxy)",
+      "chars": 2600,
+      "tokens": 667
+    },
+    {
+      "label": "LENS_PROMPTS[bazi]",
+      "chars": 1875,
+      "tokens": 414
+    },
+    {
+      "label": "LENS_PROMPTS[numerology]",
+      "chars": 1750,
+      "tokens": 379
+    },
+    {
+      "label": "LENS_PROMPTS[zi_wei]",
+      "chars": 1429,
+      "tokens": 361
+    },
+    {
+      "label": "LENS_PROMPTS[enneagram]",
+      "chars": 1094,
+      "tokens": 268
+    },
+    {
+      "label": "intent_v2 prompt block (HYPOTHETICAL with both flags=true)",
+      "chars": 666,
+      "tokens": 147
+    },
+    {
+      "label": "intent_v2 prompt block (PFS-2.1/2.3 surface)",
+      "chars": 555,
+      "tokens": 121
+    },
+    {
+      "label": "LENS_PROMPTS[human_design]",
+      "chars": 459,
+      "tokens": 94
+    },
+    {
+      "label": "founder_context block (PFS phase4)",
+      "chars": 107,
+      "tokens": 21
+    },
+    {
+      "label": "timeline_v2 block (PFS phase4)",
+      "chars": 0,
+      "tokens": 0
+    }
+  ]
+}
