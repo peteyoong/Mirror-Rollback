@@ -715,6 +715,62 @@ def _section_regression_buckets(real_agg: Dict[str, Any]) -> str:
     return "\n".join(parts) + "\n"
 
 
+def _section_stage1_focused(real_agg: Dict[str, Any]) -> str:
+    """Section 14 — Stage-1 rollout focused telemetry categories.
+
+    Surfaces three operator-tracked buckets:
+      * founder/operator queries (B3.2)
+      * educational astrology queries (B3.1)
+      * forum-topology-dependent queries (P4)
+    """
+    s1 = (real_agg.get("regression_buckets") or {}).get("stage1_focused") or {}
+    if not s1:
+        return ("## 14. Stage-1 Rollout Focused Telemetry\n\n"
+                "_No Stage-1 telemetry classifiers found in replay results — "
+                "make sure you've re-run `b2_replay_runner.py` after the "
+                "Stage-1 telemetry classifier update._\n")
+
+    def _slice_md(s: Dict[str, Any]) -> str:
+        lines = [
+            f"- **Label**: {s.get('label')}",
+            f"- **Count**: {s.get('count')}  "
+            f"(share of REAL corpus: {s.get('share_of_corpus', 0)*100:.2f}%)",
+            f"- **Routing PASS rate**: {s.get('routing_pass_rate', 0)*100:.2f}%",
+            f"- **Predicted-domain mix**: `{s.get('predicted_domain_mix') or {}}`",
+            f"- **Frame mix**: `{s.get('frame_mix') or {}}`",
+        ]
+        ex = s.get("examples") or []
+        if ex:
+            lines.append("- **Examples**:")
+            for e in ex:
+                lines.append(
+                    f"  - frame=`{e.get('frame')}` "
+                    f"predicted=`{e.get('predicted_domain')}` "
+                    f"status=`{e.get('routing_status')}` "
+                    f"conf=`{e.get('confidence')}` → "
+                    f"{str(e.get('message', ''))[:180]}"
+                )
+        return "\n".join(lines)
+
+    parts = [
+        "## 14. Stage-1 Rollout Focused Telemetry\n\n"
+        "_These three categories are the operator's tracked buckets for the "
+        "Stage-1 (10%) rollout observation window.  They are **purely "
+        "analytical** — they classify rows for stratified reporting and do "
+        "**not** influence routing.  Their volume and PASS-rate movement "
+        "during Stage-1 will determine whether B3.1/B3.2/P4 are sequenced "
+        "before advancing to Stage-2._\n",
+
+        "### 14.1 Founder / operator queries (B3.2 target lane)\n",
+        _slice_md(s1.get("founder_operator") or {}),
+        "\n### 14.2 Educational astrology queries (B3.1 target lane)\n",
+        _slice_md(s1.get("educational_astrology") or {}),
+        "\n### 14.3 Forum-topology-dependent queries (P4 target lane)\n",
+        _slice_md(s1.get("forum_topology_dependent") or {}),
+    ]
+    return "\n".join(parts) + "\n"
+
+
 def _diff_vs_baseline(replay: Dict[str, Any]) -> Optional[Dict[str, Any]]:
     """Compare the current replay run against the frozen baseline.
 
@@ -815,7 +871,7 @@ def _diff_vs_baseline(replay: Dict[str, Any]) -> Optional[Dict[str, Any]]:
 
 def _section_delta(delta: Optional[Dict[str, Any]]) -> str:
     if delta is None:
-        return ("## 14. Delta vs. baseline (June 11 sign-off)\n\n"
+        return ("## 15. Delta vs. baseline (June 11 sign-off)\n\n"
                 "_No baseline snapshot found at "
                 f"`{BASELINE_REPLAY_JSON.name}`. Skipping delta section._\n")
 
@@ -845,7 +901,7 @@ def _section_delta(delta: Optional[Dict[str, Any]]) -> str:
     clusters_md = "\n".join(clusters_md_parts) or "_(no new clusters)_"
 
     return (
-        "## 14. Delta vs. baseline (June 11 sign-off)\n\n"
+        "## 15. Delta vs. baseline (June 11 sign-off)\n\n"
         f"_Baseline frozen at_ `{delta['baseline_generated_at']}`.  "
         f"_Current run_ `{delta['current_generated_at']}`.\n\n"
         "Operator's June 14 focus list, computed automatically:\n\n"
@@ -980,6 +1036,7 @@ async def main() -> int:
     parts.append(_section_risks(blockers, shadow, real))
     parts.append(_section_rollout(recommendation, blockers))
     parts.append(_section_regression_buckets(real))
+    parts.append(_section_stage1_focused(real))
     if args.baseline:
         parts.append(_section_delta(delta))
     parts.append(

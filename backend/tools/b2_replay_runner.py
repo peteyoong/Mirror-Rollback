@@ -268,6 +268,51 @@ _FOUNDER_RE = re.compile(
     r"fundrais\w*|runway|hiring|hire\b|delegat\w*|cofound|company[- ]building|"
     r"team\s+dynamics|leadership|operator|exec\b|executive)\b", re.I)
 
+# ----- Stage-1 rollout focused telemetry categories -----
+# Operator-tracked buckets during the 10% rollout observation window.
+# These are PURELY ANALYTICAL — they classify rows for stratified
+# reporting, they do NOT influence routing.
+
+# Educational astrology: lens-term present WITHOUT contextual cue.
+# Examples: "Tell me about my Saturn return", "What's my 7th house about?",
+# "Explain my Pluto in the 8th".  Distinct from the lens-jargon override
+# bucket: this is the SAFE pattern when routed to identity/general, not
+# a failure mode per se — but B3.1 will move these to a dedicated
+# "educational" lane.
+_EDU_ASTRO_LENS_RE = re.compile(
+    r"\b(saturn|venus|mars|jupiter|pluto|mercury|sun|moon|uranus|neptune|"
+    r"chiron|north\s+node|south\s+node|\d+(st|nd|rd|th)\s+house|"
+    r"natal|transit|return|ascendant|midheaven|descendant|ic\b)\b", re.I)
+_EDU_CONTEXTUAL_CUE_RE = re.compile(
+    r"\b(mel|wife|husband|partner|spouse|cofounder|team|board|company|"
+    r"feeling|right\s+now|today|this\s+week|happening|tension|conflict|"
+    r"between\s+(me|us|them))\b", re.I)
+
+
+def _is_educational_astrology(row: Dict[str, Any]) -> bool:
+    """Lens-term present in a chart-explanation framing, with no
+    relational/career/temporal contextual cue.  These are the prompts
+    B3.1's 'educational-mode disambiguation' lane will absorb."""
+    msg = row.get("message") or ""
+    if not _EDU_ASTRO_LENS_RE.search(msg):
+        return False
+    if _EDU_CONTEXTUAL_CUE_RE.search(msg):
+        return False
+    return True
+
+
+def _is_forum_topology_dependent(row: Dict[str, Any]) -> bool:
+    """Prompt that REQUIRES forum_topology.active_member_id to resolve
+    correctly: frame=forum AND no explicit_target_id AND no name in the
+    message.  These are the prompts P4 will fix."""
+    if row.get("active_frame") != "forum":
+        return False
+    if row.get("explicit_target_id"):
+        return False
+    if row.get("rel_target_resolved"):
+        return False
+    return True
+
 # Couple-only signals (relational dyad).
 _COUPLE_RE = re.compile(
     r"\b(mel|wife|husband|partner|spouse|marriage|between\s+(mel|me|us|him|her)\s+and|"
@@ -671,6 +716,8 @@ def _run_one(row: Dict[str, Any]) -> Dict[str, Any]:
     )
     out["high_confidence_wrong_route"] = _high_confidence_wrong_route(out)
     out["is_founder_query"] = bool(_FOUNDER_RE.search(row["message"] or ""))
+    out["is_educational_astrology"] = _is_educational_astrology(out)
+    out["is_forum_topology_dependent"] = _is_forum_topology_dependent(out)
     out["couple_forum_bleed_kind"] = _couple_forum_bleed(out)
     out["decision_not_explainable"] = not _is_decision_explainable(envd)
     # Payload completeness — in offline replay payloads are stubbed,
@@ -1101,6 +1148,52 @@ def _aggregate_regression_buckets(rows: List[Dict[str, Any]]) -> Dict[str, Any]:
         "founder_operator_suite":  founder_suite,
         "couple_forum_separation": couple_forum,
         "explainability":          explainability,
+        # ----- Stage-1 rollout focused telemetry categories -----
+        "stage1_focused": _aggregate_stage1_focused(rows),
+    }
+
+
+def _aggregate_stage1_focused(rows: List[Dict[str, Any]]) -> Dict[str, Any]:
+    """Stage-1 rollout focused telemetry: stratified counters operator
+    asked us to track separately during the 10% rollout window.
+
+    Three categories:
+      * founder/operator queries        — B3.2 target lane
+      * educational astrology queries   — B3.1 target lane
+      * forum-topology-dependent queries — P4 target lane
+
+    Each section reports volume, routing PASS rate, predicted-domain
+    mix, and a small sample of representative cases.
+    """
+    def _slice(predicate, label: str):
+        items = [r for r in rows if predicate(r)]
+        n = len(items)
+        pass_rate = (sum(1 for r in items if r.get("routing_status") == "PASS")
+                     / max(n, 1))
+        dom_mix = Counter(r.get("predicted_domain") for r in items)
+        frame_mix = Counter(r.get("active_frame") for r in items)
+        ex = [{"message": r.get("message"),
+               "frame":   r.get("active_frame"),
+               "predicted_domain": r.get("predicted_domain"),
+               "routing_status":   r.get("routing_status"),
+               "confidence":       r.get("confidence")}
+              for r in items[:5]]
+        return {
+            "label": label,
+            "count": n,
+            "share_of_corpus": round(n / max(len(rows), 1), 4),
+            "routing_pass_rate": round(pass_rate, 4),
+            "predicted_domain_mix": dict(dom_mix),
+            "frame_mix": dict(frame_mix),
+            "examples": ex,
+        }
+    return {
+        "founder_operator":          _slice(
+            lambda r: r.get("is_founder_query"),         "B3.2 — founder/operator"),
+        "educational_astrology":     _slice(
+            lambda r: r.get("is_educational_astrology"), "B3.1 — educational astrology"),
+        "forum_topology_dependent":  _slice(
+            lambda r: r.get("is_forum_topology_dependent"), "P4 — forum topology dependent"),
     }
 
 

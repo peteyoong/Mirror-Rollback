@@ -1,6 +1,6 @@
 # Mirror Chat V2 — Slice B2 Readiness Report
 
-_Generated: 2026-06-12T01:51:42.404942+00:00_
+_Generated: 2026-06-12T02:42:43.110420+00:00_
 
 _This is the canonical artifact for the B2 production cutover decision._  
 _All recommendations stay capped at `CONDITIONAL_GO` until the shadow telemetry observation window closes on 2026-06-14._
@@ -290,9 +290,47 @@ _The 10 regression buckets the operator asked us to track on top of the existing
 - **Gate**: informational; track for future bug clusters
 - Non-explainable decisions: **0** (0.00%)
 
-## 14. Delta vs. baseline (June 11 sign-off)
+## 14. Stage-1 Rollout Focused Telemetry
 
-_Baseline frozen at_ `2026-06-11T19:27:31.074622+00:00`.  _Current run_ `2026-06-12T01:51:41.644685+00:00`.
+_These three categories are the operator's tracked buckets for the Stage-1 (10%) rollout observation window.  They are **purely analytical** — they classify rows for stratified reporting and do **not** influence routing.  Their volume and PASS-rate movement during Stage-1 will determine whether B3.1/B3.2/P4 are sequenced before advancing to Stage-2._
+
+### 14.1 Founder / operator queries (B3.2 target lane)
+
+- **Label**: B3.2 — founder/operator
+- **Count**: 0  (share of REAL corpus: 0.00%)
+- **Routing PASS rate**: 0.00%
+- **Predicted-domain mix**: `{}`
+- **Frame mix**: `{}`
+
+### 14.2 Educational astrology queries (B3.1 target lane)
+
+- **Label**: B3.1 — educational astrology
+- **Count**: 3  (share of REAL corpus: 6.52%)
+- **Routing PASS rate**: 100.00%
+- **Predicted-domain mix**: `{'identity': 1, 'family': 1, 'relationship': 1}`
+- **Frame mix**: `{'self': 2, 'member': 1}`
+- **Examples**:
+  - frame=`self` predicted=`identity` status=`PASS` conf=`1.0` → Tell me about my Saturn return
+  - frame=`member` predicted=`family` status=`PASS` conf=`0.4024` → Tell me about her 4th house
+  - frame=`self` predicted=`relationship` status=`PASS` conf=`0.8205` → What's my 7th house about?
+
+### 14.3 Forum-topology-dependent queries (P4 target lane)
+
+- **Label**: P4 — forum topology dependent
+- **Count**: 22  (share of REAL corpus: 47.83%)
+- **Routing PASS rate**: 90.91%
+- **Predicted-domain mix**: `{'relationship': 22}`
+- **Frame mix**: `{'forum': 22}`
+- **Examples**:
+  - frame=`forum` predicted=`relationship` status=`WARNING` conf=`0.2382` → What's the energy of this forum?
+  - frame=`forum` predicted=`relationship` status=`WARNING` conf=`0.2382` → What's the energy of this forum?
+  - frame=`forum` predicted=`relationship` status=`PASS` conf=`0.3682` → Reflection test (forum).
+  - frame=`forum` predicted=`relationship` status=`PASS` conf=`0.3682` → RL probe 1.
+  - frame=`forum` predicted=`relationship` status=`PASS` conf=`0.3682` → Reflection test (forum).
+
+## 15. Delta vs. baseline (June 11 sign-off)
+
+_Baseline frozen at_ `2026-06-11T19:27:31.074622+00:00`.  _Current run_ `2026-06-12T02:42:42.392232+00:00`.
 
 Operator's June 14 focus list, computed automatically:
 

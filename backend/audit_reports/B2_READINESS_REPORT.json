@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-12T01:51:42.405323+00:00",
+  "generated_at": "2026-06-12T02:42:43.110907+00:00",
   "recommendation": "CONDITIONAL_GO",
   "blockers": [
     "Shadow telemetry window not complete (ends 2026-06-14)",
@@ -318,10 +318,10 @@
       "accuracy": 0.0
     },
     "latency_ms": {
-      "mean": 0.979,
+      "mean": 0.971,
       "p50": 0.116,
-      "p95": 0.147,
-      "max": 39.752
+      "p95": 0.158,
+      "max": 38.9
     },
     "versions": {
       "intent_router": "intent_router_v2.1.0",
@@ -445,6 +445,104 @@
         "gate": "informational; track for future bug clusters",
         "status": "PASS",
         "examples": []
+      },
+      "stage1_focused": {
+        "founder_operator": {
+          "label": "B3.2 \u2014 founder/operator",
+          "count": 0,
+          "share_of_corpus": 0.0,
+          "routing_pass_rate": 0.0,
+          "predicted_domain_mix": {},
+          "frame_mix": {},
+          "examples": []
+        },
+        "educational_astrology": {
+          "label": "B3.1 \u2014 educational astrology",
+          "count": 3,
+          "share_of_corpus": 0.0652,
+          "routing_pass_rate": 1.0,
+          "predicted_domain_mix": {
+            "identity": 1,
+            "family": 1,
+            "relationship": 1
+          },
+          "frame_mix": {
+            "self": 2,
+            "member": 1
+          },
+          "examples": [
+            {
+              "message": "Tell me about my Saturn return",
+              "frame": "self",
+              "predicted_domain": "identity",
+              "routing_status": "PASS",
+              "confidence": 1.0
+            },
+            {
+              "message": "Tell me about her 4th house",
+              "frame": "member",
+              "predicted_domain": "family",
+              "routing_status": "PASS",
+              "confidence": 0.4024
+            },
+            {
+              "message": "What's my 7th house about?",
+              "frame": "self",
+              "predicted_domain": "relationship",
+              "routing_status": "PASS",
+              "confidence": 0.8205
+            }
+          ]
+        },
+        "forum_topology_dependent": {
+          "label": "P4 \u2014 forum topology dependent",
+          "count": 22,
+          "share_of_corpus": 0.4783,
+          "routing_pass_rate": 0.9091,
+          "predicted_domain_mix": {
+            "relationship": 22
+          },
+          "frame_mix": {
+            "forum": 22
+          },
+          "examples": [
+            {
+              "message": "What's the energy of this forum?",
+              "frame": "forum",
+              "predicted_domain": "relationship",
+              "routing_status": "WARNING",
+              "confidence": 0.2382
+            },
+            {
+              "message": "What's the energy of this forum?",
+              "frame": "forum",
+              "predicted_domain": "relationship",
+              "routing_status": "WARNING",
+              "confidence": 0.2382
+            },
+            {
+              "message": "Reflection test (forum).",
+              "frame": "forum",
+              "predicted_domain": "relationship",
+              "routing_status": "PASS",
+              "confidence": 0.3682
+            },
+            {
+              "message": "RL probe 1.",
+              "frame": "forum",
+              "predicted_domain": "relationship",
+              "routing_status": "PASS",
+              "confidence": 0.3682
+            },
+            {
+              "message": "Reflection test (forum).",
+              "frame": "forum",
+              "predicted_domain": "relationship",
+              "routing_status": "PASS",
+              "confidence": 0.3682
+            }
+          ]
+        }
       }
     }
   },
@@ -676,10 +774,10 @@
       "accuracy": 0.65
     },
     "latency_ms": {
-      "mean": 0.578,
-      "p50": 0.117,
-      "p95": 0.139,
-      "max": 39.752
+      "mean": 0.574,
+      "p50": 0.118,
+      "p95": 0.145,
+      "max": 38.9
     },
     "versions": {
       "intent_router": "intent_router_v2.1.0",
@@ -929,6 +1027,162 @@
         "gate": "informational; track for future bug clusters",
         "status": "PASS",
         "examples": []
+      },
+      "stage1_focused": {
+        "founder_operator": {
+          "label": "B3.2 \u2014 founder/operator",
+          "count": 6,
+          "share_of_corpus": 0.0698,
+          "routing_pass_rate": 0.8333,
+          "predicted_domain_mix": {
+            "leadership": 2,
+            "career": 2,
+            "money": 1,
+            "general": 1
+          },
+          "frame_mix": {
+            "self": 6
+          },
+          "examples": [
+            {
+              "message": "Should I delegate the Q3 product decisions to my VP?",
+              "frame": "self",
+              "predicted_domain": "leadership",
+              "routing_status": "PASS",
+              "confidence": 0.7
+            },
+            {
+              "message": "I feel like a bad CEO when I can't see the path forward",
+              "frame": "self",
+              "predicted_domain": "leadership",
+              "routing_status": "PASS",
+              "confidence": 0.45
+            },
+            {
+              "message": "Is being a founder still my role here?",
+              "frame": "self",
+              "predicted_domain": "career",
+              "routing_status": "PASS",
+              "confidence": 1.0
+            },
+            {
+              "message": "Should I take less salary to extend runway?",
+              "frame": "self",
+              "predicted_domain": "money",
+              "routing_status": "PASS",
+              "confidence": 0.7708
+            },
+            {
+              "message": "Is now the right window to fundraise?",
+              "frame": "self",
+              "predicted_domain": "career",
+              "routing_status": "PASS",
+              "confidence": 0.8
+            }
+          ]
+        },
+        "educational_astrology": {
+          "label": "B3.1 \u2014 educational astrology",
+          "count": 5,
+          "share_of_corpus": 0.0581,
+          "routing_pass_rate": 1.0,
+          "predicted_domain_mix": {
+            "identity": 2,
+            "family": 1,
+            "relationship": 1,
+            "money": 1
+          },
+          "frame_mix": {
+            "self": 4,
+            "member": 1
+          },
+          "examples": [
+            {
+              "message": "Tell me about my Saturn return",
+              "frame": "self",
+              "predicted_domain": "identity",
+              "routing_status": "PASS",
+              "confidence": 1.0
+            },
+            {
+              "message": "Tell me about her 4th house",
+              "frame": "member",
+              "predicted_domain": "family",
+              "routing_status": "PASS",
+              "confidence": 0.4024
+            },
+            {
+              "message": "What's my 7th house about?",
+              "frame": "self",
+              "predicted_domain": "relationship",
+              "routing_status": "PASS",
+              "confidence": 0.8205
+            },
+            {
+              "message": "What does my 2nd house say about wealth?",
+              "frame": "self",
+              "predicted_domain": "money",
+              "routing_status": "PASS",
+              "confidence": 1.0
+            },
+            {
+              "message": "How do my Saturn return and Enneagram 8 intersect?",
+              "frame": "self",
+              "predicted_domain": "identity",
+              "routing_status": "PASS",
+              "confidence": 1.0
+            }
+          ]
+        },
+        "forum_topology_dependent": {
+          "label": "P4 \u2014 forum topology dependent",
+          "count": 24,
+          "share_of_corpus": 0.2791,
+          "routing_pass_rate": 0.9167,
+          "predicted_domain_mix": {
+            "relationship": 24
+          },
+          "frame_mix": {
+            "forum": 24
+          },
+          "examples": [
+            {
+              "message": "What's the energy of this forum?",
+              "frame": "forum",
+              "predicted_domain": "relationship",
+              "routing_status": "WARNING",
+              "confidence": 0.2382
+            },
+            {
+              "message": "What's the energy of this forum?",
+              "frame": "forum",
+              "predicted_domain": "relationship",
+              "routing_status": "WARNING",
+              "confidence": 0.2382
+            },
+            {
+              "message": "Reflection test (forum).",
+              "frame": "forum",
+              "predicted_domain": "relationship",
+              "routing_status": "PASS",
+              "confidence": 0.3682
+            },
+            {
+              "message": "RL probe 1.",
+              "frame": "forum",
+              "predicted_domain": "relationship",
+              "routing_status": "PASS",
+              "confidence": 0.3682
+            },
+            {
+              "message": "Reflection test (forum).",
+              "frame": "forum",
+              "predicted_domain": "relationship",
+              "routing_status": "PASS",
+              "confidence": 0.3682
+            }
+          ]
+        }
       }
     },
     "aggregates_by_source": {
@@ -1125,10 +1379,10 @@
           "accuracy": 0.0
         },
         "latency_ms": {
-          "mean": 0.979,
+          "mean": 0.971,
           "p50": 0.116,
-          "p95": 0.147,
-          "max": 39.752
+          "p95": 0.158,
+          "max": 38.9
         },
         "versions": {
           "intent_router": "intent_router_v2.1.0",
@@ -1252,6 +1506,104 @@
             "gate": "informational; track for future bug clusters",
             "status": "PASS",
             "examples": []
+          },
+          "stage1_focused": {
+            "founder_operator": {
+              "label": "B3.2 \u2014 founder/operator",
+              "count": 0,
+              "share_of_corpus": 0.0,
+              "routing_pass_rate": 0.0,
+              "predicted_domain_mix": {},
+              "frame_mix": {},
+              "examples": []
+            },
+            "educational_astrology": {
+              "label": "B3.1 \u2014 educational astrology",
+              "count": 3,
+              "share_of_corpus": 0.0652,
+              "routing_pass_rate": 1.0,
+              "predicted_domain_mix": {
+                "identity": 1,
+                "family": 1,
+                "relationship": 1
+              },
+              "frame_mix": {
+                "self": 2,
+                "member": 1
+              },
+              "examples": [
+                {
+                  "message": "Tell me about my Saturn return",
+                  "frame": "self",
+                  "predicted_domain": "identity",
+                  "routing_status": "PASS",
+                  "confidence": 1.0
+                },
+                {
+                  "message": "Tell me about her 4th house",
+                  "frame": "member",
+                  "predicted_domain": "family",
+                  "routing_status": "PASS",
+                  "confidence": 0.4024
+                },
+                {
+                  "message": "What's my 7th house about?",
+                  "frame": "self",
+                  "predicted_domain": "relationship",
+                  "routing_status": "PASS",
+                  "confidence": 0.8205
+                }
+              ]
+            },
+            "forum_topology_dependent": {
+              "label": "P4 \u2014 forum topology dependent",
+              "count": 22,
+              "share_of_corpus": 0.4783,
+              "routing_pass_rate": 0.9091,
+              "predicted_domain_mix": {
+                "relationship": 22
+              },
+              "frame_mix": {
+                "forum": 22
+              },
+              "examples": [
+                {
+                  "message": "What's the energy of this forum?",
+                  "frame": "forum",
+                  "predicted_domain": "relationship",
+                  "routing_status": "WARNING",
+                  "confidence": 0.2382
+                },
+                {
+                  "message": "What's the energy of this forum?",
+                  "frame": "forum",
+                  "predicted_domain": "relationship",
+                  "routing_status": "WARNING",
+                  "confidence": 0.2382
+                },
+                {
+                  "message": "Reflection test (forum).",
+                  "frame": "forum",
+                  "predicted_domain": "relationship",
+                  "routing_status": "PASS",
+                  "confidence": 0.3682
+                },
+                {
+                  "message": "RL probe 1.",
+                  "frame": "forum",
+                  "predicted_domain": "relationship",
+                  "routing_status": "PASS",
+                  "confidence": 0.3682
+                },
+                {
+                  "message": "Reflection test (forum).",
+                  "frame": "forum",
+                  "predicted_domain": "relationship",
+                  "routing_status": "PASS",
+                  "confidence": 0.3682
+                }
+              ]
+            }
           }
         }
       },
@@ -1421,10 +1773,10 @@
           "accuracy": 0.65
         },
         "latency_ms": {
-          "mean": 0.117,
+          "mean": 0.118,
           "p50": 0.119,
-          "p95": 0.133,
-          "max": 0.139
+          "p95": 0.135,
+          "max": 0.145
         },
         "versions": {
           "intent_router": "intent_router_v2.1.0",
@@ -1657,6 +2009,117 @@
             "gate": "informational; track for future bug clusters",
             "status": "PASS",
             "examples": []
+          },
+          "stage1_focused": {
+            "founder_operator": {
+              "label": "B3.2 \u2014 founder/operator",
+              "count": 6,
+              "share_of_corpus": 0.15,
+              "routing_pass_rate": 0.8333,
+              "predicted_domain_mix": {
+                "leadership": 2,
+                "career": 2,
+                "money": 1,
+                "general": 1
+              },
+              "frame_mix": {
+                "self": 6
+              },
+              "examples": [
+                {
+                  "message": "Should I delegate the Q3 product decisions to my VP?",
+                  "frame": "self",
+                  "predicted_domain": "leadership",
+                  "routing_status": "PASS",
+                  "confidence": 0.7
+                },
+                {
+                  "message": "I feel like a bad CEO when I can't see the path forward",
+                  "frame": "self",
+                  "predicted_domain": "leadership",
+                  "routing_status": "PASS",
+                  "confidence": 0.45
+                },
+                {
+                  "message": "Is being a founder still my role here?",
+                  "frame": "self",
+                  "predicted_domain": "career",
+                  "routing_status": "PASS",
+                  "confidence": 1.0
+                },
+                {
+                  "message": "Should I take less salary to extend runway?",
+                  "frame": "self",
+                  "predicted_domain": "money",
+                  "routing_status": "PASS",
+                  "confidence": 0.7708
+                },
+                {
+                  "message": "Is now the right window to fundraise?",
+                  "frame": "self",
+                  "predicted_domain": "career",
+                  "routing_status": "PASS",
+                  "confidence": 0.8
+                }
+              ]
+            },
+            "educational_astrology": {
+              "label": "B3.1 \u2014 educational astrology",
+              "count": 2,
+              "share_of_corpus": 0.05,
+              "routing_pass_rate": 1.0,
+              "predicted_domain_mix": {
+                "money": 1,
+                "identity": 1
+              },
+              "frame_mix": {
+                "self": 2
+              },
+              "examples": [
+                {
+                  "message": "What does my 2nd house say about wealth?",
+                  "frame": "self",
+                  "predicted_domain": "money",
+                  "routing_status": "PASS",
+                  "confidence": 1.0
+                },
+                {
+                  "message": "How do my Saturn return and Enneagram 8 intersect?",
+                  "frame": "self",
+                  "predicted_domain": "identity",
+                  "routing_status": "PASS",
+                  "confidence": 1.0
+                }
+              ]
+            },
+            "forum_topology_dependent": {
+              "label": "P4 \u2014 forum topology dependent",
+              "count": 2,
+              "share_of_corpus": 0.05,
+              "routing_pass_rate": 1.0,
+              "predicted_domain_mix": {
+                "relationship": 2
+              },
+              "frame_mix": {
+                "forum": 2
+              },
+              "examples": [
+                {
+                  "message": "What pattern is showing up in our forum this week?",
+                  "frame": "forum",
+                  "predicted_domain": "relationship",
+                  "routing_status": "PASS",
+                  "confidence": 0.9167
+                },
+                {
+                  "message": "Which member needs the most space right now?",
+                  "frame": "forum",
+                  "predicted_domain": "relationship",
+                  "routing_status": "PASS",
+                  "confidence": 0.3682
+                }
+              ]
+            }
           }
         }
       }
@@ -4744,7 +5207,7 @@
   },
   "delta_vs_baseline": {
     "baseline_generated_at": "2026-06-11T19:27:31.074622+00:00",
-    "current_generated_at": "2026-06-12T01:51:41.644685+00:00",
+    "current_generated_at": "2026-06-12T02:42:42.392232+00:00",
     "new_fp_relationship_examples": [],
     "new_resolver_failure_examples": [],
     "unresolved_named_distribution_delta": {
