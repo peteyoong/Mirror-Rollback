@@ -90,6 +90,146 @@ ROLE_BIAS: Dict[str, Dict[str, float]] = {
 # role is unknown.
 TARGET_ACTIVE_BONUS = 0.20
 
+# ---------------------------------------------------------------------------
+# B3.1 — Educational-mode disambiguation
+# ---------------------------------------------------------------------------
+# When a message contains a lens term (astrology body/house/transit, HD
+# component, enneagram type token, …) AND no contextual cue (relational,
+# career, financial, temporal, conflict, named person) → prefer the
+# contextually neutral `identity` synthesis lane instead of collapsing on
+# the lens-term's natural domain.
+#
+# The bonus is intentionally smaller than the strongest natural-domain
+# signals (e.g. `between us` w=0.95) so a contextual relational query
+# still routes to relationship.  The bonus is applied AFTER lexicon,
+# frame, role, and target-active scoring so it doesn't cascade.
+
+_EDU_LENS_TERM_RE = re.compile(
+    r"\b("
+    r"saturn|venus|mars|jupiter|pluto|mercury|sun|moon|uranus|neptune|"
+    r"chiron|north\s+node|south\s+node|nodes?|"
+    r"\d+(st|nd|rd|th)\s+house|"
+    r"natal|transit|return|ascendant|midheaven|descendant|ic\b|"
+    r"manifestor|generator|projector|reflector|sacral|splenic|"
+    r"emotional\s+authority|gate\s+\d+|channel\s+\d+|profile\s+\d|"
+    r"\d/\d\s*profile|defined\s+\w+\s+center|undefined\s+\w+\s+center|"
+    r"my\s+(sun|moon|rising|ascendant|mercury|venus|mars|jupiter|"
+    r"saturn|uranus|neptune|pluto|chiron|midheaven|big\s+three|"
+    r"chart|natal\s+chart|birth\s+chart|astrology|human\s+design|"
+    r"hd\s+type|type|profile|authority|strategy|incarnation\s+cross|"
+    r"enneagram|tritype|wing|life\s+path|expression|destiny\s+number|"
+    r"soul\s+urge|bazi|day\s+master|gene\s+keys)"
+    r")\b",
+    re.I)
+
+_EDU_CONTEXTUAL_CUE_RE = re.compile(
+    r"\b("
+    # relational
+    r"mel|wife|husband|partner|spouse|girlfriend|boyfriend|"
+    r"with\s+(my|her|his|them)|between\s+(us|me|mel|him|her|them)|"
+    r"my\s+(mum|mom|mother|dad|father|sister|brother|sibling|child|"
+    r"son|daughter|kid|kids|teen|parents?|in[- ]laws)|"
+    r"marriage|divorce|breakup|"
+    # career / leadership
+    r"founder|cofounder|co-founder|ceo|cto|coo|executive|exec|"
+    r"manager|management|board|investor|"
+    r"team|company|startup|firm|department|"
+    r"fundrais|runway|hiring|layoff|downsiz|fire|fired|promotion|"
+    r"role|career|job|workplace|deadline|deliverable|"
+    # financial cue
+    r"money|salary|wealth|finances?|invest|debt|budget|income|"
+    # temporal
+    r"today|right\s+now|this\s+(week|month|year)|currently|"
+    r"happening|tension|conflict|fight|struggling|stuck\s+with|"
+    r"crisis|breakdown|"
+    # health
+    r"burn(ed|t|out)|exhausted|tired|sick"
+    r")\b",
+    re.I)
+
+EDUCATIONAL_MODE_BONUS = 0.50
+
+# When educational-mode fires, we also subtract from the lens-collapse
+# natural domains (relationship/career/family/money) so a bare
+# `my 7th house` style query routes to `identity` instead of collapsing.
+# Strictly capped to avoid ever flipping a true positive (e.g. when a
+# contextual cue is also present, educational-mode never fires).
+EDUCATIONAL_MODE_NATURAL_PENALTY = 1.2
+EDUCATIONAL_MODE_NATURAL_DOMAINS = ("relationship", "career", "family", "money")
+
+# If a compound-lane domain (life_direction / growth) has a strong
+# signal (>= this floor) the educational-mode override is SKIPPED so the
+# compound lane wins — e.g. "Tell me about my Saturn return" → life_direction
+# beats "identity" because `saturn return` is a deliberate compound entry.
+EDUCATIONAL_MODE_COMPOUND_SUPPRESS_FLOOR = 0.85
+EDUCATIONAL_MODE_COMPOUND_DOMAINS = ("life_direction", "growth")
+
+# ---------------------------------------------------------------------------
+# B3.2 — Team-relationship anti-collapse
+# ---------------------------------------------------------------------------
+# Generic team / business-unit phrasing on the `self` frame must NOT
+# collapse to `relationship`.  Subtract a fixed penalty from
+# `relationship` raw score when:
+#   * frame is `self`,
+#   * the message contains a generic team / business-unit token,
+#   * no real proper-name candidate is present,
+#   * no role noun (partner, wife, husband, …) is present.
+
+_TEAM_BIZ_RE = re.compile(
+    r"\b("
+    r"my\s+(team|management\s+team|leadership\s+team|exec(utive)?\s+team|"
+    r"engineering\s+team|product\s+team|cofounders?)|"
+    r"the\s+(team|management\s+team|leadership\s+team|exec(utive)?\s+team|"
+    r"company|business|board|management|executives?)|"
+    r"the\s+org(anisation|anization)?|"
+    r"management\s+team|leadership\s+team"
+    r")\b",
+    re.I)
+
+_ROLE_NOUN_RE = re.compile(
+    r"\b("
+    r"partner|spouse|wife|husband|girlfriend|boyfriend|"
+    r"mum|mom|mother|dad|father|sister|brother|sibling|"
+    r"child|children|kid|kids|son|daughter|teen|"
+    r"friend|mentor|colleague|coworker|client|boss|ex"
+    r")\b",
+    re.I)
+
+# Reuse the proper-name candidate regex from relationship_router_v2.
+_PROPER_NAME_RE = re.compile(r"\b([A-Z][a-z]{1,30})\b")
+_PROPER_NAME_FILTER_LC = {
+    "how", "what", "why", "when", "where", "who", "tell", "show", "can",
+    "should", "would", "am", "is", "are", "do", "does", "has", "have", "had",
+    "i", "me", "my", "we", "us", "our", "you", "your", "they",
+    "this", "that", "these", "those", "there", "here", "the", "a", "an",
+    "but", "and", "or", "so", "if", "yet",
+    "yes", "no", "ok", "okay", "hi", "hey", "hello",
+    # imperatives commonly capitalised mid-sentence
+    "explain", "describe", "define", "tell", "show", "give", "list", "name",
+    "outline", "summarize", "summarise",
+    "saturn", "venus", "mars", "jupiter", "pluto", "mercury", "sun",
+    "moon", "uranus", "neptune", "chiron", "lilith", "node", "nodes",
+    "midheaven", "ascendant", "descendant",
+    "aries", "taurus", "gemini", "cancer", "leo", "virgo", "libra",
+    "scorpio", "sagittarius", "capricorn", "aquarius", "pisces",
+    "human", "design", "enneagram", "astrology", "numerology", "bazi",
+    "mirror", "chat", "cross", "lens", "lenses", "forum", "reflection",
+    "rl", "probe", "test", "today", "monday", "tuesday", "wednesday",
+    "thursday", "friday", "saturday", "sunday",
+    "ceo", "cto", "coo", "vp", "vpe",
+}
+
+TEAM_RELATIONSHIP_PENALTY = 0.35
+
+
+def _has_proper_name_candidate(text: str) -> bool:
+    if not text:
+        return False
+    for tok in _PROPER_NAME_RE.findall(text):
+        if tok.lower() not in _PROPER_NAME_FILTER_LC:
+            return True
+    return False
+
 TIMELINE_TRIGGERS_PER_DOMAIN = {
     "career", "work", "life_direction", "growth", "parenting",
     "money", "health",
@@ -237,6 +377,49 @@ def classify_intent_v2(
         else:
             raw_scores["relationship"] = raw_scores.get("relationship", 0.0) + TARGET_ACTIVE_BONUS
 
+    # 5b. B3.2 — team-relationship anti-collapse.
+    # Generic team / business-unit phrasing in the `self` frame must NOT
+    # collapse to `relationship`.  We only apply the penalty when there
+    # is no proper name, no role noun, and no explicit target.
+    team_penalty_applied = False
+    if (active_frame == "self"
+            and not current_target_id
+            and _TEAM_BIZ_RE.search(text)
+            and not _has_proper_name_candidate(text)
+            and not _ROLE_NOUN_RE.search(text)):
+        raw_scores["relationship"] = (
+            raw_scores.get("relationship", 0.0) - TEAM_RELATIONSHIP_PENALTY
+        )
+        team_penalty_applied = True
+
+    # 5c. B3.1 — educational-mode disambiguation.
+    # When a lens term is present without any contextual cue, prefer
+    # the contextually neutral `identity` synthesis lane.  Skip when
+    # current_target_id is set (the user has explicitly bound a
+    # person — that overrides any "educational" framing).
+    educational_mode_applied = False
+    if (not current_target_id
+            and _EDU_LENS_TERM_RE.search(text)
+            and not _EDU_CONTEXTUAL_CUE_RE.search(text)
+            and not _has_proper_name_candidate(text)):
+        # Suppress when a compound-lane domain has a deliberate strong
+        # signal (e.g. saturn return → life_direction).  In that case
+        # the compound lane is the intended answer; educational mode
+        # would incorrectly flatten it to identity.
+        compound_active = any(
+            raw_scores.get(d, 0.0) >= EDUCATIONAL_MODE_COMPOUND_SUPPRESS_FLOOR
+            for d in EDUCATIONAL_MODE_COMPOUND_DOMAINS
+        )
+        if not compound_active:
+            raw_scores["identity"] = (
+                raw_scores.get("identity", 0.0) + EDUCATIONAL_MODE_BONUS
+            )
+            for _dom in EDUCATIONAL_MODE_NATURAL_DOMAINS:
+                cur = raw_scores.get(_dom, 0.0)
+                if cur > 0:
+                    raw_scores[_dom] = max(0.0, cur - EDUCATIONAL_MODE_NATURAL_PENALTY)
+            educational_mode_applied = True
+
     # 6. Rank by raw score (no softmax)
     ranked = sorted(raw_scores.items(), key=lambda kv: -kv[1])
     top, top_score = ranked[0]
@@ -302,6 +485,8 @@ def classify_intent_v2(
             "frame_bias_applied":  FRAME_BIAS.get(active_frame, {}),
             "role_bias_applied":   ROLE_BIAS.get(role_lc, {}),
             "target_active_bonus": TARGET_ACTIVE_BONUS if current_target_id else 0.0,
+            "team_penalty_applied": team_penalty_applied,
+            "educational_mode_applied": educational_mode_applied,
             "top_score":           round(top_score, 4),
             "second":              second,
             "second_score":        round(second_score, 4),
@@ -317,3 +502,136 @@ def shadow_mode_enabled() -> bool:
 def cutover_enabled() -> bool:
     """B2 will flip this; B1 keeps it false."""
     return os.environ.get("INTENT_ROUTER_V2_CUTOVER", "false").lower() in ("1", "true", "yes")
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Stage 1 rollout — per-user bucketed cutover  (intent-router-v2-stage1-v1)
+# ─────────────────────────────────────────────────────────────────────────────
+#
+# Design intent (per Stage 1 plan, 2026-06-12):
+#
+#   * Each user is deterministically hashed into a bucket in [0, 99]. The
+#     hash is sticky — the same `user_id` always lands in the same bucket
+#     across processes, pods, and restarts. This is the *only* source of
+#     truth for cutover eligibility during the gradual rollout window.
+#
+#   * `cutover_enabled_for(user_id)` returns True iff:
+#       (a) INTENT_ROUTER_V2_CUTOVER == "true"  → full cutover override
+#           (ignores the percent — used for 100% rollout / emergency flips), OR
+#       (b) INTENT_ROUTER_V2_ROLLOUT_PERCENT > 0
+#           AND _stage1_bucket(user_id) < ROLLOUT_PERCENT
+#           → gradual rollout bucket eligibility.
+#
+#   * Empty / None user_id → False (NEVER routes anonymous traffic through V2
+#     during gradual rollout; only flips with the full cutover flag).
+#
+#   * Default environment state (CUTOVER=false, ROLLOUT_PERCENT=0) means the
+#     function always returns False → shadow-only behaviour is preserved.
+#
+# Activation env vars (DO NOT SET WITHOUT EXPLICIT AUTHORIZATION):
+#   INTENT_ROUTER_V2_CUTOVER           "true"|"false"   default "false"
+#   INTENT_ROUTER_V2_ROLLOUT_PERCENT   0..100 (int)     default 0
+#
+
+_STAGE1_HASH_SALT = "intent_router_v2.stage1.v1"  # changing this re-shuffles buckets
+
+
+def _stage1_bucket(user_id: Optional[str]) -> int:
+    """Deterministic per-user bucket in [0, 99].
+
+    Uses SHA-256 over `salt|user_id` and reads the first 4 bytes as a
+    big-endian unsigned int, then mods by 100. Same inputs → same bucket
+    everywhere; uniform distribution across [0, 99].
+
+    Returns -1 for empty / None inputs (treated as ineligible for the
+    bucketed rollout; the caller MUST check before comparing to a
+    percent threshold).
+    """
+    if not user_id:
+        return -1
+    import hashlib  # local import → avoid touching top-level imports
+    h = hashlib.sha256(
+        (_STAGE1_HASH_SALT + "|" + str(user_id)).encode("utf-8")
+    ).digest()
+    return int.from_bytes(h[:4], "big") % 100
+
+
+def _rollout_percent() -> int:
+    """Read INTENT_ROUTER_V2_ROLLOUT_PERCENT, clamped to [0, 100].
+
+    Invalid / unparseable values fall back to 0 (safe default — no traffic
+    routed through V2 from the bucketed path).
+    """
+    raw = os.environ.get("INTENT_ROUTER_V2_ROLLOUT_PERCENT", "0")
+    try:
+        n = int(str(raw).strip())
+    except Exception:
+        return 0
+    if n < 0:
+        return 0
+    if n > 100:
+        return 100
+    return n
+
+
+def cutover_decision_for(user_id: Optional[str]) -> Dict[str, Any]:
+    """Return the full cutover decision with telemetry fields.
+
+    Used by both `cutover_enabled_for()` and the shadow-receipt builder so
+    every dashboarded decision carries the exact reason + thresholds.
+
+    Shape:
+      {
+        "enabled":         bool,
+        "reason":          "cutover_flag_true"
+                         | "below_rollout_percent"
+                         | "above_rollout_percent"
+                         | "no_user_id"
+                         | "rollout_percent_zero",
+        "stage1_bucket":   int (-1 if no user_id),
+        "rollout_percent": int (0..100),
+        "cutover_flag":    bool,
+        "salt":            str (so re-shuffles can be detected),
+      }
+    """
+    cutover_flag = cutover_enabled()
+    percent = _rollout_percent()
+    bucket = _stage1_bucket(user_id)
+
+    # Reason ladder — first match wins.
+    if cutover_flag:
+        reason = "cutover_flag_true"
+        enabled = True
+    elif bucket < 0:
+        reason = "no_user_id"
+        enabled = False
+    elif percent <= 0:
+        reason = "rollout_percent_zero"
+        enabled = False
+    elif bucket < percent:
+        reason = "below_rollout_percent"
+        enabled = True
+    else:
+        reason = "above_rollout_percent"
+        enabled = False
+
+    return {
+        "enabled":         enabled,
+        "reason":          reason,
+        "stage1_bucket":   bucket,
+        "rollout_percent": percent,
+        "cutover_flag":    cutover_flag,
+        "salt":            _STAGE1_HASH_SALT,
+    }
+
+
+def cutover_enabled_for(user_id: Optional[str]) -> bool:
+    """Boolean form of `cutover_decision_for()` — the single gate the
+    runtime should call before routing a request through V2 (post-rollout).
+
+    DURING SHADOW MODE this function's return value is IGNORED by the
+    live request handler — it is only consumed by the receipt-building
+    code so dashboards can verify the rollout *would* land the expected
+    distribution before any flag flip.
+    """
+    return cutover_decision_for(user_id)["enabled"]

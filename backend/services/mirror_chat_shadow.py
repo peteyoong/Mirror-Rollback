@@ -20,6 +20,7 @@ from typing import Any, Dict, List, Optional
 
 from services.intent_router_v2 import (
     classify_intent_v2,
+    cutover_decision_for,
     shadow_mode_enabled,
 )
 from services.relationship_router_v2 import resolve_relationship_context
@@ -34,8 +35,17 @@ log = logging.getLogger("mirror_chat_shadow")
 
 
 def _derive_frame(lens: Optional[str], life_domain: Optional[str],
-                  about_person_id: Optional[str]) -> str:
-    """Approximate the user's frame from request fields."""
+                  about_person_id: Optional[str],
+                  forum_topology: Optional[Dict[str, Any]] = None) -> str:
+    """Approximate the user's frame from request fields.
+
+    P4: when `forum_topology.active_member_id` is supplied we promote the
+    frame to `"forum"` so the resolver's forum-default path engages
+    (binds the active member as the relationship target).
+    """
+    if forum_topology and (forum_topology.get("active_member_id")
+                           or forum_topology.get("forum_id")):
+        return "forum"
     if about_person_id:
         return "member"  # talking about a saved person
     if (life_domain or "").lower() in ("relationships", "relationship"):
@@ -52,6 +62,7 @@ async def emit_shadow_receipt(
     about_person_id: Optional[str] = None,
     life_domain: Optional[str] = None,
     saved_people: Optional[List[Dict[str, Any]]] = None,
+    forum_topology: Optional[Dict[str, Any]] = None,
 ) -> None:
     """Run the V2 routers against this request and persist a receipt.
 
@@ -62,7 +73,7 @@ async def emit_shadow_receipt(
 
     t0 = time.perf_counter()
     try:
-        frame = _derive_frame(lens, life_domain, about_person_id)
+        frame = _derive_frame(lens, life_domain, about_person_id, forum_topology)
 
         # Resolve target FIRST so we can feed its role back into the
         # intent classifier (lets "What enneagram pattern does Mel
@@ -82,6 +93,7 @@ async def emit_shadow_receipt(
                 active_frame=frame,
                 target_id=about_person_id,
                 saved_people=saved_people or [],
+                forum_topology=forum_topology,
             )
             rel = rel_resolved.to_dict()
             resolved_target_id = rel_resolved.target or about_person_id
@@ -113,8 +125,44 @@ async def emit_shadow_receipt(
             "lens": lens,
             "life_domain": life_domain,
             "derived_frame": frame,
+            # P4 visibility — was forum_topology supplied at the call site?
+            "forum_topology_supplied": bool(forum_topology),
+            "forum_topology_active_member_id": (
+                (forum_topology or {}).get("active_member_id")
+            ),
         }
         receipt["user_id"] = user_id
+
+        # ──────────────────────────────────────────────────────────────
+        # Stage 1 rollout telemetry  (intent-router-v2-stage1-v1)
+        #
+        # Records the per-user cutover decision in EVERY receipt so the
+        # dashboard can verify:
+        #   * Bucket distribution is uniform across users
+        #   * `cutover_decision.enabled` == False for ALL users while
+        #     CUTOVER=false AND ROLLOUT_PERCENT=0  (current state)
+        #   * After flipping ROLLOUT_PERCENT=10, ~10% of unique users
+        #     get `enabled=True` and ~90% get `enabled=False` (only one
+        #     decision per user — sticky bucket).
+        #
+        # SHADOW MODE: this decision is recorded but NEVER acted on by
+        # the live request handler. The cutover flip happens later, in
+        # a separate (explicit) operation.
+        # ──────────────────────────────────────────────────────────────
+        try:
+            decision = cutover_decision_for(user_id)
+        except Exception as e:
+            log.warning(f"[Shadow] cutover_decision_for failed: {e!r}")
+            decision = {
+                "enabled":         False,
+                "reason":          "decision_error",
+                "stage1_bucket":   -1,
+                "rollout_percent": 0,
+                "cutover_flag":    False,
+                "salt":            None,
+            }
+        receipt["stage1_bucket"] = decision["stage1_bucket"]
+        receipt["cutover_decision"] = decision
 
         if db is not None:
             await persist_receipt(db, receipt)

@@ -66,6 +66,31 @@ def run_pass(cases: List[Dict[str, Any]], *, use_embeddings: bool) -> Dict[str, 
         frame = case.get("active_frame", "self")
         target = case.get("current_target_id")
         role = case.get("relationship_role")
+        forum_topology = case.get("forum_topology")
+
+        # When forum_topology is supplied we run it through the
+        # resolver first (mirrors live wiring after P4).  The resolver
+        # binds `active_member_id` and the classifier then sees a
+        # current_target_id for free.
+        if forum_topology:
+            try:
+                from services.relationship_router_v2 import (
+                    resolve_relationship_context,
+                )
+                rel = resolve_relationship_context(
+                    self_user_id="bench-pete",
+                    user_message=msg,
+                    active_frame=frame,
+                    target_id=target,
+                    saved_people=[],
+                    forum_topology=forum_topology,
+                )
+                if rel.target and not target:
+                    target = rel.target
+                if rel.role and not role:
+                    role = rel.role
+            except Exception:
+                pass
 
         t0 = time.perf_counter()
         env = classify_intent_v2(

@@ -1,0 +1,55 @@
+# Educational-astrology disambiguation regression suite (Slice B3.1).
+# These prompts contain lens terms WITHOUT contextual cues — the router
+# should keep them on the contextually neutral `identity` synthesis lane
+# rather than collapsing to the lens-term's natural domain.
+# Ids prefixed `EA`.
+
+- id: EA1
+  message: "What's my 7th house about?"
+  active_frame: self
+  expected_primary: identity
+
+- id: EA2
+  message: "What does my 10th house tell me?"
+  active_frame: self
+  expected_primary: identity
+
+- id: EA3
+  message: "Tell me about my 4th house"
+  active_frame: self
+  expected_primary: identity
+
+- id: EA4
+  message: "Explain my Midheaven"
+  active_frame: self
+  expected_primary: identity
+
+- id: EA5
+  message: "Tell me about my Pluto in the 8th"
+  active_frame: self
+  expected_primary: identity
+
+- id: EA6
+  message: "What is a manifestor anyway?"
+  active_frame: self
+  expected_primary: identity
+
+- id: EA7
+  message: "Explain Saturn in my chart"
+  active_frame: self
+  expected_primary: identity
+
+- id: EA8
+  message: "Tell me about a 5/1 profile"
+  active_frame: self
+  expected_primary: identity
+
+- id: EA9
+  message: "What does Mercury retrograde mean in general?"
+  active_frame: self
+  expected_primary: identity
+
+- id: EA10
+  message: "What's my life path number?"
+  active_frame: self
+  expected_primary: identity

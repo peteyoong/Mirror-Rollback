@@ -1,0 +1,1031 @@
+{
+  "generated_at": "2026-06-12T03:32:51.820841+00:00",
+  "current_wiring": {
+    "summary": {
+      "wire_active_member_id": false,
+      "founder": {
+        "n": 10,
+        "passes": 10,
+        "pass_rate": 1.0,
+        "predicted_domain_mix": {
+          "leadership": 7,
+          "identity": 1,
+          "career": 2
+        }
+      },
+      "spouse": {
+        "n": 10,
+        "passes": 10,
+        "pass_rate": 1.0,
+        "predicted_domain_mix": {
+          "relationship": 10
+        }
+      },
+      "forum": {
+        "n": 10,
+        "passes": 0,
+        "pass_rate": 0.0,
+        "predicted_domain_mix": {
+          "relationship": 10
+        }
+      },
+      "overall_pass_rate": 0.6667
+    },
+    "rows": [
+      {
+        "category": "founder",
+        "i": 1,
+        "msg": "Should I restructure my leadership team?",
+        "exp": "leadership",
+        "primary_domain": "leadership",
+        "confidence": 1.0,
+        "frame": "self",
+        "rel_target": null,
+        "rel_role": null,
+        "rel_context_mode": "SELF",
+        "rel_resolution_path": [
+          "none"
+        ],
+        "pass": true
+      },
+      {
+        "category": "founder",
+        "i": 2,
+        "msg": "My cofounder and I disagree about product direction.",
+        "exp": "leadership",
+        "primary_domain": "leadership",
+        "confidence": 0.7143,
+        "frame": "self",
+        "rel_target": null,
+        "rel_role": null,
+        "rel_context_mode": "SELF",
+        "rel_resolution_path": [
+          "none"
+        ],
+        "pass": true
+      },
+      {
+        "category": "founder",
+        "i": 3,
+        "msg": "Should I let this executive go?",
+        "exp": "leadership",
+        "primary_domain": "leadership",
+        "confidence": 1.0,
+        "frame": "self",
+        "rel_target": null,
+        "rel_role": null,
+        "rel_context_mode": "SELF",
+        "rel_resolution_path": [
+          "none"
+        ],
+        "pass": true
+      },
+      {
+        "category": "founder",
+        "i": 4,
+        "msg": "How do I think about downsizing?",
+        "exp": "leadership",
+        "primary_domain": "leadership",
+        "confidence": 1.0,
+        "frame": "self",
+        "rel_target": null,
+        "rel_role": null,
+        "rel_context_mode": "SELF",
+        "rel_resolution_path": [
+          "none"
+        ],
+        "pass": true
+      },
+      {
+        "category": "founder",
+        "i": 5,
+        "msg": "Which relationship is creating friction in the company?",
+        "exp": "leadership",
+        "primary_domain": "leadership",
+        "confidence": 1.0,
+        "frame": "self",
+        "rel_target": null,
+        "rel_role": null,
+        "rel_context_mode": "SELF",
+        "rel_resolution_path": [
+          "none"
+        ],
+        "pass": true
+      },
+      {
+        "category": "founder",
+        "i": 6,
+        "msg": "What is the blind spot in my leadership right now?",
+        "exp": "leadership",
+        "primary_domain": "leadership",
+        "confidence": 1.0,
+        "frame": "self",
+        "rel_target": null,
+        "rel_role": null,
+        "rel_context_mode": "SELF",
+        "rel_resolution_path": [
+          "none"
+        ],
+        "pass": true
+      },
+      {
+        "category": "founder",
+        "i": 7,
+        "msg": "Am I avoiding a decision?",
+        "exp": "identity",
+        "primary_domain": "identity",
+        "confidence": 1.0,
+        "frame": "self",
+        "rel_target": null,
+        "rel_role": null,
+        "rel_context_mode": "SELF",
+        "rel_resolution_path": [
+          "none"
+        ],
+        "pass": true
+      },
+      {
+        "category": "founder",
+        "i": 8,
+        "msg": "Should I prioritize fundraising or profitability?",
+        "exp": "career",
+        "primary_domain": "career",
+        "confidence": 0.8154,
+        "frame": "self",
+        "rel_target": null,
+        "rel_role": null,
+        "rel_context_mode": "SELF",
+        "rel_resolution_path": [
+          "none"
+        ],
+        "pass": true
+      },
+      {
+        "category": "founder",
+        "i": 9,
+        "msg": "What dynamic exists between me and my management team?",
+        "exp": "leadership",
+        "primary_domain": "leadership",
+        "confidence": 1.0,
+        "frame": "self",
+        "rel_target": null,
+        "rel_role": null,
+        "rel_context_mode": "SELF",
+        "rel_resolution_path": [
+          "none"
+        ],
+        "pass": true
+      },
+      {
+        "category": "founder",
+        "i": 10,
+        "msg": "What is the next growth constraint in the business?",
+        "exp": "career",
+        "primary_domain": "career",
+        "confidence": 0.7206,
+        "frame": "self",
+        "rel_target": null,
+        "rel_role": null,
+        "rel_context_mode": "SELF",
+        "rel_resolution_path": [
+          "none"
+        ],
+        "pass": true
+      },
+      {
+        "category": "spouse",
+        "i": 11,
+        "msg": "How does Mel map to me right now?",
+        "exp": "relationship",
+        "primary_domain": "relationship",
+        "confidence": 0.9565,
+        "frame": "self",
+        "rel_target": "mel-001",
+        "rel_role": "spouse",
+        "rel_context_mode": "RELATIONAL",
+        "rel_resolution_path": [
+          "explicit_target_id"
+        ],
+        "pass": true
+      },
+      {
+        "category": "spouse",
+        "i": 12,
+        "msg": "What is happening between me and my spouse?",
+        "exp": "relationship",
+        "primary_domain": "relationship",
+        "confidence": 0.9091,
+        "frame": "self",
+        "rel_target": "mel-001",
+        "rel_role": "spouse",
+        "rel_context_mode": "RELATIONAL",
+        "rel_resolution_path": [
+          "explicit_target_id"
+        ],
+        "pass": true
+      },
+      {
+        "category": "spouse",
+        "i": 13,
+        "msg": "What tension are we carrying?",
+        "exp": "relationship",
+        "primary_domain": "relationship",
+        "confidence": 0.92,
+        "frame": "self",
+        "rel_target": "mel-001",
+        "rel_role": "spouse",
+        "rel_context_mode": "RELATIONAL",
+        "rel_resolution_path": [
+          "explicit_target_id"
+        ],
+        "pass": true
+      },
+      {
+        "category": "spouse",
+        "i": 14,
+        "msg": "What does Mel most need from me?",
+        "exp": "relationship",
+        "primary_domain": "relationship",
+        "confidence": 0.9512,
+        "frame": "self",
+        "rel_target": "mel-001",
+        "rel_role": "spouse",
+        "rel_context_mode": "RELATIONAL",
+        "rel_resolution_path": [
+          "explicit_target_id"
+        ],
+        "pass": true
+      },
+      {
+        "category": "spouse",
+        "i": 15,
+        "msg": "How do I show up in this relationship?",
+        "exp": "relationship",
+        "primary_domain": "relationship",
+        "confidence": 0.6618,
+        "frame": "self",
+        "rel_target": "mel-001",
+        "rel_role": "spouse",
+        "rel_context_mode": "RELATIONAL",
+        "rel_resolution_path": [
+          "explicit_target_id"
+        ],
+        "pass": true
+      },
+      {
+        "category": "spouse",
+        "i": 16,
+        "msg": "What relationship pattern keeps repeating?",
+        "exp": "relationship",
+        "primary_domain": "relationship",
+        "confidence": 0.6618,
+        "frame": "self",
+        "rel_target": "mel-001",
+        "rel_role": "spouse",
+        "rel_context_mode": "RELATIONAL",
+        "rel_resolution_path": [
+          "explicit_target_id"
+        ],
+        "pass": true
+      },
+      {
+        "category": "spouse",
+        "i": 17,
+        "msg": "What should I understand about my partner?",
+        "exp": "relationship",
+        "primary_domain": "relationship",
+        "confidence": 0.9444,
+        "frame": "self",
+        "rel_target": "mel-001",
+        "rel_role": "spouse",
+        "rel_context_mode": "RELATIONAL",
+        "rel_resolution_path": [
+          "explicit_target_id"
+        ],
+        "pass": true
+      },
+      {
+        "category": "spouse",
+        "i": 18,
+        "msg": "Where are we aligned?",
+        "exp": "relationship",
+        "primary_domain": "relationship",
+        "confidence": 0.92,
+        "frame": "self",
+        "rel_target": "mel-001",
+        "rel_role": "spouse",
+        "rel_context_mode": "RELATIONAL",
+        "rel_resolution_path": [
+          "explicit_target_id"
+        ],
+        "pass": true
+      },
+      {
+        "category": "spouse",
+        "i": 19,
+        "msg": "What dynamic is asking for attention?",
+        "exp": "relationship",
+        "primary_domain": "relationship",
+        "confidence": 0.6618,
+        "frame": "self",
+        "rel_target": "mel-001",
+        "rel_role": "spouse",
+        "rel_context_mode": "RELATIONAL",
+        "rel_resolution_path": [
+          "explicit_target_id"
+        ],
+        "pass": true
+      },
+      {
+        "category": "spouse",
+        "i": 20,
+        "msg": "What is the growth edge in this relationship?",
+        "exp": "relationship",
+        "primary_domain": "relationship",
+        "confidence": 0.6618,
+        "frame": "self",
+        "rel_target": "mel-001",
+        "rel_role": "spouse",
+        "rel_context_mode": "RELATIONAL",
+        "rel_resolution_path": [
+          "explicit_target_id"
+        ],
+        "pass": true
+      },
+      {
+        "category": "forum",
+        "i": 21,
+        "msg": "Tell me about this forum member.",
+        "exp": "relationship",
+        "primary_domain": "relationship",
+        "confidence": 0.3682,
+        "frame": "forum",
+        "rel_target": null,
+        "rel_role": null,
+        "rel_context_mode": "SELF",
+        "rel_resolution_path": [
+          "none"
+        ],
+        "pass": false
+      },
+      {
+        "category": "forum",
+        "i": 22,
+        "msg": "How does this person map to me?",
+        "exp": "relationship",
+        "primary_domain": "relationship",
+        "confidence": 0.3682,
+        "frame": "forum",
+        "rel_target": null,
+        "rel_role": null,
+        "rel_context_mode": "SELF",
+        "rel_resolution_path": [
+          "none"
+        ],
+        "pass": false
+      },
+      {
+        "category": "forum",
+        "i": 23,
+        "msg": "What role do they play in the group?",
+        "exp": "relationship",
+        "primary_domain": "relationship",
+        "confidence": 0.913,
+        "frame": "forum",
+        "rel_target": null,
+        "rel_role": null,
+        "rel_context_mode": "SELF",
+        "rel_resolution_path": [
+          "none"
+        ],
+        "pass": false
+      },
+      {
+        "category": "forum",
+        "i": 24,
+        "msg": "What tension exists between us?",
+        "exp": "relationship",
+        "primary_domain": "relationship",
+        "confidence": 0.9429,
+        "frame": "forum",
+        "rel_target": null,
+        "rel_role": null,
+        "rel_context_mode": "SELF",
+        "rel_resolution_path": [
+          "none"
+        ],
+        "pass": false
+      },
+      {
+        "category": "forum",
+        "i": 25,
+        "msg": "What should I understand about this member?",
+        "exp": "relationship",
+        "primary_domain": "relationship",
+        "confidence": 0.913,
+        "frame": "forum",
+        "rel_target": null,
+        "rel_role": null,
+        "rel_context_mode": "SELF",
+        "rel_resolution_path": [
+          "none"
+        ],
+        "pass": false
+      },
+      {
+        "category": "forum",
+        "i": 26,
+        "msg": "How do I work with them effectively?",
+        "exp": "relationship",
+        "primary_domain": "relationship",
+        "confidence": 0.3682,
+        "frame": "forum",
+        "rel_target": null,
+        "rel_role": null,
+        "rel_context_mode": "SELF",
+        "rel_resolution_path": [
+          "none"
+        ],
+        "pass": false
+      },
+      {
+        "category": "forum",
+        "i": 27,
+        "msg": "What contribution do they bring?",
+        "exp": "relationship",
+        "primary_domain": "relationship",
+        "confidence": 0.3682,
+        "frame": "forum",
+        "rel_target": null,
+        "rel_role": null,
+        "rel_context_mode": "SELF",
+        "rel_resolution_path": [
+          "none"
+        ],
+        "pass": false
+      },
+      {
+        "category": "forum",
+        "i": 28,
+        "msg": "How are they experienced by the forum?",
+        "exp": "relationship",
+        "primary_domain": "relationship",
+        "confidence": 0.3682,
+        "frame": "forum",
+        "rel_target": null,
+        "rel_role": null,
+        "rel_context_mode": "SELF",
+        "rel_resolution_path": [
+          "none"
+        ],
+        "pass": false
+      },
+      {
+        "category": "forum",
+        "i": 29,
+        "msg": "What relationship pattern exists here?",
+        "exp": "relationship",
+        "primary_domain": "relationship",
+        "confidence": 0.3682,
+        "frame": "forum",
+        "rel_target": null,
+        "rel_role": null,
+        "rel_context_mode": "SELF",
+        "rel_resolution_path": [
+          "none"
+        ],
+        "pass": false
+      },
+      {
+        "category": "forum",
+        "i": 30,
+        "msg": "What dynamic is emerging in the forum?",
+        "exp": "relationship",
+        "primary_domain": "relationship",
+        "confidence": 0.3682,
+        "frame": "forum",
+        "rel_target": null,
+        "rel_role": null,
+        "rel_context_mode": "SELF",
+        "rel_resolution_path": [
+          "none"
+        ],
+        "pass": false
+      }
+    ]
+  },
+  "p4_wired": {
+    "summary": {
+      "wire_active_member_id": true,
+      "founder": {
+        "n": 10,
+        "passes": 10,
+        "pass_rate": 1.0,
+        "predicted_domain_mix": {
+          "leadership": 7,
+          "identity": 1,
+          "career": 2
+        }
+      },
+      "spouse": {
+        "n": 10,
+        "passes": 10,
+        "pass_rate": 1.0,
+        "predicted_domain_mix": {
+          "relationship": 10
+        }
+      },
+      "forum": {
+        "n": 10,
+        "passes": 10,
+        "pass_rate": 1.0,
+        "predicted_domain_mix": {
+          "relationship": 10
+        }
+      },
+      "overall_pass_rate": 1.0
+    },
+    "rows": [
+      {
+        "category": "founder",
+        "i": 1,
+        "msg": "Should I restructure my leadership team?",
+        "exp": "leadership",
+        "primary_domain": "leadership",
+        "confidence": 1.0,
+        "frame": "self",
+        "rel_target": null,
+        "rel_role": null,
+        "rel_context_mode": "SELF",
+        "rel_resolution_path": [
+          "none"
+        ],
+        "pass": true
+      },
+      {
+        "category": "founder",
+        "i": 2,
+        "msg": "My cofounder and I disagree about product direction.",
+        "exp": "leadership",
+        "primary_domain": "leadership",
+        "confidence": 0.7143,
+        "frame": "self",
+        "rel_target": null,
+        "rel_role": null,
+        "rel_context_mode": "SELF",
+        "rel_resolution_path": [
+          "none"
+        ],
+        "pass": true
+      },
+      {
+        "category": "founder",
+        "i": 3,
+        "msg": "Should I let this executive go?",
+        "exp": "leadership",
+        "primary_domain": "leadership",
+        "confidence": 1.0,
+        "frame": "self",
+        "rel_target": null,
+        "rel_role": null,
+        "rel_context_mode": "SELF",
+        "rel_resolution_path": [
+          "none"
+        ],
+        "pass": true
+      },
+      {
+        "category": "founder",
+        "i": 4,
+        "msg": "How do I think about downsizing?",
+        "exp": "leadership",
+        "primary_domain": "leadership",
+        "confidence": 1.0,
+        "frame": "self",
+        "rel_target": null,
+        "rel_role": null,
+        "rel_context_mode": "SELF",
+        "rel_resolution_path": [
+          "none"
+        ],
+        "pass": true
+      },
+      {
+        "category": "founder",
+        "i": 5,
+        "msg": "Which relationship is creating friction in the company?",
+        "exp": "leadership",
+        "primary_domain": "leadership",
+        "confidence": 1.0,
+        "frame": "self",
+        "rel_target": null,
+        "rel_role": null,
+        "rel_context_mode": "SELF",
+        "rel_resolution_path": [
+          "none"
+        ],
+        "pass": true
+      },
+      {
+        "category": "founder",
+        "i": 6,
+        "msg": "What is the blind spot in my leadership right now?",
+        "exp": "leadership",
+        "primary_domain": "leadership",
+        "confidence": 1.0,
+        "frame": "self",
+        "rel_target": null,
+        "rel_role": null,
+        "rel_context_mode": "SELF",
+        "rel_resolution_path": [
+          "none"
+        ],
+        "pass": true
+      },
+      {
+        "category": "founder",
+        "i": 7,
+        "msg": "Am I avoiding a decision?",
+        "exp": "identity",
+        "primary_domain": "identity",
+        "confidence": 1.0,
+        "frame": "self",
+        "rel_target": null,
+        "rel_role": null,
+        "rel_context_mode": "SELF",
+        "rel_resolution_path": [
+          "none"
+        ],
+        "pass": true
+      },
+      {
+        "category": "founder",
+        "i": 8,
+        "msg": "Should I prioritize fundraising or profitability?",
+        "exp": "career",
+        "primary_domain": "career",
+        "confidence": 0.8154,
+        "frame": "self",
+        "rel_target": null,
+        "rel_role": null,
+        "rel_context_mode": "SELF",
+        "rel_resolution_path": [
+          "none"
+        ],
+        "pass": true
+      },
+      {
+        "category": "founder",
+        "i": 9,
+        "msg": "What dynamic exists between me and my management team?",
+        "exp": "leadership",
+        "primary_domain": "leadership",
+        "confidence": 1.0,
+        "frame": "self",
+        "rel_target": null,
+        "rel_role": null,
+        "rel_context_mode": "SELF",
+        "rel_resolution_path": [
+          "none"
+        ],
+        "pass": true
+      },
+      {
+        "category": "founder",
+        "i": 10,
+        "msg": "What is the next growth constraint in the business?",
+        "exp": "career",
+        "primary_domain": "career",
+        "confidence": 0.7206,
+        "frame": "self",
+        "rel_target": null,
+        "rel_role": null,
+        "rel_context_mode": "SELF",
+        "rel_resolution_path": [
+          "none"
+        ],
+        "pass": true
+      },
+      {
+        "category": "spouse",
+        "i": 11,
+        "msg": "How does Mel map to me right now?",
+        "exp": "relationship",
+        "primary_domain": "relationship",
+        "confidence": 0.9565,
+        "frame": "self",
+        "rel_target": "mel-001",
+        "rel_role": "spouse",
+        "rel_context_mode": "RELATIONAL",
+        "rel_resolution_path": [
+          "explicit_target_id"
+        ],
+        "pass": true
+      },
+      {
+        "category": "spouse",
+        "i": 12,
+        "msg": "What is happening between me and my spouse?",
+        "exp": "relationship",
+        "primary_domain": "relationship",
+        "confidence": 0.9091,
+        "frame": "self",
+        "rel_target": "mel-001",
+        "rel_role": "spouse",
+        "rel_context_mode": "RELATIONAL",
+        "rel_resolution_path": [
+          "explicit_target_id"
+        ],
+        "pass": true
+      },
+      {
+        "category": "spouse",
+        "i": 13,
+        "msg": "What tension are we carrying?",
+        "exp": "relationship",
+        "primary_domain": "relationship",
+        "confidence": 0.92,
+        "frame": "self",
+        "rel_target": "mel-001",
+        "rel_role": "spouse",
+        "rel_context_mode": "RELATIONAL",
+        "rel_resolution_path": [
+          "explicit_target_id"
+        ],
+        "pass": true
+      },
+      {
+        "category": "spouse",
+        "i": 14,
+        "msg": "What does Mel most need from me?",
+        "exp": "relationship",
+        "primary_domain": "relationship",
+        "confidence": 0.9512,
+        "frame": "self",
+        "rel_target": "mel-001",
+        "rel_role": "spouse",
+        "rel_context_mode": "RELATIONAL",
+        "rel_resolution_path": [
+          "explicit_target_id"
+        ],
+        "pass": true
+      },
+      {
+        "category": "spouse",
+        "i": 15,
+        "msg": "How do I show up in this relationship?",
+        "exp": "relationship",
+        "primary_domain": "relationship",
+        "confidence": 0.6618,
+        "frame": "self",
+        "rel_target": "mel-001",
+        "rel_role": "spouse",
+        "rel_context_mode": "RELATIONAL",
+        "rel_resolution_path": [
+          "explicit_target_id"
+        ],
+        "pass": true
+      },
+      {
+        "category": "spouse",
+        "i": 16,
+        "msg": "What relationship pattern keeps repeating?",
+        "exp": "relationship",
+        "primary_domain": "relationship",
+        "confidence": 0.6618,
+        "frame": "self",
+        "rel_target": "mel-001",
+        "rel_role": "spouse",
+        "rel_context_mode": "RELATIONAL",
+        "rel_resolution_path": [
+          "explicit_target_id"
+        ],
+        "pass": true
+      },
+      {
+        "category": "spouse",
+        "i": 17,
+        "msg": "What should I understand about my partner?",
+        "exp": "relationship",
+        "primary_domain": "relationship",
+        "confidence": 0.9444,
+        "frame": "self",
+        "rel_target": "mel-001",
+        "rel_role": "spouse",
+        "rel_context_mode": "RELATIONAL",
+        "rel_resolution_path": [
+          "explicit_target_id"
+        ],
+        "pass": true
+      },
+      {
+        "category": "spouse",
+        "i": 18,
+        "msg": "Where are we aligned?",
+        "exp": "relationship",
+        "primary_domain": "relationship",
+        "confidence": 0.92,
+        "frame": "self",
+        "rel_target": "mel-001",
+        "rel_role": "spouse",
+        "rel_context_mode": "RELATIONAL",
+        "rel_resolution_path": [
+          "explicit_target_id"
+        ],
+        "pass": true
+      },
+      {
+        "category": "spouse",
+        "i": 19,
+        "msg": "What dynamic is asking for attention?",
+        "exp": "relationship",
+        "primary_domain": "relationship",
+        "confidence": 0.6618,
+        "frame": "self",
+        "rel_target": "mel-001",
+        "rel_role": "spouse",
+        "rel_context_mode": "RELATIONAL",
+        "rel_resolution_path": [
+          "explicit_target_id"
+        ],
+        "pass": true
+      },
+      {
+        "category": "spouse",
+        "i": 20,
+        "msg": "What is the growth edge in this relationship?",
+        "exp": "relationship",
+        "primary_domain": "relationship",
+        "confidence": 0.6618,
+        "frame": "self",
+        "rel_target": "mel-001",
+        "rel_role": "spouse",
+        "rel_context_mode": "RELATIONAL",
+        "rel_resolution_path": [
+          "explicit_target_id"
+        ],
+        "pass": true
+      },
+      {
+        "category": "forum",
+        "i": 21,
+        "msg": "Tell me about this forum member.",
+        "exp": "relationship",
+        "primary_domain": "relationship",
+        "confidence": 0.5633,
+        "frame": "forum",
+        "rel_target": "kara-001",
+        "rel_role": null,
+        "rel_context_mode": "RELATIONAL",
+        "rel_resolution_path": [
+          "forum_active_member"
+        ],
+        "pass": true
+      },
+      {
+        "category": "forum",
+        "i": 22,
+        "msg": "How does this person map to me?",
+        "exp": "relationship",
+        "primary_domain": "relationship",
+        "confidence": 0.5633,
+        "frame": "forum",
+        "rel_target": "kara-001",
+        "rel_role": null,
+        "rel_context_mode": "RELATIONAL",
+        "rel_resolution_path": [
+          "forum_active_member"
+        ],
+        "pass": true
+      },
+      {
+        "category": "forum",
+        "i": 23,
+        "msg": "What role do they play in the group?",
+        "exp": "relationship",
+        "primary_domain": "relationship",
+        "confidence": 0.9259,
+        "frame": "forum",
+        "rel_target": "kara-001",
+        "rel_role": null,
+        "rel_context_mode": "RELATIONAL",
+        "rel_resolution_path": [
+          "forum_active_member"
+        ],
+        "pass": true
+      },
+      {
+        "category": "forum",
+        "i": 24,
+        "msg": "What tension exists between us?",
+        "exp": "relationship",
+        "primary_domain": "relationship",
+        "confidence": 0.9487,
+        "frame": "forum",
+        "rel_target": "kara-001",
+        "rel_role": null,
+        "rel_context_mode": "RELATIONAL",
+        "rel_resolution_path": [
+          "forum_active_member"
+        ],
+        "pass": true
+      },
+      {
+        "category": "forum",
+        "i": 25,
+        "msg": "What should I understand about this member?",
+        "exp": "relationship",
+        "primary_domain": "relationship",
+        "confidence": 0.9259,
+        "frame": "forum",
+        "rel_target": "kara-001",
+        "rel_role": null,
+        "rel_context_mode": "RELATIONAL",
+        "rel_resolution_path": [
+          "forum_active_member"
+        ],
+        "pass": true
+      },
+      {
+        "category": "forum",
+        "i": 26,
+        "msg": "How do I work with them effectively?",
+        "exp": "relationship",
+        "primary_domain": "relationship",
+        "confidence": 0.5633,
+        "frame": "forum",
+        "rel_target": "kara-001",
+        "rel_role": null,
+        "rel_context_mode": "RELATIONAL",
+        "rel_resolution_path": [
+          "forum_active_member"
+        ],
+        "pass": true
+      },
+      {
+        "category": "forum",
+        "i": 27,
+        "msg": "What contribution do they bring?",
+        "exp": "relationship",
+        "primary_domain": "relationship",
+        "confidence": 0.5633,
+        "frame": "forum",
+        "rel_target": "kara-001",
+        "rel_role": null,
+        "rel_context_mode": "RELATIONAL",
+        "rel_resolution_path": [
+          "forum_active_member"
+        ],
+        "pass": true
+      },
+      {
+        "category": "forum",
+        "i": 28,
+        "msg": "How are they experienced by the forum?",
+        "exp": "relationship",
+        "primary_domain": "relationship",
+        "confidence": 0.5633,
+        "frame": "forum",
+        "rel_target": "kara-001",
+        "rel_role": null,
+        "rel_context_mode": "RELATIONAL",
+        "rel_resolution_path": [
+          "forum_active_member"
+        ],
+        "pass": true
+      },
+      {
+        "category": "forum",
+        "i": 29,
+        "msg": "What relationship pattern exists here?",
+        "exp": "relationship",
+        "primary_domain": "relationship",
+        "confidence": 0.5633,
+        "frame": "forum",
+        "rel_target": "kara-001",
+        "rel_role": null,
+        "rel_context_mode": "RELATIONAL",
+        "rel_resolution_path": [
+          "forum_active_member"
+        ],
+        "pass": true
+      },
+      {
+        "category": "forum",
+        "i": 30,
+        "msg": "What dynamic is emerging in the forum?",
+        "exp": "relationship",
+        "primary_domain": "relationship",
+        "confidence": 0.5633,
+        "frame": "forum",
+        "rel_target": "kara-001",
+        "rel_role": null,
+        "rel_context_mode": "RELATIONAL",
+        "rel_resolution_path": [
+          "forum_active_member"
+        ],
+        "pass": true
+      }
+    ]
+  }
+}

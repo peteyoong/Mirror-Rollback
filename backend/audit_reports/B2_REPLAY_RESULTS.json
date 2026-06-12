@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-12T02:42:42.392232+00:00",
+  "generated_at": "2026-06-12T03:32:52.261396+00:00",
   "window_days": 90,
   "target_total": 120,
   "aggregate": {
@@ -27,8 +27,9 @@
       },
       "by_source": {
         "real": {
+          "life_direction": 1,
+          "relationship": 34,
           "identity": 4,
-          "relationship": 35,
           "general": 4,
           "career": 2,
           "family": 1
@@ -39,23 +40,23 @@
           "general": 7,
           "work": 2,
           "career": 8,
-          "life_direction": 2,
+          "life_direction": 3,
           "money": 4,
           "purpose": 2,
           "relationship": 7,
-          "identity": 4
+          "identity": 3
         }
       },
       "domain_counts": {
-        "identity": 8,
-        "relationship": 42,
+        "life_direction": 4,
+        "relationship": 41,
+        "identity": 7,
         "general": 11,
         "career": 10,
         "family": 1,
         "leadership": 3,
         "growth": 1,
         "work": 2,
-        "life_direction": 2,
         "money": 4,
         "purpose": 2
       }
@@ -114,17 +115,11 @@
       }
     },
     "false_positive_relationship": {
-      "count": 1,
-      "rate": 0.0116,
-      "broad_count": 25,
-      "broad_rate": 0.2907,
-      "examples": [
-        {
-          "message": "What's my 7th house about?",
-          "frame": "self",
-          "category": "lens_jargon"
-        }
-      ]
+      "count": 0,
+      "rate": 0.0,
+      "broad_count": 24,
+      "broad_rate": 0.2791,
+      "examples": []
     },
     "false_negative_relationship": {
       "count": 6,
@@ -226,14 +221,14 @@
     },
     "expected_top1_synth_only": {
       "n_with_expected": 40,
-      "n_top1": 26,
-      "accuracy": 0.65
+      "n_top1": 25,
+      "accuracy": 0.625
     },
     "latency_ms": {
-      "mean": 0.574,
-      "p50": 0.118,
-      "p95": 0.145,
-      "max": 38.9
+      "mean": 0.673,
+      "p50": 0.134,
+      "p95": 0.16,
+      "max": 46.615
     },
     "versions": {
       "intent_router": "intent_router_v2.1.0",
@@ -242,12 +237,11 @@
     },
     "regression_buckets": {
       "domain_drift": {
-        "count": 17,
+        "count": 16,
         "denominator": 41,
         "ground_truth_rows": 41,
-        "rate": 0.4146,
+        "rate": 0.3902,
         "kinds": {
-          "life_direction->identity": 2,
           "leadership->growth": 1,
           "leadership->general": 3,
           "leadership->work": 1,
@@ -258,25 +252,26 @@
           "money->career": 1,
           "growth->general": 2,
           "identity->work": 1,
+          "identity->life_direction": 1,
           "money->identity": 1
         },
         "per_expected_domain": {
-          "life_direction": 3,
           "leadership": 6,
           "career": 1,
+          "life_direction": 1,
           "purpose": 2,
           "money": 2,
           "growth": 2,
-          "identity": 1
+          "identity": 2
         },
         "per_expected_domain_rate": {
-          "life_direction": 0.0732,
           "leadership": 0.1463,
           "career": 0.0244,
+          "life_direction": 0.0244,
           "purpose": 0.0488,
           "money": 0.0488,
           "growth": 0.0488,
-          "identity": 0.0244
+          "identity": 0.0488
         },
         "domains_above_10pct": [
           "leadership"
@@ -284,12 +279,6 @@
         "gate": "< 5% overall AND no expected_domain > 10%",
         "status": "FAIL",
         "examples": [
-          {
-            "message": "Tell me about my Saturn return",
-            "active_frame": "self",
-            "predicted_domain": "identity",
-            "domain_drift_kind": "life_direction->identity"
-          },
           {
             "message": "My team is stuck in execution mode \u2014 how do I lift them out?",
             "active_frame": "self",
@@ -313,35 +302,22 @@
             "active_frame": "self",
             "predicted_domain": "general",
             "domain_drift_kind": "leadership->general"
+          },
+          {
+            "message": "Am I micromanaging my head of product?",
+            "active_frame": "self",
+            "predicted_domain": "career",
+            "domain_drift_kind": "leadership->career"
           }
         ]
       },
       "lens_jargon_override": {
-        "count": 3,
-        "rate": 0.0349,
-        "kinds": {
-          "saturn return collapsed to identity (should weight life_direction)": 2,
-          "7th house auto-routed to relationship without relational kw": 1
-        },
+        "count": 0,
+        "rate": 0.0,
+        "kinds": {},
         "gate": "< 3%",
-        "status": "FAIL",
-        "examples": [
-          {
-            "message": "Tell me about my Saturn return",
-            "predicted_domain": "identity",
-            "lens_jargon_override": "saturn return collapsed to identity (should weight life_direction)"
-          },
-          {
-            "message": "What's my 7th house about?",
-            "predicted_domain": "relationship",
-            "lens_jargon_override": "7th house auto-routed to relationship without relational kw"
-          },
-          {
-            "message": "How do my Saturn return and Enneagram 8 intersect?",
-            "predicted_domain": "identity",
-            "lens_jargon_override": "saturn return collapsed to identity (should weight life_direction)"
-          }
-        ]
+        "status": "PASS",
+        "examples": []
       },
       "relationship_context_loss": {
         "count": 2,
@@ -369,7 +345,7 @@
         "examples": []
       },
       "payload_completeness": {
-        "mandatory_modules_mean": 3.186,
+        "mandatory_modules_mean": 3.174,
         "mandatory_modules_min": 1,
         "mandatory_modules_max": 4,
         "gate": "no mandatory payload shrinks >25% vs baseline",
@@ -385,18 +361,12 @@
         "examples": []
       },
       "high_confidence_wrong_route": {
-        "count": 4,
-        "rate": 0.0465,
+        "count": 3,
+        "rate": 0.0349,
         "ground_truth_rows": 41,
         "gate": "< 1%",
         "status": "FAIL",
         "examples": [
-          {
-            "message": "Tell me about my Saturn return",
-            "predicted_domain": "identity",
-            "domain_drift_kind": "life_direction->identity",
-            "confidence": 1.0
-          },
           {
             "message": "What does my chart say about my career direction?",
             "predicted_domain": "career",
@@ -411,9 +381,9 @@
           },
           {
             "message": "How do my Saturn return and Enneagram 8 intersect?",
-            "predicted_domain": "identity",
-            "domain_drift_kind": "life_direction->identity",
-            "confidence": 1.0
+            "predicted_domain": "life_direction",
+            "domain_drift_kind": "identity->life_direction",
+            "confidence": 0.6552
           }
         ]
       },
@@ -543,9 +513,9 @@
           "share_of_corpus": 0.0581,
           "routing_pass_rate": 1.0,
           "predicted_domain_mix": {
-            "identity": 2,
+            "life_direction": 2,
             "family": 1,
-            "relationship": 1,
+            "identity": 1,
             "money": 1
           },
           "frame_mix": {
@@ -556,9 +526,9 @@
             {
               "message": "Tell me about my Saturn return",
               "frame": "self",
-              "predicted_domain": "identity",
+              "predicted_domain": "life_direction",
               "routing_status": "PASS",
-              "confidence": 1.0
+              "confidence": 0.5672
             },
             {
               "message": "Tell me about her 4th house",
@@ -570,9 +540,9 @@
             {
               "message": "What's my 7th house about?",
               "frame": "self",
-              "predicted_domain": "relationship",
+              "predicted_domain": "identity",
               "routing_status": "PASS",
-              "confidence": 0.8205
+              "confidence": 0.578
             },
             {
               "message": "What does my 2nd house say about wealth?",
@@ -584,9 +554,9 @@
             {
               "message": "How do my Saturn return and Enneagram 8 intersect?",
               "frame": "self",
-              "predicted_domain": "identity",
+              "predicted_domain": "life_direction",
               "routing_status": "PASS",
-              "confidence": 1.0
+              "confidence": 0.6552
             }
           ]
         },
@@ -659,8 +629,9 @@
           },
           "by_source": {
             "real": {
+              "life_direction": 1,
+              "relationship": 34,
               "identity": 4,
-              "relationship": 35,
               "general": 4,
               "career": 2,
               "family": 1
@@ -668,8 +639,9 @@
             "synth": {}
           },
           "domain_counts": {
+            "life_direction": 1,
+            "relationship": 34,
             "identity": 4,
-            "relationship": 35,
             "general": 4,
             "career": 2,
             "family": 1
@@ -729,17 +701,11 @@
           }
         },
         "false_positive_relationship": {
-          "count": 1,
-          "rate": 0.0217,
-          "broad_count": 23,
-          "broad_rate": 0.5,
-          "examples": [
-            {
-              "message": "What's my 7th house about?",
-              "frame": "self",
-              "category": "lens_jargon"
-            }
-          ]
+          "count": 0,
+          "rate": 0.0,
+          "broad_count": 22,
+          "broad_rate": 0.4783,
+          "examples": []
         },
         "false_negative_relationship": {
           "count": 4,
@@ -835,10 +801,10 @@
           "accuracy": 0.0
         },
         "latency_ms": {
-          "mean": 0.971,
-          "p50": 0.116,
-          "p95": 0.158,
-          "max": 38.9
+          "mean": 1.141,
+          "p50": 0.128,
+          "p95": 0.167,
+          "max": 46.615
         },
         "versions": {
           "intent_router": "intent_router_v2.1.0",
@@ -847,54 +813,25 @@
         },
         "regression_buckets": {
           "domain_drift": {
-            "count": 1,
+            "count": 0,
             "denominator": 1,
             "ground_truth_rows": 1,
-            "rate": 1.0,
-            "kinds": {
-              "life_direction->identity": 1
-            },
-            "per_expected_domain": {
-              "life_direction": 1
-            },
-            "per_expected_domain_rate": {
-              "life_direction": 1.0
-            },
-            "domains_above_10pct": [
-              "life_direction"
-            ],
+            "rate": 0.0,
+            "kinds": {},
+            "per_expected_domain": {},
+            "per_expected_domain_rate": {},
+            "domains_above_10pct": [],
             "gate": "< 5% overall AND no expected_domain > 10%",
             "status": "INSUFFICIENT_SAMPLE",
-            "examples": [
-              {
-                "message": "Tell me about my Saturn return",
-                "active_frame": "self",
-                "predicted_domain": "identity",
-                "domain_drift_kind": "life_direction->identity"
-              }
-            ]
+            "examples": []
           },
           "lens_jargon_override": {
-            "count": 2,
-            "rate": 0.0435,
-            "kinds": {
-              "saturn return collapsed to identity (should weight life_direction)": 1,
-              "7th house auto-routed to relationship without relational kw": 1
-            },
+            "count": 0,
+            "rate": 0.0,
+            "kinds": {},
             "gate": "< 3%",
-            "status": "FAIL",
-            "examples": [
-              {
-                "message": "Tell me about my Saturn return",
-                "predicted_domain": "identity",
-                "lens_jargon_override": "saturn return collapsed to identity (should weight life_direction)"
-              },
-              {
-                "message": "What's my 7th house about?",
-                "predicted_domain": "relationship",
-                "lens_jargon_override": "7th house auto-routed to relationship without relational kw"
-              }
-            ]
+            "status": "PASS",
+            "examples": []
           },
           "relationship_context_loss": {
             "count": 0,
@@ -911,7 +848,7 @@
             "examples": []
           },
           "payload_completeness": {
-            "mandatory_modules_mean": 3.565,
+            "mandatory_modules_mean": 3.543,
             "mandatory_modules_min": 1,
             "mandatory_modules_max": 4,
             "gate": "no mandatory payload shrinks >25% vs baseline",
@@ -927,19 +864,12 @@
             "examples": []
           },
           "high_confidence_wrong_route": {
-            "count": 1,
-            "rate": 0.0217,
+            "count": 0,
+            "rate": 0.0,
             "ground_truth_rows": 1,
             "gate": "< 1%",
-            "status": "WATCH",
-            "examples": [
-              {
-                "message": "Tell me about my Saturn return",
-                "predicted_domain": "identity",
-                "domain_drift_kind": "life_direction->identity",
-                "confidence": 1.0
-              }
-            ]
+            "status": "INSUFFICIENT_SAMPLE",
+            "examples": []
           },
           "founder_operator_suite": {
             "count": 0,
@@ -979,9 +909,9 @@
               "share_of_corpus": 0.0652,
               "routing_pass_rate": 1.0,
               "predicted_domain_mix": {
-                "identity": 1,
+                "life_direction": 1,
                 "family": 1,
-                "relationship": 1
+                "identity": 1
               },
               "frame_mix": {
                 "self": 2,
@@ -991,9 +921,9 @@
                 {
                   "message": "Tell me about my Saturn return",
                   "frame": "self",
-                  "predicted_domain": "identity",
+                  "predicted_domain": "life_direction",
                   "routing_status": "PASS",
-                  "confidence": 1.0
+                  "confidence": 0.5672
                 },
                 {
                   "message": "Tell me about her 4th house",
@@ -1005,9 +935,9 @@
                 {
                   "message": "What's my 7th house about?",
                   "frame": "self",
-                  "predicted_domain": "relationship",
+                  "predicted_domain": "identity",
                   "routing_status": "PASS",
-                  "confidence": 0.8205
+                  "confidence": 0.578
                 }
               ]
             },
@@ -1090,11 +1020,11 @@
               "general": 7,
               "work": 2,
               "career": 8,
-              "life_direction": 2,
+              "life_direction": 3,
               "money": 4,
               "purpose": 2,
               "relationship": 7,
-              "identity": 4
+              "identity": 3
             }
           },
           "domain_counts": {
@@ -1103,11 +1033,11 @@
             "general": 7,
             "work": 2,
             "career": 8,
-            "life_direction": 2,
+            "life_direction": 3,
             "money": 4,
             "purpose": 2,
             "relationship": 7,
-            "identity": 4
+            "identity": 3
           }
         },
         "routing": {
@@ -1225,14 +1155,14 @@
         },
         "expected_top1_synth_only": {
           "n_with_expected": 40,
-          "n_top1": 26,
-          "accuracy": 0.65
+          "n_top1": 25,
+          "accuracy": 0.625
         },
         "latency_ms": {
-          "mean": 0.118,
-          "p50": 0.119,
-          "p95": 0.135,
-          "max": 0.145
+          "mean": 0.135,
+          "p50": 0.134,
+          "p95": 0.16,
+          "max": 0.175
         },
         "versions": {
           "intent_router": "intent_router_v2.1.0",
@@ -1256,26 +1186,26 @@
               "money->career": 1,
               "growth->general": 2,
               "identity->work": 1,
-              "life_direction->identity": 1,
+              "identity->life_direction": 1,
               "money->identity": 1
             },
             "per_expected_domain": {
               "leadership": 6,
               "career": 1,
-              "life_direction": 2,
+              "life_direction": 1,
               "purpose": 2,
               "money": 2,
               "growth": 2,
-              "identity": 1
+              "identity": 2
             },
             "per_expected_domain_rate": {
               "leadership": 0.15,
               "career": 0.025,
-              "life_direction": 0.05,
+              "life_direction": 0.025,
               "purpose": 0.05,
               "money": 0.05,
               "growth": 0.05,
-              "identity": 0.025
+              "identity": 0.05
             },
             "domains_above_10pct": [
               "leadership"
@@ -1316,20 +1246,12 @@
             ]
           },
           "lens_jargon_override": {
-            "count": 1,
-            "rate": 0.025,
-            "kinds": {
-              "saturn return collapsed to identity (should weight life_direction)": 1
-            },
+            "count": 0,
+            "rate": 0.0,
+            "kinds": {},
             "gate": "< 3%",
             "status": "PASS",
-            "examples": [
-              {
-                "message": "How do my Saturn return and Enneagram 8 intersect?",
-                "predicted_domain": "identity",
-                "lens_jargon_override": "saturn return collapsed to identity (should weight life_direction)"
-              }
-            ]
+            "examples": []
           },
           "relationship_context_loss": {
             "count": 2,
@@ -1393,9 +1315,9 @@
               },
               {
                 "message": "How do my Saturn return and Enneagram 8 intersect?",
-                "predicted_domain": "identity",
-                "domain_drift_kind": "life_direction->identity",
-                "confidence": 1.0
+                "predicted_domain": "life_direction",
+                "domain_drift_kind": "identity->life_direction",
+                "confidence": 0.6552
               }
             ]
           },
@@ -1526,7 +1448,7 @@
               "routing_pass_rate": 1.0,
               "predicted_domain_mix": {
                 "money": 1,
-                "identity": 1
+                "life_direction": 1
               },
               "frame_mix": {
                 "self": 2
@@ -1542,9 +1464,9 @@
                 {
                   "message": "How do my Saturn return and Enneagram 8 intersect?",
                   "frame": "self",
-                  "predicted_domain": "identity",
+                  "predicted_domain": "life_direction",
                   "routing_status": "PASS",
-                  "confidence": 1.0
+                  "confidence": 0.6552
                 }
               ]
             },
@@ -1590,15 +1512,17 @@
       "active_frame": "self",
       "explicit_target_id": null,
       "category": "lens_jargon",
-      "predicted_domain": "identity",
+      "predicted_domain": "life_direction",
       "expected_domain": null,
       "top1_hit": null,
       "signal_strength": 1.0,
-      "margin": 1.0,
-      "confidence": 1.0,
+      "margin": 0.1343,
+      "confidence": 0.5672,
       "fallback_reason": null,
       "relationship_relevant": false,
-      "secondary_domains": [],
+      "secondary_domains": [
+        "identity"
+      ],
       "rel_target_resolved": null,
       "rel_target_unresolved_name": null,
       "rel_missing_data": [],
@@ -1607,11 +1531,11 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "NOT_APPLICABLE",
-      "latency_ms": 38.9,
+      "latency_ms": 46.615,
       "fm_subbucket": null,
       "un_subbucket": null,
-      "domain_drift_kind": "life_direction->identity",
-      "lens_jargon_override": "saturn return collapsed to identity (should weight life_direction)",
+      "domain_drift_kind": null,
+      "lens_jargon_override": null,
       "relationship_context_loss": false,
       "wrong_target_selected": false,
       "multi_lens_signature": [
@@ -1619,15 +1543,15 @@
       ],
       "multi_lens_prompt": false,
       "lens_priority": [
+        "timeline",
+        "astrology",
         "human_design",
         "enneagram",
-        "astrology",
         "numerology",
-        "timeline",
         "relationship"
       ],
       "multi_lens_covered_count": 1,
-      "high_confidence_wrong_route": true,
+      "high_confidence_wrong_route": false,
       "is_founder_query": false,
       "is_educational_astrology": true,
       "is_forum_topology_dependent": false,
@@ -1664,7 +1588,7 @@
       "retrieval_status": "PASS",
       "routing_status": "WARNING",
       "target_resolution_status": "UNRESOLVED_NO_NAME",
-      "latency_ms": 0.158,
+      "latency_ms": 0.167,
       "fm_subbucket": "unclassified_unresolved",
       "un_subbucket": null,
       "domain_drift_kind": null,
@@ -1715,7 +1639,7 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "NOT_APPLICABLE",
-      "latency_ms": 0.142,
+      "latency_ms": 0.144,
       "fm_subbucket": null,
       "un_subbucket": null,
       "domain_drift_kind": null,
@@ -1766,7 +1690,7 @@
       "retrieval_status": "PASS",
       "routing_status": "WARNING",
       "target_resolution_status": "NOT_APPLICABLE",
-      "latency_ms": 0.095,
+      "latency_ms": 0.099,
       "fm_subbucket": null,
       "un_subbucket": null,
       "domain_drift_kind": null,
@@ -1816,7 +1740,7 @@
       "retrieval_status": "PASS",
       "routing_status": "WARNING",
       "target_resolution_status": "UNRESOLVED_NO_NAME",
-      "latency_ms": 0.127,
+      "latency_ms": 0.15,
       "fm_subbucket": "unclassified_unresolved",
       "un_subbucket": null,
       "domain_drift_kind": null,
@@ -1867,7 +1791,7 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "NOT_APPLICABLE",
-      "latency_ms": 0.125,
+      "latency_ms": 0.139,
       "fm_subbucket": null,
       "un_subbucket": null,
       "domain_drift_kind": null,
@@ -1920,7 +1844,7 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "UNRESOLVED_NO_NAME",
-      "latency_ms": 0.128,
+      "latency_ms": 0.129,
       "fm_subbucket": "unclassified_unresolved",
       "un_subbucket": null,
       "domain_drift_kind": null,
@@ -1971,7 +1895,7 @@
       "retrieval_status": "PASS",
       "routing_status": "WARNING",
       "target_resolution_status": "NOT_APPLICABLE",
-      "latency_ms": 0.105,
+      "latency_ms": 0.116,
       "fm_subbucket": null,
       "un_subbucket": null,
       "domain_drift_kind": null,
@@ -2021,7 +1945,7 @@
       "retrieval_status": "PASS",
       "routing_status": "WARNING",
       "target_resolution_status": "RESOLVED",
-      "latency_ms": 0.123,
+      "latency_ms": 0.127,
       "fm_subbucket": null,
       "un_subbucket": null,
       "domain_drift_kind": null,
@@ -2074,7 +1998,7 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "UNRESOLVED_NO_NAME",
-      "latency_ms": 0.112,
+      "latency_ms": 0.119,
       "fm_subbucket": "unclassified_unresolved",
       "un_subbucket": null,
       "domain_drift_kind": null,
@@ -2127,7 +2051,7 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "UNRESOLVED_NO_NAME",
-      "latency_ms": 0.112,
+      "latency_ms": 0.129,
       "fm_subbucket": "unclassified_unresolved",
       "un_subbucket": null,
       "domain_drift_kind": null,
@@ -2178,7 +2102,7 @@
       "retrieval_status": "PASS",
       "routing_status": "WARNING",
       "target_resolution_status": "NOT_APPLICABLE",
-      "latency_ms": 0.093,
+      "latency_ms": 0.1,
       "fm_subbucket": null,
       "un_subbucket": null,
       "domain_drift_kind": null,
@@ -2228,7 +2152,7 @@
       "retrieval_status": "PASS",
       "routing_status": "WARNING",
       "target_resolution_status": "RESOLVED",
-      "latency_ms": 0.113,
+      "latency_ms": 0.124,
       "fm_subbucket": null,
       "un_subbucket": null,
       "domain_drift_kind": null,
@@ -2281,7 +2205,7 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "UNRESOLVED_NO_NAME",
-      "latency_ms": 0.105,
+      "latency_ms": 0.116,
       "fm_subbucket": "unclassified_unresolved",
       "un_subbucket": null,
       "domain_drift_kind": null,
@@ -2342,7 +2266,7 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "UNRESOLVED_NAMED",
-      "latency_ms": 0.153,
+      "latency_ms": 0.167,
       "fm_subbucket": null,
       "un_subbucket": "true_missing_person",
       "domain_drift_kind": null,
@@ -2403,7 +2327,7 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "UNRESOLVED_NAMED",
-      "latency_ms": 0.13,
+      "latency_ms": 0.152,
       "fm_subbucket": null,
       "un_subbucket": "true_missing_person",
       "domain_drift_kind": null,
@@ -2464,7 +2388,7 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "UNRESOLVED_NAMED",
-      "latency_ms": 0.14,
+      "latency_ms": 0.173,
       "fm_subbucket": null,
       "un_subbucket": "true_missing_person",
       "domain_drift_kind": null,
@@ -2523,7 +2447,7 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "UNRESOLVED_NAMED",
-      "latency_ms": 0.13,
+      "latency_ms": 0.153,
       "fm_subbucket": null,
       "un_subbucket": "true_missing_person",
       "domain_drift_kind": null,
@@ -2582,7 +2506,7 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "UNRESOLVED_NAMED",
-      "latency_ms": 0.125,
+      "latency_ms": 0.152,
       "fm_subbucket": null,
       "un_subbucket": "true_missing_person",
       "domain_drift_kind": null,
@@ -2641,7 +2565,7 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "UNRESOLVED_NAMED",
-      "latency_ms": 0.158,
+      "latency_ms": 0.152,
       "fm_subbucket": null,
       "un_subbucket": "true_missing_person",
       "domain_drift_kind": null,
@@ -2700,7 +2624,7 @@
       "retrieval_status": "PASS",
       "routing_status": "WARNING",
       "target_resolution_status": "UNRESOLVED_NAMED",
-      "latency_ms": 0.104,
+      "latency_ms": 0.114,
       "fm_subbucket": null,
       "un_subbucket": "true_missing_person",
       "domain_drift_kind": null,
@@ -2754,7 +2678,7 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "UNRESOLVED_NAMED",
-      "latency_ms": 0.127,
+      "latency_ms": 0.137,
       "fm_subbucket": null,
       "un_subbucket": "true_missing_person",
       "domain_drift_kind": null,
@@ -2813,7 +2737,7 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "UNRESOLVED_NAMED",
-      "latency_ms": 0.12,
+      "latency_ms": 0.144,
       "fm_subbucket": null,
       "un_subbucket": "true_missing_person",
       "domain_drift_kind": null,
@@ -2866,7 +2790,7 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "NOT_APPLICABLE",
-      "latency_ms": 0.116,
+      "latency_ms": 0.136,
       "fm_subbucket": null,
       "un_subbucket": null,
       "domain_drift_kind": null,
@@ -2921,7 +2845,7 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "UNRESOLVED_NO_NAME",
-      "latency_ms": 0.118,
+      "latency_ms": 0.131,
       "fm_subbucket": "unclassified_unresolved",
       "un_subbucket": null,
       "domain_drift_kind": null,
@@ -2980,7 +2904,7 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "UNRESOLVED_NAMED",
-      "latency_ms": 0.123,
+      "latency_ms": 0.139,
       "fm_subbucket": null,
       "un_subbucket": "true_missing_person",
       "domain_drift_kind": null,
@@ -3043,7 +2967,7 @@
       "retrieval_status": "PASS",
       "routing_status": "WARNING",
       "target_resolution_status": "UNRESOLVED_NAMED",
-      "latency_ms": 0.532,
+      "latency_ms": 0.149,
       "fm_subbucket": null,
       "un_subbucket": "true_missing_person",
       "domain_drift_kind": null,
@@ -3100,7 +3024,7 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "RESOLVED",
-      "latency_ms": 0.136,
+      "latency_ms": 0.123,
       "fm_subbucket": null,
       "un_subbucket": null,
       "domain_drift_kind": null,
@@ -3134,15 +3058,17 @@
       "active_frame": "self",
       "explicit_target_id": null,
       "category": "lens_jargon",
-      "predicted_domain": "relationship",
+      "predicted_domain": "identity",
       "expected_domain": null,
       "top1_hit": null,
-      "signal_strength": 1.0,
-      "margin": 0.641,
-      "confidence": 0.8205,
+      "signal_strength": 0.85,
+      "margin": 0.36,
+      "confidence": 0.578,
       "fallback_reason": null,
-      "relationship_relevant": true,
-      "secondary_domains": [],
+      "relationship_relevant": false,
+      "secondary_domains": [
+        "relationship"
+      ],
       "rel_target_resolved": null,
       "rel_target_unresolved_name": null,
       "rel_missing_data": [],
@@ -3151,11 +3077,11 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "NOT_APPLICABLE",
-      "latency_ms": 0.118,
+      "latency_ms": 0.149,
       "fm_subbucket": null,
       "un_subbucket": null,
       "domain_drift_kind": null,
-      "lens_jargon_override": "7th house auto-routed to relationship without relational kw",
+      "lens_jargon_override": null,
       "relationship_context_loss": false,
       "wrong_target_selected": false,
       "multi_lens_signature": [
@@ -3163,12 +3089,12 @@
       ],
       "multi_lens_prompt": false,
       "lens_priority": [
-        "relationship",
-        "astrology",
         "human_design",
         "enneagram",
+        "astrology",
+        "numerology",
         "timeline",
-        "numerology"
+        "relationship"
       ],
       "multi_lens_covered_count": 1,
       "high_confidence_wrong_route": false,
@@ -3177,7 +3103,7 @@
       "is_forum_topology_dependent": false,
       "couple_forum_bleed_kind": null,
       "decision_not_explainable": false,
-      "mandatory_modules_count": 4
+      "mandatory_modules_count": 3
     },
     {
       "source": "real",
@@ -3206,7 +3132,7 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "NOT_APPLICABLE",
-      "latency_ms": 0.131,
+      "latency_ms": 0.147,
       "fm_subbucket": null,
       "un_subbucket": null,
       "domain_drift_kind": null,
@@ -3261,7 +3187,7 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "NOT_APPLICABLE",
-      "latency_ms": 0.114,
+      "latency_ms": 0.135,
       "fm_subbucket": null,
       "un_subbucket": null,
       "domain_drift_kind": null,
@@ -3316,7 +3242,7 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "UNRESOLVED_NO_NAME",
-      "latency_ms": 0.116,
+      "latency_ms": 0.121,
       "fm_subbucket": "unclassified_unresolved",
       "un_subbucket": null,
       "domain_drift_kind": null,
@@ -3376,7 +3302,7 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "UNRESOLVED_NAMED",
-      "latency_ms": 0.128,
+      "latency_ms": 0.138,
       "fm_subbucket": "forum_to_member_misroute",
       "un_subbucket": "forum_only_member",
       "domain_drift_kind": null,
@@ -3429,6 +3355,218 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "UNRESOLVED_NO_NAME",
+      "latency_ms": 0.124,
+      "fm_subbucket": "unclassified_unresolved",
+      "un_subbucket": null,
+      "domain_drift_kind": null,
+      "lens_jargon_override": null,
+      "relationship_context_loss": false,
+      "wrong_target_selected": false,
+      "multi_lens_signature": [],
+      "multi_lens_prompt": false,
+      "lens_priority": [
+        "relationship",
+        "astrology",
+        "human_design",
+        "enneagram",
+        "timeline",
+        "numerology"
+      ],
+      "multi_lens_covered_count": 0,
+      "high_confidence_wrong_route": false,
+      "is_founder_query": false,
+      "is_educational_astrology": false,
+      "is_forum_topology_dependent": true,
+      "couple_forum_bleed_kind": null,
+      "decision_not_explainable": false,
+      "mandatory_modules_count": 4
+    },
+    {
+      "source": "real",
+      "collection": "forum_mirror_chat_messages",
+      "user_id_short": "697f0c6abf",
+      "message": "What softens this room?",
+      "active_frame": "forum",
+      "explicit_target_id": null,
+      "category": "forum_member",
+      "predicted_domain": "relationship",
+      "expected_domain": null,
+      "top1_hit": null,
+      "signal_strength": 0.45,
+      "margin": 0.6364,
+      "confidence": 0.3682,
+      "fallback_reason": null,
+      "relationship_relevant": true,
+      "secondary_domains": [],
+      "rel_target_resolved": null,
+      "rel_target_unresolved_name": null,
+      "rel_missing_data": [
+        "forum_target_unresolved"
+      ],
+      "rel_proposed_action": null,
+      "rel_context_mode": "SELF",
+      "retrieval_status": "PASS",
+      "routing_status": "PASS",
+      "target_resolution_status": "UNRESOLVED_NO_NAME",
+      "latency_ms": 0.12,
+      "fm_subbucket": "unclassified_unresolved",
+      "un_subbucket": null,
+      "domain_drift_kind": null,
+      "lens_jargon_override": null,
+      "relationship_context_loss": false,
+      "wrong_target_selected": false,
+      "multi_lens_signature": [],
+      "multi_lens_prompt": false,
+      "lens_priority": [
+        "relationship",
+        "astrology",
+        "human_design",
+        "enneagram",
+        "timeline",
+        "numerology"
+      ],
+      "multi_lens_covered_count": 0,
+      "high_confidence_wrong_route": false,
+      "is_founder_query": false,
+      "is_educational_astrology": false,
+      "is_forum_topology_dependent": true,
+      "couple_forum_bleed_kind": null,
+      "decision_not_explainable": false,
+      "mandatory_modules_count": 4
+    },
+    {
+      "source": "real",
+      "collection": "forum_mirror_chat_messages",
+      "user_id_short": "697f0c6abf",
+      "message": "What softens this room?",
+      "active_frame": "forum",
+      "explicit_target_id": null,
+      "category": "forum_member",
+      "predicted_domain": "relationship",
+      "expected_domain": null,
+      "top1_hit": null,
+      "signal_strength": 0.45,
+      "margin": 0.6364,
+      "confidence": 0.3682,
+      "fallback_reason": null,
+      "relationship_relevant": true,
+      "secondary_domains": [],
+      "rel_target_resolved": null,
+      "rel_target_unresolved_name": null,
+      "rel_missing_data": [
+        "forum_target_unresolved"
+      ],
+      "rel_proposed_action": null,
+      "rel_context_mode": "SELF",
+      "retrieval_status": "PASS",
+      "routing_status": "PASS",
+      "target_resolution_status": "UNRESOLVED_NO_NAME",
+      "latency_ms": 0.116,
+      "fm_subbucket": "unclassified_unresolved",
+      "un_subbucket": null,
+      "domain_drift_kind": null,
+      "lens_jargon_override": null,
+      "relationship_context_loss": false,
+      "wrong_target_selected": false,
+      "multi_lens_signature": [],
+      "multi_lens_prompt": false,
+      "lens_priority": [
+        "relationship",
+        "astrology",
+        "human_design",
+        "enneagram",
+        "timeline",
+        "numerology"
+      ],
+      "multi_lens_covered_count": 0,
+      "high_confidence_wrong_route": false,
+      "is_founder_query": false,
+      "is_educational_astrology": false,
+      "is_forum_topology_dependent": true,
+      "couple_forum_bleed_kind": null,
+      "decision_not_explainable": false,
+      "mandatory_modules_count": 4
+    },
+    {
+      "source": "real",
+      "collection": "forum_mirror_chat_messages",
+      "user_id_short": "697f0c6abf",
+      "message": "What softens this room?",
+      "active_frame": "forum",
+      "explicit_target_id": null,
+      "category": "forum_member",
+      "predicted_domain": "relationship",
+      "expected_domain": null,
+      "top1_hit": null,
+      "signal_strength": 0.45,
+      "margin": 0.6364,
+      "confidence": 0.3682,
+      "fallback_reason": null,
+      "relationship_relevant": true,
+      "secondary_domains": [],
+      "rel_target_resolved": null,
+      "rel_target_unresolved_name": null,
+      "rel_missing_data": [
+        "forum_target_unresolved"
+      ],
+      "rel_proposed_action": null,
+      "rel_context_mode": "SELF",
+      "retrieval_status": "PASS",
+      "routing_status": "PASS",
+      "target_resolution_status": "UNRESOLVED_NO_NAME",
+      "latency_ms": 0.118,
+      "fm_subbucket": "unclassified_unresolved",
+      "un_subbucket": null,
+      "domain_drift_kind": null,
+      "lens_jargon_override": null,
+      "relationship_context_loss": false,
+      "wrong_target_selected": false,
+      "multi_lens_signature": [],
+      "multi_lens_prompt": false,
+      "lens_priority": [
+        "relationship",
+        "astrology",
+        "human_design",
+        "enneagram",
+        "timeline",
+        "numerology"
+      ],
+      "multi_lens_covered_count": 0,
+      "high_confidence_wrong_route": false,
+      "is_founder_query": false,
+      "is_educational_astrology": false,
+      "is_forum_topology_dependent": true,
+      "couple_forum_bleed_kind": null,
+      "decision_not_explainable": false,
+      "mandatory_modules_count": 4
+    },
+    {
+      "source": "real",
+      "collection": "forum_mirror_chat_messages",
+      "user_id_short": "697f0c6abf",
+      "message": "What softens?",
+      "active_frame": "forum",
+      "explicit_target_id": null,
+      "category": "forum_member",
+      "predicted_domain": "relationship",
+      "expected_domain": null,
+      "top1_hit": null,
+      "signal_strength": 0.45,
+      "margin": 0.6364,
+      "confidence": 0.3682,
+      "fallback_reason": null,
+      "relationship_relevant": true,
+      "secondary_domains": [],
+      "rel_target_resolved": null,
+      "rel_target_unresolved_name": null,
+      "rel_missing_data": [
+        "forum_target_unresolved"
+      ],
+      "rel_proposed_action": null,
+      "rel_context_mode": "SELF",
+      "retrieval_status": "PASS",
+      "routing_status": "PASS",
+      "target_resolution_status": "UNRESOLVED_NO_NAME",
       "latency_ms": 0.114,
       "fm_subbucket": "unclassified_unresolved",
       "un_subbucket": null,
@@ -3459,165 +3597,6 @@
       "source": "real",
       "collection": "forum_mirror_chat_messages",
       "user_id_short": "697f0c6abf",
-      "message": "What softens this room?",
-      "active_frame": "forum",
-      "explicit_target_id": null,
-      "category": "forum_member",
-      "predicted_domain": "relationship",
-      "expected_domain": null,
-      "top1_hit": null,
-      "signal_strength": 0.45,
-      "margin": 0.6364,
-      "confidence": 0.3682,
-      "fallback_reason": null,
-      "relationship_relevant": true,
-      "secondary_domains": [],
-      "rel_target_resolved": null,
-      "rel_target_unresolved_name": null,
-      "rel_missing_data": [
-        "forum_target_unresolved"
-      ],
-      "rel_proposed_action": null,
-      "rel_context_mode": "SELF",
-      "retrieval_status": "PASS",
-      "routing_status": "PASS",
-      "target_resolution_status": "UNRESOLVED_NO_NAME",
-      "latency_ms": 0.109,
-      "fm_subbucket": "unclassified_unresolved",
-      "un_subbucket": null,
-      "domain_drift_kind": null,
-      "lens_jargon_override": null,
-      "relationship_context_loss": false,
-      "wrong_target_selected": false,
-      "multi_lens_signature": [],
-      "multi_lens_prompt": false,
-      "lens_priority": [
-        "relationship",
-        "astrology",
-        "human_design",
-        "enneagram",
-        "timeline",
-        "numerology"
-      ],
-      "multi_lens_covered_count": 0,
-      "high_confidence_wrong_route": false,
-      "is_founder_query": false,
-      "is_educational_astrology": false,
-      "is_forum_topology_dependent": true,
-      "couple_forum_bleed_kind": null,
-      "decision_not_explainable": false,
-      "mandatory_modules_count": 4
-    },
-    {
-      "source": "real",
-      "collection": "forum_mirror_chat_messages",
-      "user_id_short": "697f0c6abf",
-      "message": "What softens this room?",
-      "active_frame": "forum",
-      "explicit_target_id": null,
-      "category": "forum_member",
-      "predicted_domain": "relationship",
-      "expected_domain": null,
-      "top1_hit": null,
-      "signal_strength": 0.45,
-      "margin": 0.6364,
-      "confidence": 0.3682,
-      "fallback_reason": null,
-      "relationship_relevant": true,
-      "secondary_domains": [],
-      "rel_target_resolved": null,
-      "rel_target_unresolved_name": null,
-      "rel_missing_data": [
-        "forum_target_unresolved"
-      ],
-      "rel_proposed_action": null,
-      "rel_context_mode": "SELF",
-      "retrieval_status": "PASS",
-      "routing_status": "PASS",
-      "target_resolution_status": "UNRESOLVED_NO_NAME",
-      "latency_ms": 0.106,
-      "fm_subbucket": "unclassified_unresolved",
-      "un_subbucket": null,
-      "domain_drift_kind": null,
-      "lens_jargon_override": null,
-      "relationship_context_loss": false,
-      "wrong_target_selected": false,
-      "multi_lens_signature": [],
-      "multi_lens_prompt": false,
-      "lens_priority": [
-        "relationship",
-        "astrology",
-        "human_design",
-        "enneagram",
-        "timeline",
-        "numerology"
-      ],
-      "multi_lens_covered_count": 0,
-      "high_confidence_wrong_route": false,
-      "is_founder_query": false,
-      "is_educational_astrology": false,
-      "is_forum_topology_dependent": true,
-      "couple_forum_bleed_kind": null,
-      "decision_not_explainable": false,
-      "mandatory_modules_count": 4
-    },
-    {
-      "source": "real",
-      "collection": "forum_mirror_chat_messages",
-      "user_id_short": "697f0c6abf",
-      "message": "What softens this room?",
-      "active_frame": "forum",
-      "explicit_target_id": null,
-      "category": "forum_member",
-      "predicted_domain": "relationship",
-      "expected_domain": null,
-      "top1_hit": null,
-      "signal_strength": 0.45,
-      "margin": 0.6364,
-      "confidence": 0.3682,
-      "fallback_reason": null,
-      "relationship_relevant": true,
-      "secondary_domains": [],
-      "rel_target_resolved": null,
-      "rel_target_unresolved_name": null,
-      "rel_missing_data": [
-        "forum_target_unresolved"
-      ],
-      "rel_proposed_action": null,
-      "rel_context_mode": "SELF",
-      "retrieval_status": "PASS",
-      "routing_status": "PASS",
-      "target_resolution_status": "UNRESOLVED_NO_NAME",
-      "latency_ms": 0.112,
-      "fm_subbucket": "unclassified_unresolved",
-      "un_subbucket": null,
-      "domain_drift_kind": null,
-      "lens_jargon_override": null,
-      "relationship_context_loss": false,
-      "wrong_target_selected": false,
-      "multi_lens_signature": [],
-      "multi_lens_prompt": false,
-      "lens_priority": [
-        "relationship",
-        "astrology",
-        "human_design",
-        "enneagram",
-        "timeline",
-        "numerology"
-      ],
-      "multi_lens_covered_count": 0,
-      "high_confidence_wrong_route": false,
-      "is_founder_query": false,
-      "is_educational_astrology": false,
-      "is_forum_topology_dependent": true,
-      "couple_forum_bleed_kind": null,
-      "decision_not_explainable": false,
-      "mandatory_modules_count": 4
-    },
-    {
-      "source": "real",
-      "collection": "forum_mirror_chat_messages",
-      "user_id_short": "697f0c6abf",
       "message": "What softens?",
       "active_frame": "forum",
       "explicit_target_id": null,
@@ -3641,60 +3620,7 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "UNRESOLVED_NO_NAME",
-      "latency_ms": 0.106,
-      "fm_subbucket": "unclassified_unresolved",
-      "un_subbucket": null,
-      "domain_drift_kind": null,
-      "lens_jargon_override": null,
-      "relationship_context_loss": false,
-      "wrong_target_selected": false,
-      "multi_lens_signature": [],
-      "multi_lens_prompt": false,
-      "lens_priority": [
-        "relationship",
-        "astrology",
-        "human_design",
-        "enneagram",
-        "timeline",
-        "numerology"
-      ],
-      "multi_lens_covered_count": 0,
-      "high_confidence_wrong_route": false,
-      "is_founder_query": false,
-      "is_educational_astrology": false,
-      "is_forum_topology_dependent": true,
-      "couple_forum_bleed_kind": null,
-      "decision_not_explainable": false,
-      "mandatory_modules_count": 4
-    },
-    {
-      "source": "real",
-      "collection": "forum_mirror_chat_messages",
-      "user_id_short": "697f0c6abf",
-      "message": "What softens?",
-      "active_frame": "forum",
-      "explicit_target_id": null,
-      "category": "forum_member",
-      "predicted_domain": "relationship",
-      "expected_domain": null,
-      "top1_hit": null,
-      "signal_strength": 0.45,
-      "margin": 0.6364,
-      "confidence": 0.3682,
-      "fallback_reason": null,
-      "relationship_relevant": true,
-      "secondary_domains": [],
-      "rel_target_resolved": null,
-      "rel_target_unresolved_name": null,
-      "rel_missing_data": [
-        "forum_target_unresolved"
-      ],
-      "rel_proposed_action": null,
-      "rel_context_mode": "SELF",
-      "retrieval_status": "PASS",
-      "routing_status": "PASS",
-      "target_resolution_status": "UNRESOLVED_NO_NAME",
-      "latency_ms": 0.103,
+      "latency_ms": 0.113,
       "fm_subbucket": "unclassified_unresolved",
       "un_subbucket": null,
       "domain_drift_kind": null,
@@ -3747,7 +3673,7 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "UNRESOLVED_NO_NAME",
-      "latency_ms": 0.111,
+      "latency_ms": 0.117,
       "fm_subbucket": "unclassified_unresolved",
       "un_subbucket": null,
       "domain_drift_kind": null,
@@ -3800,7 +3726,7 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "UNRESOLVED_NO_NAME",
-      "latency_ms": 0.104,
+      "latency_ms": 0.115,
       "fm_subbucket": "unclassified_unresolved",
       "un_subbucket": null,
       "domain_drift_kind": null,
@@ -3853,7 +3779,7 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "UNRESOLVED_NO_NAME",
-      "latency_ms": 0.103,
+      "latency_ms": 0.119,
       "fm_subbucket": "unclassified_unresolved",
       "un_subbucket": null,
       "domain_drift_kind": null,
@@ -3906,7 +3832,7 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "UNRESOLVED_NO_NAME",
-      "latency_ms": 0.107,
+      "latency_ms": 0.117,
       "fm_subbucket": "unclassified_unresolved",
       "un_subbucket": null,
       "domain_drift_kind": null,
@@ -3959,7 +3885,7 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "UNRESOLVED_NO_NAME",
-      "latency_ms": 0.097,
+      "latency_ms": 0.107,
       "fm_subbucket": "unclassified_unresolved",
       "un_subbucket": null,
       "domain_drift_kind": null,
@@ -4012,7 +3938,7 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "UNRESOLVED_NO_NAME",
-      "latency_ms": 0.112,
+      "latency_ms": 0.114,
       "fm_subbucket": "unclassified_unresolved",
       "un_subbucket": null,
       "domain_drift_kind": null,
@@ -4065,7 +3991,7 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "UNRESOLVED_NO_NAME",
-      "latency_ms": 0.103,
+      "latency_ms": 0.109,
       "fm_subbucket": "unclassified_unresolved",
       "un_subbucket": null,
       "domain_drift_kind": null,
@@ -4116,7 +4042,7 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "NOT_APPLICABLE",
-      "latency_ms": 0.131,
+      "latency_ms": 0.155,
       "fm_subbucket": null,
       "un_subbucket": null,
       "domain_drift_kind": null,
@@ -4167,7 +4093,7 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "NOT_APPLICABLE",
-      "latency_ms": 0.123,
+      "latency_ms": 0.134,
       "fm_subbucket": null,
       "un_subbucket": null,
       "domain_drift_kind": null,
@@ -4220,7 +4146,7 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "NOT_APPLICABLE",
-      "latency_ms": 0.14,
+      "latency_ms": 0.175,
       "fm_subbucket": null,
       "un_subbucket": null,
       "domain_drift_kind": "leadership->growth",
@@ -4271,7 +4197,7 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "NOT_APPLICABLE",
-      "latency_ms": 0.117,
+      "latency_ms": 0.142,
       "fm_subbucket": null,
       "un_subbucket": null,
       "domain_drift_kind": null,
@@ -4322,7 +4248,7 @@
       "retrieval_status": "PASS",
       "routing_status": "WARNING",
       "target_resolution_status": "NOT_APPLICABLE",
-      "latency_ms": 0.098,
+      "latency_ms": 0.111,
       "fm_subbucket": null,
       "un_subbucket": null,
       "domain_drift_kind": "leadership->general",
@@ -4368,7 +4294,7 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "NOT_APPLICABLE",
-      "latency_ms": 0.124,
+      "latency_ms": 0.143,
       "fm_subbucket": null,
       "un_subbucket": null,
       "domain_drift_kind": "leadership->work",
@@ -4419,7 +4345,7 @@
       "retrieval_status": "PASS",
       "routing_status": "WARNING",
       "target_resolution_status": "NOT_APPLICABLE",
-      "latency_ms": 0.096,
+      "latency_ms": 0.115,
       "fm_subbucket": null,
       "un_subbucket": null,
       "domain_drift_kind": "leadership->general",
@@ -4467,7 +4393,7 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "NOT_APPLICABLE",
-      "latency_ms": 0.12,
+      "latency_ms": 0.13,
       "fm_subbucket": null,
       "un_subbucket": null,
       "domain_drift_kind": "leadership->career",
@@ -4518,7 +4444,7 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "NOT_APPLICABLE",
-      "latency_ms": 0.117,
+      "latency_ms": 0.14,
       "fm_subbucket": null,
       "un_subbucket": null,
       "domain_drift_kind": "career->life_direction",
@@ -4556,8 +4482,8 @@
       "expected_domain": "career",
       "top1_hit": true,
       "signal_strength": 1.0,
-      "margin": 1.0,
-      "confidence": 1.0,
+      "margin": 0.4545,
+      "confidence": 0.7273,
       "fallback_reason": null,
       "relationship_relevant": false,
       "secondary_domains": [],
@@ -4569,7 +4495,7 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "NOT_APPLICABLE",
-      "latency_ms": 0.112,
+      "latency_ms": 0.133,
       "fm_subbucket": null,
       "un_subbucket": null,
       "domain_drift_kind": null,
@@ -4620,7 +4546,7 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "NOT_APPLICABLE",
-      "latency_ms": 0.11,
+      "latency_ms": 0.128,
       "fm_subbucket": null,
       "un_subbucket": null,
       "domain_drift_kind": null,
@@ -4673,7 +4599,7 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "NOT_APPLICABLE",
-      "latency_ms": 0.118,
+      "latency_ms": 0.139,
       "fm_subbucket": null,
       "un_subbucket": null,
       "domain_drift_kind": "life_direction->career",
@@ -4726,7 +4652,7 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "NOT_APPLICABLE",
-      "latency_ms": 0.135,
+      "latency_ms": 0.149,
       "fm_subbucket": null,
       "un_subbucket": null,
       "domain_drift_kind": null,
@@ -4779,7 +4705,7 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "NOT_APPLICABLE",
-      "latency_ms": 0.112,
+      "latency_ms": 0.127,
       "fm_subbucket": null,
       "un_subbucket": null,
       "domain_drift_kind": null,
@@ -4830,7 +4756,7 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "NOT_APPLICABLE",
-      "latency_ms": 0.121,
+      "latency_ms": 0.134,
       "fm_subbucket": null,
       "un_subbucket": null,
       "domain_drift_kind": null,
@@ -4881,7 +4807,7 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "NOT_APPLICABLE",
-      "latency_ms": 0.116,
+      "latency_ms": 0.136,
       "fm_subbucket": null,
       "un_subbucket": null,
       "domain_drift_kind": null,
@@ -4932,7 +4858,7 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "NOT_APPLICABLE",
-      "latency_ms": 0.116,
+      "latency_ms": 0.136,
       "fm_subbucket": null,
       "un_subbucket": null,
       "domain_drift_kind": null,
@@ -4983,7 +4909,7 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "NOT_APPLICABLE",
-      "latency_ms": 0.117,
+      "latency_ms": 0.132,
       "fm_subbucket": null,
       "un_subbucket": null,
       "domain_drift_kind": null,
@@ -5034,7 +4960,7 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "NOT_APPLICABLE",
-      "latency_ms": 0.145,
+      "latency_ms": 0.159,
       "fm_subbucket": null,
       "un_subbucket": null,
       "domain_drift_kind": null,
@@ -5085,7 +5011,7 @@
       "retrieval_status": "PASS",
       "routing_status": "WARNING",
       "target_resolution_status": "NOT_APPLICABLE",
-      "latency_ms": 0.094,
+      "latency_ms": 0.104,
       "fm_subbucket": null,
       "un_subbucket": null,
       "domain_drift_kind": "purpose->general",
@@ -5131,7 +5057,7 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "NOT_APPLICABLE",
-      "latency_ms": 0.114,
+      "latency_ms": 0.132,
       "fm_subbucket": null,
       "un_subbucket": null,
       "domain_drift_kind": null,
@@ -5182,7 +5108,7 @@
       "retrieval_status": "PASS",
       "routing_status": "WARNING",
       "target_resolution_status": "NOT_APPLICABLE",
-      "latency_ms": 0.099,
+      "latency_ms": 0.117,
       "fm_subbucket": null,
       "un_subbucket": null,
       "domain_drift_kind": "purpose->general",
@@ -5228,7 +5154,7 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "NOT_APPLICABLE",
-      "latency_ms": 0.113,
+      "latency_ms": 0.127,
       "fm_subbucket": null,
       "un_subbucket": null,
       "domain_drift_kind": null,
@@ -5279,7 +5205,7 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "NOT_APPLICABLE",
-      "latency_ms": 0.11,
+      "latency_ms": 0.123,
       "fm_subbucket": null,
       "un_subbucket": null,
       "domain_drift_kind": "money->career",
@@ -5330,7 +5256,7 @@
       "retrieval_status": "PASS",
       "routing_status": "WARNING",
       "target_resolution_status": "NOT_APPLICABLE",
-      "latency_ms": 0.092,
+      "latency_ms": 0.102,
       "fm_subbucket": null,
       "un_subbucket": null,
       "domain_drift_kind": "growth->general",
@@ -5376,7 +5302,7 @@
       "retrieval_status": "PASS",
       "routing_status": "WARNING",
       "target_resolution_status": "NOT_APPLICABLE",
-      "latency_ms": 0.093,
+      "latency_ms": 0.102,
       "fm_subbucket": null,
       "un_subbucket": null,
       "domain_drift_kind": "growth->general",
@@ -5430,7 +5356,7 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "UNRESOLVED_NAMED",
-      "latency_ms": 0.13,
+      "latency_ms": 0.148,
       "fm_subbucket": null,
       "un_subbucket": "true_missing_person",
       "domain_drift_kind": null,
@@ -5481,7 +5407,7 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "NOT_APPLICABLE",
-      "latency_ms": 0.119,
+      "latency_ms": 0.134,
       "fm_subbucket": null,
       "un_subbucket": null,
       "domain_drift_kind": null,
@@ -5540,7 +5466,7 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "UNRESOLVED_NAMED",
-      "latency_ms": 0.129,
+      "latency_ms": 0.143,
       "fm_subbucket": null,
       "un_subbucket": "true_missing_person",
       "domain_drift_kind": null,
@@ -5599,7 +5525,7 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "UNRESOLVED_NAMED",
-      "latency_ms": 0.122,
+      "latency_ms": 0.134,
       "fm_subbucket": null,
       "un_subbucket": "true_missing_person",
       "domain_drift_kind": null,
@@ -5660,7 +5586,7 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "UNRESOLVED_NAMED",
-      "latency_ms": 0.13,
+      "latency_ms": 0.147,
       "fm_subbucket": null,
       "un_subbucket": "true_missing_person",
       "domain_drift_kind": null,
@@ -5715,7 +5641,7 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "UNRESOLVED_NO_NAME",
-      "latency_ms": 0.12,
+      "latency_ms": 0.135,
       "fm_subbucket": "unclassified_unresolved",
       "un_subbucket": null,
       "domain_drift_kind": null,
@@ -5768,7 +5694,7 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "UNRESOLVED_NO_NAME",
-      "latency_ms": 0.126,
+      "latency_ms": 0.138,
       "fm_subbucket": "unclassified_unresolved",
       "un_subbucket": null,
       "domain_drift_kind": null,
@@ -5823,7 +5749,7 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "RESOLVED",
-      "latency_ms": 0.122,
+      "latency_ms": 0.129,
       "fm_subbucket": null,
       "un_subbucket": null,
       "domain_drift_kind": "identity->work",
@@ -5878,7 +5804,7 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "RESOLVED",
-      "latency_ms": 0.126,
+      "latency_ms": 0.134,
       "fm_subbucket": null,
       "un_subbucket": null,
       "domain_drift_kind": null,
@@ -5915,9 +5841,9 @@
       "predicted_domain": "identity",
       "expected_domain": "identity",
       "top1_hit": true,
-      "signal_strength": 0.9,
+      "signal_strength": 1.0,
       "margin": 1.0,
-      "confidence": 0.9,
+      "confidence": 1.0,
       "fallback_reason": null,
       "relationship_relevant": false,
       "secondary_domains": [],
@@ -5929,7 +5855,7 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "NOT_APPLICABLE",
-      "latency_ms": 0.129,
+      "latency_ms": 0.16,
       "fm_subbucket": null,
       "un_subbucket": null,
       "domain_drift_kind": null,
@@ -5985,7 +5911,7 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "NOT_APPLICABLE",
-      "latency_ms": 0.126,
+      "latency_ms": 0.15,
       "fm_subbucket": null,
       "un_subbucket": null,
       "domain_drift_kind": null,
@@ -6021,15 +5947,17 @@
       "active_frame": "self",
       "explicit_target_id": null,
       "category": "cross_lens",
-      "predicted_domain": "identity",
+      "predicted_domain": "life_direction",
       "expected_domain": "identity",
-      "top1_hit": true,
+      "top1_hit": false,
       "signal_strength": 1.0,
-      "margin": 1.0,
-      "confidence": 1.0,
+      "margin": 0.3103,
+      "confidence": 0.6552,
       "fallback_reason": null,
       "relationship_relevant": false,
-      "secondary_domains": [],
+      "secondary_domains": [
+        "identity"
+      ],
       "rel_target_resolved": null,
       "rel_target_unresolved_name": null,
       "rel_missing_data": [],
@@ -6038,11 +5966,11 @@
       "retrieval_status": "PASS",
       "routing_status": "PASS",
       "target_resolution_status": "NOT_APPLICABLE",
-      "latency_ms": 0.12,
+      "latency_ms": 0.146,
       "fm_subbucket": null,
       "un_subbucket": null,
-      "domain_drift_kind": "life_direction->identity",
-      "lens_jargon_override": "saturn return collapsed to identity (should weight life_direction)",
+      "domain_drift_kind": "identity->life_direction",
+      "lens_jargon_override": null,
       "relationship_context_loss": false,
       "wrong_target_selected": false,
       "multi_lens_signature": [
@@ -6051,11 +5979,11 @@
       ],
       "multi_lens_prompt": true,
       "lens_priority": [
+        "timeline",
+        "astrology",
         "human_design",
         "enneagram",
-        "astrology",
         "numerology",
-        "timeline",
         "relationship"
       ],
       "multi_lens_covered_count": 2,
@@ -6092,7 +6020,7 @@
       "retrieval_status": "PASS",
       "routing_status": "WARNING",
       "target_resolution_status": "NOT_APPLICABLE",
-      "latency_ms": 0.107,
+      "latency_ms": 0.115,
       "fm_subbucket": null,
       "un_subbucket": null,
       "domain_drift_kind": "leadership->general",
@@ -6140,7 +6068,7 @@
       "retrieval_status": "PASS",
       "routing_status": "WARNING",
       "target_resolution_status": "NOT_APPLICABLE",
-      "latency_ms": 0.129,
+      "latency_ms": 0.16,
       "fm_subbucket": null,
       "un_subbucket": null,
       "domain_drift_kind": "money->identity",

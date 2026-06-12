@@ -16,6 +16,11 @@ identity:
     - {p: "feel like myself",  w: 0.7}
     - {p: "how am i showing up", w: 0.7}
     - {p: "showing up as",     w: 0.45}
+    # --- B3.2 founder/operator: identity-mode self-questioning ---
+    - {p: "am i avoiding",     w: 0.9}
+    - {p: "avoiding a decision", w: 0.95}
+    - {p: "decision avoidance", w: 0.9}
+    - {p: "am i in the right", w: 0.75}
 
     # --- B1.3 lens-jargon: ASTROLOGY (self-inquiry catchall) ---
     - {p: "my chart",          w: 0.75}
@@ -46,7 +51,7 @@ identity:
     - {p: "my moon sign",      w: 0.85}
     - {p: "my rising sign",    w: 0.85}
     - {p: "my big three",      w: 0.85}
-    - {p: "saturn return",     w: 0.65}
+    - {p: "saturn return",     w: 0.4}
     - {p: "jupiter return",    w: 0.5}
     - {p: "my transits",       w: 0.7}
     - {p: "my current transits", w: 0.85}
@@ -285,6 +290,17 @@ career:
     - {p: "my mc",            w: 0.6}
     - {p: "about my career",  w: 0.95}
     - {p: "about my work",    w: 0.85}
+    # --- B3.2 founder/operator lexicon expansion ---
+    - {p: "fundraising or profitability", w: 0.95}
+    - {p: "fundraising vs profitability", w: 0.95}
+    - {p: "fundraising vs. profitability", w: 0.95}
+    - {p: "prioritize fundraising", w: 0.9}
+    - {p: "growth constraint", w: 0.95}
+    - {p: "in the business",   w: 0.55}
+    - {p: "next growth constraint in the business", w: 0.95}
+    - {p: "company direction", w: 0.8}
+    - {p: "capital allocation", w: 0.8}
+    - {p: "cofounder",         w: 0.5}
 
 work:
   phrases:
@@ -318,6 +334,9 @@ leadership:
     - {p: "build my team",    w: 0.85}
     - {p: "my leadership",    w: 0.95}
     - {p: "leadership style", w: 0.95}
+    - {p: "leadership team",  w: 0.95}
+    - {p: "restructure my leadership", w: 0.95}
+    - {p: "restructure",      w: 0.6}
     - {p: "micromanage",      w: 0.85}
     - {p: "micromanaging",    w: 0.85}
     - {p: "fire someone",     w: 0.7}
@@ -331,6 +350,55 @@ leadership:
     - {p: "eating me alive",  w: 0.3}
     - {p: "ceo",              w: 0.45}
     - {p: "as ceo",           w: 0.8}
+    # --- B3.2 founder/operator lexicon expansion ---
+    - {p: "executive",        w: 0.55}
+    - {p: "the executive",    w: 0.7}
+    - {p: "this executive",   w: 0.75}
+    - {p: "an executive",     w: 0.7}
+    - {p: "let this executive go", w: 0.95}
+    - {p: "let an executive go",   w: 0.95}
+    - {p: "executive go",     w: 0.85}
+    - {p: "executives",       w: 0.55}
+    - {p: "management team",  w: 0.9}
+    - {p: "my management team", w: 0.95}
+    - {p: "the management team", w: 0.9}
+    - {p: "exec team",        w: 0.85}
+    - {p: "my exec team",     w: 0.9}
+    - {p: "downsize",         w: 0.9}
+    - {p: "downsizing",       w: 0.95}
+    - {p: "about downsizing", w: 0.95}
+    - {p: "think about downsizing", w: 0.95}
+    - {p: "layoff",           w: 0.8}
+    - {p: "layoffs",          w: 0.85}
+    - {p: "reduction in force", w: 0.95}
+    - {p: "cofounder",        w: 0.65}
+    - {p: "co-founder",       w: 0.65}
+    - {p: "my cofounder",     w: 0.85}
+    - {p: "my co-founder",    w: 0.85}
+    - {p: "cofounder dispute", w: 0.95}
+    - {p: "cofounder disagree", w: 0.95}
+    - {p: "disagree about product direction", w: 0.95}
+    - {p: "product direction", w: 0.55}
+    - {p: "blind spot in my leadership", w: 0.95}
+    - {p: "blind spot in my", w: 0.7}
+    - {p: "my blind spot",    w: 0.55}
+    - {p: "friction in the company", w: 0.9}
+    - {p: "creating friction", w: 0.7}
+    - {p: "creating friction in the company", w: 0.95}
+    - {p: "relationship is creating friction", w: 0.95}
+    - {p: "team dynamics",    w: 0.65}
+    - {p: "management-team dynamics", w: 0.9}
+    - {p: "dynamic exists between me and", w: 0.95}
+    - {p: "between me and my management team", w: 0.95}
+    - {p: "between me and my team", w: 0.9}
+    - {p: "between me and the team", w: 0.9}
+    - {p: "between me and my leadership team", w: 0.95}
+    - {p: "between me and my exec", w: 0.9}
+    - {p: "between me and my executives", w: 0.95}
+    - {p: "scaling constraint", w: 0.85}
+    - {p: "next growth constraint", w: 0.95}
+    - {p: "bottleneck",       w: 0.55}
+    - {p: "the bottleneck",   w: 0.65}
 
 money:
   phrases:
@@ -421,6 +489,7 @@ growth:
     - {p: "keep showing up",  w: 0.45}
     - {p: "shadow work",      w: 0.85}
     - {p: "my pluto transit", w: 0.85}
+    - {p: "pluto transit",    w: 0.9}
     - {p: "current transits", w: 0.55}
     - {p: "transits",         w: 0.2}
     - {p: "this transit",     w: 0.5}
@@ -428,6 +497,11 @@ growth:
     - {p: "lunar return",     w: 0.55}
     - {p: "current astrology", w: 0.55}
     - {p: "my evolution",     w: 0.75}
+    # --- B3.1 lens-term compounds (growth-coded transits) ---
+    - {p: "progressed moon",  w: 0.85}
+    - {p: "my progressed moon", w: 0.9}
+    - {p: "chiron return",    w: 0.8}
+    - {p: "my chiron return", w: 0.85}
 
 life_direction:
   phrases:
@@ -451,3 +525,12 @@ life_direction:
     - {p: "hand it off",       w: 0.55}
     - {p: "acquisition offer", w: 0.75}
     - {p: "keep building",     w: 0.5}
+    # --- B3.1 lens-term compounds (timing-event lens jargon) ---
+    - {p: "saturn return",     w: 0.95}
+    - {p: "my saturn return",  w: 0.95}
+    - {p: "nodal return",      w: 0.85}
+    - {p: "north node return", w: 0.85}
+    - {p: "mid-life crisis",   w: 0.9}
+    - {p: "midlife crisis",    w: 0.9}
+    - {p: "mid-life return",   w: 0.85}
+    - {p: "midlife return",    w: 0.85}

@@ -1,9 +1,8 @@
 {
-  "generated_at": "2026-06-12T02:42:43.110907+00:00",
+  "generated_at": "2026-06-12T03:32:52.873436+00:00",
   "recommendation": "CONDITIONAL_GO",
   "blockers": [
-    "Shadow telemetry window not complete (ends 2026-06-14)",
-    "Review signal: Lens-jargon override errors (REAL)"
+    "Shadow telemetry window not complete (ends 2026-06-14)"
   ],
   "gate_scorecard": [
     {
@@ -26,7 +25,7 @@
     },
     {
       "gate": "False-positive relationship rate (frame-aware, REAL)",
-      "value": "2.17% (1 of 46)",
+      "value": "0.00% (0 of 46)",
       "threshold": "\u2264 5%",
       "status": "PASS"
     },
@@ -50,15 +49,15 @@
     },
     {
       "gate": "Domain drift rate (REAL)",
-      "value": "100.00% (1 of 1 ground-truth rows); per-domain hot zones: ['life_direction']",
+      "value": "0.00% (0 of 1 ground-truth rows); per-domain hot zones: _none_",
       "threshold": "< 5% overall AND no expected_domain > 10%",
       "status": "INSUFFICIENT_SAMPLE"
     },
     {
       "gate": "Lens-jargon override errors (REAL)",
-      "value": "4.35% (2 cases); kinds: {'saturn return collapsed to identity (should weight life_direction)': 1, '7th house auto-routed to relationship without relational kw': 1}",
+      "value": "0.00% (0 cases); kinds: {}",
       "threshold": "< 3%",
-      "status": "FAIL"
+      "status": "PASS"
     },
     {
       "gate": "Relationship-context loss (REAL)",
@@ -80,9 +79,9 @@
     },
     {
       "gate": "High-confidence wrong route (REAL)",
-      "value": "1 cases (2.17%)",
+      "value": "0 cases (0.00%)",
       "threshold": "< 1%",
-      "status": "WATCH"
+      "status": "INSUFFICIENT_SAMPLE"
     },
     {
       "gate": "Couple \u2194 Forum bleed (REAL)",
@@ -104,7 +103,7 @@
     },
     {
       "gate": "Retrieval payload completeness (REAL, baseline only)",
-      "value": "mandatory_modules mean=3.565 min=1 max=4",
+      "value": "mandatory_modules mean=3.543 min=1 max=4",
       "threshold": "no mandatory payload shrinks >25% vs baseline",
       "status": "BASELINE_ONLY"
     }
@@ -142,8 +141,9 @@
       },
       "by_source": {
         "real": {
+          "life_direction": 1,
+          "relationship": 34,
           "identity": 4,
-          "relationship": 35,
           "general": 4,
           "career": 2,
           "family": 1
@@ -151,8 +151,9 @@
         "synth": {}
       },
       "domain_counts": {
+        "life_direction": 1,
+        "relationship": 34,
         "identity": 4,
-        "relationship": 35,
         "general": 4,
         "career": 2,
         "family": 1
@@ -212,17 +213,11 @@
       }
     },
     "false_positive_relationship": {
-      "count": 1,
-      "rate": 0.0217,
-      "broad_count": 23,
-      "broad_rate": 0.5,
-      "examples": [
-        {
-          "message": "What's my 7th house about?",
-          "frame": "self",
-          "category": "lens_jargon"
-        }
-      ]
+      "count": 0,
+      "rate": 0.0,
+      "broad_count": 22,
+      "broad_rate": 0.4783,
+      "examples": []
     },
     "false_negative_relationship": {
       "count": 4,
@@ -318,10 +313,10 @@
       "accuracy": 0.0
     },
     "latency_ms": {
-      "mean": 0.971,
-      "p50": 0.116,
-      "p95": 0.158,
-      "max": 38.9
+      "mean": 1.141,
+      "p50": 0.128,
+      "p95": 0.167,
+      "max": 46.615
     },
     "versions": {
       "intent_router": "intent_router_v2.1.0",
@@ -330,54 +325,25 @@
     },
     "regression_buckets": {
       "domain_drift": {
-        "count": 1,
+        "count": 0,
         "denominator": 1,
         "ground_truth_rows": 1,
-        "rate": 1.0,
-        "kinds": {
-          "life_direction->identity": 1
-        },
-        "per_expected_domain": {
-          "life_direction": 1
-        },
-        "per_expected_domain_rate": {
-          "life_direction": 1.0
-        },
-        "domains_above_10pct": [
-          "life_direction"
-        ],
+        "rate": 0.0,
+        "kinds": {},
+        "per_expected_domain": {},
+        "per_expected_domain_rate": {},
+        "domains_above_10pct": [],
         "gate": "< 5% overall AND no expected_domain > 10%",
         "status": "INSUFFICIENT_SAMPLE",
-        "examples": [
-          {
-            "message": "Tell me about my Saturn return",
-            "active_frame": "self",
-            "predicted_domain": "identity",
-            "domain_drift_kind": "life_direction->identity"
-          }
-        ]
+        "examples": []
       },
       "lens_jargon_override": {
-        "count": 2,
-        "rate": 0.0435,
-        "kinds": {
-          "saturn return collapsed to identity (should weight life_direction)": 1,
-          "7th house auto-routed to relationship without relational kw": 1
-        },
+        "count": 0,
+        "rate": 0.0,
+        "kinds": {},
         "gate": "< 3%",
-        "status": "FAIL",
-        "examples": [
-          {
-            "message": "Tell me about my Saturn return",
-            "predicted_domain": "identity",
-            "lens_jargon_override": "saturn return collapsed to identity (should weight life_direction)"
-          },
-          {
-            "message": "What's my 7th house about?",
-            "predicted_domain": "relationship",
-            "lens_jargon_override": "7th house auto-routed to relationship without relational kw"
-          }
-        ]
+        "status": "PASS",
+        "examples": []
       },
       "relationship_context_loss": {
         "count": 0,
@@ -394,7 +360,7 @@
         "examples": []
       },
       "payload_completeness": {
-        "mandatory_modules_mean": 3.565,
+        "mandatory_modules_mean": 3.543,
         "mandatory_modules_min": 1,
         "mandatory_modules_max": 4,
         "gate": "no mandatory payload shrinks >25% vs baseline",
@@ -410,19 +376,12 @@
         "examples": []
       },
       "high_confidence_wrong_route": {
-        "count": 1,
-        "rate": 0.0217,
+        "count": 0,
+        "rate": 0.0,
         "ground_truth_rows": 1,
         "gate": "< 1%",
-        "status": "WATCH",
-        "examples": [
-          {
-            "message": "Tell me about my Saturn return",
-            "predicted_domain": "identity",
-            "domain_drift_kind": "life_direction->identity",
-            "confidence": 1.0
-          }
-        ]
+        "status": "INSUFFICIENT_SAMPLE",
+        "examples": []
       },
       "founder_operator_suite": {
         "count": 0,
@@ -462,9 +421,9 @@
           "share_of_corpus": 0.0652,
           "routing_pass_rate": 1.0,
           "predicted_domain_mix": {
-            "identity": 1,
+            "life_direction": 1,
             "family": 1,
-            "relationship": 1
+            "identity": 1
           },
           "frame_mix": {
             "self": 2,
@@ -474,9 +433,9 @@
             {
               "message": "Tell me about my Saturn return",
               "frame": "self",
-              "predicted_domain": "identity",
+              "predicted_domain": "life_direction",
               "routing_status": "PASS",
-              "confidence": 1.0
+              "confidence": 0.5672
             },
             {
               "message": "Tell me about her 4th house",
@@ -488,9 +447,9 @@
             {
               "message": "What's my 7th house about?",
               "frame": "self",
-              "predicted_domain": "relationship",
+              "predicted_domain": "identity",
               "routing_status": "PASS",
-              "confidence": 0.8205
+              "confidence": 0.578
             }
           ]
         },
@@ -571,8 +530,9 @@
       },
       "by_source": {
         "real": {
+          "life_direction": 1,
+          "relationship": 34,
           "identity": 4,
-          "relationship": 35,
           "general": 4,
           "career": 2,
           "family": 1
@@ -583,23 +543,23 @@
           "general": 7,
           "work": 2,
           "career": 8,
-          "life_direction": 2,
+          "life_direction": 3,
           "money": 4,
           "purpose": 2,
           "relationship": 7,
-          "identity": 4
+          "identity": 3
         }
       },
       "domain_counts": {
-        "identity": 8,
-        "relationship": 42,
+        "life_direction": 4,
+        "relationship": 41,
+        "identity": 7,
         "general": 11,
         "career": 10,
         "family": 1,
         "leadership": 3,
         "growth": 1,
         "work": 2,
-        "life_direction": 2,
         "money": 4,
         "purpose": 2
       }
@@ -658,17 +618,11 @@
       }
     },
     "false_positive_relationship": {
-      "count": 1,
-      "rate": 0.0116,
-      "broad_count": 25,
-      "broad_rate": 0.2907,
-      "examples": [
-        {
-          "message": "What's my 7th house about?",
-          "frame": "self",
-          "category": "lens_jargon"
-        }
-      ]
+      "count": 0,
+      "rate": 0.0,
+      "broad_count": 24,
+      "broad_rate": 0.2791,
+      "examples": []
     },
     "false_negative_relationship": {
       "count": 6,
@@ -770,14 +724,14 @@
     },
     "expected_top1_synth_only": {
       "n_with_expected": 40,
-      "n_top1": 26,
-      "accuracy": 0.65
+      "n_top1": 25,
+      "accuracy": 0.625
     },
     "latency_ms": {
-      "mean": 0.574,
-      "p50": 0.118,
-      "p95": 0.145,
-      "max": 38.9
+      "mean": 0.673,
+      "p50": 0.134,
+      "p95": 0.16,
+      "max": 46.615
     },
     "versions": {
       "intent_router": "intent_router_v2.1.0",
@@ -786,12 +740,11 @@
     },
     "regression_buckets": {
       "domain_drift": {
-        "count": 17,
+        "count": 16,
         "denominator": 41,
         "ground_truth_rows": 41,
-        "rate": 0.4146,
+        "rate": 0.3902,
         "kinds": {
-          "life_direction->identity": 2,
           "leadership->growth": 1,
           "leadership->general": 3,
           "leadership->work": 1,
@@ -802,25 +755,26 @@
           "money->career": 1,
           "growth->general": 2,
           "identity->work": 1,
+          "identity->life_direction": 1,
           "money->identity": 1
         },
         "per_expected_domain": {
-          "life_direction": 3,
           "leadership": 6,
           "career": 1,
+          "life_direction": 1,
           "purpose": 2,
           "money": 2,
           "growth": 2,
-          "identity": 1
+          "identity": 2
         },
         "per_expected_domain_rate": {
-          "life_direction": 0.0732,
           "leadership": 0.1463,
           "career": 0.0244,
+          "life_direction": 0.0244,
           "purpose": 0.0488,
           "money": 0.0488,
           "growth": 0.0488,
-          "identity": 0.0244
+          "identity": 0.0488
         },
         "domains_above_10pct": [
           "leadership"
@@ -828,12 +782,6 @@
         "gate": "< 5% overall AND no expected_domain > 10%",
         "status": "FAIL",
         "examples": [
-          {
-            "message": "Tell me about my Saturn return",
-            "active_frame": "self",
-            "predicted_domain": "identity",
-            "domain_drift_kind": "life_direction->identity"
-          },
           {
             "message": "My team is stuck in execution mode \u2014 how do I lift them out?",
             "active_frame": "self",
@@ -857,35 +805,22 @@
             "active_frame": "self",
             "predicted_domain": "general",
             "domain_drift_kind": "leadership->general"
+          },
+          {
+            "message": "Am I micromanaging my head of product?",
+            "active_frame": "self",
+            "predicted_domain": "career",
+            "domain_drift_kind": "leadership->career"
           }
         ]
       },
       "lens_jargon_override": {
-        "count": 3,
-        "rate": 0.0349,
-        "kinds": {
-          "saturn return collapsed to identity (should weight life_direction)": 2,
-          "7th house auto-routed to relationship without relational kw": 1
-        },
+        "count": 0,
+        "rate": 0.0,
+        "kinds": {},
         "gate": "< 3%",
-        "status": "FAIL",
-        "examples": [
-          {
-            "message": "Tell me about my Saturn return",
-            "predicted_domain": "identity",
-            "lens_jargon_override": "saturn return collapsed to identity (should weight life_direction)"
-          },
-          {
-            "message": "What's my 7th house about?",
-            "predicted_domain": "relationship",
-            "lens_jargon_override": "7th house auto-routed to relationship without relational kw"
-          },
-          {
-            "message": "How do my Saturn return and Enneagram 8 intersect?",
-            "predicted_domain": "identity",
-            "lens_jargon_override": "saturn return collapsed to identity (should weight life_direction)"
-          }
-        ]
+        "status": "PASS",
+        "examples": []
       },
       "relationship_context_loss": {
         "count": 2,
@@ -913,7 +848,7 @@
         "examples": []
       },
       "payload_completeness": {
-        "mandatory_modules_mean": 3.186,
+        "mandatory_modules_mean": 3.174,
         "mandatory_modules_min": 1,
         "mandatory_modules_max": 4,
         "gate": "no mandatory payload shrinks >25% vs baseline",
@@ -929,18 +864,12 @@
         "examples": []
       },
       "high_confidence_wrong_route": {
-        "count": 4,
-        "rate": 0.0465,
+        "count": 3,
+        "rate": 0.0349,
         "ground_truth_rows": 41,
         "gate": "< 1%",
         "status": "FAIL",
         "examples": [
-          {
-            "message": "Tell me about my Saturn return",
-            "predicted_domain": "identity",
-            "domain_drift_kind": "life_direction->identity",
-            "confidence": 1.0
-          },
           {
             "message": "What does my chart say about my career direction?",
             "predicted_domain": "career",
@@ -955,9 +884,9 @@
           },
           {
             "message": "How do my Saturn return and Enneagram 8 intersect?",
-            "predicted_domain": "identity",
-            "domain_drift_kind": "life_direction->identity",
-            "confidence": 1.0
+            "predicted_domain": "life_direction",
+            "domain_drift_kind": "identity->life_direction",
+            "confidence": 0.6552
           }
         ]
       },
@@ -1087,9 +1016,9 @@
           "share_of_corpus": 0.0581,
           "routing_pass_rate": 1.0,
           "predicted_domain_mix": {
-            "identity": 2,
+            "life_direction": 2,
             "family": 1,
-            "relationship": 1,
+            "identity": 1,
             "money": 1
           },
           "frame_mix": {
@@ -1100,9 +1029,9 @@
             {
               "message": "Tell me about my Saturn return",
               "frame": "self",
-              "predicted_domain": "identity",
+              "predicted_domain": "life_direction",
               "routing_status": "PASS",
-              "confidence": 1.0
+              "confidence": 0.5672
             },
             {
               "message": "Tell me about her 4th house",
@@ -1114,9 +1043,9 @@
             {
               "message": "What's my 7th house about?",
               "frame": "self",
-              "predicted_domain": "relationship",
+              "predicted_domain": "identity",
               "routing_status": "PASS",
-              "confidence": 0.8205
+              "confidence": 0.578
             },
             {
               "message": "What does my 2nd house say about wealth?",
@@ -1128,9 +1057,9 @@
             {
               "message": "How do my Saturn return and Enneagram 8 intersect?",
               "frame": "self",
-              "predicted_domain": "identity",
+              "predicted_domain": "life_direction",
               "routing_status": "PASS",
-              "confidence": 1.0
+              "confidence": 0.6552
             }
           ]
         },
@@ -1203,8 +1132,9 @@
           },
           "by_source": {
             "real": {
+              "life_direction": 1,
+              "relationship": 34,
               "identity": 4,
-              "relationship": 35,
               "general": 4,
               "career": 2,
               "family": 1
@@ -1212,8 +1142,9 @@
             "synth": {}
           },
           "domain_counts": {
+            "life_direction": 1,
+            "relationship": 34,
             "identity": 4,
-            "relationship": 35,
             "general": 4,
             "career": 2,
             "family": 1
@@ -1273,17 +1204,11 @@
           }
         },
         "false_positive_relationship": {
-          "count": 1,
-          "rate": 0.0217,
-          "broad_count": 23,
-          "broad_rate": 0.5,
-          "examples": [
-            {
-              "message": "What's my 7th house about?",
-              "frame": "self",
-              "category": "lens_jargon"
-            }
-          ]
+          "count": 0,
+          "rate": 0.0,
+          "broad_count": 22,
+          "broad_rate": 0.4783,
+          "examples": []
         },
         "false_negative_relationship": {
           "count": 4,
@@ -1379,10 +1304,10 @@
           "accuracy": 0.0
         },
         "latency_ms": {
-          "mean": 0.971,
-          "p50": 0.116,
-          "p95": 0.158,
-          "max": 38.9
+          "mean": 1.141,
+          "p50": 0.128,
+          "p95": 0.167,
+          "max": 46.615
         },
         "versions": {
           "intent_router": "intent_router_v2.1.0",
@@ -1391,54 +1316,25 @@
         },
         "regression_buckets": {
           "domain_drift": {
-            "count": 1,
+            "count": 0,
             "denominator": 1,
             "ground_truth_rows": 1,
-            "rate": 1.0,
-            "kinds": {
-              "life_direction->identity": 1
-            },
-            "per_expected_domain": {
-              "life_direction": 1
-            },
-            "per_expected_domain_rate": {
-              "life_direction": 1.0
-            },
-            "domains_above_10pct": [
-              "life_direction"
-            ],
+            "rate": 0.0,
+            "kinds": {},
+            "per_expected_domain": {},
+            "per_expected_domain_rate": {},
+            "domains_above_10pct": [],
             "gate": "< 5% overall AND no expected_domain > 10%",
             "status": "INSUFFICIENT_SAMPLE",
-            "examples": [
-              {
-                "message": "Tell me about my Saturn return",
-                "active_frame": "self",
-                "predicted_domain": "identity",
-                "domain_drift_kind": "life_direction->identity"
-              }
-            ]
+            "examples": []
           },
           "lens_jargon_override": {
-            "count": 2,
-            "rate": 0.0435,
-            "kinds": {
-              "saturn return collapsed to identity (should weight life_direction)": 1,
-              "7th house auto-routed to relationship without relational kw": 1
-            },
+            "count": 0,
+            "rate": 0.0,
+            "kinds": {},
             "gate": "< 3%",
-            "status": "FAIL",
-            "examples": [
-              {
-                "message": "Tell me about my Saturn return",
-                "predicted_domain": "identity",
-                "lens_jargon_override": "saturn return collapsed to identity (should weight life_direction)"
-              },
-              {
-                "message": "What's my 7th house about?",
-                "predicted_domain": "relationship",
-                "lens_jargon_override": "7th house auto-routed to relationship without relational kw"
-              }
-            ]
+            "status": "PASS",
+            "examples": []
           },
           "relationship_context_loss": {
             "count": 0,
@@ -1455,7 +1351,7 @@
             "examples": []
           },
           "payload_completeness": {
-            "mandatory_modules_mean": 3.565,
+            "mandatory_modules_mean": 3.543,
             "mandatory_modules_min": 1,
             "mandatory_modules_max": 4,
             "gate": "no mandatory payload shrinks >25% vs baseline",
@@ -1471,19 +1367,12 @@
             "examples": []
           },
           "high_confidence_wrong_route": {
-            "count": 1,
-            "rate": 0.0217,
+            "count": 0,
+            "rate": 0.0,
             "ground_truth_rows": 1,
             "gate": "< 1%",
-            "status": "WATCH",
-            "examples": [
-              {
-                "message": "Tell me about my Saturn return",
-                "predicted_domain": "identity",
-                "domain_drift_kind": "life_direction->identity",
-                "confidence": 1.0
-              }
-            ]
+            "status": "INSUFFICIENT_SAMPLE",
+            "examples": []
           },
           "founder_operator_suite": {
             "count": 0,
@@ -1523,9 +1412,9 @@
               "share_of_corpus": 0.0652,
               "routing_pass_rate": 1.0,
               "predicted_domain_mix": {
-                "identity": 1,
+                "life_direction": 1,
                 "family": 1,
-                "relationship": 1
+                "identity": 1
               },
               "frame_mix": {
                 "self": 2,
@@ -1535,9 +1424,9 @@
                 {
                   "message": "Tell me about my Saturn return",
                   "frame": "self",
-                  "predicted_domain": "identity",
+                  "predicted_domain": "life_direction",
                   "routing_status": "PASS",
-                  "confidence": 1.0
+                  "confidence": 0.5672
                 },
                 {
                   "message": "Tell me about her 4th house",
@@ -1549,9 +1438,9 @@
                 {
                   "message": "What's my 7th house about?",
                   "frame": "self",
-                  "predicted_domain": "relationship",
+                  "predicted_domain": "identity",
                   "routing_status": "PASS",
-                  "confidence": 0.8205
+                  "confidence": 0.578
                 }
               ]
             },
@@ -1634,11 +1523,11 @@
               "general": 7,
               "work": 2,
               "career": 8,
-              "life_direction": 2,
+              "life_direction": 3,
               "money": 4,
               "purpose": 2,
               "relationship": 7,
-              "identity": 4
+              "identity": 3
             }
           },
           "domain_counts": {
@@ -1647,11 +1536,11 @@
             "general": 7,
             "work": 2,
             "career": 8,
-            "life_direction": 2,
+            "life_direction": 3,
             "money": 4,
             "purpose": 2,
             "relationship": 7,
-            "identity": 4
+            "identity": 3
           }
         },
         "routing": {
@@ -1769,14 +1658,14 @@
         },
         "expected_top1_synth_only": {
           "n_with_expected": 40,
-          "n_top1": 26,
-          "accuracy": 0.65
+          "n_top1": 25,
+          "accuracy": 0.625
         },
         "latency_ms": {
-          "mean": 0.118,
-          "p50": 0.119,
-          "p95": 0.135,
-          "max": 0.145
+          "mean": 0.135,
+          "p50": 0.134,
+          "p95": 0.16,
+          "max": 0.175
         },
         "versions": {
           "intent_router": "intent_router_v2.1.0",
@@ -1800,26 +1689,26 @@
               "money->career": 1,
               "growth->general": 2,
               "identity->work": 1,
-              "life_direction->identity": 1,
+              "identity->life_direction": 1,
               "money->identity": 1
             },
             "per_expected_domain": {
               "leadership": 6,
               "career": 1,
-              "life_direction": 2,
+              "life_direction": 1,
               "purpose": 2,
               "money": 2,
               "growth": 2,
-              "identity": 1
+              "identity": 2
             },
             "per_expected_domain_rate": {
               "leadership": 0.15,
               "career": 0.025,
-              "life_direction": 0.05,
+              "life_direction": 0.025,
               "purpose": 0.05,
               "money": 0.05,
               "growth": 0.05,
-              "identity": 0.025
+              "identity": 0.05
             },
             "domains_above_10pct": [
               "leadership"
@@ -1860,20 +1749,12 @@
             ]
           },
           "lens_jargon_override": {
-            "count": 1,
-            "rate": 0.025,
-            "kinds": {
-              "saturn return collapsed to identity (should weight life_direction)": 1
-            },
+            "count": 0,
+            "rate": 0.0,
+            "kinds": {},
             "gate": "< 3%",
             "status": "PASS",
-            "examples": [
-              {
-                "message": "How do my Saturn return and Enneagram 8 intersect?",
-                "predicted_domain": "identity",
-                "lens_jargon_override": "saturn return collapsed to identity (should weight life_direction)"
-              }
-            ]
+            "examples": []
           },
           "relationship_context_loss": {
             "count": 2,
@@ -1937,9 +1818,9 @@
               },
               {
                 "message": "How do my Saturn return and Enneagram 8 intersect?",
-                "predicted_domain": "identity",
-                "domain_drift_kind": "life_direction->identity",
-                "confidence": 1.0
+                "predicted_domain": "life_direction",
+                "domain_drift_kind": "identity->life_direction",
+                "confidence": 0.6552
               }
             ]
           },
@@ -2070,7 +1951,7 @@
               "routing_pass_rate": 1.0,
               "predicted_domain_mix": {
                 "money": 1,
-                "identity": 1
+                "life_direction": 1
               },
               "frame_mix": {
                 "self": 2
@@ -2086,9 +1967,9 @@
                 {
                   "message": "How do my Saturn return and Enneagram 8 intersect?",
                   "frame": "self",
-                  "predicted_domain": "identity",
+                  "predicted_domain": "life_direction",
                   "routing_status": "PASS",
-                  "confidence": 1.0
+                  "confidence": 0.6552
                 }
               ]
             },
@@ -5204,25 +5085,5 @@
     "target_resolution_proposed_min": 0.05,
     "false_positive_relationship_max": 0.05,
     "forum_member_correctly_handled": 0.9
-  },
-  "delta_vs_baseline": {
-    "baseline_generated_at": "2026-06-11T19:27:31.074622+00:00",
-    "current_generated_at": "2026-06-12T02:42:42.392232+00:00",
-    "new_fp_relationship_examples": [],
-    "new_resolver_failure_examples": [],
-    "unresolved_named_distribution_delta": {
-      "forum_only_member": {
-        "baseline": 1,
-        "current": 1,
-        "delta": 0
-      },
-      "true_missing_person": {
-        "baseline": 11,
-        "current": 11,
-        "delta": 0
-      }
-    },
-    "new_forum_member_unresolved_examples": [],
-    "regression_clusters": []
   }
 }

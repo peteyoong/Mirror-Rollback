@@ -1,8 +1,11 @@
-# Lens-jargon regression suite for intent_router_v2 (Slice B1.3).
+# Lens-jargon regression suite for intent_router_v2 (Slice B1.3 + B3.1).
 # Targets astrology / human design / enneagram / numerology / bazi
-# terminology that real users use.  Routing rule:
+# terminology that real users use.  Routing rule (post B3.1):
 #   * generic "my X" lens jargon → identity (self-inquiry through a lens)
-#   * specific house numbers / relationship jargon override → relationship/career/family/money
+#   * specific house numbers / lens-objects WITH a contextual cue
+#       (relational / career / family / money / temporal) → that domain
+#   * specific house numbers / lens-objects WITHOUT a contextual cue
+#       (post B3.1) → identity (educational-mode disambiguation)
 #   * partner-name + lens jargon → relationship via role-bias path
 # Ids prefixed `LJ`.
 
@@ -10,8 +13,8 @@
 - id: LJ1
   message: "Tell me about my Saturn return"
   active_frame: self
-  expected_primary: identity
-  expected_secondary_in: [growth, life_direction]
+  expected_primary: life_direction
+  expected_secondary_in: [identity, growth]
 
 - id: LJ2
   message: "What's my Sun sign all about?"
@@ -34,19 +37,22 @@
   expected_primary: identity
   expected_secondary_in: [growth, life_direction]
 
-# --- ASTROLOGY: house overrides ---
+# --- ASTROLOGY: house overrides (B3.1 updates) ---
+# Cases below all include an explicit contextual cue so the natural
+# house domain still wins.  Bare house-only queries are covered by
+# `golden_set_educational_astrology.yaml`.
 - id: LJ6
-  message: "What's my 7th house about?"
+  message: "How is my 7th house affecting things with my wife?"
   active_frame: self
   expected_primary: relationship
 
 - id: LJ7
-  message: "What does my 10th house tell me about my path?"
+  message: "What does my 10th house tell me about my career direction?"
   active_frame: self
   expected_primary: career
 
 - id: LJ8
-  message: "Tell me about my 4th house"
+  message: "What is my 4th house showing about my family right now?"
   active_frame: self
   expected_primary: family
 
@@ -56,7 +62,7 @@
   expected_primary: money
 
 - id: LJ10
-  message: "Tell me about my Midheaven"
+  message: "How does my Midheaven affect my career path?"
   active_frame: self
   expected_primary: career
 

@@ -169,6 +169,18 @@ def register(
 
                 async def _b1_run_shadow():
                     saved = await _b1_load_saved_people()
+                    # P4: forward forum_topology when the client supplied it.
+                    # Belt-and-braces fallback — if no explicit topology but
+                    # `about_person_id` is set on a forum-like surface, build
+                    # a minimal topology so the resolver still binds.
+                    _b1_forum_topology = getattr(request, "forum_topology", None)
+                    if (_b1_forum_topology is None
+                            and getattr(request, "about_person_id", None)
+                            and (getattr(request, "life_domain", None) == "forum"
+                                 or (request.lens or "").lower() == "forum")):
+                        _b1_forum_topology = {
+                            "active_member_id": request.about_person_id,
+                        }
                     await _b1_emit_shadow_receipt(
                         db=db,
                         request_id=_b1_request_id,
@@ -178,6 +190,7 @@ def register(
                         about_person_id=getattr(request, "about_person_id", None),
                         life_domain=getattr(request, "life_domain", None),
                         saved_people=saved,
+                        forum_topology=_b1_forum_topology,
                     )
 
                 _asyncio_b1.create_task(_b1_run_shadow())

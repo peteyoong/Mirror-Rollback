@@ -4,10 +4,6 @@ _Companion to `B2_READINESS_REPORT.md`._
 
 ## Representative success cases (REAL)
 
-- `real` / `chat_history` / frame=`self`
-  - **msg**: Tell me about my Saturn return
-  - predicted=`identity`  conf=1.0  signal=1.0  margin=1.0
-  - routing=`PASS`  retrieval=`PASS`  target=`NOT_APPLICABLE`
 - `real` / `forum_chat_messages` / frame=`self`
   - **msg**: how am I showing up?
   - predicted=`identity`  conf=0.7  signal=0.7  margin=1.0
@@ -28,6 +24,10 @@ _Companion to `B2_READINESS_REPORT.md`._
   - **msg**: Can you tell me about Mel’s 4th house please?
   - predicted=`relationship`  conf=0.6905  signal=1.0  margin=0.381
   - routing=`PASS`  retrieval=`PASS`  target=`UNRESOLVED_NAMED`  - proposed_action: `{'type': 'add_to_circle', 'suggested_name': 'Mel', 'reason': "name 'Mel' appears in message but is not in user's saved_people", 'source_text': 'Can you tell me about Mel’s 4th house please?', 'confidence': 0.55}`
+- `real` / `forum_chat_messages` / frame=`self`
+  - **msg**: Tell me about Mel's 4th house and how does that map to me?
+  - predicted=`relationship`  conf=0.7797  signal=1.0  margin=0.5593
+  - routing=`PASS`  retrieval=`PASS`  target=`UNRESOLVED_NAMED`  - proposed_action: `{'type': 'add_to_circle', 'suggested_name': 'Mel', 'reason': "name 'Mel' appears in message but is not in user's saved_people", 'source_text': "Tell me about Mel's 4th house and how does that map to me?", 'confidence': 0.55}`
 - `real` / `forum_chat_messages` / frame=`self`
   - **msg**: Tell me about Mel's 4th house and how does that map to me?
   - predicted=`relationship`  conf=0.7797  signal=1.0  margin=0.5593

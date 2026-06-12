@@ -556,6 +556,14 @@ class MirrorChatRequest(BaseModel):
     # exclusive with `lens` (if both are set, life_domain wins and lens
     # is ignored for voice purposes).
     life_domain: Optional[str] = None  # "relationships" | "work" | "self"
+    # P4 (forum topology plumbing) — when set, the chat is happening on a
+    # forum surface with a specific active member focused.  The shadow
+    # router uses `active_member_id` to bind the relationship context
+    # without requiring an explicit `about_person_id`.  Shape:
+    #   {"forum_id": str, "active_member_id": str,
+    #    "members": [{"id": str, "name": str, "role": str?}, ...]}
+    # All keys optional; absent field preserves prior behaviour.
+    forum_topology: Optional[dict] = None
 
 
 # Memory Update - "You Over Time" structured tracking
@@ -7374,9 +7382,23 @@ async def admin_map_relationship(payload: dict):
         "target_user_id":   "...",  (optional if target_name provided)
         "target_name":      "Mel",  (optional if target_user_id provided)
         "relationship_type": "spouse" | "partner" | ...
+        "confirm":          "MAP_RELATIONSHIP_V1"   (REQUIRED — see below)
     }
     Upserts into the `relationship_mappings` collection.
+
+    SAFETY (admin-route-hardening-v1, 2026-06-12): requires
+    `confirm == "MAP_RELATIONSHIP_V1"` in the body so this write-capable
+    endpoint cannot run accidentally. Behaviour-preserving when the
+    token is supplied.
     """
+    if payload.get("confirm") != "MAP_RELATIONSHIP_V1":
+        raise HTTPException(
+            status_code=400,
+            detail={
+                "code":    "MISSING_CONFIRM",
+                "message": 'Add "confirm": "MAP_RELATIONSHIP_V1" to the request body to acknowledge a write into relationship_mappings.',
+            },
+        )
     asker = payload.get("asker_user_id")
     target_uid = payload.get("target_user_id")
     target_nm = payload.get("target_name")
@@ -32071,12 +32093,28 @@ async def admin_run_hd_type_migration(
 # email, and Melaka coords, then triggers chart recompute. Idempotent.
 # ---------------------------------------------------------------------
 @api_router.post("/admin/fix_mel_live")
-async def admin_fix_mel_live(user_id: str = "69b50ecb2b86cfb90750ec04"):
+async def admin_fix_mel_live(
+    user_id: str = "69b50ecb2b86cfb90750ec04",
+    confirm: str = "",
+):
     """Force-fix the live Yoong-family Mel record + recompute her chart.
     
     Default user_id is the production-deployed Mel (per credentials).
     Returns before/after summary so the caller can confirm Cancer Rising.
+
+    SAFETY (admin-route-hardening-v1, 2026-06-12): requires
+    `?confirm=FIX_MEL_LIVE_V1` query parameter so this write-capable
+    endpoint cannot run accidentally from a stray curl / dashboard
+    misclick. Behaviour-preserving when the token is supplied.
     """
+    if confirm != "FIX_MEL_LIVE_V1":
+        raise HTTPException(
+            status_code=400,
+            detail={
+                "code":    "MISSING_CONFIRM",
+                "message": "Append `?confirm=FIX_MEL_LIVE_V1` to acknowledge live writes to the Mel record + chart recompute.",
+            },
+        )
     try:
         from bson import ObjectId as _OID
         from calculations.astrology import get_full_natal_chart

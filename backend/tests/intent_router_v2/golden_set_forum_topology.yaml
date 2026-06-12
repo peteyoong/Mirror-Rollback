@@ -1,0 +1,88 @@
+# Forum-topology regression suite (P4 plumbing).
+# These prompts arrive on a forum surface with `forum_topology.
+# active_member_id` supplied — the resolver should bind that as the
+# active member and route the intent to relationship (or growth in
+# some cases) with `context_mode = RELATIONAL`.
+# Ids prefixed `FT`.
+
+- id: FT1
+  message: "Tell me about this forum member."
+  active_frame: forum
+  forum_topology:
+    forum_id: "forum-001"
+    active_member_id: "kara-001"
+    members:
+      - {id: "kara-001", name: "Kara"}
+  expected_primary: relationship
+
+- id: FT2
+  message: "How does this person map to me?"
+  active_frame: forum
+  forum_topology:
+    forum_id: "forum-001"
+    active_member_id: "kara-001"
+  expected_primary: relationship
+
+- id: FT3
+  message: "What role do they play in the group?"
+  active_frame: forum
+  forum_topology:
+    forum_id: "forum-001"
+    active_member_id: "kara-001"
+  expected_primary: relationship
+
+- id: FT4
+  message: "What tension exists between us?"
+  active_frame: forum
+  forum_topology:
+    forum_id: "forum-001"
+    active_member_id: "kara-001"
+  expected_primary: relationship
+
+- id: FT5
+  message: "What should I understand about this member?"
+  active_frame: forum
+  forum_topology:
+    forum_id: "forum-001"
+    active_member_id: "kara-001"
+  expected_primary: relationship
+
+- id: FT6
+  message: "How do I work with them effectively?"
+  active_frame: forum
+  forum_topology:
+    forum_id: "forum-001"
+    active_member_id: "kara-001"
+  expected_primary: relationship
+
+- id: FT7
+  message: "What contribution do they bring?"
+  active_frame: forum
+  forum_topology:
+    forum_id: "forum-001"
+    active_member_id: "kara-001"
+  expected_primary: relationship
+
+- id: FT8
+  message: "How are they experienced by the forum?"
+  active_frame: forum
+  forum_topology:
+    forum_id: "forum-001"
+    active_member_id: "kara-001"
+  expected_primary: relationship
+
+- id: FT9
+  message: "What relationship pattern exists here?"
+  active_frame: forum
+  forum_topology:
+    forum_id: "forum-001"
+    active_member_id: "kara-001"
+  expected_primary: relationship
+
+- id: FT10
+  message: "What dynamic is emerging in the forum?"
+  active_frame: forum
+  forum_topology:
+    forum_id: "forum-001"
+    active_member_id: "kara-001"
+  expected_primary: relationship

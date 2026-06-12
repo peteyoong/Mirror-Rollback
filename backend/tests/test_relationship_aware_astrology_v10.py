@@ -135,6 +135,7 @@ class TestAdminMapRelationship:
                 "target_user_id": MEL_ID,
                 "target_name": "Mel",
                 "relationship_type": "spouse",
+                "confirm": "MAP_RELATIONSHIP_V1",
             },
             timeout=30,
         )
