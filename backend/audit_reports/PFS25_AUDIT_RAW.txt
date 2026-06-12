@@ -1,0 +1,203 @@
+# PFS-2.5 production graph audit
+# DB=test_database
+# run_at=2026-06-12T08:44:09.181066Z
+
+## edge inventory (2 total)
+[
+  {
+    "forum_id": "69dda348de9cb1c83c0780fa",
+    "forum_name": "Yoong family",
+    "source_user_id": "697f0c6abf35c0528ff06954",
+    "source_user_name": "Pete",
+    "target_user_id": "697ec826ad4b18f75bf42616",
+    "target_user_name": "Mel",
+    "stored_role": "spouse",
+    "resolved_bucket": "spouse",
+    "resolved_framing": "couple_dynamic",
+    "domain_bias": "relationship",
+    "topology_confidence": "high",
+    "topology_inferred": false,
+    "edge_id": "0c0c37e5-0c1d-4a09-8f5c-7da185217b30",
+    "created_at": "2026-05-28T09:29:02.245000"
+  },
+  {
+    "forum_id": "69dd05eaa333335fcbf3ad33",
+    "forum_name": "Pete & Mel",
+    "source_user_id": "697f0c6abf35c0528ff06954",
+    "source_user_name": "Pete",
+    "target_user_id": "697ec826ad4b18f75bf42616",
+    "target_user_name": "Mel",
+    "stored_role": "spouse",
+    "resolved_bucket": "spouse",
+    "resolved_framing": "couple_dynamic",
+    "domain_bias": "relationship",
+    "topology_confidence": "high",
+    "topology_inferred": false,
+    "edge_id": "5beee835-8f27-43ca-8d36-e25e2915b84e",
+    "created_at": "2026-06-12T06:54:45.299000"
+  }
+]
+
+## role_type distribution
+{
+  "spouse": 2
+}
+
+## resolved_bucket distribution
+{
+  "spouse": 2
+}
+
+## confidence distribution
+{
+  "high": 2
+}
+
+## inferred flag distribution
+{
+  "False": 2
+}
+
+## SPECIAL FOCUS coverage
+{
+  "advisor": 0,
+  "child": 0,
+  "cofounder": 0,
+  "forum_mate": 0,
+  "forum_member": 0,
+  "investor": 0,
+  "mentor": 0,
+  "spouse": 2
+}
+
+## duplicates: 0
+[]
+
+## contradictions (same pair, different role): 0
+[]
+
+## inverse-direction missing: 2
+[
+  {
+    "forum_id": "69dda348de9cb1c83c0780fa",
+    "from": "697f0c6abf35c0528ff06954",
+    "to": "697ec826ad4b18f75bf42616",
+    "role": "spouse"
+  },
+  {
+    "forum_id": "69dd05eaa333335fcbf3ad33",
+    "from": "697f0c6abf35c0528ff06954",
+    "to": "697ec826ad4b18f75bf42616",
+    "role": "spouse"
+  }
+]
+
+## FORUM-MEMBER-WITHOUT-EDGE gap analysis
+  Total ordered (from→to) member pairs WITHOUT an edge: 12
+[
+  {
+    "forum_id": "69dd05eaa333335fcbf3ad33",
+    "forum_name": "Pete & Mel",
+    "from": "697ec826ad4b18f75bf42616",
+    "from_name": "Mel",
+    "to": "697f0c6abf35c0528ff06954",
+    "to_name": "Pete"
+  },
+  {
+    "forum_id": "69dda348de9cb1c83c0780fa",
+    "forum_name": "Yoong family",
+    "from": "697f0c6abf35c0528ff06954",
+    "from_name": "Pete",
+    "to": "69dd0b2cc92ba973f8838c11",
+    "to_name": "Thaddeus Yoong"
+  },
+  {
+    "forum_id": "69dda348de9cb1c83c0780fa",
+    "forum_name": "Yoong family",
+    "from": "697f0c6abf35c0528ff06954",
+    "from_name": "Pete",
+    "to": "69dda348de9cb1c83c0780f8",
+    "to_name": "Isaac Yoong"
+  },
+  {
+    "forum_id": "69dda348de9cb1c83c0780fa",
+    "forum_name": "Yoong family",
+    "from": "69dd0b2cc92ba973f8838c11",
+    "from_name": "Thaddeus Yoong",
+    "to": "697f0c6abf35c0528ff06954",
+    "to_name": "Pete"
+  },
+  {
+    "forum_id": "69dda348de9cb1c83c0780fa",
+    "forum_name": "Yoong family",
+    "from": "69dd0b2cc92ba973f8838c11",
+    "from_name": "Thaddeus Yoong",
+    "to": "69dda348de9cb1c83c0780f8",
+    "to_name": "Isaac Yoong"
+  },
+  {
+    "forum_id": "69dda348de9cb1c83c0780fa",
+    "forum_name": "Yoong family",
+    "from": "69dd0b2cc92ba973f8838c11",
+    "from_name": "Thaddeus Yoong",
+    "to": "697ec826ad4b18f75bf42616",
+    "to_name": "Mel"
+  },
+  {
+    "forum_id": "69dda348de9cb1c83c0780fa",
+    "forum_name": "Yoong family",
+    "from": "69dda348de9cb1c83c0780f8",
+    "from_name": "Isaac Yoong",
+    "to": "697f0c6abf35c0528ff06954",
+    "to_name": "Pete"
+  },
+  {
+    "forum_id": "69dda348de9cb1c83c0780fa",
+    "forum_name": "Yoong family",
+    "from": "69dda348de9cb1c83c0780f8",
+    "from_name": "Isaac Yoong",
+    "to": "69dd0b2cc92ba973f8838c11",
+    "to_name": "Thaddeus Yoong"
+  },
+  {
+    "forum_id": "69dda348de9cb1c83c0780fa",
+    "forum_name": "Yoong family",
+    "from": "69dda348de9cb1c83c0780f8",
+    "from_name": "Isaac Yoong",
+    "to": "697ec826ad4b18f75bf42616",
+    "to_name": "Mel"
+  },
+  {
+    "forum_id": "69dda348de9cb1c83c0780fa",
+    "forum_name": "Yoong family",
+    "from": "697ec826ad4b18f75bf42616",
+    "from_name": "Mel",
+    "to": "697f0c6abf35c0528ff06954",
+    "to_name": "Pete"
+  },
+  {
+    "forum_id": "69dda348de9cb1c83c0780fa",
+    "forum_name": "Yoong family",
+    "from": "697ec826ad4b18f75bf42616",
+    "from_name": "Mel",
+    "to": "69dd0b2cc92ba973f8838c11",
+    "to_name": "Thaddeus Yoong"
+  },
+  {
+    "forum_id": "69dda348de9cb1c83c0780fa",
+    "forum_name": "Yoong family",
+    "from": "697ec826ad4b18f75bf42616",
+    "from_name": "Mel",
+    "to": "69dda348de9cb1c83c0780f8",
+    "to_name": "Isaac Yoong"
+  }
+]
+
+## unknown_role_token frequency in mirror_chat_retrieval_receipts
+{
+  "total_receipts": 106,
+  "replanned_after_topology_T": 3,
+  "unknown_role_token_events": 1,
+  "unknown_rate_pct_of_replanned": 33.33,
+  "ungating_threshold_pct": 5.0
+}
