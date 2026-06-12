@@ -1,0 +1,1138 @@
+[
+  {
+    "label": "Pete",
+    "user_id": "697f0c6abf35c0528ff06954",
+    "birth": {
+      "date": "1968-04-01T00:00:00",
+      "time": "01:25",
+      "coords": {
+        "lat": 3.1073,
+        "lon": 101.6068
+      },
+      "tz_in_meta": null
+    },
+    "engine": {
+      "engine_version": "midpoint13_variant_a_v1",
+      "house_system": "Equal",
+      "sidereal_mode": "true_sidereal_user_defined",
+      "svp_degrees": 31.2836,
+      "node_mode": "true_node",
+      "computation_version": "mirror-deterministic-v1"
+    },
+    "calc_layer_error": "TypeError: get_full_natal_chart() got an unexpected keyword argument 'birth_date'",
+    "rows": [
+      {
+        "point": "Sun",
+        "stored": {
+          "sign": "Pisces",
+          "degree": 22.23,
+          "house": 3
+        },
+        "calculator": "(unable_to_recompute)",
+        "prompt": {
+          "sign": "Pisces",
+          "degree": 22.23,
+          "house": 3
+        },
+        "calc_vs_stored": "n/a",
+        "stored_vs_prompt": "OK"
+      },
+      {
+        "point": "Moon",
+        "stored": {
+          "sign": "Aries",
+          "degree": 11.06,
+          "house": 4
+        },
+        "calculator": "(unable_to_recompute)",
+        "prompt": {
+          "sign": "Aries",
+          "degree": 11.06,
+          "house": 4
+        },
+        "calc_vs_stored": "n/a",
+        "stored_vs_prompt": "OK"
+      },
+      {
+        "point": "Mercury",
+        "stored": {
+          "sign": "Pisces",
+          "degree": 0.77,
+          "house": 3
+        },
+        "calculator": "(unable_to_recompute)",
+        "prompt": {
+          "sign": "Pisces",
+          "degree": 0.77,
+          "house": 3
+        },
+        "calc_vs_stored": "n/a",
+        "stored_vs_prompt": "OK"
+      },
+      {
+        "point": "Venus",
+        "stored": {
+          "sign": "Pisces",
+          "degree": 1.1,
+          "house": 3
+        },
+        "calculator": "(unable_to_recompute)",
+        "prompt": {
+          "sign": "Pisces",
+          "degree": 1.1,
+          "house": 3
+        },
+        "calc_vs_stored": "n/a",
+        "stored_vs_prompt": "OK"
+      },
+      {
+        "point": "Mars",
+        "stored": {
+          "sign": "Aries",
+          "degree": 1.93,
+          "house": 4
+        },
+        "calculator": "(unable_to_recompute)",
+        "prompt": {
+          "sign": "Aries",
+          "degree": 1.93,
+          "house": 4
+        },
+        "calc_vs_stored": "n/a",
+        "stored_vs_prompt": "OK"
+      },
+      {
+        "point": "Jupiter",
+        "stored": {
+          "sign": "Leo",
+          "degree": 12.49,
+          "house": 8
+        },
+        "calculator": "(unable_to_recompute)",
+        "prompt": {
+          "sign": "Leo",
+          "degree": 12.49,
+          "house": 8
+        },
+        "calc_vs_stored": "n/a",
+        "stored_vs_prompt": "OK"
+      },
+      {
+        "point": "Saturn",
+        "stored": {
+          "sign": "Pisces",
+          "degree": 25.96,
+          "house": 3
+        },
+        "calculator": "(unable_to_recompute)",
+        "prompt": {
+          "sign": "Pisces",
+          "degree": 25.96,
+          "house": 3
+        },
+        "calc_vs_stored": "n/a",
+        "stored_vs_prompt": "OK"
+      },
+      {
+        "point": "Uranus",
+        "stored": {
+          "sign": "Virgo",
+          "degree": 4.13,
+          "house": 9
+        },
+        "calculator": "(unable_to_recompute)",
+        "prompt": {
+          "sign": "Virgo",
+          "degree": 4.13,
+          "house": 9
+        },
+        "calc_vs_stored": "n/a",
+        "stored_vs_prompt": "OK"
+      },
+      {
+        "point": "Neptune",
+        "stored": {
+          "sign": "Libra",
+          "degree": 14.08,
+          "house": 11
+        },
+        "calculator": "(unable_to_recompute)",
+        "prompt": {
+          "sign": "Libra",
+          "degree": 14.08,
+          "house": 11
+        },
+        "calc_vs_stored": "n/a",
+        "stored_vs_prompt": "OK"
+      },
+      {
+        "point": "Pluto",
+        "stored": {
+          "sign": "Leo",
+          "degree": 37.0,
+          "house": 9
+        },
+        "calculator": "(unable_to_recompute)",
+        "prompt": {
+          "sign": "Leo",
+          "degree": 37.0,
+          "house": 9
+        },
+        "calc_vs_stored": "n/a",
+        "stored_vs_prompt": "OK"
+      },
+      {
+        "point": "North Node",
+        "stored": {
+          "sign": "Pisces",
+          "degree": 29.83,
+          "house": 4
+        },
+        "calculator": "(unable_to_recompute)",
+        "prompt": {
+          "sign": "Pisces",
+          "degree": 29.83,
+          "house": 4
+        },
+        "calc_vs_stored": "n/a",
+        "stored_vs_prompt": "OK"
+      },
+      {
+        "point": "South Node",
+        "stored": {
+          "sign": "Virgo",
+          "degree": 26.23,
+          "house": 10
+        },
+        "calculator": "(unable_to_recompute)",
+        "prompt": {
+          "sign": "Virgo",
+          "degree": 26.23,
+          "house": 10
+        },
+        "calc_vs_stored": "n/a",
+        "stored_vs_prompt": "OK"
+      },
+      {
+        "point": "Chiron",
+        "stored": {
+          "sign": "Pisces",
+          "degree": 11.12,
+          "house": 3
+        },
+        "calculator": "(unable_to_recompute)",
+        "prompt": "(absent_from_prompt)",
+        "calc_vs_stored": "n/a",
+        "stored_vs_prompt": "MISSING_RIGHT"
+      },
+      {
+        "point": "ASC",
+        "stored": {
+          "sign": "Sagittarius",
+          "degree": 19.76,
+          "house": null
+        },
+        "calculator": "(unable_to_recompute)",
+        "prompt": {
+          "sign": "Sagittarius",
+          "degree": 19.76,
+          "house": null
+        },
+        "calc_vs_stored": "n/a",
+        "stored_vs_prompt": "OK"
+      },
+      {
+        "point": "MC",
+        "stored": {
+          "sign": "Virgo",
+          "degree": 28.24,
+          "house": null
+        },
+        "calculator": "(unable_to_recompute)",
+        "prompt": {
+          "sign": "Virgo",
+          "degree": 28.24,
+          "house": null
+        },
+        "calc_vs_stored": "n/a",
+        "stored_vs_prompt": "OK"
+      },
+      {
+        "point": "IC",
+        "stored": {
+          "sign": "Pisces",
+          "degree": 31.83,
+          "house": null
+        },
+        "calculator": "(unable_to_recompute)",
+        "prompt": "(absent_from_prompt)",
+        "calc_vs_stored": "n/a",
+        "stored_vs_prompt": "MISSING_RIGHT"
+      },
+      {
+        "point": "Descendant",
+        "stored": {
+          "sign": "Gemini",
+          "degree": 18.95,
+          "house": null
+        },
+        "calculator": "(unable_to_recompute)",
+        "prompt": "(absent_from_prompt)",
+        "calc_vs_stored": "n/a",
+        "stored_vs_prompt": "MISSING_RIGHT"
+      }
+    ]
+  },
+  {
+    "label": "Mel",
+    "user_id": "697ec826ad4b18f75bf42616",
+    "birth": {
+      "date": "1981-07-13",
+      "time": "07:25",
+      "coords": {
+        "lat": 2.1896,
+        "lon": 102.2501
+      },
+      "tz_in_meta": null
+    },
+    "engine": {
+      "engine_version": "midpoint13_variant_a_v1",
+      "house_system": "Equal",
+      "sidereal_mode": "true_sidereal_user_defined",
+      "svp_degrees": 31.2836,
+      "node_mode": "true_node",
+      "computation_version": "mirror-deterministic-v1"
+    },
+    "calc_layer_error": "TypeError: get_full_natal_chart() got an unexpected keyword argument 'birth_date'",
+    "rows": [
+      {
+        "point": "Sun",
+        "stored": {
+          "sign": "Gemini",
+          "degree": 22.9,
+          "house": 12
+        },
+        "calculator": "(unable_to_recompute)",
+        "prompt": {
+          "sign": "Gemini",
+          "degree": 22.9,
+          "house": 12
+        },
+        "calc_vs_stored": "n/a",
+        "stored_vs_prompt": "OK"
+      },
+      {
+        "point": "Moon",
+        "stored": {
+          "sign": "Scorpio",
+          "degree": 1.93,
+          "house": 5
+        },
+        "calculator": "(unable_to_recompute)",
+        "prompt": {
+          "sign": "Scorpio",
+          "degree": 1.93,
+          "house": 5
+        },
+        "calc_vs_stored": "n/a",
+        "stored_vs_prompt": "OK"
+      },
+      {
+        "point": "Mercury",
+        "stored": {
+          "sign": "Gemini",
+          "degree": 2.48,
+          "house": 11
+        },
+        "calculator": "(unable_to_recompute)",
+        "prompt": {
+          "sign": "Gemini",
+          "degree": 2.48,
+          "house": 11
+        },
+        "calc_vs_stored": "n/a",
+        "stored_vs_prompt": "OK"
+      },
+      {
+        "point": "Venus",
+        "stored": {
+          "sign": "Leo",
+          "degree": 1.77,
+          "house": 1
+        },
+        "calculator": "(unable_to_recompute)",
+        "prompt": {
+          "sign": "Leo",
+          "degree": 1.77,
+          "house": 1
+        },
+        "calc_vs_stored": "n/a",
+        "stored_vs_prompt": "OK"
+      },
+      {
+        "point": "Mars",
+        "stored": {
+          "sign": "Taurus",
+          "degree": 35.6,
+          "house": 11
+        },
+        "calculator": "(unable_to_recompute)",
+        "prompt": {
+          "sign": "Taurus",
+          "degree": 35.6,
+          "house": 11
+        },
+        "calc_vs_stored": "n/a",
+        "stored_vs_prompt": "OK"
+      },
+      {
+        "point": "Jupiter",
+        "stored": {
+          "sign": "Virgo",
+          "degree": 10.81,
+          "house": 3
+        },
+        "calculator": "(unable_to_recompute)",
+        "prompt": {
+          "sign": "Virgo",
+          "degree": 10.81,
+          "house": 3
+        },
+        "calc_vs_stored": "n/a",
+        "stored_vs_prompt": "OK"
+      },
+      {
+        "point": "Saturn",
+        "stored": {
+          "sign": "Virgo",
+          "degree": 11.55,
+          "house": 3
+        },
+        "calculator": "(unable_to_recompute)",
+        "prompt": {
+          "sign": "Virgo",
+          "degree": 11.55,
+          "house": 3
+        },
+        "calc_vs_stored": "n/a",
+        "stored_vs_prompt": "OK"
+      },
+      {
+        "point": "Uranus",
+        "stored": {
+          "sign": "Libra",
+          "degree": 13.92,
+          "house": 4
+        },
+        "calculator": "(unable_to_recompute)",
+        "prompt": {
+          "sign": "Libra",
+          "degree": 13.92,
+          "house": 4
+        },
+        "calc_vs_stored": "n/a",
+        "stored_vs_prompt": "OK"
+      },
+      {
+        "point": "Neptune",
+        "stored": {
+          "sign": "Ophiuchus",
+          "degree": 8.31,
+          "house": 5
+        },
+        "calculator": "(unable_to_recompute)",
+        "prompt": {
+          "sign": "Ophiuchus",
+          "degree": 8.31,
+          "house": 5
+        },
+        "calc_vs_stored": "n/a",
+        "stored_vs_prompt": "OK"
+      },
+      {
+        "point": "Pluto",
+        "stored": {
+          "sign": "Virgo",
+          "degree": 28.94,
+          "house": 3
+        },
+        "calculator": "(unable_to_recompute)",
+        "prompt": {
+          "sign": "Virgo",
+          "degree": 28.94,
+          "house": 3
+        },
+        "calc_vs_stored": "n/a",
+        "stored_vs_prompt": "OK"
+      },
+      {
+        "point": "North Node",
+        "stored": {
+          "sign": "Cancer",
+          "degree": 4.68,
+          "house": 1
+        },
+        "calculator": "(unable_to_recompute)",
+        "prompt": {
+          "sign": "Cancer",
+          "degree": 4.68,
+          "house": 1
+        },
+        "calc_vs_stored": "n/a",
+        "stored_vs_prompt": "OK"
+      },
+      {
+        "point": "South Node",
+        "stored": {
+          "sign": "Capricorn",
+          "degree": 1.45,
+          "house": 7
+        },
+        "calculator": "(unable_to_recompute)",
+        "prompt": {
+          "sign": "Capricorn",
+          "degree": 1.45,
+          "house": 7
+        },
+        "calc_vs_stored": "n/a",
+        "stored_vs_prompt": "OK"
+      },
+      {
+        "point": "Chiron",
+        "stored": {
+          "sign": "Taurus",
+          "degree": 1.1,
+          "house": 10
+        },
+        "calculator": "(unable_to_recompute)",
+        "prompt": "(absent_from_prompt)",
+        "calc_vs_stored": "n/a",
+        "stored_vs_prompt": "MISSING_RIGHT"
+      },
+      {
+        "point": "ASC",
+        "stored": {
+          "sign": "Cancer",
+          "degree": 3.06,
+          "house": null
+        },
+        "calculator": "(unable_to_recompute)",
+        "prompt": {
+          "sign": "Cancer",
+          "degree": 3.06,
+          "house": null
+        },
+        "calc_vs_stored": "n/a",
+        "stored_vs_prompt": "OK"
+      },
+      {
+        "point": "MC",
+        "stored": {
+          "sign": "Aries",
+          "degree": 2.75,
+          "house": null
+        },
+        "calculator": "(unable_to_recompute)",
+        "prompt": {
+          "sign": "Aries",
+          "degree": 2.75,
+          "house": null
+        },
+        "calc_vs_stored": "n/a",
+        "stored_vs_prompt": "OK"
+      },
+      {
+        "point": "IC",
+        "stored": {
+          "sign": "Virgo",
+          "degree": 41.14,
+          "house": null
+        },
+        "calculator": "(unable_to_recompute)",
+        "prompt": "(absent_from_prompt)",
+        "calc_vs_stored": "n/a",
+        "stored_vs_prompt": "MISSING_RIGHT"
+      },
+      {
+        "point": "Descendant",
+        "stored": {
+          "sign": "Sagittarius",
+          "degree": 33.32,
+          "house": null
+        },
+        "calculator": "(unable_to_recompute)",
+        "prompt": "(absent_from_prompt)",
+        "calc_vs_stored": "n/a",
+        "stored_vs_prompt": "MISSING_RIGHT"
+      }
+    ]
+  },
+  {
+    "label": "Isaac",
+    "user_id": "69dda348de9cb1c83c0780f8",
+    "birth": {
+      "date": "2012-04-05T00:00:00",
+      "time": "05:25",
+      "coords": {
+        "lat": 3.1073,
+        "lon": 101.6067
+      },
+      "tz_in_meta": null
+    },
+    "engine": {
+      "engine_version": "midpoint13_variant_a_v1",
+      "house_system": "Equal",
+      "sidereal_mode": "true_sidereal_user_defined",
+      "svp_degrees": 31.2836,
+      "node_mode": "true_node",
+      "computation_version": "mirror-deterministic-v1"
+    },
+    "calc_layer_error": "TypeError: get_full_natal_chart() got an unexpected keyword argument 'birth_date'",
+    "rows": [
+      {
+        "point": "Sun",
+        "stored": {
+          "sign": "Pisces",
+          "degree": 26.04,
+          "house": 2
+        },
+        "calculator": "(unable_to_recompute)",
+        "prompt": {
+          "sign": "Pisces",
+          "degree": 26.04,
+          "house": 2
+        },
+        "calc_vs_stored": "n/a",
+        "stored_vs_prompt": "OK"
+      },
+      {
+        "point": "Moon",
+        "stored": {
+          "sign": "Leo",
+          "degree": 34.2,
+          "house": 7
+        },
+        "calculator": "(unable_to_recompute)",
+        "prompt": {
+          "sign": "Leo",
+          "degree": 34.2,
+          "house": 7
+        },
+        "calc_vs_stored": "n/a",
+        "stored_vs_prompt": "OK"
+      },
+      {
+        "point": "Mercury",
+        "stored": {
+          "sign": "Pisces",
+          "degree": 4.39,
+          "house": 1
+        },
+        "calculator": "(unable_to_recompute)",
+        "prompt": {
+          "sign": "Pisces",
+          "degree": 4.39,
+          "house": 1
+        },
+        "calc_vs_stored": "n/a",
+        "stored_vs_prompt": "OK"
+      },
+      {
+        "point": "Venus",
+        "stored": {
+          "sign": "Taurus",
+          "degree": 9.96,
+          "house": 3
+        },
+        "calculator": "(unable_to_recompute)",
+        "prompt": {
+          "sign": "Taurus",
+          "degree": 9.96,
+          "house": 3
+        },
+        "calc_vs_stored": "n/a",
+        "stored_vs_prompt": "OK"
+      },
+      {
+        "point": "Mars",
+        "stored": {
+          "sign": "Leo",
+          "degree": 19.57,
+          "house": 6
+        },
+        "calculator": "(unable_to_recompute)",
+        "prompt": {
+          "sign": "Leo",
+          "degree": 19.57,
+          "house": 6
+        },
+        "calc_vs_stored": "n/a",
+        "stored_vs_prompt": "OK"
+      },
+      {
+        "point": "Jupiter",
+        "stored": {
+          "sign": "Aries",
+          "degree": 12.72,
+          "house": 2
+        },
+        "calculator": "(unable_to_recompute)",
+        "prompt": {
+          "sign": "Aries",
+          "degree": 12.72,
+          "house": 2
+        },
+        "calc_vs_stored": "n/a",
+        "stored_vs_prompt": "OK"
+      },
+      {
+        "point": "Saturn",
+        "stored": {
+          "sign": "Virgo",
+          "degree": 33.94,
+          "house": 8
+        },
+        "calculator": "(unable_to_recompute)",
+        "prompt": {
+          "sign": "Virgo",
+          "degree": 33.94,
+          "house": 8
+        },
+        "calc_vs_stored": "n/a",
+        "stored_vs_prompt": "OK"
+      },
+      {
+        "point": "Uranus",
+        "stored": {
+          "sign": "Pisces",
+          "degree": 15.68,
+          "house": 1
+        },
+        "calculator": "(unable_to_recompute)",
+        "prompt": {
+          "sign": "Pisces",
+          "degree": 15.68,
+          "house": 1
+        },
+        "calc_vs_stored": "n/a",
+        "stored_vs_prompt": "OK"
+      },
+      {
+        "point": "Neptune",
+        "stored": {
+          "sign": "Aquarius",
+          "degree": 5.89,
+          "house": 12
+        },
+        "calculator": "(unable_to_recompute)",
+        "prompt": {
+          "sign": "Aquarius",
+          "degree": 5.89,
+          "house": 12
+        },
+        "calc_vs_stored": "n/a",
+        "stored_vs_prompt": "OK"
+      },
+      {
+        "point": "Pluto",
+        "stored": {
+          "sign": "Sagittarius",
+          "degree": 12.31,
+          "house": 10
+        },
+        "calculator": "(unable_to_recompute)",
+        "prompt": {
+          "sign": "Sagittarius",
+          "degree": 12.31,
+          "house": 10
+        },
+        "calc_vs_stored": "n/a",
+        "stored_vs_prompt": "OK"
+      },
+      {
+        "point": "North Node",
+        "stored": {
+          "sign": "Scorpio",
+          "degree": 4.65,
+          "house": 9
+        },
+        "calculator": "(unable_to_recompute)",
+        "prompt": {
+          "sign": "Scorpio",
+          "degree": 4.65,
+          "house": 9
+        },
+        "calc_vs_stored": "n/a",
+        "stored_vs_prompt": "OK"
+      },
+      {
+        "point": "South Node",
+        "stored": {
+          "sign": "Taurus",
+          "degree": 15.12,
+          "house": 3
+        },
+        "calculator": "(unable_to_recompute)",
+        "prompt": {
+          "sign": "Taurus",
+          "degree": 15.12,
+          "house": 3
+        },
+        "calc_vs_stored": "n/a",
+        "stored_vs_prompt": "OK"
+      },
+      {
+        "point": "Chiron",
+        "stored": {
+          "sign": "Aquarius",
+          "degree": 11.39,
+          "house": 12
+        },
+        "calculator": "(unable_to_recompute)",
+        "prompt": "(absent_from_prompt)",
+        "calc_vs_stored": "n/a",
+        "stored_vs_prompt": "MISSING_RIGHT"
+      },
+      {
+        "point": "ASC",
+        "stored": {
+          "sign": "Aquarius",
+          "degree": 18.81,
+          "house": null
+        },
+        "calculator": "(unable_to_recompute)",
+        "prompt": {
+          "sign": "Aquarius",
+          "degree": 18.81,
+          "house": null
+        },
+        "calc_vs_stored": "n/a",
+        "stored_vs_prompt": "OK"
+      },
+      {
+        "point": "MC",
+        "stored": {
+          "sign": "Ophiuchus",
+          "degree": 2.82,
+          "house": null
+        },
+        "calculator": "(unable_to_recompute)",
+        "prompt": {
+          "sign": "Ophiuchus",
+          "degree": 2.82,
+          "house": null
+        },
+        "calc_vs_stored": "n/a",
+        "stored_vs_prompt": "OK"
+      },
+      {
+        "point": "IC",
+        "stored": {
+          "sign": "Taurus",
+          "degree": 26.52,
+          "house": null
+        },
+        "calculator": "(unable_to_recompute)",
+        "prompt": "(absent_from_prompt)",
+        "calc_vs_stored": "n/a",
+        "stored_vs_prompt": "MISSING_RIGHT"
+      },
+      {
+        "point": "Descendant",
+        "stored": {
+          "sign": "Leo",
+          "degree": 30.46,
+          "house": null
+        },
+        "calculator": "(unable_to_recompute)",
+        "prompt": "(absent_from_prompt)",
+        "calc_vs_stored": "n/a",
+        "stored_vs_prompt": "MISSING_RIGHT"
+      }
+    ]
+  },
+  {
+    "label": "Jaan",
+    "user_id": "69894cc932380843ba87d121",
+    "birth": {
+      "date": "1973-12-09T00:00:00",
+      "time": "21:50",
+      "coords": {
+        "lat": 3.1702996,
+        "lon": 101.699563
+      },
+      "tz_in_meta": null
+    },
+    "engine": {
+      "engine_version": "midpoint13_variant_a_v1",
+      "house_system": "Equal",
+      "sidereal_mode": "true_sidereal_user_defined",
+      "svp_degrees": 31.2836,
+      "node_mode": "true_node",
+      "computation_version": "mirror-deterministic-v1"
+    },
+    "calc_layer_error": "TypeError: get_full_natal_chart() got an unexpected keyword argument 'birth_date'",
+    "rows": [
+      {
+        "point": "Sun",
+        "stored": {
+          "sign": "Ophiuchus",
+          "degree": 3.03,
+          "house": 5
+        },
+        "calculator": "(unable_to_recompute)",
+        "prompt": {
+          "sign": "Ophiuchus",
+          "degree": 3.03,
+          "house": 5
+        },
+        "calc_vs_stored": "n/a",
+        "stored_vs_prompt": "OK"
+      },
+      {
+        "point": "Moon",
+        "stored": {
+          "sign": "Taurus",
+          "degree": 20.15,
+          "house": 11
+        },
+        "calculator": "(unable_to_recompute)",
+        "prompt": {
+          "sign": "Taurus",
+          "degree": 20.15,
+          "house": 11
+        },
+        "calc_vs_stored": "n/a",
+        "stored_vs_prompt": "OK"
+      },
+      {
+        "point": "Mercury",
+        "stored": {
+          "sign": "Libra",
+          "degree": 18.78,
+          "house": 4
+        },
+        "calculator": "(unable_to_recompute)",
+        "prompt": {
+          "sign": "Libra",
+          "degree": 18.78,
+          "house": 4
+        },
+        "calc_vs_stored": "n/a",
+        "stored_vs_prompt": "OK"
+      },
+      {
+        "point": "Venus",
+        "stored": {
+          "sign": "Capricorn",
+          "degree": 1.05,
+          "house": 6
+        },
+        "calculator": "(unable_to_recompute)",
+        "prompt": {
+          "sign": "Capricorn",
+          "degree": 1.05,
+          "house": 6
+        },
+        "calc_vs_stored": "n/a",
+        "stored_vs_prompt": "OK"
+      },
+      {
+        "point": "Mars",
+        "stored": {
+          "sign": "Pisces",
+          "degree": 37.55,
+          "house": 9
+        },
+        "calculator": "(unable_to_recompute)",
+        "prompt": {
+          "sign": "Pisces",
+          "degree": 37.55,
+          "house": 9
+        },
+        "calc_vs_stored": "n/a",
+        "stored_vs_prompt": "OK"
+      },
+      {
+        "point": "Jupiter",
+        "stored": {
+          "sign": "Capricorn",
+          "degree": 9.65,
+          "house": 7
+        },
+        "calculator": "(unable_to_recompute)",
+        "prompt": {
+          "sign": "Capricorn",
+          "degree": 9.65,
+          "house": 7
+        },
+        "calc_vs_stored": "n/a",
+        "stored_vs_prompt": "OK"
+      },
+      {
+        "point": "Saturn",
+        "stored": {
+          "sign": "Gemini",
+          "degree": 4.86,
+          "house": 11
+        },
+        "calculator": "(unable_to_recompute)",
+        "prompt": {
+          "sign": "Gemini",
+          "degree": 4.86,
+          "house": 11
+        },
+        "calc_vs_stored": "n/a",
+        "stored_vs_prompt": "OK"
+      },
+      {
+        "point": "Uranus",
+        "stored": {
+          "sign": "Virgo",
+          "degree": 33.97,
+          "house": 3
+        },
+        "calculator": "(unable_to_recompute)",
+        "prompt": {
+          "sign": "Virgo",
+          "degree": 33.97,
+          "house": 3
+        },
+        "calc_vs_stored": "n/a",
+        "stored_vs_prompt": "OK"
+      },
+      {
+        "point": "Neptune",
+        "stored": {
+          "sign": "Scorpio",
+          "degree": 6.42,
+          "house": 5
+        },
+        "calculator": "(unable_to_recompute)",
+        "prompt": {
+          "sign": "Scorpio",
+          "degree": 6.42,
+          "house": 5
+        },
+        "calc_vs_stored": "n/a",
+        "stored_vs_prompt": "OK"
+      },
+      {
+        "point": "Pluto",
+        "stored": {
+          "sign": "Virgo",
+          "degree": 14.03,
+          "house": 3
+        },
+        "calculator": "(unable_to_recompute)",
+        "prompt": {
+          "sign": "Virgo",
+          "degree": 14.03,
+          "house": 3
+        },
+        "calc_vs_stored": "n/a",
+        "stored_vs_prompt": "OK"
+      },
+      {
+        "point": "North Node",
+        "stored": {
+          "sign": "Sagittarius",
+          "degree": 1.87,
+          "house": 5
+        },
+        "calculator": "(unable_to_recompute)",
+        "prompt": {
+          "sign": "Sagittarius",
+          "degree": 1.87,
+          "house": 5
+        },
+        "calc_vs_stored": "n/a",
+        "stored_vs_prompt": "OK"
+      },
+      {
+        "point": "South Node",
+        "stored": {
+          "sign": "Gemini",
+          "degree": 1.07,
+          "house": 11
+        },
+        "calculator": "(unable_to_recompute)",
+        "prompt": {
+          "sign": "Gemini",
+          "degree": 1.07,
+          "house": 11
+        },
+        "calc_vs_stored": "n/a",
+        "stored_vs_prompt": "OK"
+      },
+      {
+        "point": "Chiron",
+        "stored": {
+          "sign": "Pisces",
+          "degree": 27.6,
+          "house": 9
+        },
+        "calculator": "(unable_to_recompute)",
+        "prompt": "(absent_from_prompt)",
+        "calc_vs_stored": "n/a",
+        "stored_vs_prompt": "MISSING_RIGHT"
+      },
+      {
+        "point": "ASC",
+        "stored": {
+          "sign": "Cancer",
+          "degree": 6.36,
+          "house": null
+        },
+        "calculator": "(unable_to_recompute)",
+        "prompt": {
+          "sign": "Cancer",
+          "degree": 6.36,
+          "house": null
+        },
+        "calc_vs_stored": "n/a",
+        "stored_vs_prompt": "OK"
+      },
+      {
+        "point": "MC",
+        "stored": {
+          "sign": "Aries",
+          "degree": 5.95,
+          "house": null
+        },
+        "calculator": "(unable_to_recompute)",
+        "prompt": {
+          "sign": "Aries",
+          "degree": 5.95,
+          "house": null
+        },
+        "calc_vs_stored": "n/a",
+        "stored_vs_prompt": "OK"
+      },
+      {
+        "point": "IC",
+        "stored": {
+          "sign": "Virgo",
+          "degree": 44.34,
+          "house": null
+        },
+        "calculator": "(unable_to_recompute)",
+        "prompt": "(absent_from_prompt)",
+        "calc_vs_stored": "n/a",
+        "stored_vs_prompt": "MISSING_RIGHT"
+      },
+      {
+        "point": "Descendant",
+        "stored": {
+          "sign": "Capricorn",
+          "degree": 3.13,
+          "house": null
+        },
+        "calculator": "(unable_to_recompute)",
+        "prompt": "(absent_from_prompt)",
+        "calc_vs_stored": "n/a",
+        "stored_vs_prompt": "MISSING_RIGHT"
+      }
+    ]
+  }
+]
