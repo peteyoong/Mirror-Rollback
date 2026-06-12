@@ -31,10 +31,253 @@ from __future__ import annotations
 
 import logging
 import os
+import re
 from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, List, Optional, Tuple
 
 log = logging.getLogger("mirror_chat_phase4")
+
+
+# ─────────────────────────────────────────────────────────────────────
+# R3b — Forum-topology fallback target resolution
+# ─────────────────────────────────────────────────────────────────────
+#
+# Real-user finding from P6 / Phase 4 audit: the V2 relationship_router
+# only consults `saved_people` + a client-supplied forum_topology. It
+# never inspects `forum_members` to find who else is in the user's
+# forums. Result: a name like "Mel" returns `target_unresolved_name`
+# even when Mel is a forum member of the user's pair forum
+# "Pete & Mel" or a family forum "Yoong family".
+#
+# This resolver fills the gap. Resolution ladder (first match wins):
+#     1. saved_people   — already handled upstream by V2 resolver
+#     2. forum_member   — name matches a member of one of the user's forums
+#     3. pair_forum     — same as (2) but the forum name is a binary pair
+#                         ("Pete & Mel", "Pete and Mel", "Mel and Pete")
+#                         → role inferred as `partner`
+#     4. family_forum   — same as (2) but forum name contains "family"
+#                         → role inferred as `family`
+#     5. alias_spouse   — name in message is a role noun ("wife",
+#                         "husband", "partner", "spouse") and the user
+#                         has a pair-forum with exactly one other
+#                         member → resolve to that member, role=partner
+#     6. unresolved     — none of the above
+#
+# Returns a dict with full provenance so the prompt builder can surface
+# the resolution source to the LLM.
+
+_PAIR_FORUM_NAME_RE = re.compile(
+    r"^\s*([A-Z][a-z\-']{1,30})\s*(?:&|and|\+|/)\s*([A-Z][a-z\-']{1,30})\s*$",
+    re.I,
+)
+_FAMILY_FORUM_NAME_RE = re.compile(r"\bfamily\b|\bfam\b", re.I)
+
+# Role-noun aliases → spouse / partner
+_SPOUSE_ALIASES = {"wife", "husband", "partner", "spouse",
+                   "my wife", "my husband", "my partner", "my spouse",
+                   "girlfriend", "boyfriend", "fiance", "fiancee"}
+
+
+async def resolve_target_via_forums(
+    *, db, user_id: str, candidate_name: Optional[str], message: str,
+) -> Dict[str, Any]:
+    """Try to bind `candidate_name` to a forum_member in any forum the user
+    is in. Includes simple alias matching ("Mel" matches both "Mel" and
+    "Melissa"; "Mel " with trailing whitespace; "Melly").
+
+    Also handles role-noun aliases ("wife", "spouse") by inspecting the
+    user's pair forums.
+
+    Always returns a dict; never raises.
+    """
+    result: Dict[str, Any] = {
+        "found":             False,
+        "candidate_name":    candidate_name,
+        "resolved_user_id":  None,
+        "resolved_name":     None,
+        "resolved_role":     None,
+        "forum_id":          None,
+        "forum_name":        None,
+        "resolution_source": "unresolved",
+        "all_forums_with_match": [],
+        "user_forum_count":  0,
+        "alias_used":        None,
+    }
+
+    if db is None or not user_id:
+        return result
+
+    try:
+        # 1. List all forums the user is a member of.
+        cur = db.forum_members.find({"user_id": user_id})
+        user_forum_ids: List[str] = []
+        async for d in cur:
+            user_forum_ids.append(d["forum_id"])
+        result["user_forum_count"] = len(user_forum_ids)
+        if not user_forum_ids:
+            return result
+
+        # Hydrate forum docs (name, etc.). Forums use string `_id`
+        # (ObjectId) — try both id and _id forms.
+        from bson import ObjectId
+        forum_docs: Dict[str, Dict[str, Any]] = {}
+        for fid in user_forum_ids:
+            try:
+                f = await db.forums.find_one({"_id": ObjectId(fid)})
+            except Exception:
+                f = None
+            if not f:
+                f = await db.forums.find_one({"id": fid})
+            if f:
+                forum_docs[fid] = f
+
+        # 2. Build a map of {forum_id: [member_docs_with_names]} by
+        #    joining forum_members → users.
+        from bson import ObjectId as _OID
+        forum_members_map: Dict[str, List[Dict[str, Any]]] = {}
+        for fid in user_forum_ids:
+            mcur = db.forum_members.find({"forum_id": fid})
+            members: List[Dict[str, Any]] = []
+            async for m in mcur:
+                muid = m.get("user_id")
+                if muid == user_id:
+                    continue  # skip self
+                muser = None
+                try:
+                    muser = await db.users.find_one({"_id": _OID(muid)})
+                except Exception:
+                    pass
+                if not muser:
+                    muser = await db.users.find_one({"id": muid})
+                if muser:
+                    members.append({
+                        "user_id":     muid,
+                        "name":        (muser.get("name") or "").strip(),
+                        "email":       muser.get("email"),
+                        "forum_role":  m.get("role"),
+                    })
+            forum_members_map[fid] = members
+
+        # 3a. Direct name match (with alias logic) across all forums.
+        if candidate_name:
+            cand_lc = candidate_name.lower().strip()
+            matches: List[Dict[str, Any]] = []
+            for fid, members in forum_members_map.items():
+                for m in members:
+                    nm = (m.get("name") or "").lower().strip()
+                    if not nm:
+                        continue
+                    name_match = (
+                        nm == cand_lc
+                        or nm.startswith(cand_lc + " ")
+                        or nm.startswith(cand_lc)
+                        or cand_lc in nm.split()
+                    )
+                    # Email-stem match: "mel" → email "melissa.mars@…"
+                    email = (m.get("email") or "").lower()
+                    email_stem = email.split("@")[0] if email else ""
+                    email_match = (
+                        cand_lc
+                        and len(cand_lc) >= 3
+                        and email_stem.startswith(cand_lc)
+                    )
+                    if name_match or email_match:
+                        forum_name = (forum_docs.get(fid) or {}).get("name") or ""
+                        source, role = _classify_forum_source(forum_name)
+                        matches.append({
+                            "user_id":    m["user_id"],
+                            "name":       m["name"],
+                            "forum_id":   fid,
+                            "forum_name": forum_name,
+                            "source":     source,
+                            "role":       role,
+                            "alias_used": (
+                                f"{cand_lc}→{nm}" if (name_match and nm != cand_lc)
+                                else f"{cand_lc}→email:{email_stem}"
+                                if email_match else None
+                            ),
+                        })
+
+            if matches:
+                # Priority order per user's resolution ladder:
+                #   pair_forum > family_forum > forum_member
+                _src_priority = {
+                    "pair_forum":    0,
+                    "family_forum":  1,
+                    "forum_member":  2,
+                }
+                matches.sort(key=lambda x: _src_priority.get(x["source"], 9))
+                top = matches[0]
+                result["found"] = True
+                result["resolved_user_id"] = top["user_id"]
+                result["resolved_name"]   = top["name"]
+                result["resolved_role"]   = top["role"]
+                result["forum_id"]        = top["forum_id"]
+                result["forum_name"]      = top["forum_name"]
+                result["resolution_source"] = top["source"]
+                result["alias_used"]      = top["alias_used"]
+                # Record ALL forums where the match was found
+                result["all_forums_with_match"] = [
+                    {"forum_id": x["forum_id"], "forum_name": x["forum_name"],
+                     "source": x["source"], "role": x["role"]}
+                    for x in matches
+                ]
+                return result
+
+        # 3b. Role-noun alias path ("wife", "spouse" → pair-forum member)
+        msg_lc = (message or "").lower()
+        spouse_alias = None
+        for alias in _SPOUSE_ALIASES:
+            if re.search(rf"\b{re.escape(alias)}\b", msg_lc):
+                spouse_alias = alias
+                break
+        if spouse_alias:
+            # Find a pair forum (exactly one other member) involving the user
+            for fid, members in forum_members_map.items():
+                if len(members) != 1:
+                    continue
+                forum_name = (forum_docs.get(fid) or {}).get("name") or ""
+                # Prefer named pair forums (matching the regex) but
+                # accept any 1-other-member forum as a partner candidate.
+                pair_hit = bool(_PAIR_FORUM_NAME_RE.match(forum_name))
+                m = members[0]
+                result["found"] = True
+                result["resolved_user_id"] = m["user_id"]
+                result["resolved_name"]   = m["name"]
+                result["resolved_role"]   = "partner"
+                result["forum_id"]        = fid
+                result["forum_name"]      = forum_name
+                result["resolution_source"] = (
+                    "alias_spouse_via_pair_forum" if pair_hit
+                    else "alias_spouse_via_single_other_member"
+                )
+                result["alias_used"] = spouse_alias
+                return result
+
+    except Exception as e:
+        log.warning(
+            f"[mirror_chat_phase4][R3b] forum target resolution failed: "
+            f"{type(e).__name__}: {e}"
+        )
+        result["error"] = f"{type(e).__name__}: {e!s}"
+    return result
+
+
+def _classify_forum_source(forum_name: str) -> Tuple[str, Optional[str]]:
+    """Map a forum's name to a (resolution_source, inferred_role) pair.
+
+    Heuristics:
+      "X & Y" / "X and Y" / "X+Y"   → pair_forum / role=partner
+      "<anything> family"            → family_forum / role=family
+      otherwise                       → forum_member / role=None
+    """
+    if not forum_name:
+        return "forum_member", None
+    if _PAIR_FORUM_NAME_RE.match(forum_name):
+        return "pair_forum", "partner"
+    if _FAMILY_FORUM_NAME_RE.search(forum_name):
+        return "family_forum", "family"
+    return "forum_member", None
 
 
 # ─────────────────────────────────────────────────────────────────────
@@ -186,15 +429,44 @@ def build_intent_v2_prompt_block(
     tgt        = rel.get("target")
     tgt_unres  = rel.get("target_unresolved_name")
     tgt_role   = rel.get("role")
-    if tgt:
+    res_source = (
+        rel.get("resolution_source")
+        or v2_receipt.get("target_resolution_source")
+        or ""
+    )
+    forum_name_hit = rel.get("forum_name")
+    if tgt and res_source in (
+        "forum_member", "pair_forum", "family_forum",
+        "alias_spouse_via_pair_forum",
+        "alias_spouse_via_single_other_member",
+    ):
+        # R3b — bound via forum membership, not saved_people.
+        tgt_name = rel.get("target_name") or "(unnamed)"
+        forum_phrase = (
+            f"the '{forum_name_hit}' forum" if forum_name_hit
+            else "a shared forum"
+        )
+        role_part = f" (relationship_role: {tgt_role})" if tgt_role else ""
+        lines.append(
+            f"Relationship target: '{tgt_name}' "
+            f"(resolved via {res_source} in {forum_phrase}{role_part}). "
+            f"This person is in the user's saved relationship topology — "
+            f"ground your reflection in the actual relationship between "
+            f"them, not in generic projection language."
+        )
+        debug["intent_v2_signals"].append(
+            f"target_via_{res_source}:{tgt_name}"
+        )
+    elif tgt:
         role_part = f" (role: {tgt_role})" if tgt_role else ""
         lines.append(f"Relationship target: bound{role_part}")
         debug["intent_v2_signals"].append(f"target_bound:{tgt_role or '?'}")
     elif tgt_unres:
         lines.append(
             f"Relationship target: '{tgt_unres}' is mentioned but NOT in "
-            f"the user's saved people. Acknowledge this rather than "
-            f"guessing who they are. Ask the user who '{tgt_unres}' is."
+            f"the user's saved people OR any of their forums. Acknowledge "
+            f"this rather than guessing who they are. Ask the user who "
+            f"'{tgt_unres}' is."
         )
         debug["intent_v2_signals"].append(f"target_unresolved:{tgt_unres}")
 

@@ -211,9 +211,14 @@ def register(
 
                 # ASYNC step: persistence is fire-and-forget so the
                 # response latency stays unchanged.
-                _asyncio_b1.create_task(
-                    persist_precomputed_receipt(db, v2_receipt)
-                )
+                # NOTE (R3b telemetry fix): We DEFER persistence until
+                # AFTER the Phase 4 R3b forum-fallback enrichment mutates
+                # `v2_receipt` (see ~L958-L1001). Persisting here would
+                # capture the pre-enrichment receipt and lose the
+                # `target_resolution_source` + `forum_fallback_resolution`
+                # telemetry.  We attach a sentinel so the post-enrichment
+                # block can fire-and-forget the persist call.
+                v2_receipt["_persist_pending"] = True
             except Exception as _b1_shadow_exc:
                 logger.warning(f"[MIRROR_CHAT] B1 shadow hook scheduling failed: {_b1_shadow_exc!r}")
                 v2_receipt = None
@@ -937,7 +942,68 @@ SUPPORT STYLE: {v1_support}
                     build_intent_v2_prompt_block,
                     build_timeline_v2_context,
                     build_founder_context_block,
+                    resolve_target_via_forums,
                 )
+
+                # ---------------------------------------------------------
+                # R3b — Forum-topology fallback target resolution.
+                # When V2 reports `target_unresolved_name` OR the message
+                # carries a spouse-alias, look up the name in the user's
+                # forum_members (across all forums they belong to).
+                # Adds `target_resolution_source` telemetry to v2_receipt.
+                # ---------------------------------------------------------
+                _forum_resolved: Dict[str, Any] = {}
+                try:
+                    _env = (v2_receipt or {}).get("intent_envelope") or {}
+                    _rel = (v2_receipt or {}).get("relationship_resolution") or {}
+                    _already_resolved = bool(_rel.get("target"))
+                    _candidate_name = _rel.get("target_unresolved_name")
+                    if (v2_receipt and v2_receipt.get("shadow_mode")
+                            and not _already_resolved):
+                        _forum_resolved = await resolve_target_via_forums(
+                            db=db,
+                            user_id=request.user_id,
+                            candidate_name=_candidate_name,
+                            message=request.message,
+                        )
+                        # Annotate v2_receipt so the prompt builder + the
+                        # persisted receipt both reflect the source.
+                        v2_receipt["target_resolution_source"] = (
+                            _forum_resolved.get("resolution_source")
+                            or "unresolved"
+                        )
+                        v2_receipt["forum_fallback_resolution"] = _forum_resolved
+                        if _forum_resolved.get("found"):
+                            # Promote into relationship_resolution so the
+                            # intent block reads "target bound" downstream.
+                            v2_receipt["relationship_resolution"] = {
+                                **(_rel or {}),
+                                "target":           _forum_resolved["resolved_user_id"],
+                                "target_name":      _forum_resolved["resolved_name"],
+                                "role":             _forum_resolved["resolved_role"],
+                                "forum_id":         _forum_resolved["forum_id"],
+                                "forum_name":       _forum_resolved["forum_name"],
+                                "resolution_source": _forum_resolved["resolution_source"],
+                                # Keep the original unresolved-name marker
+                                # for telemetry — promotion does not erase it.
+                                "target_unresolved_name": _candidate_name,
+                            }
+                            logger.info(
+                                f"[MIRROR_CHAT][phase4-R3b] target_resolved via "
+                                f"{_forum_resolved['resolution_source']}: "
+                                f"name={_forum_resolved['resolved_name']!r} "
+                                f"forum={_forum_resolved['forum_name']!r}"
+                            )
+                    elif v2_receipt:
+                        # Already resolved via saved_people path
+                        v2_receipt["target_resolution_source"] = "saved_people"
+                except Exception as _r3b_err:
+                    logger.warning(
+                        f"[MIRROR_CHAT][phase4-R3b] forum resolution failed: "
+                        f"{type(_r3b_err).__name__}: {_r3b_err}"
+                    )
+                    if v2_receipt:
+                        v2_receipt.setdefault("target_resolution_source", "error")
 
                 # R2 — V2 envelope → prompt
                 _iv2_block, _iv2_debug = build_intent_v2_prompt_block(v2_receipt)
@@ -980,6 +1046,28 @@ SUPPORT STYLE: {v1_support}
                 )
                 phase4_debug["error"] = (
                     f"{type(_phase4_err).__name__}: {_phase4_err!s}"
+                )
+
+            # ═════════════════════════════════════════════════════════════
+            # R3b TELEMETRY FIX — Persist the V2 receipt NOW (after R3b
+            # enrichment has mutated `target_resolution_source` /
+            # `forum_fallback_resolution`). Previously persistence ran
+            # immediately after `compute_v2_envelope_sync`, which dropped
+            # R3b telemetry from the persisted record.
+            # ═════════════════════════════════════════════════════════════
+            try:
+                if v2_receipt and v2_receipt.pop("_persist_pending", False):
+                    import asyncio as _asyncio_persist
+                    from services.mirror_chat_shadow import (
+                        persist_precomputed_receipt as _persist_r3b,
+                    )
+                    _asyncio_persist.create_task(
+                        _persist_r3b(db, v2_receipt)
+                    )
+            except Exception as _persist_err:
+                logger.warning(
+                    f"[MIRROR_CHAT][phase4-persist] deferred persist "
+                    f"failed: {type(_persist_err).__name__}: {_persist_err}"
                 )
 
             # ===== V1: PATTERN THREAD CONTEXT FOR LENS → CHAT CONTINUITY =====
