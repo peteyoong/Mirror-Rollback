@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-11T19:43:08.043662+00:00",
+  "generated_at": "2026-06-12T01:51:42.405323+00:00",
   "recommendation": "CONDITIONAL_GO",
   "blockers": [
     "Shadow telemetry window not complete (ends 2026-06-14)",
@@ -20,19 +20,19 @@
     },
     {
       "gate": "Target resolution (proposed_action path live)",
-      "value": "unresolved_named_rate=24.49% (12 cases, REAL-only)",
+      "value": "unresolved_named_rate=26.09% (12 cases, REAL-only)",
       "threshold": "\u2265 5% to confirm receipt path wired",
       "status": "PASS"
     },
     {
       "gate": "False-positive relationship rate (frame-aware, REAL)",
-      "value": "2.04% (1 of 49)",
+      "value": "2.17% (1 of 46)",
       "threshold": "\u2264 5%",
       "status": "PASS"
     },
     {
       "gate": "Forum/member correctly-handled rate (REAL)",
-      "value": "100.00% correctly handled  (resolver-failure cases: 0/26; unresolved breakdown: {'unclassified_unresolved': 22, 'forum_to_member_misroute': 1})",
+      "value": "100.00% correctly handled  (resolver-failure cases: 0/25; unresolved breakdown: {'unclassified_unresolved': 21, 'forum_to_member_misroute': 1})",
       "threshold": "\u2265 90% correctly handled (resolver-failure sub-buckets: relationship_to_self_downgrade, wrong_frame_selected, wrong_person_selected)",
       "status": "PASS"
     },
@@ -56,7 +56,7 @@
     },
     {
       "gate": "Lens-jargon override errors (REAL)",
-      "value": "4.08% (2 cases); kinds: {'saturn return collapsed to identity (should weight life_direction)': 1, '7th house auto-routed to relationship without relational kw': 1}",
+      "value": "4.35% (2 cases); kinds: {'saturn return collapsed to identity (should weight life_direction)': 1, '7th house auto-routed to relationship without relational kw': 1}",
       "threshold": "< 3%",
       "status": "FAIL"
     },
@@ -80,7 +80,7 @@
     },
     {
       "gate": "High-confidence wrong route (REAL)",
-      "value": "1 cases (2.04%)",
+      "value": "1 cases (2.17%)",
       "threshold": "< 1%",
       "status": "WATCH"
     },
@@ -104,7 +104,7 @@
     },
     {
       "gate": "Retrieval payload completeness (REAL, baseline only)",
-      "value": "mandatory_modules mean=3.469 min=1 max=4",
+      "value": "mandatory_modules mean=3.565 min=1 max=4",
       "threshold": "no mandatory payload shrinks >25% vs baseline",
       "status": "BASELINE_ONLY"
     }
@@ -127,15 +127,15 @@
   },
   "replay_aggregate_real": {
     "totals": {
-      "n": 49,
-      "n_real": 49,
+      "n": 46,
+      "n_real": 46,
       "n_synth": 0,
       "in_window_target": false
     },
     "stratification": {
       "by_category": {
         "lens_jargon": 2,
-        "forum_member": 28,
+        "forum_member": 25,
         "identity_growth": 2,
         "other": 3,
         "relationship": 14
@@ -143,8 +143,8 @@
       "by_source": {
         "real": {
           "identity": 4,
-          "relationship": 36,
-          "general": 6,
+          "relationship": 35,
+          "general": 4,
           "career": 2,
           "family": 1
         },
@@ -152,33 +152,33 @@
       },
       "domain_counts": {
         "identity": 4,
-        "relationship": 36,
-        "general": 6,
+        "relationship": 35,
+        "general": 4,
         "career": 2,
         "family": 1
       }
     },
     "routing": {
       "status_counts": {
-        "PASS": 38,
-        "WARNING": 11
+        "PASS": 37,
+        "WARNING": 9
       },
-      "pass_rate": 0.7755
+      "pass_rate": 0.8043
     },
     "retrieval": {
       "status_counts": {
-        "PASS": 49
+        "PASS": 46
       },
       "pass_rate": 1.0
     },
     "target_resolution": {
       "status_counts": {
-        "NOT_APPLICABLE": 12,
-        "UNRESOLVED_NO_NAME": 22,
+        "NOT_APPLICABLE": 10,
+        "UNRESOLVED_NO_NAME": 21,
         "RESOLVED": 3,
         "UNRESOLVED_NAMED": 12
       },
-      "unresolved_named_rate": 0.2449,
+      "unresolved_named_rate": 0.2609,
       "unresolved_named_count": 12,
       "unresolved_named_subbuckets": {
         "true_missing_person": 11,
@@ -213,9 +213,9 @@
     },
     "false_positive_relationship": {
       "count": 1,
-      "rate": 0.0204,
-      "broad_count": 24,
-      "broad_rate": 0.4898,
+      "rate": 0.0217,
+      "broad_count": 23,
+      "broad_rate": 0.5,
       "examples": [
         {
           "message": "What's my 7th house about?",
@@ -226,7 +226,7 @@
     },
     "false_negative_relationship": {
       "count": 4,
-      "rate": 0.0816,
+      "rate": 0.087,
       "examples": [
         {
           "message": "Reflection test (member).",
@@ -251,23 +251,16 @@
       ]
     },
     "forum_member_ambiguity": {
-      "total": 26,
-      "unresolved": 23,
-      "rate": 0.8846,
+      "total": 25,
+      "unresolved": 22,
+      "rate": 0.88,
       "subbuckets": {
-        "unclassified_unresolved": 22,
+        "unclassified_unresolved": 21,
         "forum_to_member_misroute": 1
       },
       "subbucket_examples": {
         "unclassified_unresolved": [
           {
-            "message": "What strengths does this group composition bring?",
-            "frame": "forum",
-            "predicted_domain": "relationship",
-            "explicit_target_id": null,
-            "unresolved_name": null
-          },
-          {
             "message": "What's the energy of this forum?",
             "frame": "forum",
             "predicted_domain": "relationship",
@@ -276,6 +269,13 @@
           },
           {
             "message": "What's the energy of this forum?",
+            "frame": "forum",
+            "predicted_domain": "relationship",
+            "explicit_target_id": null,
+            "unresolved_name": null
+          },
+          {
+            "message": "Reflection test (forum).",
             "frame": "forum",
             "predicted_domain": "relationship",
             "explicit_target_id": null,
@@ -300,17 +300,17 @@
       "resolver_failure_count": 0,
       "resolver_failure_rate_of_unresolved": 0.0,
       "resolver_failure_rate_of_total": 0.0,
-      "data_gap_count": 23,
+      "data_gap_count": 22,
       "data_gap_rate_of_unresolved": 1.0,
       "correctly_handled_rate": 1.0
     },
     "general_bucket": {
-      "count": 6,
-      "rate": 0.1224
+      "count": 4,
+      "rate": 0.087
     },
     "fallback": {
-      "count": 6,
-      "rate": 0.1224
+      "count": 4,
+      "rate": 0.087
     },
     "expected_top1_synth_only": {
       "n_with_expected": 0,
@@ -318,10 +318,10 @@
       "accuracy": 0.0
     },
     "latency_ms": {
-      "mean": 0.899,
+      "mean": 0.979,
       "p50": 0.116,
-      "p95": 0.144,
-      "max": 38.467
+      "p95": 0.147,
+      "max": 39.752
     },
     "versions": {
       "intent_router": "intent_router_v2.1.0",
@@ -359,7 +359,7 @@
       },
       "lens_jargon_override": {
         "count": 2,
-        "rate": 0.0408,
+        "rate": 0.0435,
         "kinds": {
           "saturn return collapsed to identity (should weight life_direction)": 1,
           "7th house auto-routed to relationship without relational kw": 1
@@ -394,7 +394,7 @@
         "examples": []
       },
       "payload_completeness": {
-        "mandatory_modules_mean": 3.469,
+        "mandatory_modules_mean": 3.565,
         "mandatory_modules_min": 1,
         "mandatory_modules_max": 4,
         "gate": "no mandatory payload shrinks >25% vs baseline",
@@ -411,7 +411,7 @@
       },
       "high_confidence_wrong_route": {
         "count": 1,
-        "rate": 0.0204,
+        "rate": 0.0217,
         "ground_truth_rows": 1,
         "gate": "< 1%",
         "status": "WATCH",
@@ -450,15 +450,15 @@
   },
   "replay_aggregate_all": {
     "totals": {
-      "n": 89,
-      "n_real": 49,
+      "n": 86,
+      "n_real": 46,
       "n_synth": 40,
       "in_window_target": false
     },
     "stratification": {
       "by_category": {
         "lens_jargon": 2,
-        "forum_member": 28,
+        "forum_member": 25,
         "identity_growth": 2,
         "other": 3,
         "relationship": 19,
@@ -474,8 +474,8 @@
       "by_source": {
         "real": {
           "identity": 4,
-          "relationship": 36,
-          "general": 6,
+          "relationship": 35,
+          "general": 4,
           "career": 2,
           "family": 1
         },
@@ -494,8 +494,8 @@
       },
       "domain_counts": {
         "identity": 8,
-        "relationship": 43,
-        "general": 13,
+        "relationship": 42,
+        "general": 11,
         "career": 10,
         "family": 1,
         "leadership": 3,
@@ -508,25 +508,25 @@
     },
     "routing": {
       "status_counts": {
-        "PASS": 70,
-        "WARNING": 19
+        "PASS": 69,
+        "WARNING": 17
       },
-      "pass_rate": 0.7865
+      "pass_rate": 0.8023
     },
     "retrieval": {
       "status_counts": {
-        "PASS": 89
+        "PASS": 86
       },
       "pass_rate": 1.0
     },
     "target_resolution": {
       "status_counts": {
-        "NOT_APPLICABLE": 44,
-        "UNRESOLVED_NO_NAME": 24,
+        "NOT_APPLICABLE": 42,
+        "UNRESOLVED_NO_NAME": 23,
         "RESOLVED": 5,
         "UNRESOLVED_NAMED": 16
       },
-      "unresolved_named_rate": 0.1798,
+      "unresolved_named_rate": 0.186,
       "unresolved_named_count": 16,
       "unresolved_named_subbuckets": {
         "true_missing_person": 15,
@@ -561,9 +561,9 @@
     },
     "false_positive_relationship": {
       "count": 1,
-      "rate": 0.0112,
-      "broad_count": 26,
-      "broad_rate": 0.2921,
+      "rate": 0.0116,
+      "broad_count": 25,
+      "broad_rate": 0.2907,
       "examples": [
         {
           "message": "What's my 7th house about?",
@@ -574,7 +574,7 @@
     },
     "false_negative_relationship": {
       "count": 6,
-      "rate": 0.0674,
+      "rate": 0.0698,
       "examples": [
         {
           "message": "Reflection test (member).",
@@ -609,23 +609,16 @@
       ]
     },
     "forum_member_ambiguity": {
-      "total": 30,
-      "unresolved": 25,
-      "rate": 0.8333,
+      "total": 29,
+      "unresolved": 24,
+      "rate": 0.8276,
       "subbuckets": {
-        "unclassified_unresolved": 24,
+        "unclassified_unresolved": 23,
         "forum_to_member_misroute": 1
       },
       "subbucket_examples": {
         "unclassified_unresolved": [
           {
-            "message": "What strengths does this group composition bring?",
-            "frame": "forum",
-            "predicted_domain": "relationship",
-            "explicit_target_id": null,
-            "unresolved_name": null
-          },
-          {
             "message": "What's the energy of this forum?",
             "frame": "forum",
             "predicted_domain": "relationship",
@@ -634,6 +627,13 @@
           },
           {
             "message": "What's the energy of this forum?",
+            "frame": "forum",
+            "predicted_domain": "relationship",
+            "explicit_target_id": null,
+            "unresolved_name": null
+          },
+          {
+            "message": "Reflection test (forum).",
             "frame": "forum",
             "predicted_domain": "relationship",
             "explicit_target_id": null,
@@ -658,17 +658,17 @@
       "resolver_failure_count": 0,
       "resolver_failure_rate_of_unresolved": 0.0,
       "resolver_failure_rate_of_total": 0.0,
-      "data_gap_count": 25,
+      "data_gap_count": 24,
       "data_gap_rate_of_unresolved": 1.0,
       "correctly_handled_rate": 1.0
     },
     "general_bucket": {
-      "count": 13,
-      "rate": 0.1461
+      "count": 11,
+      "rate": 0.1279
     },
     "fallback": {
-      "count": 13,
-      "rate": 0.1461
+      "count": 11,
+      "rate": 0.1279
     },
     "expected_top1_synth_only": {
       "n_with_expected": 40,
@@ -676,10 +676,10 @@
       "accuracy": 0.65
     },
     "latency_ms": {
-      "mean": 0.548,
-      "p50": 0.116,
+      "mean": 0.578,
+      "p50": 0.117,
       "p95": 0.139,
-      "max": 38.467
+      "max": 39.752
     },
     "versions": {
       "intent_router": "intent_router_v2.1.0",
@@ -764,7 +764,7 @@
       },
       "lens_jargon_override": {
         "count": 3,
-        "rate": 0.0337,
+        "rate": 0.0349,
         "kinds": {
           "saturn return collapsed to identity (should weight life_direction)": 2,
           "7th house auto-routed to relationship without relational kw": 1
@@ -791,7 +791,7 @@
       },
       "relationship_context_loss": {
         "count": 2,
-        "rate": 0.0225,
+        "rate": 0.0233,
         "gate": "< 2%",
         "status": "FAIL",
         "examples": [
@@ -815,7 +815,7 @@
         "examples": []
       },
       "payload_completeness": {
-        "mandatory_modules_mean": 3.146,
+        "mandatory_modules_mean": 3.186,
         "mandatory_modules_min": 1,
         "mandatory_modules_max": 4,
         "gate": "no mandatory payload shrinks >25% vs baseline",
@@ -832,7 +832,7 @@
       },
       "high_confidence_wrong_route": {
         "count": 4,
-        "rate": 0.0449,
+        "rate": 0.0465,
         "ground_truth_rows": 41,
         "gate": "< 1%",
         "status": "FAIL",
@@ -934,15 +934,15 @@
     "aggregates_by_source": {
       "real": {
         "totals": {
-          "n": 49,
-          "n_real": 49,
+          "n": 46,
+          "n_real": 46,
           "n_synth": 0,
           "in_window_target": false
         },
         "stratification": {
           "by_category": {
             "lens_jargon": 2,
-            "forum_member": 28,
+            "forum_member": 25,
             "identity_growth": 2,
             "other": 3,
             "relationship": 14
@@ -950,8 +950,8 @@
           "by_source": {
             "real": {
               "identity": 4,
-              "relationship": 36,
-              "general": 6,
+              "relationship": 35,
+              "general": 4,
               "career": 2,
               "family": 1
             },
@@ -959,33 +959,33 @@
           },
           "domain_counts": {
             "identity": 4,
-            "relationship": 36,
-            "general": 6,
+            "relationship": 35,
+            "general": 4,
             "career": 2,
             "family": 1
           }
         },
         "routing": {
           "status_counts": {
-            "PASS": 38,
-            "WARNING": 11
+            "PASS": 37,
+            "WARNING": 9
           },
-          "pass_rate": 0.7755
+          "pass_rate": 0.8043
         },
         "retrieval": {
           "status_counts": {
-            "PASS": 49
+            "PASS": 46
           },
           "pass_rate": 1.0
         },
         "target_resolution": {
           "status_counts": {
-            "NOT_APPLICABLE": 12,
-            "UNRESOLVED_NO_NAME": 22,
+            "NOT_APPLICABLE": 10,
+            "UNRESOLVED_NO_NAME": 21,
             "RESOLVED": 3,
             "UNRESOLVED_NAMED": 12
           },
-          "unresolved_named_rate": 0.2449,
+          "unresolved_named_rate": 0.2609,
           "unresolved_named_count": 12,
           "unresolved_named_subbuckets": {
             "true_missing_person": 11,
@@ -1020,9 +1020,9 @@
         },
         "false_positive_relationship": {
           "count": 1,
-          "rate": 0.0204,
-          "broad_count": 24,
-          "broad_rate": 0.4898,
+          "rate": 0.0217,
+          "broad_count": 23,
+          "broad_rate": 0.5,
           "examples": [
             {
               "message": "What's my 7th house about?",
@@ -1033,7 +1033,7 @@
         },
         "false_negative_relationship": {
           "count": 4,
-          "rate": 0.0816,
+          "rate": 0.087,
           "examples": [
             {
               "message": "Reflection test (member).",
@@ -1058,23 +1058,16 @@
           ]
         },
         "forum_member_ambiguity": {
-          "total": 26,
-          "unresolved": 23,
-          "rate": 0.8846,
+          "total": 25,
+          "unresolved": 22,
+          "rate": 0.88,
           "subbuckets": {
-            "unclassified_unresolved": 22,
+            "unclassified_unresolved": 21,
             "forum_to_member_misroute": 1
           },
           "subbucket_examples": {
             "unclassified_unresolved": [
               {
-                "message": "What strengths does this group composition bring?",
-                "frame": "forum",
-                "predicted_domain": "relationship",
-                "explicit_target_id": null,
-                "unresolved_name": null
-              },
-              {
                 "message": "What's the energy of this forum?",
                 "frame": "forum",
                 "predicted_domain": "relationship",
@@ -1083,6 +1076,13 @@
               },
               {
                 "message": "What's the energy of this forum?",
+                "frame": "forum",
+                "predicted_domain": "relationship",
+                "explicit_target_id": null,
+                "unresolved_name": null
+              },
+              {
+                "message": "Reflection test (forum).",
                 "frame": "forum",
                 "predicted_domain": "relationship",
                 "explicit_target_id": null,
@@ -1107,17 +1107,17 @@
           "resolver_failure_count": 0,
           "resolver_failure_rate_of_unresolved": 0.0,
           "resolver_failure_rate_of_total": 0.0,
-          "data_gap_count": 23,
+          "data_gap_count": 22,
           "data_gap_rate_of_unresolved": 1.0,
           "correctly_handled_rate": 1.0
         },
         "general_bucket": {
-          "count": 6,
-          "rate": 0.1224
+          "count": 4,
+          "rate": 0.087
         },
         "fallback": {
-          "count": 6,
-          "rate": 0.1224
+          "count": 4,
+          "rate": 0.087
         },
         "expected_top1_synth_only": {
           "n_with_expected": 0,
@@ -1125,10 +1125,10 @@
           "accuracy": 0.0
         },
         "latency_ms": {
-          "mean": 0.899,
+          "mean": 0.979,
           "p50": 0.116,
-          "p95": 0.144,
-          "max": 38.467
+          "p95": 0.147,
+          "max": 39.752
         },
         "versions": {
           "intent_router": "intent_router_v2.1.0",
@@ -1166,7 +1166,7 @@
           },
           "lens_jargon_override": {
             "count": 2,
-            "rate": 0.0408,
+            "rate": 0.0435,
             "kinds": {
               "saturn return collapsed to identity (should weight life_direction)": 1,
               "7th house auto-routed to relationship without relational kw": 1
@@ -1201,7 +1201,7 @@
             "examples": []
           },
           "payload_completeness": {
-            "mandatory_modules_mean": 3.469,
+            "mandatory_modules_mean": 3.565,
             "mandatory_modules_min": 1,
             "mandatory_modules_max": 4,
             "gate": "no mandatory payload shrinks >25% vs baseline",
@@ -1218,7 +1218,7 @@
           },
           "high_confidence_wrong_route": {
             "count": 1,
-            "rate": 0.0204,
+            "rate": 0.0217,
             "ground_truth_rows": 1,
             "gate": "< 1%",
             "status": "WATCH",
@@ -1421,10 +1421,10 @@
           "accuracy": 0.65
         },
         "latency_ms": {
-          "mean": 0.118,
-          "p50": 0.117,
-          "p95": 0.136,
-          "max": 0.174
+          "mean": 0.117,
+          "p50": 0.119,
+          "p95": 0.133,
+          "max": 0.139
         },
         "versions": {
           "intent_router": "intent_router_v2.1.0",
@@ -4744,7 +4744,7 @@
   },
   "delta_vs_baseline": {
     "baseline_generated_at": "2026-06-11T19:27:31.074622+00:00",
-    "current_generated_at": "2026-06-11T19:42:27.533359+00:00",
+    "current_generated_at": "2026-06-12T01:51:41.644685+00:00",
     "new_fp_relationship_examples": [],
     "new_resolver_failure_examples": [],
     "unresolved_named_distribution_delta": {

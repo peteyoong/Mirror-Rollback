@@ -1,6 +1,6 @@
 # Mirror Chat V2 — Slice B2 Readiness Report
 
-_Generated: 2026-06-11T19:43:08.043258+00:00_
+_Generated: 2026-06-12T01:51:42.404942+00:00_
 
 _This is the canonical artifact for the B2 production cutover decision._  
 _All recommendations stay capped at `CONDITIONAL_GO` until the shadow telemetry observation window closes on 2026-06-14._
@@ -9,9 +9,9 @@ _All recommendations stay capped at `CONDITIONAL_GO` until the shadow telemetry 
 
 **Recommendation:** **`CONDITIONAL_GO`**
 
-**Replay corpus**: 89 cases (49 REAL from `chat_history` + `forum_chat_messages` + `forum_mirror_chat_messages` over the last 90 days; 40 synthetic from `golden_set_pete_mel_historical.yaml`).
+**Replay corpus**: 86 cases (46 REAL from `chat_history` + `forum_chat_messages` + `forum_mirror_chat_messages` over the last 90 days; 40 synthetic from `golden_set_pete_mel_historical.yaml`).
 
-**Frame-aware false-positive relationship rate (REAL):** 2.04% (1 cases of 49 REAL messages).
+**Frame-aware false-positive relationship rate (REAL):** 2.17% (1 cases of 46 REAL messages).
 
 **Shadow telemetry observation window ends:** 2026-06-14. Until that window closes, the recommendation is intentionally capped at `CONDITIONAL_GO`.
 
@@ -25,21 +25,21 @@ _All recommendations stay capped at `CONDITIONAL_GO` until the shadow telemetry 
 | --- | --- | --- | --- |
 | Golden-set top-1 accuracy (validated suites) | 100.00% on n=73  |  B2-stress: 69.44% on n=72 (informational) | ≥ 95% on validated suites | PASS |
 | Retrieval receipt coverage (PASS rate) | 100.00% | ≥ 95% | PASS |
-| Target resolution (proposed_action path live) | unresolved_named_rate=24.49% (12 cases, REAL-only) | ≥ 5% to confirm receipt path wired | PASS |
-| False-positive relationship rate (frame-aware, REAL) | 2.04% (1 of 49) | ≤ 5% | PASS |
-| Forum/member correctly-handled rate (REAL) | 100.00% correctly handled  (resolver-failure cases: 0/26; unresolved breakdown: {'unclassified_unresolved': 22, 'forum_to_member_misroute': 1}) | ≥ 90% correctly handled (resolver-failure sub-buckets: relationship_to_self_downgrade, wrong_frame_selected, wrong_person_selected) | PASS |
+| Target resolution (proposed_action path live) | unresolved_named_rate=26.09% (12 cases, REAL-only) | ≥ 5% to confirm receipt path wired | PASS |
+| False-positive relationship rate (frame-aware, REAL) | 2.17% (1 of 46) | ≤ 5% | PASS |
+| Forum/member correctly-handled rate (REAL) | 100.00% correctly handled  (resolver-failure cases: 0/25; unresolved breakdown: {'unclassified_unresolved': 21, 'forum_to_member_misroute': 1}) | ≥ 90% correctly handled (resolver-failure sub-buckets: relationship_to_self_downgrade, wrong_frame_selected, wrong_person_selected) | PASS |
 | Shadow telemetry window complete | n=13 receipts, span first=2026-06-11T18:37:11.997781+00:00 → last=2026-06-11T19:27:18.106423+00:00 | ≥ 3d span ending 2026-06-14 | FAIL |
 | Manual review complete | auto: report generated; awaiting operator sign-off | operator confirms gates | PENDING_OPERATOR |
 | Domain drift rate (REAL) | 100.00% (1 of 1 ground-truth rows); per-domain hot zones: ['life_direction'] | < 5% overall AND no expected_domain > 10% | INSUFFICIENT_SAMPLE |
-| Lens-jargon override errors (REAL) | 4.08% (2 cases); kinds: {'saturn return collapsed to identity (should weight life_direction)': 1, '7th house auto-routed to relationship without relational kw': 1} | < 3% | FAIL |
+| Lens-jargon override errors (REAL) | 4.35% (2 cases); kinds: {'saturn return collapsed to identity (should weight life_direction)': 1, '7th house auto-routed to relationship without relational kw': 1} | < 3% | FAIL |
 | Relationship-context loss (REAL) | 0.00% (0 cases) | < 2% | PASS |
 | Wrong-target selection (REAL) | 0 cases | = 0 in review sample | PASS |
 | Multi-lens coverage (REAL) | 100.00% (0 of 0 multi-lens prompts) | >= 90% of multi-lens prompts retrieve >= 2 lens families | PASS |
-| High-confidence wrong route (REAL) | 1 cases (2.04%) | < 1% | WATCH |
+| High-confidence wrong route (REAL) | 1 cases (2.17%) | < 1% | WATCH |
 | Couple ↔ Forum bleed (REAL) | 0 cases; kinds: {} | = 0 in reviewed samples | PASS |
 | Decision explainability (REAL) | 0 non-explainable (0.00%) | informational; track for future bug clusters | PASS |
 | Founder/operator suite (REAL) | n=0 founder-pattern queries; routing PASS rate=0.00%; domain mix={} | informational | WATCH |
-| Retrieval payload completeness (REAL, baseline only) | mandatory_modules mean=3.469 min=1 max=4 | no mandatory payload shrinks >25% vs baseline | BASELINE_ONLY |
+| Retrieval payload completeness (REAL, baseline only) | mandatory_modules mean=3.565 min=1 max=4 | no mandatory payload shrinks >25% vs baseline | BASELINE_ONLY |
 ## 3. Shadow Telemetry Summary
 
 - Receipts persisted to `mirror_chat_retrieval_receipts`: **13**
@@ -58,9 +58,9 @@ _All recommendations stay capped at `CONDITIONAL_GO` until the shadow telemetry 
 
 Definition: predicted_domain == `relationship`, frame == `self`, no `current_target_id`, no resolved target, and no relationship-domain keyword in the message.
 
-- **REAL frame-aware**: 2.04% (1 cases)
-- **REAL broad** (ignores frame): 48.98% (24 cases) — the gap to frame-aware is the FRAME_BIAS contribution (intended; forum/member frames push relationship by design).
-- **ALL frame-aware**: 1.12% (1 cases)
+- **REAL frame-aware**: 2.17% (1 cases)
+- **REAL broad** (ignores frame): 50.00% (23 cases) — the gap to frame-aware is the FRAME_BIAS contribution (intended; forum/member frames push relationship by design).
+- **ALL frame-aware**: 1.16% (1 cases)
 
 **Frame-aware examples (REAL)**:
 - `self` / `lens_jargon` — What's my 7th house about?
@@ -69,15 +69,15 @@ Definition: predicted_domain == `relationship`, frame == `self`, no `current_tar
 
 The router does not fan out per-lens — it picks a single `primary_domain`.  Per-lens routing lands in B3.  This section reports the *domain mix* and the *lens-jargon collapse rate* (% of lens-jargon messages that landed in `general`) as the closest proxy for drift.  No alarming drift observed.
 
-- REAL predicted-domain mix: `{'identity': 4, 'relationship': 36, 'general': 6, 'career': 2, 'family': 1}`
-- REAL category mix: `{'lens_jargon': 2, 'forum_member': 28, 'identity_growth': 2, 'other': 3, 'relationship': 14}`
-- General-bucket rate (REAL): **12.24%**
+- REAL predicted-domain mix: `{'identity': 4, 'relationship': 35, 'general': 4, 'career': 2, 'family': 1}`
+- REAL category mix: `{'lens_jargon': 2, 'forum_member': 25, 'identity_growth': 2, 'other': 3, 'relationship': 14}`
+- General-bucket rate (REAL): **8.70%**
 - Lens-jargon cases (REAL): **2**
 
 ## 6. Target Resolution Analysis
 
-- Status counts (REAL): `{'NOT_APPLICABLE': 12, 'UNRESOLVED_NO_NAME': 22, 'RESOLVED': 3, 'UNRESOLVED_NAMED': 12}`
-- Unresolved-named-target rate (REAL): **24.49%** (12 cases)
+- Status counts (REAL): `{'NOT_APPLICABLE': 10, 'UNRESOLVED_NO_NAME': 21, 'RESOLVED': 3, 'UNRESOLVED_NAMED': 12}`
+- Unresolved-named-target rate (REAL): **26.09%** (12 cases)
 
 **Unresolved-named sub-buckets (REAL)** — distinguishes data gaps from resolver failures:
   - `forum_only_member`: **1**
@@ -104,10 +104,10 @@ Every `UNRESOLVED_NAMED` row carries a `proposed_action` payload (`type=add_to_c
 
 ## 7. Forum vs Member Ambiguity Analysis
 
-- Forum/member frame cases (REAL): **26**
-- Unresolved target: **23** (88.46%)
+- Forum/member frame cases (REAL): **25**
+- Unresolved target: **22** (88.00%)
 - **Resolver failures** (gate-blocking sub-buckets): **0** (0.00% of total, 0.00% of unresolved)
-- **Data gaps** (acceptable, e.g. forum-only member, unclassified ambient): **23**
+- **Data gaps** (acceptable, e.g. forum-only member, unclassified ambient): **22**
 - **Correctly-handled rate** (resolved OR data gap): **100.00%**
 
 **Sub-bucket definitions (mutually exclusive, first-match-wins):**
@@ -118,14 +118,14 @@ Every `UNRESOLVED_NAMED` row carries a `proposed_action` payload (`type=add_to_c
   - `unclassified_unresolved` — catch-all (ambient forum probes / self-reflection-while-in-forum prompts).
 
 **Sub-bucket counts (REAL):**
-  - `unclassified_unresolved`: **22**  (_data gap_)
+  - `unclassified_unresolved`: **21**  (_data gap_)
   - `forum_to_member_misroute`: **1**  (_data gap_)
 
 **Representative examples per bucket:**
 **`unclassified_unresolved`** (data gap):
-  - frame=`forum`  predicted=`relationship`  → What strengths does this group composition bring?
   - frame=`forum`  predicted=`relationship`  → What's the energy of this forum?
   - frame=`forum`  predicted=`relationship`  → What's the energy of this forum?
+  - frame=`forum`  predicted=`relationship`  → Reflection test (forum).
 
 **`forum_to_member_misroute`** (data gap):
   - frame=`forum`  predicted=`relationship`  unresolved=`John`  → I think John dominates every conversation here.
@@ -134,15 +134,15 @@ Every `UNRESOLVED_NAMED` row carries a `proposed_action` payload (`type=add_to_c
 
 ## 8. Replay Corpus Composition (real vs synthetic)
 
-- Total: **89** (REAL **49** / SYNTH **40**)
+- Total: **86** (REAL **46** / SYNTH **40**)
 - Window: last **90** days (real-message recency cutoff)
-- Target band: 100–150 cases  →  current size: **89** (within band: **False**)
+- Target band: 100–150 cases  →  current size: **86** (within band: **False**)
 
 **Category mix (combined)**:
 ```json
 {
   "lens_jargon": 2,
-  "forum_member": 28,
+  "forum_member": 25,
   "identity_growth": 2,
   "other": 3,
   "relationship": 19,
@@ -162,8 +162,8 @@ Every `UNRESOLVED_NAMED` row carries a `proposed_action` payload (`type=add_to_c
 {
   "real": {
     "identity": 4,
-    "relationship": 36,
-    "general": 6,
+    "relationship": 35,
+    "general": 4,
     "career": 2,
     "family": 1
   },
@@ -197,7 +197,7 @@ It contains:
 ## 11. Remaining Risks
 
 - **Forum/member ambiguity:** replay harness does not feed `forum_topology.active_member_id` into the resolver yet — the bulk of the `unclassified_unresolved` sub-bucket is ambient forum probes and resolves once that wiring lands in B3.  No resolver-failure sub-buckets observed in REAL.
-- **Real corpus size:** the 90-day real corpus is currently ~49 messages.  Synthetic supplementation is still required for archetype voices (leadership/purpose/founder); the rollout decision is grounded in REAL evidence only.
+- **Real corpus size:** the 90-day real corpus is currently ~46 messages.  Synthetic supplementation is still required for archetype voices (leadership/purpose/founder); the rollout decision is grounded in REAL evidence only.
 - **Shadow telemetry window not yet complete** — 13 receipts persisted so far.  Window ends 2026-06-14; cutover blocked until window closes.
 - **Sign-conflation hallucination (P2)** — open issue tracked separately (`natal_object_engine.py`).  Not a B2 blocker, but queued for after-B2 priority work.
 
@@ -230,7 +230,7 @@ _The 10 regression buckets the operator asked us to track on top of the existing
 
 - **Status**: `FAIL`
 - **Gate**: < 3%
-- Rate: **4.08%** (2 cases)
+- Rate: **4.35%** (2 cases)
 - Patterns: `{'saturn return collapsed to identity (should weight life_direction)': 1, '7th house auto-routed to relationship without relational kw': 1}`
 - Examples:
   - predicted_domain=`identity`  lens_jargon_override=`saturn return collapsed to identity (should weight life_direction)` → Tell me about my Saturn return
@@ -252,7 +252,7 @@ _The 10 regression buckets the operator asked us to track on top of the existing
 
 - **Status**: `BASELINE_ONLY`
 - **Gate**: no mandatory payload shrinks >25% vs baseline
-- mandatory_modules count: mean=3.469 min=1 max=4
+- mandatory_modules count: mean=3.565 min=1 max=4
 - Note: Offline replay stubs payloads to {'sim': true}; the >25% shrinkage alert fires only in the delta-detector when a live-shadow run is diffed against the frozen baseline.
 
 ### 6. Cross-lens coverage
@@ -265,7 +265,7 @@ _The 10 regression buckets the operator asked us to track on top of the existing
 
 - **Status**: `WATCH`
 - **Gate**: < 1%
-- Rate: **2.04%** (1 cases)
+- Rate: **2.17%** (1 cases)
 - Examples:
   - predicted_domain=`identity`  domain_drift_kind=`life_direction->identity`  confidence=`1.0` → Tell me about my Saturn return
 
@@ -292,7 +292,7 @@ _The 10 regression buckets the operator asked us to track on top of the existing
 
 ## 14. Delta vs. baseline (June 11 sign-off)
 
-_Baseline frozen at_ `2026-06-11T19:27:31.074622+00:00`.  _Current run_ `2026-06-11T19:42:27.533359+00:00`.
+_Baseline frozen at_ `2026-06-11T19:27:31.074622+00:00`.  _Current run_ `2026-06-12T01:51:41.644685+00:00`.
 
 Operator's June 14 focus list, computed automatically:
 
