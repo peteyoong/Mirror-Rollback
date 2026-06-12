@@ -67,10 +67,49 @@ log = logging.getLogger("mirror_chat_phase4")
 # the resolution source to the LLM.
 
 _PAIR_FORUM_NAME_RE = re.compile(
-    r"^\s*([A-Z][a-z\-']{1,30})\s*(?:&|and|\+|/)\s*([A-Z][a-z\-']{1,30})\s*$",
+    # Two-token pair:
+    #   * each token is either a proper-name shape ([A-Z][a-z'-]{1,30})
+    #     or one of the self-reference tokens "I" / "Me" (case-insensitive
+    #     via re.I)
+    #   * separator: "&", "and", "+", "/" (whitespace tolerated)
+    # Examples that match: "Pete & Mel", "Mel and I", "Me and Mel",
+    #   "Lu/Pere", "Nic & Pete", "Pete+Ana", "Pete and Mel"
+    # PFS-1 Defect 1 fix: bare "I" / "Me" now accepted as the second
+    # token of a pair, so "Mel and I" classifies as pair_forum rather
+    # than falling through to forum_member.
+    r"^\s*([A-Z][a-z\-']{1,30}|I|Me)\s*(?:&|and|\+|/)\s*"
+    r"([A-Z][a-z\-']{1,30}|I|Me)\s*$",
     re.I,
 )
 _FAMILY_FORUM_NAME_RE = re.compile(r"\bfamily\b|\bfam\b", re.I)
+
+# PFS-1 Defect 2 fix — disambiguate romantic vs business pairs.
+# Self-reference ("I" / "Me") inside a pair-shaped name indicates the
+# user is naming a forum from their own first-person frame — overwhelmingly
+# a romantic / spousal context ("Mel and I", "Me and Mel").
+_SELF_TOKEN_IN_PAIR_RE = re.compile(r"\b(I|Me)\b", re.I)
+
+# Explicit romantic markers in a forum name.  Conservative list — only
+# strings that unambiguously indicate intimacy/relationship status.
+_ROMANTIC_KEYWORD_RE = re.compile(
+    r"\b(love|spouse|wife|husband|hubby|hubs|wifey|"
+    r"marriage|married|romantic|romance|date|dating)\b",
+    re.I,
+)
+
+# Business / cofounder / leadership markers in a forum name.  When a
+# pair-shaped name carries any of these tokens, role inference flips to
+# `cofounder` instead of `partner`.  When a NON-pair name carries any
+# of these, the forum is treated as a `business_forum` group (priority
+# above generic forum_member, below pair/family).
+_BUSINESS_KEYWORD_RE = re.compile(
+    r"\b(cofounders?|co-founders?|founders?|founder|leadership|"
+    r"leaders?|team|exec|execs|executives?|board|"
+    r"company|companies|biz|business|startup|startups|"
+    r"ventures?|llc|inc|corp|holdings|capital|"
+    r"investors?|advisors?|operators?|partners?)\b",
+    re.I,
+)
 
 # Role-noun aliases → spouse / partner
 _SPOUSE_ALIASES = {"wife", "husband", "partner", "spouse",
@@ -200,11 +239,16 @@ async def resolve_target_via_forums(
 
             if matches:
                 # Priority order per user's resolution ladder:
-                #   pair_forum > family_forum > forum_member
+                #   pair_forum > family_forum > business_forum > forum_member
+                # (PFS-1: `business_forum` inserted between family and
+                # generic. Leadership/cofounder groups are more specific
+                # than a generic shared forum, but less specific than a
+                # named pair or family.)
                 _src_priority = {
-                    "pair_forum":    0,
-                    "family_forum":  1,
-                    "forum_member":  2,
+                    "pair_forum":     0,
+                    "family_forum":   1,
+                    "business_forum": 2,
+                    "forum_member":   3,
                 }
                 matches.sort(key=lambda x: _src_priority.get(x["source"], 9))
                 top = matches[0]
@@ -266,17 +310,77 @@ async def resolve_target_via_forums(
 def _classify_forum_source(forum_name: str) -> Tuple[str, Optional[str]]:
     """Map a forum's name to a (resolution_source, inferred_role) pair.
 
-    Heuristics:
-      "X & Y" / "X and Y" / "X+Y"   → pair_forum / role=partner
-      "<anything> family"            → family_forum / role=family
-      otherwise                       → forum_member / role=None
+    Resolution sources:
+      `pair_forum`     — two-token pair (e.g. "Pete & Mel", "Mel and I",
+                         "Lu/Pere"). Role disambiguated below.
+      `family_forum`   — forum name contains "family" / "fam".
+                         Role = `family`.
+      `business_forum` — non-pair forum whose name contains business /
+                         leadership / cofounder keywords (e.g. "Pulsifi
+                         Leadership", "Acme Team", "Founders Circle").
+                         Role = None (group context, no per-member role).
+      `forum_member`   — fallthrough; any other shared forum. Role = None.
+
+    PFS-1 (June 2026) heuristics:
+      * Pair forums whose name contains a self-token (`I`, `Me`) — e.g.
+        "Mel and I" — are treated as romantic pairs (`role=partner`).
+      * Pair forums whose name carries explicit romantic markers ("love",
+        "spouse", "wife", …) are treated as romantic pairs.
+      * Pair forums whose name carries business/leadership markers
+        ("cofounder", "founders", "leadership", "team", …) are treated
+        as `cofounder` pairs (`role=cofounder`).
+      * Otherwise a pair forum is left **role-less** (`None`) — the
+        upstream prompt block will not assert a romantic frame.  This
+        is the deliberate safe-default change (PFS-1 Defect 2 fix):
+        we do not assume romantic intent purely from name shape.
+
+    Examples (all asserted in `/app/backend/tests/test_classify_forum_source.py`):
+      "Pete & Mel"           → (pair_forum,    None)        # ambiguous, no role assertion
+      "Mel and I"            → (pair_forum,    partner)     # self-token present
+      "Mel & I"              → (pair_forum,    partner)     # self-token present
+      "Mel & Pete"           → (pair_forum,    None)        # ambiguous
+      "Lu/Pere"              → (pair_forum,    None)        # ambiguous, no false-partner
+      "Pete/Ana"             → (pair_forum,    None)        # ambiguous, no false-partner
+      "Nic & Pete"           → (pair_forum,    None)        # ambiguous, no false-partner
+      "Yoong Family"         → (family_forum,  family)
+      "Pulsifi Leadership"   → (business_forum, None)       # was: forum_member/None
+      "Acme Cofounders"      → (business_forum, None)
+      "Mel and I (Married)"  → (pair_forum,    partner)     # romantic keyword
     """
     if not forum_name:
         return "forum_member", None
-    if _PAIR_FORUM_NAME_RE.match(forum_name):
-        return "pair_forum", "partner"
-    if _FAMILY_FORUM_NAME_RE.search(forum_name):
+
+    is_pair         = bool(_PAIR_FORUM_NAME_RE.match(forum_name))
+    has_family      = bool(_FAMILY_FORUM_NAME_RE.search(forum_name))
+    has_business    = bool(_BUSINESS_KEYWORD_RE.search(forum_name))
+    has_romantic_kw = bool(_ROMANTIC_KEYWORD_RE.search(forum_name))
+    # Self-token check only meaningful inside a pair-shaped name.
+    has_self_token  = (
+        bool(_SELF_TOKEN_IN_PAIR_RE.search(forum_name)) if is_pair else False
+    )
+
+    # 1. Family wins outright — family-named forums are unambiguous.
+    if has_family:
         return "family_forum", "family"
+
+    # 2. Pair-shaped names — disambiguate role.
+    if is_pair:
+        # Romantic markers OR self-reference → partner.
+        if has_self_token or has_romantic_kw:
+            return "pair_forum", "partner"
+        # Business markers → cofounder.
+        if has_business:
+            return "pair_forum", "cofounder"
+        # Ambiguous pair — DO NOT assert a romantic role.  Source stays
+        # `pair_forum` (so the resolver still prioritises this match),
+        # but role is left to downstream context / saved_people.
+        return "pair_forum", None
+
+    # 3. Non-pair, non-family with business markers → business_forum.
+    if has_business:
+        return "business_forum", None
+
+    # 4. Anything else — generic forum membership.
     return "forum_member", None
 
 
@@ -436,7 +540,7 @@ def build_intent_v2_prompt_block(
     )
     forum_name_hit = rel.get("forum_name")
     if tgt and res_source in (
-        "forum_member", "pair_forum", "family_forum",
+        "forum_member", "pair_forum", "family_forum", "business_forum",
         "alias_spouse_via_pair_forum",
         "alias_spouse_via_single_other_member",
     ):
