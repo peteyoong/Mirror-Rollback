@@ -21,6 +21,7 @@ import {
 
 // Import the new tab components
 import AstrologyAtAGlanceTab from './astrology/AstrologyAtAGlanceTab';
+import AstrologyPlacementsTab from './astrology/AstrologyPlacementsTab'; // MARKER: placements-tab-v1
 import AstrologyTodayTab from './astrology/AstrologyTodayTab';
 import AstrologyTodayV3 from './astrology/AstrologyTodayV3';
 import AstrologyTodayV4 from './astrology/AstrologyTodayV4';
@@ -40,7 +41,7 @@ export default function AstrologyLensView({ userId, onOpenChat }: AstrologyLensV
   const { theme } = useTheme();
   const router = useRouter();
 
-  const [activeTab, setActiveTab] = useState<'at_a_glance' | 'today' | 'deep_dive' | 'timeline'>('at_a_glance');
+  const [activeTab, setActiveTab] = useState<'at_a_glance' | 'placements' | 'today' | 'deep_dive' | 'timeline'>('at_a_glance');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [summaryData, setSummaryData] = useState<AstrologySummaryData | null>(null);
@@ -231,6 +232,14 @@ export default function AstrologyLensView({ userId, onOpenChat }: AstrologyLensV
         </Text>
       </TouchableOpacity>
       <TouchableOpacity
+        style={[styles.tab, activeTab === 'placements' && styles.activeTab]}
+        onPress={() => setActiveTab('placements')}
+      >
+        <Text style={[styles.tabText, { color: theme.textTertiary }, activeTab === 'placements' && { color: theme.text }]}>
+          Placements
+        </Text>
+      </TouchableOpacity>
+      <TouchableOpacity
         style={[styles.tab, activeTab === 'today' && styles.activeTab]}
         onPress={() => setActiveTab('today')}
       >
@@ -276,7 +285,33 @@ export default function AstrologyLensView({ userId, onOpenChat }: AstrologyLensV
         />
       );
     }
-    
+
+    if (activeTab === 'placements') {
+      // MARKER: placements-tab-v1 — forward-build of previously-shipped feature
+      return (
+        <AstrologyPlacementsTab
+          placements={placements}
+          fullChartData={fullChartData}
+          theme={theme}
+          onOpenDeepDive={(planetKey: string) => {
+            // Normalise planetKey to the deep-dive card id used in AstrologyDeepDiveTab
+            // (lowercase, common aliases). Then switch tab and expand the card.
+            const normalised = planetKey
+              .toLowerCase()
+              .replace(/\s+/g, '_')
+              .replace('ascendant', 'rising')
+              .replace('rising_(ascendant)', 'rising');
+            setExpandedCards(prev => {
+              const next = new Set(prev);
+              next.add(normalised);
+              return next;
+            });
+            setActiveTab('deep_dive');
+          }}
+        />
+      );
+    }
+
     if (activeTab === 'today') {
       // V4: Behavior-First Interception Engine (LLM-powered unified narrative)
       return (
