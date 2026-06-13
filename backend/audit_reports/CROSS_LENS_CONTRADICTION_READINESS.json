@@ -1,0 +1,675 @@
+{
+  "build_marker": "cross-lens-readiness-audit-v1",
+  "audit_date": "2026-02",
+  "flag_under_review": "CROSS_LENS_PROMPT_SURFACE",
+  "flag_current_state": "false",
+  "scope": "READ-ONLY forensic audit. No code/prompts/calculators/flags/chart-docs changed.",
+  "architecture": {
+    "system_A_gated_by_flag": {
+      "name": "cross_lens_synthesis_v2",
+      "files": [
+        "services/cross_lens_synthesis_v2.py",
+        "services/intent_router_v2.py",
+        "services/mirror_chat_shadow.py",
+        "services/mirror_chat_phase4_enrichment.py:868-879"
+      ],
+      "lens_engines_consulted": [],
+      "actually_cross_lens": false,
+      "input_sources": [
+        "user_message keyword match against domain lexicon",
+        "history bias (last 3 turns)",
+        "frame bias",
+        "role bias",
+        "target-active bonus"
+      ],
+      "thresholds": {
+        "tension_floor": 0.45,
+        "tension_parity_band": 0.25,
+        "agreement_floor": 0.4,
+        "contradiction_dominant_floor": 0.65,
+        "contradiction_counter_floor": 0.35
+      },
+      "polarity_pairs_count": 8,
+      "agreement_clusters_count": 5,
+      "surface_format": "Cross-lens tension: {dominant} dominates over {counter} (delta {delta})",
+      "surface_has_evidence_drawer": false,
+      "surface_has_confidence_band": false,
+      "surface_has_reflection_instruction": false
+    },
+    "system_B_NOT_gated_by_flag": {
+      "name": "tension_engine",
+      "file": "services/tension_engine.py",
+      "user_facing_today": true,
+      "lens_engines_consulted": [
+        "pattern_memory",
+        "astrology",
+        "human_design",
+        "bazi",
+        "enneagram"
+      ],
+      "numerology_extractor": false,
+      "loc_extractor": false,
+      "human_design_signal": "hardcoded TYPE -> tension map (every Manifestor -> push_vs_hold 0.7)",
+      "enneagram_signal": "hardcoded TYPE -> tension map (every Type-1 -> control_vs_flow 0.7)",
+      "astrology_signal_db_collection": "db.astrology_charts (DOES NOT EXIST - canonical is db.charts)",
+      "astrology_fallback": "generic template strings (\"energy in motion\", \"momentum building\")"
+    }
+  },
+  "source_of_truth_audit": {
+    "system_A": {
+      "structured": [],
+      "generated": [
+        "intent_envelope.evidence.raw_scores",
+        "intent_envelope.evidence.matched_phrases",
+        "cross_lens_synthesis_v2.lens_coverage (keyword scan of message)"
+      ],
+      "mixed": [
+        "cross_lens_synthesis_v2.tensions",
+        "cross_lens_synthesis_v2.contradictions",
+        "cross_lens_synthesis_v2.agreements"
+      ],
+      "all_emissions_derived_from": "user message keyword match only \u2014 no lens-engine outputs participate"
+    },
+    "system_B": {
+      "structured": [
+        "pattern_memory",
+        "bazi"
+      ],
+      "generated": [
+        "astrology (degraded fallback)",
+        "cluster matching (_find_matching_cluster keyword count)"
+      ],
+      "hardcoded_static_maps": [
+        "human_design",
+        "enneagram"
+      ],
+      "missing_extractors": [
+        "numerology",
+        "levels_of_consciousness"
+      ]
+    }
+  },
+  "replay_corpus": [
+    {
+      "message": "Should I take the promotion if it means less time with my wife?",
+      "manual_classification": "TRUE_CONTRADICTION",
+      "primary_domain": "career",
+      "raw_scores_top4": {
+        "career": 2.6,
+        "relationship": 1.9,
+        "life_direction": 0.55,
+        "identity": 0.0
+      },
+      "polarity": null,
+      "tensions_count": 0,
+      "contradictions_count": 1,
+      "agreements_count": 1,
+      "tensions": [],
+      "contradictions": [
+        {
+          "dominant": "career",
+          "counter": "relationship",
+          "dominant_score": 2.6,
+          "counter_score": 1.9,
+          "delta": 0.7,
+          "label": "work_relationship_pull__career_dominant"
+        }
+      ]
+    },
+    {
+      "message": "I love my work and I love my family but I can't keep up.",
+      "manual_classification": "TRUE_CONTRADICTION_MISSED",
+      "primary_domain": "family",
+      "raw_scores_top4": {
+        "family": 0.9,
+        "identity": 0.0,
+        "relationship": 0.0,
+        "parenting": 0.0
+      },
+      "polarity": null,
+      "tensions_count": 0,
+      "contradictions_count": 0,
+      "agreements_count": 0,
+      "tensions": [],
+      "contradictions": []
+    },
+    {
+      "message": "My career feels misaligned with my purpose lately.",
+      "manual_classification": "SAME_THING_DIFFERENT_WORDS",
+      "primary_domain": "career",
+      "raw_scores_top4": {
+        "career": 0.95,
+        "purpose": 0.95,
+        "identity": 0.0,
+        "relationship": 0.0
+      },
+      "polarity": "role_purpose_misalignment",
+      "tensions_count": 1,
+      "contradictions_count": 0,
+      "agreements_count": 1,
+      "tensions": [
+        {
+          "pair": [
+            "career",
+            "purpose"
+          ],
+          "scores": [
+            0.95,
+            0.95
+          ],
+          "delta": 0.0,
+          "label": "role_purpose_misalignment"
+        }
+      ],
+      "contradictions": []
+    },
+    {
+      "message": "Am I really meant to lead this company or am I burning out?",
+      "manual_classification": "TRUE_CONTRADICTION_MISSED",
+      "primary_domain": "career",
+      "raw_scores_top4": {
+        "career": 0.55,
+        "identity": 0.0,
+        "relationship": 0.0,
+        "family": 0.0
+      },
+      "polarity": null,
+      "tensions_count": 0,
+      "contradictions_count": 0,
+      "agreements_count": 0,
+      "tensions": [],
+      "contradictions": []
+    },
+    {
+      "message": "I don't know who I am outside of being a husband and a founder.",
+      "manual_classification": "TRUE_CONTRADICTION_MISSED",
+      "primary_domain": "career",
+      "raw_scores_top4": {
+        "career": 0.7,
+        "identity": 0.0,
+        "relationship": 0.0,
+        "family": 0.0
+      },
+      "polarity": null,
+      "tensions_count": 0,
+      "contradictions_count": 0,
+      "agreements_count": 0,
+      "tensions": [],
+      "contradictions": []
+    },
+    {
+      "message": "Should I stay in finance for the money or chase my mission?",
+      "manual_classification": "TRUE_CONTRADICTION",
+      "primary_domain": "life_direction",
+      "raw_scores_top4": {
+        "life_direction": 0.95,
+        "purpose": 0.9,
+        "money": 0.85,
+        "identity": 0.0
+      },
+      "polarity": "runway_vs_mission",
+      "tensions_count": 1,
+      "contradictions_count": 0,
+      "agreements_count": 1,
+      "tensions": [
+        {
+          "pair": [
+            "money",
+            "purpose"
+          ],
+          "scores": [
+            0.85,
+            0.9
+          ],
+          "delta": 0.05,
+          "label": "runway_vs_mission"
+        }
+      ],
+      "contradictions": []
+    },
+    {
+      "message": "My parents want me home but my career is here.",
+      "manual_classification": "TRUE_CONTRADICTION_MISSED",
+      "primary_domain": "career",
+      "raw_scores_top4": {
+        "career": 0.95,
+        "family": 0.9,
+        "identity": 0.0,
+        "relationship": 0.0
+      },
+      "polarity": null,
+      "tensions_count": 0,
+      "contradictions_count": 0,
+      "agreements_count": 0,
+      "tensions": [],
+      "contradictions": []
+    },
+    {
+      "message": "I'm pushing hard but my body keeps shutting down.",
+      "manual_classification": "TRUE_CONTRADICTION_MISSED",
+      "primary_domain": "health",
+      "raw_scores_top4": {
+        "health": 0.85,
+        "parenting": 0.4,
+        "identity": 0.0,
+        "relationship": 0.0
+      },
+      "polarity": null,
+      "tensions_count": 0,
+      "contradictions_count": 0,
+      "agreements_count": 0,
+      "tensions": [],
+      "contradictions": []
+    },
+    {
+      "message": "I want to grow but my family pulls me back to the old life.",
+      "manual_classification": "TRUE_CONTRADICTION",
+      "primary_domain": "family",
+      "raw_scores_top4": {
+        "family": 0.9,
+        "growth": 0.85,
+        "identity": 0.0,
+        "relationship": 0.0
+      },
+      "polarity": "individuation_vs_roots",
+      "tensions_count": 1,
+      "contradictions_count": 0,
+      "agreements_count": 0,
+      "tensions": [
+        {
+          "pair": [
+            "growth",
+            "family"
+          ],
+          "scores": [
+            0.85,
+            0.9
+          ],
+          "delta": 0.05,
+          "label": "individuation_vs_roots"
+        }
+      ],
+      "contradictions": []
+    },
+    {
+      "message": "I'm a husband first but the team needs me 24/7.",
+      "manual_classification": "TRUE_CONTRADICTION_MISSED",
+      "primary_domain": "general",
+      "raw_scores_top4": {
+        "identity": 0.0,
+        "relationship": 0.0,
+        "family": 0.0,
+        "parenting": 0.0
+      },
+      "polarity": null,
+      "tensions_count": 0,
+      "contradictions_count": 0,
+      "agreements_count": 0,
+      "tensions": [],
+      "contradictions": []
+    },
+    {
+      "message": "Tell me about my Saturn return",
+      "manual_classification": "FALSE_POSITIVE",
+      "primary_domain": "life_direction",
+      "raw_scores_top4": {
+        "life_direction": 3.8,
+        "identity": 1.45,
+        "relationship": 0.0,
+        "family": 0.0
+      },
+      "polarity": null,
+      "tensions_count": 0,
+      "contradictions_count": 1,
+      "agreements_count": 1,
+      "tensions": [],
+      "contradictions": [
+        {
+          "dominant": "life_direction",
+          "counter": "identity",
+          "dominant_score": 3.8,
+          "counter_score": 1.45,
+          "delta": 2.35,
+          "label": "becoming_question__life_direction_dominant"
+        }
+      ]
+    },
+    {
+      "message": "What is my MC?",
+      "manual_classification": "CORRECTLY_SILENT",
+      "primary_domain": "identity",
+      "raw_scores_top4": {
+        "identity": 0.5,
+        "relationship": 0.0,
+        "family": 0.0,
+        "parenting": 0.0
+      },
+      "polarity": null,
+      "tensions_count": 0,
+      "contradictions_count": 0,
+      "agreements_count": 0,
+      "tensions": [],
+      "contradictions": []
+    },
+    {
+      "message": "How is my Mercury Venus connection?",
+      "manual_classification": "CORRECTLY_SILENT",
+      "primary_domain": "identity",
+      "raw_scores_top4": {
+        "identity": 1.1,
+        "relationship": 0.0,
+        "family": 0.0,
+        "parenting": 0.0
+      },
+      "polarity": null,
+      "tensions_count": 0,
+      "contradictions_count": 0,
+      "agreements_count": 0,
+      "tensions": [],
+      "contradictions": []
+    },
+    {
+      "message": "What's my Enneagram type?",
+      "manual_classification": "CORRECTLY_SILENT",
+      "primary_domain": "identity",
+      "raw_scores_top4": {
+        "identity": 2.55,
+        "relationship": 0.0,
+        "family": 0.0,
+        "parenting": 0.0
+      },
+      "polarity": null,
+      "tensions_count": 0,
+      "contradictions_count": 0,
+      "agreements_count": 0,
+      "tensions": [],
+      "contradictions": []
+    },
+    {
+      "message": "Tell me about my career",
+      "manual_classification": "CORRECTLY_SILENT",
+      "primary_domain": "career",
+      "raw_scores_top4": {
+        "career": 1.9,
+        "identity": 0.45,
+        "relationship": 0.0,
+        "family": 0.0
+      },
+      "polarity": null,
+      "tensions_count": 0,
+      "contradictions_count": 0,
+      "agreements_count": 0,
+      "tensions": [],
+      "contradictions": []
+    },
+    {
+      "message": "How is my relationship doing?",
+      "manual_classification": "CORRECTLY_SILENT",
+      "primary_domain": "general",
+      "raw_scores_top4": {
+        "identity": 0.0,
+        "relationship": 0.0,
+        "family": 0.0,
+        "parenting": 0.0
+      },
+      "polarity": null,
+      "tensions_count": 0,
+      "contradictions_count": 0,
+      "agreements_count": 0,
+      "tensions": [],
+      "contradictions": []
+    },
+    {
+      "message": "Am I healthy lately?",
+      "manual_classification": "CORRECTLY_SILENT",
+      "primary_domain": "general",
+      "raw_scores_top4": {
+        "identity": 0.0,
+        "relationship": 0.0,
+        "family": 0.0,
+        "parenting": 0.0
+      },
+      "polarity": null,
+      "tensions_count": 0,
+      "contradictions_count": 0,
+      "agreements_count": 0,
+      "tensions": [],
+      "contradictions": []
+    },
+    {
+      "message": "What's going on with me?",
+      "manual_classification": "CORRECTLY_SILENT",
+      "primary_domain": "general",
+      "raw_scores_top4": {
+        "identity": 0.0,
+        "relationship": 0.0,
+        "family": 0.0,
+        "parenting": 0.0
+      },
+      "polarity": null,
+      "tensions_count": 0,
+      "contradictions_count": 0,
+      "agreements_count": 0,
+      "tensions": [],
+      "contradictions": []
+    },
+    {
+      "message": "I had a good day today.",
+      "manual_classification": "CORRECTLY_SILENT",
+      "primary_domain": "general",
+      "raw_scores_top4": {
+        "identity": 0.0,
+        "relationship": 0.0,
+        "family": 0.0,
+        "parenting": 0.0
+      },
+      "polarity": null,
+      "tensions_count": 0,
+      "contradictions_count": 0,
+      "agreements_count": 0,
+      "tensions": [],
+      "contradictions": []
+    },
+    {
+      "message": "What does my chart say about money?",
+      "manual_classification": "CORRECTLY_SILENT",
+      "primary_domain": "money",
+      "raw_scores_top4": {
+        "money": 0.85,
+        "identity": 0.75,
+        "relationship": 0.0,
+        "family": 0.0
+      },
+      "polarity": null,
+      "tensions_count": 0,
+      "contradictions_count": 0,
+      "agreements_count": 0,
+      "tensions": [],
+      "contradictions": []
+    },
+    {
+      "message": "Some days I want stability, other days I want freedom.",
+      "manual_classification": "COMPLEMENTARY_MISSED",
+      "primary_domain": "general",
+      "raw_scores_top4": {
+        "identity": 0.0,
+        "relationship": 0.0,
+        "family": 0.0,
+        "parenting": 0.0
+      },
+      "polarity": null,
+      "tensions_count": 0,
+      "contradictions_count": 0,
+      "agreements_count": 0,
+      "tensions": [],
+      "contradictions": []
+    },
+    {
+      "message": "Sometimes I feel certain, sometimes I doubt everything.",
+      "manual_classification": "COMPLEMENTARY_MISSED",
+      "primary_domain": "general",
+      "raw_scores_top4": {
+        "identity": 0.0,
+        "relationship": 0.0,
+        "family": 0.0,
+        "parenting": 0.0
+      },
+      "polarity": null,
+      "tensions_count": 0,
+      "contradictions_count": 0,
+      "agreements_count": 0,
+      "tensions": [],
+      "contradictions": []
+    },
+    {
+      "message": "I'm both growing and grounded.",
+      "manual_classification": "CORRECTLY_SILENT",
+      "primary_domain": "general",
+      "raw_scores_top4": {
+        "identity": 0.0,
+        "relationship": 0.0,
+        "family": 0.0,
+        "parenting": 0.0
+      },
+      "polarity": null,
+      "tensions_count": 0,
+      "contradictions_count": 0,
+      "agreements_count": 0,
+      "tensions": [],
+      "contradictions": []
+    },
+    {
+      "message": "My family is my career.",
+      "manual_classification": "CORRECTLY_SILENT",
+      "primary_domain": "career",
+      "raw_scores_top4": {
+        "career": 0.95,
+        "family": 0.9,
+        "identity": 0.0,
+        "relationship": 0.0
+      },
+      "polarity": null,
+      "tensions_count": 0,
+      "contradictions_count": 0,
+      "agreements_count": 0,
+      "tensions": [],
+      "contradictions": []
+    },
+    {
+      "message": "I trust my team but I keep micromanaging.",
+      "manual_classification": "TRUE_CONTRADICTION_MISSED",
+      "primary_domain": "leadership",
+      "raw_scores_top4": {
+        "leadership": 0.85,
+        "work": 0.55,
+        "identity": 0.0,
+        "family": 0.0
+      },
+      "polarity": null,
+      "tensions_count": 0,
+      "contradictions_count": 0,
+      "agreements_count": 0,
+      "tensions": [],
+      "contradictions": []
+    }
+  ],
+  "false_positive_analysis": {
+    "total_messages": 25,
+    "total_emissions": 5,
+    "true_positives": 3,
+    "false_positives": 1,
+    "same_thing_diff_words": 1,
+    "missed_true": 7,
+    "missed_complementary": 2,
+    "correctly_silent": 11,
+    "precision": 0.6,
+    "recall": 0.3
+  },
+  "ontology_audit": {
+    "polarity_pair_orphans": [
+      "parenting",
+      "spirituality"
+    ],
+    "ontology_vocabulary_mismatch_A_vs_B": true,
+    "lens_coverage_is_decorative_keyword_scan": true,
+    "missing_concepts_from_brief": [
+      "freedom",
+      "independence",
+      "autonomy",
+      "exploration",
+      "novelty",
+      "stability",
+      "security",
+      "belonging",
+      "control",
+      "certainty"
+    ],
+    "brief_canonical_example_representable": false
+  },
+  "harm_assessment": {
+    "false_positive_on_chart_fact_questions": {
+      "severity": "moderate",
+      "likelihood": "high",
+      "evidence": "Saturn return query emitted life_direction>identity delta=2.35"
+    },
+    "missed_genuine_tensions": {
+      "severity": "moderate",
+      "likelihood": "high",
+      "evidence": "9 / 25 messages with real tension produced no signal"
+    },
+    "lens_engine_grade_label_no_evidence_drawer": {
+      "severity": "high",
+      "likelihood": "high",
+      "evidence": "Surface format is a single category line \u2014 LLM cannot cite"
+    },
+    "system_A_and_B_can_contradict_each_other": {
+      "severity": "high",
+      "likelihood": "medium",
+      "evidence": "Today card uses System B vocabulary, chat would use System A \u2014 disjoint ontologies"
+    },
+    "hardcoded_per_type_maps_treated_as_personalized": {
+      "severity": "high",
+      "likelihood": "high",
+      "evidence": "System B already user-facing; every Manifestor sees same tension"
+    },
+    "missing_numerology_LoC_extractors": {
+      "severity": "medium",
+      "likelihood": "medium",
+      "evidence": "Both lenses absent from System B"
+    }
+  },
+  "ungating_recommendation": {
+    "decision": "OPTION_C_REQUIRES_REDESIGN",
+    "summary": "Flag is mis-named (surfaces intent-domain polarity, not cross-lens contradiction). The actual cross-lens engine (System B) is already user-facing via the Today card with hardcoded per-type maps. Numerology and LoC have no extractor at all. Precision 60% / recall 25% on a 25-message replay. Brief's canonical example (freedom vs consistency) is not representable in either system's ontology.",
+    "blockers": [
+      "B1: System A does not consult any lens engine \u2014 it routes on message-keyword domain weights only",
+      "B2: System B HD/Enneagram extractors are hardcoded per-type",
+      "B3: System B astrology extractor reads from non-existent db.astrology_charts",
+      "B4: Numerology and LoC have no extractors",
+      "B5: System A vs System B ontology vocabularies are disjoint",
+      "B6: Injection block has no evidence drawer / no confidence band / no reflection instruction",
+      "B7: lens_coverage is decorative",
+      "B8: No suppression for chart-fact / FACT_LOOKUP queries",
+      "B9: No complementary-tension vs true-contradiction classifier",
+      "B10: Brief's canonical synonym vocabulary missing from ontology"
+    ]
+  },
+  "locked_flags_verified_unchanged": {
+    "INTENT_ROUTER_V2_CUTOVER": "false",
+    "INTENT_ROUTER_V2_ROLLOUT_PERCENT": "10",
+    "RELATIONSHIP_ORCHESTRATION_PROMPT": "false",
+    "CROSS_LENS_PROMPT_SURFACE": "false"
+  },
+  "constraints_honored": [
+    "no calculator math changed",
+    "no prompts changed",
+    "no lens outputs changed",
+    "no relationship orchestration changed",
+    "no HD changed",
+    "no astrology changed",
+    "no timeline changed",
+    "no rollout flags flipped",
+    "no chart documents written",
+    "no migrations triggered"
+  ]
+}
