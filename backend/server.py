@@ -14386,9 +14386,22 @@ async def get_relationship_insight_v2_endpoint(
         )
         from services.relationship_3layer import generate_3layer_insight
         import hashlib
-        
+        from bson import ObjectId as _OID_RELV2
+
+        # Helper: lookup a user doc whether `_id` is stored as string or ObjectId.
+        async def _v2_find_user(uid):
+            if not uid:
+                return None
+            doc = await db.users.find_one({"_id": uid})
+            if doc:
+                return doc
+            try:
+                return await db.users.find_one({"_id": _OID_RELV2(uid)})
+            except Exception:
+                return None
+
         # Get user data
-        user = await db.users.find_one({"_id": user_id})
+        user = await _v2_find_user(user_id)
         user_profile = {
             "user_id": user_id,
             "enneagram": user.get("enneagram", {}) if user else {},
@@ -14398,7 +14411,7 @@ async def get_relationship_insight_v2_endpoint(
         # Get other user profile if provided
         other_profile = None
         if other_user_id:
-            other_user = await db.users.find_one({"_id": other_user_id})
+            other_user = await _v2_find_user(other_user_id)
             if other_user:
                 other_profile = {
                     "user_id": other_user_id,
@@ -14428,6 +14441,7 @@ async def get_relationship_insight_v2_endpoint(
         
         # Build HD signals from existing chart data
         hd_signals = []
+        user_chart = None
         try:
             user_chart = await db.charts.find_one({"user_id": user_id})
             if user_chart and user_chart.get("human_design"):
@@ -14445,7 +14459,125 @@ async def get_relationship_insight_v2_endpoint(
                     })
         except Exception as e:
             logger.warning(f"[RelV2] HD signals error: {e}")
-        
+
+        # ============================================================
+        # R1 WIRING (additive): plumb the existing forum-path signal
+        # generators into the V2 endpoint. No calculator changes, no
+        # chart recomputes, no DB writes. If we can resolve `other_user_id`
+        # (either passed in directly or via `saved_people`), we load both
+        # charts and run the same compute functions the forum mapping
+        # endpoint already uses. Shapes are adapted to the V2 card's
+        # existing TS interface — no UI redesign.
+        # ============================================================
+        other_user_doc = None
+        other_chart = None
+        other_user_id_resolved = other_user_id
+        try:
+            if other_user_id_resolved:
+                other_user_doc = await _v2_find_user(other_user_id_resolved)
+            else:
+                # Resolution priority:
+                #   1) saved_people row owned by this user with matching name → linked_user_id
+                #   2) forum_relationship_edges where (a=user_id, b_name~=other_name) or vice versa
+                #   3) users.find_one by exact-ish name match (case-insensitive)
+                # All are read-only.
+                sp = await db.saved_people.find_one({
+                    "user_id": user_id,
+                    "name": {"$regex": f"^{re.escape(other_name)}$", "$options": "i"},
+                })
+                if sp and sp.get("linked_user_id"):
+                    other_user_id_resolved = sp["linked_user_id"]
+                if not other_user_id_resolved:
+                    edge = await db.forum_relationship_edges.find_one({
+                        "$or": [
+                            {"a_user_id": user_id, "b_name": {"$regex": f"^{re.escape(other_name)}$", "$options": "i"}},
+                            {"b_user_id": user_id, "a_name": {"$regex": f"^{re.escape(other_name)}$", "$options": "i"}},
+                            {"user_a_id": user_id, "user_b_name": {"$regex": f"^{re.escape(other_name)}$", "$options": "i"}},
+                            {"user_b_id": user_id, "user_a_name": {"$regex": f"^{re.escape(other_name)}$", "$options": "i"}},
+                        ]
+                    })
+                    if edge:
+                        for k in ("b_user_id", "a_user_id", "user_b_id", "user_a_id"):
+                            cand = edge.get(k)
+                            if cand and cand != user_id:
+                                other_user_id_resolved = cand
+                                break
+                if not other_user_id_resolved:
+                    # Last-resort: find a user with this exact display name (case-insensitive)
+                    cand_user = await db.users.find_one({
+                        "name": {"$regex": f"^{re.escape(other_name)}$", "$options": "i"}
+                    })
+                    if cand_user:
+                        other_user_id_resolved = str(cand_user.get("_id"))
+                        other_user_doc = cand_user
+                if other_user_id_resolved and not other_user_doc:
+                    other_user_doc = await _v2_find_user(other_user_id_resolved)
+            if other_user_doc:
+                ouid_str = str(other_user_doc.get("_id"))
+                other_chart = await db.charts.find_one({"user_id": ouid_str})
+        except Exception as _e:
+            logger.warning(f"[RelV2] other-user resolution skipped: {_e}")
+
+        # Default empty (V2 card shape)
+        astro_signals = {"attraction": [], "tension": [], "growth": []}
+        bazi_signals = {"strengthens": [], "drains": [], "activates_growth": []}
+        enneagram_signals = {"gift_to_them": [], "gift_to_you": []}
+        numerology_signals = {"complementarity": [], "missing_traits": []}
+
+        if user_chart and other_chart and user and other_user_doc:
+            try:
+                from services.forum_hd_mapping import (
+                    compute_astrology_signals as _csa,
+                    compute_bazi_signals as _csb,
+                    compute_enneagram_signals as _cse,
+                    compute_numerology_signals as _csn,
+                )
+                u_name = (user.get("name") or "You")
+                o_name = (other_user_doc.get("name") or other_name or "them")
+
+                _astro = _csa(user_chart, other_chart, u_name, o_name) or None
+                _bazi  = _csb(user_chart, other_chart, u_name, o_name) or None
+                _ennea = _cse(user, other_user_doc, u_name, o_name) or None
+                _numer = _csn(user_chart, other_chart, u_name, o_name) or None
+
+                # --- Shape adapters: forum-shape → V2-card-shape ---
+                # Astrology already matches (attraction/tension/growth)
+                if isinstance(_astro, dict):
+                    astro_signals = {
+                        "attraction": list(_astro.get("attraction") or []),
+                        "tension":    list(_astro.get("tension") or []),
+                        "growth":     list(_astro.get("growth") or []),
+                    }
+                # BaZi: forum={support, tension?, growth} → V2={strengthens, drains, activates_growth}
+                if isinstance(_bazi, dict):
+                    bazi_signals = {
+                        "strengthens":      list(_bazi.get("support") or _bazi.get("strengthens") or []),
+                        "drains":           list(_bazi.get("tension") or _bazi.get("drains") or []),
+                        "activates_growth": list(_bazi.get("growth") or _bazi.get("activates_growth") or []),
+                    }
+                # Enneagram: forum={how_you_help_them, how_they_help_you, friction_pattern}
+                # → V2={gift_to_them, gift_to_you}
+                if isinstance(_ennea, dict):
+                    enneagram_signals = {
+                        "gift_to_them": list(_ennea.get("how_you_help_them") or _ennea.get("gift_to_them") or []),
+                        "gift_to_you":  list(_ennea.get("how_they_help_you") or _ennea.get("gift_to_you")  or []),
+                    }
+                # Numerology: forum={themes} → V2={complementarity, missing_traits}
+                if isinstance(_numer, dict):
+                    numerology_signals = {
+                        "complementarity": list(_numer.get("themes") or _numer.get("complementarity") or []),
+                        "missing_traits":  list(_numer.get("missing_traits") or []),
+                    }
+                logger.info(
+                    f"[RelV2] R1 wired signals for {user_id[:8]}<->{(other_user_id_resolved or '?')[:8]}: "
+                    f"astro={sum(len(v) for v in astro_signals.values())} "
+                    f"bazi={sum(len(v) for v in bazi_signals.values())} "
+                    f"ennea={sum(len(v) for v in enneagram_signals.values())} "
+                    f"numer={sum(len(v) for v in numerology_signals.values())}"
+                )
+            except Exception as _e:
+                logger.warning(f"[RelV2] R1 signal compute skipped: {type(_e).__name__}: {_e}")
+
         # Generate the 3-layer insight
         result = generate_3layer_insight(
             user_type=user_type,
@@ -14454,6 +14586,10 @@ async def get_relationship_insight_v2_endpoint(
             deep_content=deep_content,
             seed_hash=seed_hash,
             hd_signals=hd_signals if hd_signals else None,
+            astro_signals=astro_signals,
+            bazi_signals=bazi_signals,
+            enneagram_signals=enneagram_signals,
+            numerology_signals=numerology_signals,
         )
         
         result["user_id"] = user_id

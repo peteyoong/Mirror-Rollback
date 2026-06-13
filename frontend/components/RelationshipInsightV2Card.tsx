@@ -154,9 +154,25 @@ const RelationshipInsightV2Card: React.FC<Props> = ({
   if (!data) return null;
 
   const hasHDSignals = data.signals.human_design.length > 0;
-  const hasAnySignals = hasHDSignals ||
+  // R1 wiring: gate now considers ALL five lenses (was HD+Enneagram only).
+  // Lets Astrology / BaZi / Numerology open the "Why this is so strong" surface
+  // even when HD and Enneagram are empty.
+  const hasAstroSignals =
+    data.signals.astrology.attraction.length > 0 ||
+    data.signals.astrology.tension.length > 0 ||
+    data.signals.astrology.growth.length > 0;
+  const hasBaziSignals =
+    data.signals.bazi.strengthens.length > 0 ||
+    data.signals.bazi.drains.length > 0 ||
+    data.signals.bazi.activates_growth.length > 0;
+  const hasEnneaSignals =
     data.signals.enneagram.gift_to_them.length > 0 ||
     data.signals.enneagram.gift_to_you.length > 0;
+  const hasNumerSignals =
+    data.signals.numerology.complementarity.length > 0 ||
+    data.signals.numerology.missing_traits.length > 0;
+  const hasAnySignals =
+    hasHDSignals || hasAstroSignals || hasBaziSignals || hasEnneaSignals || hasNumerSignals;
 
   return (
     <ScrollView
