@@ -5450,7 +5450,10 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
     const typeMirrorCard = getTypeMirrorCard(data.core_mechanics?.type || '');
     const authorityMirrorCard = getAuthorityMirrorCard(data.core_mechanics?.authority || '');
     const profileMirrorCard = getProfileMirrorCard(data.core_mechanics?.profile || '');
-    const crossMirrorCard = getCrossMirrorCard(data.core_mechanics?.incarnation_cross || '');
+    const crossMirrorCard = getCrossMirrorCard(
+      data.core_mechanics?.incarnation_cross || '',
+      data.core_mechanics?.incarnation_cross_gates || '',
+    );
     
     // Get dominant gate for Pattern State
     const dominantGate = typeof data.personality_sun === 'object' 

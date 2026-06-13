@@ -16055,19 +16055,42 @@ def extract_human_design_data(chart: dict) -> dict:
             ]
     
     # Format the gates string for display.
-    # Per spec: "Gates: {gate1} · {gate2} · {gate3} · {gate4}"
-    # The 4 gates are Personality Sun, Personality Earth, Design Sun,
-    # Design Earth.
-    if len(incarnation_cross_gates) >= 4:
+    # Canonical Human Design convention: "{P.Sun}/{P.Earth} | {D.Sun}/{D.Earth}"
+    # (e.g. "20/34 | 55/59").  When the raw chart stored the canonical
+    # 'gates' string directly we surface that as-is; otherwise we build
+    # the canonical layout from the personality/design gate quartet.
+    raw_gates_str: Optional[str] = None
+    if isinstance(incarnation_cross_raw, dict):
+        candidate = incarnation_cross_raw.get('gates')
+        if isinstance(candidate, str) and '/' in candidate and '|' in candidate:
+            raw_gates_str = candidate.strip()
+
+    if raw_gates_str:
+        gates_display = raw_gates_str
+    elif isinstance(incarnation_cross_raw, dict) and all(
+        incarnation_cross_raw.get(k) for k in (
+            'personality_sun', 'personality_earth', 'design_sun', 'design_earth'
+        )
+    ):
         gates_display = (
-            f"Gates: {incarnation_cross_gates[0]} \u00b7 "
-            f"{incarnation_cross_gates[1]} \u00b7 "
-            f"{incarnation_cross_gates[2]} \u00b7 "
+            f"{incarnation_cross_raw['personality_sun']}/"
+            f"{incarnation_cross_raw['personality_earth']} | "
+            f"{incarnation_cross_raw['design_sun']}/"
+            f"{incarnation_cross_raw['design_earth']}"
+        )
+    elif len(incarnation_cross_gates) >= 4:
+        # Stored order in extract loop above is
+        # [personality_sun, design_sun, personality_earth, design_earth].
+        # Re-shape into canonical P/E | D/E layout.
+        gates_display = (
+            f"{incarnation_cross_gates[0]}/"
+            f"{incarnation_cross_gates[2]} | "
+            f"{incarnation_cross_gates[1]}/"
             f"{incarnation_cross_gates[3]}"
         )
     elif len(incarnation_cross_gates) >= 2:
         gates_display = (
-            f"Gates: {incarnation_cross_gates[0]} \u00b7 "
+            f"{incarnation_cross_gates[0]}/"
             f"{incarnation_cross_gates[1]}"
         )
     else:

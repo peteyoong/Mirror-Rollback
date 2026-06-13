@@ -1,0 +1,28 @@
+{
+  "summary": "P0 HD Incarnation Cross Output Integrity fix VERIFIED. All 7 backend tests passed (100%). Thaddeus returns 'Right Angle Cross of Sleeping Phoenix' with gates '20/34 | 55/59'. Isaac returns 'Right Angle Cross of Consciousness' with gates '63/64 | 5/35'. Pete returns 'Left Angle Cross of Migration' with gates '37/40 | 5/35'. FKR v1 regression intact: Pete asking about Thaddeus returns 'Sleeping Phoenix' (no 'Sphinx'); Pete self-query returns 'Migration' (no generic 'Personal destiny'). Health 200. All 4 locked flags untouched in /app/backend/.env.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [],
+    "react_native_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_hd_incarnation_cross_integrity.py",
+    "/app/test_reports/pytest/hd_cross_integrity.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [],
+  "updated_files": [
+    "/app/backend/tests/test_hd_incarnation_cross_integrity.py (new)"
+  ],
+  "success_rate": {"backend": "100%", "frontend": "N/A (not requested)"},
+  "seed_data_creation": "None - used existing Thaddeus/Isaac/Pete user_ids per request.",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "HD mechanics endpoint returns canonical 'incarnation_cross' name and 'incarnation_cross_gates' as 'P.Sun/P.Earth | D.Sun/D.Earth' (e.g. '20/34 | 55/59'). FKR v1 mirror chat still routes correctly for both self and relational HD cross queries. Locked flags: INTENT_ROUTER_V2_CUTOVER=false, INTENT_ROUTER_V2_ROLLOUT_PERCENT=10, RELATIONSHIP_ORCHESTRATION_PROMPT=false, CROSS_LENS_PROMPT_SURFACE=false — all confirmed.",
+  "rca_of_issue": "N/A - verification round only. The rendering-layer fix (backend canonical gate formatting + frontend getCrossMirrorCard consulting 11 family-specific MirrorCards) is working end-to-end as validated by the three /api/human-design/mechanics/{user_id} endpoints and two /api/mirror/chat regression cases."
+}

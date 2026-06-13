@@ -744,6 +744,172 @@ export const CROSS_MIRROR_CARDS: { [key: string]: MirrorCard } = {
   }
 };
 
+// ============================================
+// CROSS FAMILY-SPECIFIC CARDS
+// ============================================
+// Specific Incarnation Cross families produce DISTINCT mirror cards.
+// Used by getCrossMirrorCard() so two people both on a "Right Angle Cross"
+// no longer collapse to identical "Personal destiny" prose.  When a
+// chart's stored family is in this map, this card wins over the angle
+// fallback above.  Falls through to angle card only when family is
+// genuinely unknown (e.g. a new/rare cross we haven't catalogued).
+export const CROSS_FAMILY_MIRROR_CARDS: { [family: string]: MirrorCard } = {
+  'Sleeping Phoenix': {
+    title: 'Cross of the Sleeping Phoenix',
+    subtitle: 'Rising from quiet collapse',
+    recognition: "Your life has rhythms of dormancy and re-emergence. You don't move in a straight line—you go quiet, sometimes for years, then come back unmistakably alive in a way that surprises everyone, including you.",
+    tension: "You can mistake the dormant phases for failure or depression and try to force yourself back into motion before the cycle is ready. That overrides the design and makes the return weaker.",
+    realLifeMoments: [
+      "You've gone through periods where you basically disappeared from your own life",
+      "When you return, it's never as the same person—something has been burnt off",
+      "Others notice the change before you do; they feel the difference",
+      "You suspect the dormancy was actually doing something, even when you couldn't name it"
+    ],
+    truthShift: "The fallow seasons aren't failure—they're how the next version of you is being made. Skipping them produces a hollow comeback.",
+    tryThisInstead: "When the energy goes underground, stop fighting it. Track what's quietly forming. The next rising is shaped by what you let burn down honestly."
+  },
+  'Consciousness': {
+    title: 'Cross of Consciousness',
+    subtitle: 'Clarity as contribution',
+    recognition: "You're oriented around the drive to make sense of things—not for its own sake, but because clear seeing is how you actually contribute. You name what others can feel but can't yet articulate.",
+    tension: "You can wait too long for total certainty before speaking, or use clarity as a wall against feeling. Both moves dull the very signal you're here to carry.",
+    realLifeMoments: [
+      "You keep re-thinking something until it finally clicks into shape",
+      "Vague conversations and woolly thinking make you physically itch",
+      "You can see the logical end of a situation before anyone else is on board",
+      "You become unstable when you're forced to operate without clarity"
+    ],
+    truthShift: "Your clarity is the contribution. It loses value if you sit on it waiting to be the expert.",
+    tryThisInstead: "Say the clear thing earlier, even when it's incomplete. Let the half-formed clarity land in the room and let the room sharpen it."
+  },
+  'Sphinx': {
+    title: 'Cross of the Sphinx',
+    subtitle: 'Identity as direction',
+    recognition: "Your direction is wrapped around the question of who you actually are—not the roles you perform. People are drawn to you partly because you haven't fully resolved that question, and they can feel it.",
+    tension: "The trap is outsourcing your direction to other people's reads of you. You become what they need instead of what's actually here.",
+    realLifeMoments: [
+      "People project a lot onto you—leader, mystery, answer—and you feel the weight of it",
+      "You're either hiding from how visible you really are, or over-performing to compensate",
+      "Your sense of direction returns when you stop trying to be legible to others",
+      "Moments of being fully yourself have a noticeable effect on the room"
+    ],
+    truthShift: "The self-knowing IS the curriculum. The moment you try to skip past it to 'just be useful,' the direction quietly disappears.",
+    tryThisInstead: "Stop editing yourself for legibility. Try one place this week where you simply are, and let people meet that."
+  },
+  'Migration': {
+    title: 'Cross of Migration',
+    subtitle: 'Movement as identity',
+    recognition: "Your life is not meant to stay in one shape. There's a current underneath that keeps asking you to move—between places, identities, environments—in a way that often doesn't fit what others expect from you.",
+    tension: "You can mistake movement for escape and feel guilty about it. The other trap is forcing yourself to stay for safety and slowly dimming.",
+    realLifeMoments: [
+      "You're most alive when something is genuinely changing",
+      "Staying static too long starts to feel like a slow disappearance",
+      "People treat you as a bridge—between groups, between phases, between worlds",
+      "Your identity has visibly changed more than once, and it's meant to change again"
+    ],
+    truthShift: "Movement is not restlessness for you—it's how you find your actual rhythm. Each transition shows you what's actually yours.",
+    tryThisInstead: "Name the shift your body is already preparing for, even if you haven't called it out loud. Stop staying in things you've already left."
+  },
+  'Tension': {
+    title: 'Cross of Tension',
+    subtitle: 'Friction as the work',
+    recognition: "Your design holds opposing forces on purpose. Where other people smooth things over, you're built to carry the friction until something new comes out of it.",
+    tension: "The trap is collapsing under the weight or glorifying the suffering. Neither is the work. The work is carrying it usefully.",
+    realLifeMoments: [
+      "Life keeps handing you situations with no obvious good answer",
+      "You have more stamina for hard things than the people around you",
+      "Easy choices bore you; you subtly sabotage them",
+      "You help others hold their tension instead of fixing it"
+    ],
+    truthShift: "Ease is not the goal. Depth is. The struggle is the mechanism—without it, your meaning goes flat.",
+    tryThisInstead: "Notice the tension you're trying to resolve right now that's actually meant to stay unresolved for longer. Sit with it one more cycle."
+  },
+  'Vessel of Love': {
+    title: 'Cross of the Vessel of Love',
+    subtitle: 'Embodied presence',
+    recognition: "You're built to hold love in a very physical, embodied way—not as abstract feeling, but as something that moves through your body and changes the field around you.",
+    tension: "The trap is spiritual bypassing—making the love abstract instead of letting it land through your actual body and your actual time.",
+    realLifeMoments: [
+      "People settle around you without knowing why",
+      "Your physical state directly affects who shows up for you",
+      "You over-give when you're disconnected from your body",
+      "Love for you is expressed through presence and action, not words"
+    ],
+    truthShift: "The body is the instrument. Neglect it and the transmission goes muddy.",
+    tryThisInstead: "Where are you withholding presence and calling it self-protection? Show up in one place this week with your full body present."
+  },
+  'Eden': {
+    title: 'Cross of Eden',
+    subtitle: 'Feeling as compass',
+    recognition: "Your direction runs through emotional experience. You're designed to go deep into feeling—joy, loss, longing—because that's where your signal lives.",
+    tension: "The trap is numbing to stabilize, or building a life that keeps you out of the drop on purpose.",
+    realLifeMoments: [
+      "Emotional waves move you more than most people realize",
+      "You go quiet during the drop, then clear on the way up",
+      "Superficial environments drain you",
+      "You find paradise briefly, lose it, and that cycle is the point"
+    ],
+    truthShift: "Crisis isn't a detour for you—it's the curriculum. The drop is what reveals what's actually real.",
+    tryThisInstead: "Name what you're currently avoiding feeling so you don't have to feel all of it. Let one wave through this week."
+  },
+  'Contagion': {
+    title: 'Cross of Contagion',
+    subtitle: 'Transmissible conviction',
+    recognition: "There's something about the way you commit that other people catch. Your conviction is transmissible—when you're fully in, the people around you start moving too.",
+    tension: "The trap is commitment without clarity—becoming a carrier for something that isn't actually yours, and infecting others with it.",
+    realLifeMoments: [
+      "Your enthusiasm changes the temperature of a room",
+      "People copy your choices more than they admit",
+      "When you lose conviction, things around you visibly stall",
+      "You spread things—ideas, moods, momentum—whether you intend to or not"
+    ],
+    truthShift: "You don't influence by arguing—you influence by embodying. Half-in shows up in everyone around you.",
+    tryThisInstead: "Name one thing you're half-committed to right now. Either go all in or release it cleanly—the wobble is leaking."
+  },
+  'Explanation': {
+    title: 'Cross of Explanation',
+    subtitle: 'Naming what others can\'t',
+    recognition: "You're designed to turn complexity into something understandable—not by simplifying it, but by naming what others can't quite name yet. Your clarity benefits the whole, even when it starts as a personal insight.",
+    tension: "The trap is waiting to be the expert before you speak. The insight expires if you sit on it.",
+    realLifeMoments: [
+      "You can articulate patterns others feel but can't describe",
+      "Your mind keeps circling until it finds the right frame",
+      "People come to you specifically for clarity",
+      "When you withhold your reads, you feel it physically"
+    ],
+    truthShift: "If you keep the insights inside, the direction dries up. The naming IS the contribution.",
+    tryThisInstead: "What explanation do you already have that you're waiting to earn permission to share? Share it before it expires."
+  },
+  'Planning': {
+    title: 'Cross of Planning',
+    subtitle: 'Order as meaning',
+    recognition: "Your direction is shaped by your capacity to organize, sequence, and structure. You see the order underneath chaos. Structure isn't a constraint—it's how meaning arrives for you.",
+    tension: "The trap is rigidifying the structure until there's no room for anything alive.",
+    realLifeMoments: [
+      "You instinctively sequence things in your head",
+      "Loose situations disturb you more than they should",
+      "You stabilize groups by the order you bring",
+      "You burn out when asked to operate without structure"
+    ],
+    truthShift: "When you resist planning, you end up managing the same mess twice. The structure is part of how your design contributes.",
+    tryThisInstead: "Notice the system you're over-protecting because it makes you feel safe. Loosen one rule this week and watch what comes alive."
+  },
+  'Service': {
+    title: 'Cross of Service',
+    subtitle: 'Contribution as identity',
+    recognition: "Your direction is woven through being useful. You find yourself by what you offer to others, and lose yourself when there's no one to serve.",
+    tension: "The trap is serving out of need to be needed, instead of out of clear contribution.",
+    realLifeMoments: [
+      "You instinctively look for where you can help",
+      "Without a recipient for your effort, you drift",
+      "You say yes too quickly and regret it later",
+      "Your boundaries live inside your choices of who to serve"
+    ],
+    truthShift: "Service for you is not subservience—it's contribution that proves you matter. The key is choosing who, not how much.",
+    tryThisInstead: "Who are you serving right now that you wouldn't choose if you had clean boundaries? Renegotiate one of those this month."
+  }
+};
+
 // Helper function to get mirror card content
 export function getTypeMirrorCard(type: string): MirrorCard | null {
   return TYPE_MIRROR_CARDS[type] || null;
@@ -764,18 +930,58 @@ export function getCenterMirrorCard(center: string, isDefined: boolean): MirrorC
   return isDefined ? centerData.defined : centerData.undefined;
 }
 
-export function getCrossMirrorCard(crossType: string): MirrorCard | null {
-  // Extract the cross type (Right Angle, Left Angle, Juxtaposition)
-  if (crossType.toLowerCase().includes('right angle')) {
-    return CROSS_MIRROR_CARDS['Right Angle'];
+// Helper: extract the cross family from a stored cross name.
+// "Right Angle Cross of Sleeping Phoenix" → "Sleeping Phoenix"
+// "Left Angle Cross of Migration 1"       → "Migration"
+// Returns '' when no family segment is present.
+export function extractCrossFamily(crossName: string): string {
+  if (!crossName) return '';
+  // Strip any trailing variant index (1, 2, 3, ...) so "Migration 1" → "Migration"
+  const cleaned = crossName.replace(/\s+\d+\s*$/, '').trim();
+  const m = cleaned.match(/Cross of (.+)$/i);
+  return m?.[1]?.trim() ?? '';
+}
+
+export function getCrossMirrorCard(
+  crossType: string,
+  crossGates?: string,
+): MirrorCard | null {
+  // Guard: don't render a card at all when we have no real value to show.
+  // ("Personal destiny" prose must NEVER appear for crosses that lack a
+  // stored name — that would be the very hallucination we are fixing.)
+  if (!crossType || crossType === 'Unknown' || crossType === '—') {
+    return null;
   }
-  if (crossType.toLowerCase().includes('left angle')) {
-    return CROSS_MIRROR_CARDS['Left Angle'];
+
+  // Try the family-specific card first.  This is what differentiates
+  // Isaac ("Right Angle Cross of Consciousness") from Thaddeus
+  // ("Right Angle Cross of Sleeping Phoenix") even though they share
+  // the same angle.
+  const family = extractCrossFamily(crossType);
+  const familyCard = family ? CROSS_FAMILY_MIRROR_CARDS[family] : null;
+
+  // Decide the angle fallback only if family is unknown.
+  let angleCard: MirrorCard | null = null;
+  if (!familyCard) {
+    const lower = crossType.toLowerCase();
+    if (lower.includes('right angle'))      angleCard = CROSS_MIRROR_CARDS['Right Angle'];
+    else if (lower.includes('left angle'))  angleCard = CROSS_MIRROR_CARDS['Left Angle'];
+    else if (lower.includes('juxtaposition')) angleCard = CROSS_MIRROR_CARDS['Juxtaposition'];
   }
-  if (crossType.toLowerCase().includes('juxtaposition')) {
-    return CROSS_MIRROR_CARDS['Juxtaposition'];
-  }
-  return null;
+
+  const base = familyCard || angleCard;
+  if (!base) return null;
+
+  // Always surface the EXACT stored cross name in the title (variant
+  // index already stripped backend-side) and append the gate quartet
+  // to the subtitle when present.  This is what prevents Isaac and
+  // Thaddeus from rendering identical "Right Angle Cross" headers.
+  const gateSuffix = crossGates && crossGates !== '—' ? ` · ${crossGates}` : '';
+  return {
+    ...base,
+    title: crossType,
+    subtitle: `${base.subtitle}${gateSuffix}`,
+  };
 }
 
 // ============================================
