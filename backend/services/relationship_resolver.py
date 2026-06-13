@@ -9,6 +9,10 @@ master-astrologer engine can produce RELATIONAL synthesis instead of
 "generic assistant discussing another person".
 
 Resolution priority:
+  0. `forum_relationship_edges` (the canonical graph also consumed by
+     FKR v1) — wins when an edge from asker→target carries a
+     `role_type`.  Forum-scoped edges take precedence over global
+     edges.
   1. Explicit map in `relationship_mappings` collection (asker → target)
   2. `saved_people.relationship_type` for the asker (name or
      linked_user_id match)
@@ -100,6 +104,47 @@ async def resolve_relationship(
         "forum_name":            None,
         "build_marker":          BUILD_MARKER,
     }
+
+    # 0. forum_relationship_edges — the canonical graph that the FKR
+    #    retrieval layer already consults.  Must be first so the resolver
+    #    and FKR cannot disagree on whether Mel is Pete's spouse.  Only
+    #    edges with explicit `role_type` are honoured here; everything
+    #    else falls through to the existing priority chain.
+    try:
+        if target_user_id:
+            edge_query: Dict[str, Any] = {
+                "from_user_id": asker_user_id,
+                "to_user_id":   target_user_id,
+            }
+            # Prefer an edge scoped to the active forum first; fall back
+            # to any edge between the same pair of users.
+            edge = None
+            if forum_id:
+                edge = await db.forum_relationship_edges.find_one({
+                    **edge_query, "forum_id": forum_id,
+                })
+            if not edge:
+                edge = await db.forum_relationship_edges.find_one(edge_query)
+            if edge and edge.get("role_type"):
+                prof = _profile_for(edge["role_type"])
+                # Confidence-weighted closeness: 'high' bumps emotional
+                # weight; 'low' demotes closeness one notch.
+                conf = (edge.get("confidence") or "").lower()
+                closeness = prof["closeness"]
+                weight = prof["weight"]
+                if conf == "low":
+                    closeness = "medium" if closeness == "high" else closeness
+                    weight = "medium" if weight == "high" else weight
+                return {
+                    **result_base,
+                    "relationship_detected": True,
+                    "relationship_role":     prof["role"],
+                    "closeness":             closeness,
+                    "emotional_weight":      weight,
+                    "relationship_source":   "forum_relationship_edges",
+                }
+    except Exception as e:
+        logger.debug(f"[RelationshipResolver] edges lookup skipped: {e}")
 
     # 1. Explicit map (user-defined via /api/admin/map-relationship)
     try:

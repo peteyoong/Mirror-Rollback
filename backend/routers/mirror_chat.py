@@ -2843,6 +2843,57 @@ USER SHOULD FEEL:
                             f"modes={_fkr_debug.get('modes')} "
                             f"targets={[t['name'] for t in _fkr_debug.get('targets', [])]}"
                         )
+
+                    # ── P0 Fix 2 — Bridge FKR-detected role into v2_receipt
+                    # The FKR layer reads `forum_relationship_edges` (the
+                    # canonical graph) and may resolve a relationship role
+                    # the upstream V2 router missed (because V2 reads
+                    # `saved_people` / `forum_topology`, not the edge graph).
+                    # When that happens we MUST copy the role into
+                    # `v2_receipt.relationship_resolution` so the
+                    # orchestration plan and the intent-v2 enforcement
+                    # block see the same role the FKR EVIDENCE block
+                    # already surfaced to the LLM.  Non-destructive: never
+                    # overwrites an already-bound role; never invents one.
+                    try:
+                        if v2_receipt is not None and _fkr_debug:
+                            _fkr_targets = _fkr_debug.get("targets") or []
+                            _fkr_primary = next(
+                                (t for t in _fkr_targets
+                                 if t.get("source") != "asker"
+                                 and t.get("role")
+                                 and t["role"] != "forum_peer"),
+                                None,
+                            )
+                            if _fkr_primary:
+                                _rel_before = (
+                                    v2_receipt.get("relationship_resolution") or {}
+                                )
+                                _existing_role = _rel_before.get("role")
+                                if not _existing_role:
+                                    v2_receipt["relationship_resolution"] = {
+                                        **_rel_before,
+                                        "target":      _fkr_primary.get("user_id"),
+                                        "target_name": _fkr_primary.get("name"),
+                                        "role":        _fkr_primary.get("role"),
+                                        "forum_id": (
+                                            _fkr_primary.get("forum_id")
+                                            or _rel_before.get("forum_id")
+                                        ),
+                                        "relationship_source":
+                                            "fkr_edge_bridge",
+                                    }
+                                    logger.info(
+                                        f"[MIRROR_CHAT][FKR-v1] role bridged "
+                                        f"into v2_receipt: "
+                                        f"name={_fkr_primary.get('name')!r} "
+                                        f"role={_fkr_primary.get('role')!r}"
+                                    )
+                    except Exception as _bridge_err:
+                        logger.warning(
+                            f"[MIRROR_CHAT][FKR-v1] role bridge failed: "
+                            f"{type(_bridge_err).__name__}: {_bridge_err!r}"
+                        )
                 except Exception as _fkr_err:
                     logger.warning(
                         f"[MIRROR_CHAT][FKR-v1] failed: "

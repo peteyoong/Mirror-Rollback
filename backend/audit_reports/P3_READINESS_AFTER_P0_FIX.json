@@ -1,0 +1,677 @@
+{
+  "summary": {
+    "total": 10,
+    "passed": 4,
+    "failed": 6,
+    "by_category": {
+      "spouse": {
+        "total": 3,
+        "passed": 2
+      },
+      "child": {
+        "total": 2,
+        "passed": 0
+      },
+      "child_child": {
+        "total": 2,
+        "passed": 1
+      },
+      "forum_member": {
+        "total": 1,
+        "passed": 1
+      },
+      "forum_dynamics": {
+        "total": 2,
+        "passed": 0
+      }
+    },
+    "score_dimensions": {
+      "retrieval": 9,
+      "target_resolution": 10,
+      "relationship_resolution": 10,
+      "orchestration_bucket": 10,
+      "prompt_construction": 9,
+      "modes_overlap": 4
+    }
+  },
+  "results": [
+    {
+      "id": "spouse.affect",
+      "category": "spouse",
+      "message": "How does Mel affect me?",
+      "asker": "697f0c6abf35c0528ff06954",
+      "forum_id": null,
+      "modes": [
+        "RELATIONSHIP"
+      ],
+      "targets": [
+        {
+          "name": "you",
+          "role": "self",
+          "source": "asker"
+        },
+        {
+          "name": "Mel",
+          "role": "spouse",
+          "source": "alias_match"
+        }
+      ],
+      "fkr_block_chars": 5114,
+      "fkr_emitted": true,
+      "relationship": {
+        "target_id": "697ec826ad4b18f75bf42616",
+        "target_name": "Mel",
+        "role": "spouse",
+        "source": "forum_relationship_edges"
+      },
+      "orchestration": {
+        "rule_bucket": "spouse",
+        "framing_hint": "couple_dynamic",
+        "domain_bias": "relationship",
+        "lens_priority_before": [
+          "astrology",
+          "human_design",
+          "enneagram",
+          "numerology",
+          "timeline",
+          "relationship"
+        ],
+        "lens_priority_after": [
+          "astrology",
+          "human_design",
+          "enneagram",
+          "relationship",
+          "numerology",
+          "timeline"
+        ],
+        "applied_rules": [
+          "role_match:spouse:spouse",
+          "target_bound",
+          "context_mode:reflection"
+        ],
+        "reordered": true
+      },
+      "scores": {
+        "retrieval": true,
+        "target_resolution": true,
+        "relationship_resolution": true,
+        "orchestration_bucket": true,
+        "prompt_construction": true,
+        "modes_overlap": true
+      },
+      "pass": true
+    },
+    {
+      "id": "spouse.struggle",
+      "category": "spouse",
+      "message": "What do Mel and I struggle with?",
+      "asker": "697f0c6abf35c0528ff06954",
+      "forum_id": null,
+      "modes": [],
+      "targets": [
+        {
+          "name": "you",
+          "role": "self",
+          "source": "asker"
+        },
+        {
+          "name": "Mel",
+          "role": "spouse",
+          "source": "alias_match"
+        }
+      ],
+      "fkr_block_chars": 5131,
+      "fkr_emitted": true,
+      "relationship": {
+        "target_id": "697ec826ad4b18f75bf42616",
+        "target_name": "Mel",
+        "role": "spouse",
+        "source": "forum_relationship_edges"
+      },
+      "orchestration": {
+        "rule_bucket": "spouse",
+        "framing_hint": "couple_dynamic",
+        "domain_bias": "relationship",
+        "lens_priority_before": [
+          "astrology",
+          "human_design",
+          "enneagram",
+          "numerology",
+          "timeline",
+          "relationship"
+        ],
+        "lens_priority_after": [
+          "astrology",
+          "human_design",
+          "enneagram",
+          "relationship",
+          "numerology",
+          "timeline"
+        ],
+        "applied_rules": [
+          "role_match:spouse:spouse",
+          "target_bound",
+          "context_mode:reflection"
+        ],
+        "reordered": true
+      },
+      "scores": {
+        "retrieval": true,
+        "target_resolution": true,
+        "relationship_resolution": true,
+        "orchestration_bucket": true,
+        "prompt_construction": true,
+        "modes_overlap": false
+      },
+      "pass": false
+    },
+    {
+      "id": "spouse.lesson_pronoun",
+      "category": "spouse",
+      "message": "What is the lesson between us?",
+      "asker": "697f0c6abf35c0528ff06954",
+      "forum_id": null,
+      "modes": [
+        "RELATIONSHIP"
+      ],
+      "targets": [
+        {
+          "name": "you",
+          "role": "self",
+          "source": "asker"
+        },
+        {
+          "name": "Mel",
+          "role": "spouse",
+          "source": "spouse_auto_bind"
+        }
+      ],
+      "fkr_block_chars": 5119,
+      "fkr_emitted": true,
+      "relationship": {
+        "target_id": "697ec826ad4b18f75bf42616",
+        "target_name": "Mel",
+        "role": "spouse",
+        "source": "forum_relationship_edges"
+      },
+      "orchestration": {
+        "rule_bucket": "spouse",
+        "framing_hint": "couple_dynamic",
+        "domain_bias": "relationship",
+        "lens_priority_before": [
+          "astrology",
+          "human_design",
+          "enneagram",
+          "numerology",
+          "timeline",
+          "relationship"
+        ],
+        "lens_priority_after": [
+          "astrology",
+          "human_design",
+          "enneagram",
+          "relationship",
+          "numerology",
+          "timeline"
+        ],
+        "applied_rules": [
+          "role_match:spouse:spouse",
+          "target_bound",
+          "context_mode:reflection"
+        ],
+        "reordered": true
+      },
+      "scores": {
+        "retrieval": true,
+        "target_resolution": true,
+        "relationship_resolution": true,
+        "orchestration_bucket": true,
+        "prompt_construction": true,
+        "modes_overlap": true
+      },
+      "pass": true
+    },
+    {
+      "id": "child.thaddeus_need",
+      "category": "child",
+      "message": "What does Thaddeus need from me?",
+      "asker": "697f0c6abf35c0528ff06954",
+      "forum_id": null,
+      "modes": [],
+      "targets": [
+        {
+          "name": "you",
+          "role": "self",
+          "source": "asker"
+        },
+        {
+          "name": "Thaddeus",
+          "role": "child",
+          "source": "alias_match"
+        }
+      ],
+      "fkr_block_chars": 5090,
+      "fkr_emitted": true,
+      "relationship": {
+        "target_id": "69dd0b2cc92ba973f8838c11",
+        "target_name": "Thaddeus",
+        "role": "child",
+        "source": "forum_relationship_edges"
+      },
+      "orchestration": {
+        "rule_bucket": "child",
+        "framing_hint": "parenting",
+        "domain_bias": "relationship",
+        "lens_priority_before": [
+          "astrology",
+          "human_design",
+          "enneagram",
+          "numerology",
+          "timeline",
+          "relationship"
+        ],
+        "lens_priority_after": [
+          "astrology",
+          "human_design",
+          "enneagram",
+          "timeline",
+          "numerology",
+          "relationship"
+        ],
+        "applied_rules": [
+          "role_match:child:child",
+          "target_bound",
+          "context_mode:reflection"
+        ],
+        "reordered": true
+      },
+      "scores": {
+        "retrieval": true,
+        "target_resolution": true,
+        "relationship_resolution": true,
+        "orchestration_bucket": true,
+        "prompt_construction": true,
+        "modes_overlap": false
+      },
+      "pass": false
+    },
+    {
+      "id": "child.isaac_diff",
+      "category": "child",
+      "message": "How is Isaac different from me?",
+      "asker": "697f0c6abf35c0528ff06954",
+      "forum_id": null,
+      "modes": [],
+      "targets": [
+        {
+          "name": "you",
+          "role": "self",
+          "source": "asker"
+        },
+        {
+          "name": "Isaac",
+          "role": "child",
+          "source": "alias_match"
+        }
+      ],
+      "fkr_block_chars": 5194,
+      "fkr_emitted": true,
+      "relationship": {
+        "target_id": "69dda348de9cb1c83c0780f8",
+        "target_name": "Isaac",
+        "role": "child",
+        "source": "forum_relationship_edges"
+      },
+      "orchestration": {
+        "rule_bucket": "child",
+        "framing_hint": "parenting",
+        "domain_bias": "relationship",
+        "lens_priority_before": [
+          "astrology",
+          "human_design",
+          "enneagram",
+          "numerology",
+          "timeline",
+          "relationship"
+        ],
+        "lens_priority_after": [
+          "astrology",
+          "human_design",
+          "enneagram",
+          "timeline",
+          "numerology",
+          "relationship"
+        ],
+        "applied_rules": [
+          "role_match:child:child",
+          "target_bound",
+          "context_mode:reflection"
+        ],
+        "reordered": true
+      },
+      "scores": {
+        "retrieval": true,
+        "target_resolution": true,
+        "relationship_resolution": true,
+        "orchestration_bucket": true,
+        "prompt_construction": true,
+        "modes_overlap": false
+      },
+      "pass": false
+    },
+    {
+      "id": "child_child.compare",
+      "category": "child_child",
+      "message": "Compare Isaac and Thaddeus.",
+      "asker": "697f0c6abf35c0528ff06954",
+      "forum_id": null,
+      "modes": [
+        "COMPARISON"
+      ],
+      "targets": [
+        {
+          "name": "you",
+          "role": "self",
+          "source": "asker"
+        },
+        {
+          "name": "Thaddeus",
+          "role": "child",
+          "source": "alias_match"
+        },
+        {
+          "name": "Isaac",
+          "role": "child",
+          "source": "alias_match"
+        }
+      ],
+      "fkr_block_chars": 6457,
+      "fkr_emitted": true,
+      "relationship": {
+        "target_id": "69dd0b2cc92ba973f8838c11",
+        "target_name": "Thaddeus",
+        "role": "child",
+        "source": "forum_relationship_edges"
+      },
+      "orchestration": {
+        "rule_bucket": "child",
+        "framing_hint": "parenting",
+        "domain_bias": "relationship",
+        "lens_priority_before": [
+          "astrology",
+          "human_design",
+          "enneagram",
+          "numerology",
+          "timeline",
+          "relationship"
+        ],
+        "lens_priority_after": [
+          "astrology",
+          "human_design",
+          "enneagram",
+          "timeline",
+          "numerology",
+          "relationship"
+        ],
+        "applied_rules": [
+          "role_match:child:child",
+          "target_bound",
+          "context_mode:reflection"
+        ],
+        "reordered": true
+      },
+      "scores": {
+        "retrieval": true,
+        "target_resolution": true,
+        "relationship_resolution": true,
+        "orchestration_bucket": true,
+        "prompt_construction": true,
+        "modes_overlap": true
+      },
+      "pass": true
+    },
+    {
+      "id": "child_child.boys_differ",
+      "category": "child_child",
+      "message": "How do the boys differ emotionally?",
+      "asker": "697f0c6abf35c0528ff06954",
+      "forum_id": null,
+      "modes": [],
+      "targets": [
+        {
+          "name": "you",
+          "role": "self",
+          "source": "asker"
+        }
+      ],
+      "fkr_block_chars": null,
+      "fkr_emitted": false,
+      "relationship": {
+        "target_id": null,
+        "target_name": null,
+        "role": null,
+        "source": null
+      },
+      "orchestration": {
+        "rule_bucket": "self",
+        "framing_hint": "self_inquiry",
+        "domain_bias": "self",
+        "lens_priority_before": [
+          "astrology",
+          "human_design",
+          "enneagram",
+          "numerology",
+          "timeline",
+          "relationship"
+        ],
+        "lens_priority_after": [
+          "astrology",
+          "human_design",
+          "enneagram",
+          "numerology",
+          "timeline",
+          "relationship"
+        ],
+        "applied_rules": [
+          "self:default",
+          "context_mode:reflection"
+        ],
+        "reordered": false
+      },
+      "scores": {
+        "retrieval": false,
+        "target_resolution": true,
+        "relationship_resolution": true,
+        "orchestration_bucket": true,
+        "prompt_construction": false,
+        "modes_overlap": false
+      },
+      "pass": false
+    },
+    {
+      "id": "forum_member.jay",
+      "category": "forum_member",
+      "message": "How does Jay affect me?",
+      "asker": "697f0c6abf35c0528ff06954",
+      "forum_id": null,
+      "modes": [
+        "RELATIONSHIP"
+      ],
+      "targets": [
+        {
+          "name": "you",
+          "role": "self",
+          "source": "asker"
+        }
+      ],
+      "fkr_block_chars": 3791,
+      "fkr_emitted": true,
+      "relationship": {
+        "target_id": null,
+        "target_name": null,
+        "role": null,
+        "source": null
+      },
+      "orchestration": {
+        "rule_bucket": "self",
+        "framing_hint": "self_inquiry",
+        "domain_bias": "self",
+        "lens_priority_before": [
+          "astrology",
+          "human_design",
+          "enneagram",
+          "numerology",
+          "timeline",
+          "relationship"
+        ],
+        "lens_priority_after": [
+          "astrology",
+          "human_design",
+          "enneagram",
+          "numerology",
+          "timeline",
+          "relationship"
+        ],
+        "applied_rules": [
+          "self:default",
+          "context_mode:reflection"
+        ],
+        "reordered": false
+      },
+      "scores": {
+        "retrieval": true,
+        "target_resolution": true,
+        "relationship_resolution": true,
+        "orchestration_bucket": true,
+        "prompt_construction": true,
+        "modes_overlap": true
+      },
+      "pass": true
+    },
+    {
+      "id": "forum_dyn.balance",
+      "category": "forum_dynamics",
+      "message": "Who balances Mel best?",
+      "asker": "697f0c6abf35c0528ff06954",
+      "forum_id": null,
+      "modes": [],
+      "targets": [
+        {
+          "name": "you",
+          "role": "self",
+          "source": "asker"
+        },
+        {
+          "name": "Mel",
+          "role": "spouse",
+          "source": "alias_match"
+        }
+      ],
+      "fkr_block_chars": 5131,
+      "fkr_emitted": true,
+      "relationship": {
+        "target_id": "697ec826ad4b18f75bf42616",
+        "target_name": "Mel",
+        "role": "spouse",
+        "source": "forum_relationship_edges"
+      },
+      "orchestration": {
+        "rule_bucket": "spouse",
+        "framing_hint": "couple_dynamic",
+        "domain_bias": "relationship",
+        "lens_priority_before": [
+          "astrology",
+          "human_design",
+          "enneagram",
+          "numerology",
+          "timeline",
+          "relationship"
+        ],
+        "lens_priority_after": [
+          "astrology",
+          "human_design",
+          "enneagram",
+          "relationship",
+          "numerology",
+          "timeline"
+        ],
+        "applied_rules": [
+          "role_match:spouse:spouse",
+          "target_bound",
+          "context_mode:reflection"
+        ],
+        "reordered": true
+      },
+      "scores": {
+        "retrieval": true,
+        "target_resolution": true,
+        "relationship_resolution": true,
+        "orchestration_bucket": true,
+        "prompt_construction": true,
+        "modes_overlap": false
+      },
+      "pass": false
+    },
+    {
+      "id": "forum_dyn.blind_spot",
+      "category": "forum_dynamics",
+      "message": "What is this group's blind spot?",
+      "asker": "697f0c6abf35c0528ff06954",
+      "forum_id": "69dda348de9cb1c83c0780fa",
+      "modes": [
+        "FACT_LOOKUP"
+      ],
+      "targets": [
+        {
+          "name": "you",
+          "role": "self",
+          "source": "asker"
+        }
+      ],
+      "fkr_block_chars": 3902,
+      "fkr_emitted": true,
+      "relationship": {
+        "target_id": null,
+        "target_name": null,
+        "role": null,
+        "source": null
+      },
+      "orchestration": {
+        "rule_bucket": "forum_member",
+        "framing_hint": "forum_member_dynamic",
+        "domain_bias": "forum",
+        "lens_priority_before": [
+          "astrology",
+          "human_design",
+          "enneagram",
+          "numerology",
+          "timeline",
+          "relationship"
+        ],
+        "lens_priority_after": [
+          "astrology",
+          "human_design",
+          "enneagram",
+          "relationship",
+          "numerology",
+          "timeline"
+        ],
+        "applied_rules": [
+          "self:default",
+          "context_mode:forum",
+          "forum_promotion:self_to_forum_member"
+        ],
+        "reordered": true
+      },
+      "scores": {
+        "retrieval": true,
+        "target_resolution": true,
+        "relationship_resolution": true,
+        "orchestration_bucket": true,
+        "prompt_construction": true,
+        "modes_overlap": false
+      },
+      "pass": false
+    }
+  ]
+}
