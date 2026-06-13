@@ -121,6 +121,20 @@ _FORUM_DYNAMICS_PATTERNS = [
     r"\bthis forum\b",
     r"\bthis (family|team)\b",
     r"\bwhat role does \w+ play\b",
+    # P1B expansion — pre-ungating validation gap fixes:
+    r"\bwhere (is|are) (the|our|my) (family|home|household|kids|boys|children)\b",
+    r"\bwhere (is|are) (we|us|our) (growing|growing together|evolving)\b",
+    r"\b(the|our|my) family (is|are|keeps|tends|moves|drifts|grows|shifts)\b",
+    r"\btension (at home|in (the|our|my) (home|house|household|family))\b",
+    r"\bat home\b.*\b(tension|conflict|dynamic|pattern|shift|grow|growing|emerging)\b",
+    r"\b(tension|conflict|growth|growing edge|blind ?spot|pattern) (at home|in (the|our|my) (home|house|family))\b",
+    # Loosened "at home" pattern — matches when "tension/conflict/growth"
+    # appears anywhere in a sentence that ends with "at home" (real
+    # phrasing: "What tension needs attention at home?").
+    r"\b(tension|conflict|pattern|blind ?spot|growth|growing edge|need(s)?|happening|emerging)\b[^.?!]{0,60}\bat home\b",
+    r"\bat home\b[^.?!]{0,60}\b(tension|conflict|pattern|growth|growing edge|emerging)\b",
+    r"\bwhat (is|are) (we|the family|our family|our home) (going through|working on)\b",
+    r"\bhow (is|are) (the|our) family (doing|moving|growing)\b",
 ]
 
 
@@ -271,7 +285,12 @@ async def resolve_targets(*, db, user_id: str, message: str,
             re.IGNORECASE,
         ),
         "family": re.compile(
-            r"\b(our family|the family|my family)\b",
+            r"\b("
+            r"our family|the family|my family|"
+            r"at home|our home|our household|"
+            r"in (the|our|my) (home|household|house)|"
+            r"home (dynamic|life|environment|patterns?)"
+            r")\b",
             re.IGNORECASE,
         ),
     }

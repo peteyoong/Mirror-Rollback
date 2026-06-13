@@ -1,0 +1,1083 @@
+{
+  "summary": {
+    "total": 10,
+    "passed": 7,
+    "failed": 3,
+    "fkr_block_complete": 10,
+    "names_complete_in_response": 7,
+    "responses_with_generic_language": 1,
+    "responses_with_role_confusion": 0
+  },
+  "results": [
+    {
+      "id": "f1.family_happening",
+      "message": "What is happening in our family?",
+      "expected_names": [
+        "Mel",
+        "Isaac",
+        "Thaddeus"
+      ],
+      "fkr": {
+        "modes": [
+          "FORUM_DYNAMICS"
+        ],
+        "targets": [
+          "Mel",
+          "Thaddeus",
+          "Isaac"
+        ],
+        "block_chars": 7796,
+        "block_names_present": {
+          "Mel": true,
+          "Isaac": true,
+          "Thaddeus": true
+        },
+        "block_preview": "============================================================\nFKR v1 \u2014 KNOWLEDGE RETRIEVAL EVIDENCE\nQuery modes: FORUM_DYNAMICS\n============================================================\n\nASKER (you)\n  Name: Pete\n  Birth date: 1968-04-01 00:00:00\n  -- HUMAN DESIGN --\n    Type: Manifestor\n    Strategy: To Inform\n    Authority: Emotional\n    Profile: 5/1\n    Definition: Split\n    Incarnation Cross: Left Angle Cross of Migration 1\n    Defined centers: Ego, Throat, Ajna, Head, Solar Plexus\n    Undefined centers: G Center, Sacral, Spleen, Root\n  -- ASTROLOGY --\n    Sun: 22\u00b0Pisces\n    Moon: 11\u00b0Aries\n    Ascendant: 19\u00b0Sagittarius\n    Midheaven / MC: 28\u00b0Virgo\n    IC: 31\u00b0Pisces\n    Descendant / DC: 18\u00b0Gemini\n    Mercury: 0\u00b0Pisces\n    Venus: 1\u00b0Pisces\n    Mars: 1\u00b0Aries\n    Jupiter: 12\u00b0Leo\n    Saturn: 25\u00b0Pisces\n    Uranus: 4\u00b0Virgo\n    Neptune: 14\u00b0Libra\n    Pluto: 36\u00b0Leo\n    Chiron: 11\u00b0Pisces\n    North Node: 29\u00b0Pisces\n    South Node: 26\u00b0Virgo\n  -- ENNEAGRAM --\n    inferred_core: 7\n    inferred_wing: 8\n    confidence: 0.4946\n    confidence_tier: high\n    enneagram_computed_details: {'center': 'head', 'hornevian_group': 'assertive', 'harmonic_group': 'positive_outlook', 'object_relations': 'frustration', 'social_style_tags': ['enthusiast', 'epicure', 'optimistic', 'scattered', 'adventurous', 'versatile'], 'stress_line_to': 1, 'growth_line_to': 5, 'wing_left_type': 6, 'wing_right_type': 8, 'w"
+      },
+      "llm_response": "Your family seems to be navigating a period of integration and exploration. Recently, you've been in an integrating state, synthesizing and processing different aspects of your experiences. This could be an indication that you're bringing together various parts of your life, perhaps connecting deeply with those around you. Within the family, it seems discussions and dynamics are being explored, possibly with the intention of finding more harmony or shared understanding. Your recent journal reflections hint at moments of connection and trust, particularly with your partner, Mel. These moments of openness could be key in allowing the whole family to move through any transitions or changes together. As you continue to explore and understand these patterns, what comes up for you when you consider how each family member is engaging with this process?",
+      "checks": {
+        "names_in_response": {
+          "Mel": true,
+          "Isaac": false,
+          "Thaddeus": false
+        },
+        "all_expected_names_present": false,
+        "generic_phrases_found": [
+          "family member"
+        ],
+        "no_generic_language": false,
+        "role_confusions": [],
+        "no_role_confusion": true
+      },
+      "pass": false,
+      "duration_s": 4.4,
+      "raw_api": {
+        "session_id": "09786b15-d0bd-46a6-b9ca-6d2886fd6da4",
+        "timestamp": "2026-06-13T02:33:06.274721+00:00",
+        "memory_update": {
+          "themes": [
+            "family dynamics",
+            "emotional processing",
+            "connection in relationships"
+          ],
+          "recurring_tensions": [
+            "balancing emotional processing and daily activities",
+            "feeling burden in shoulders"
+          ],
+          "supportive_moves": [
+            "sitting with thoughts and emotions",
+            "open conversations with partner"
+          ],
+          "drainers": [
+            "physical tension",
+            "feeling slow"
+          ],
+          "inferred_state": "integrating",
+          "confidence": 0.8,
+          "evidence": [
+            "Synthesizing experiences in family dynamics",
+            "Feeling connected and safe in partner conversations",
+            "Acknowledging emotional waves and burdens"
+          ],
+          "updated_at_iso": "2026-06-13T02:33:06.271793+00:00"
+        },
+        "thread": null,
+        "debug": {
+          "pattern_memory": {
+            "marker": "pattern-memory-v1",
+            "matched_patterns": [],
+            "surfaceable_count": 0,
+            "growth_shifts_count": 0,
+            "surfaced_keys": [],
+            "growth_keys": []
+          },
+          "micro_reflection": {
+            "marker": "micro-reflection-v2",
+            "growth_score": 0,
+            "resistance_score": 0,
+            "resonance_score": 0,
+            "total_recent": 0,
+            "softened_patterns": [],
+            "stuck_patterns": [],
+            "loop_applied": null
+          },
+          "contradictions": {
+            "marker": "contradiction-intelligence-v1",
+            "scope": "individual",
+            "contradiction_level": "LOW",
+            "contradiction_types": [],
+            "surfaced": false,
+            "softened_by_reflection": false,
+            "forum_related": false,
+            "recurrence_overlap": []
+          }
+        },
+        "evidence": {
+          "marker": "evidence-drawer-v2",
+          "calibration": [
+            "reflective",
+            "observational"
+          ]
+        }
+      }
+    },
+    {
+      "id": "f2.thad_need",
+      "message": "What does Thaddeus need from me?",
+      "expected_names": [
+        "Thaddeus"
+      ],
+      "fkr": {
+        "modes": [
+          "INTERPRETATION",
+          "RELATIONSHIP"
+        ],
+        "targets": [
+          "Thaddeus"
+        ],
+        "block_chars": 5089,
+        "block_names_present": {
+          "Thaddeus": true
+        },
+        "block_preview": "============================================================\nFKR v1 \u2014 KNOWLEDGE RETRIEVAL EVIDENCE\nQuery modes: INTERPRETATION, RELATIONSHIP\n============================================================\n\nASKER (you)\n  Name: Pete\n  Birth date: 1968-04-01 00:00:00\n  -- HUMAN DESIGN --\n    Type: Manifestor\n    Strategy: To Inform\n    Authority: Emotional\n    Profile: 5/1\n    Definition: Split\n    Incarnation Cross: Left Angle Cross of Migration 1\n    Defined centers: Ego, Throat, Ajna, Head, Solar Plexus\n    Undefined centers: G Center, Sacral, Spleen, Root\n  -- ASTROLOGY --\n    Sun: 22\u00b0Pisces\n    Moon: 11\u00b0Aries\n    Ascendant: 19\u00b0Sagittarius\n    Midheaven / MC: 28\u00b0Virgo\n    IC: 31\u00b0Pisces\n    Descendant / DC: 18\u00b0Gemini\n    Mercury: 0\u00b0Pisces\n    Venus: 1\u00b0Pisces\n    Mars: 1\u00b0Aries\n    Jupiter: 12\u00b0Leo\n    Saturn: 25\u00b0Pisces\n    Uranus: 4\u00b0Virgo\n    Neptune: 14\u00b0Libra\n    Pluto: 36\u00b0Leo\n    Chiron: 11\u00b0Pisces\n    North Node: 29\u00b0Pisces\n    South Node: 26\u00b0Virgo\n  -- ENNEAGRAM --\n    inferred_core: 7\n    inferred_wing: 8\n    confidence: 0.4946\n    confidence_tier: high\n    enneagram_computed_details: {'center': 'head', 'hornevian_group': 'assertive', 'harmonic_group': 'positive_outlook', 'object_relations': 'frustration', 'social_style_tags': ['enthusiast', 'epicure', 'optimistic', 'scattered', 'adventurous', 'versatile'], 'stress_line_to': 1, 'growth_line_to': 5, 'wing_left_type': 6, 'wing_righ"
+      },
+      "llm_response": "It sounds like you're considering how to support Thaddeus more effectively. With his characteristics as a Manifesting Generator in Human Design and having attributes often associated with the Individualist type in the Enneagram, Thaddeus might benefit from a combination of support and the freedom to explore his interests. Children with this combination can be curious and expressive, and they may appreciate having space to pursue their curiosity and creative endeavors. Given this, you might consider how you can create an environment where Thaddeus feels both guided and free to be himself. This might involve balancing structure with the freedom to explore on his own terms. What do you feel could be one way to support his unique talents and interests this week?",
+      "checks": {
+        "names_in_response": {
+          "Thaddeus": true
+        },
+        "all_expected_names_present": true,
+        "generic_phrases_found": [],
+        "no_generic_language": true,
+        "role_confusions": [],
+        "no_role_confusion": true
+      },
+      "pass": true,
+      "duration_s": 4.12,
+      "raw_api": {
+        "session_id": "56466e2f-06e4-4a3c-8dcd-b6d182273883",
+        "timestamp": "2026-06-13T02:33:10.398991+00:00",
+        "memory_update": {
+          "themes": [
+            "supporting others",
+            "personal introspection",
+            "relationship connection"
+          ],
+          "recurring_tensions": [
+            "balancing personal needs with supporting others",
+            "feeling burdened by emotions"
+          ],
+          "supportive_moves": [
+            "open conversations",
+            "sitting with emotions"
+          ],
+          "drainers": [
+            "tension in shoulders",
+            "feeling slow"
+          ],
+          "inferred_state": "stabilizing",
+          "confidence": 0.8,
+          "evidence": [
+            "Considering how to support Thaddeus effectively",
+            "Need to sit with thoughts and emotions",
+            "Feeling tense and burdened"
+          ],
+          "updated_at_iso": "2026-06-13T02:33:10.396831+00:00"
+        },
+        "thread": null,
+        "debug": {
+          "pattern_memory": {
+            "marker": "pattern-memory-v1",
+            "matched_patterns": [],
+            "surfaceable_count": 0,
+            "growth_shifts_count": 0,
+            "surfaced_keys": [],
+            "growth_keys": []
+          },
+          "micro_reflection": {
+            "marker": "micro-reflection-v2",
+            "growth_score": 0,
+            "resistance_score": 0,
+            "resonance_score": 0,
+            "total_recent": 0,
+            "softened_patterns": [],
+            "stuck_patterns": [],
+            "loop_applied": null
+          },
+          "contradictions": {
+            "marker": "contradiction-intelligence-v1",
+            "scope": "individual",
+            "contradiction_level": "LOW",
+            "contradiction_types": [],
+            "surfaced": false,
+            "softened_by_reflection": false,
+            "forum_related": false,
+            "recurrence_overlap": []
+          }
+        },
+        "evidence": {
+          "marker": "evidence-drawer-v2",
+          "calibration": [
+            "reflective",
+            "observational"
+          ]
+        }
+      }
+    },
+    {
+      "id": "f3.isaac_need",
+      "message": "What does Isaac need from me?",
+      "expected_names": [
+        "Isaac"
+      ],
+      "fkr": {
+        "modes": [
+          "INTERPRETATION",
+          "RELATIONSHIP"
+        ],
+        "targets": [
+          "Isaac"
+        ],
+        "block_chars": 5193,
+        "block_names_present": {
+          "Isaac": true
+        },
+        "block_preview": "============================================================\nFKR v1 \u2014 KNOWLEDGE RETRIEVAL EVIDENCE\nQuery modes: INTERPRETATION, RELATIONSHIP\n============================================================\n\nASKER (you)\n  Name: Pete\n  Birth date: 1968-04-01 00:00:00\n  -- HUMAN DESIGN --\n    Type: Manifestor\n    Strategy: To Inform\n    Authority: Emotional\n    Profile: 5/1\n    Definition: Split\n    Incarnation Cross: Left Angle Cross of Migration 1\n    Defined centers: Ego, Throat, Ajna, Head, Solar Plexus\n    Undefined centers: G Center, Sacral, Spleen, Root\n  -- ASTROLOGY --\n    Sun: 22\u00b0Pisces\n    Moon: 11\u00b0Aries\n    Ascendant: 19\u00b0Sagittarius\n    Midheaven / MC: 28\u00b0Virgo\n    IC: 31\u00b0Pisces\n    Descendant / DC: 18\u00b0Gemini\n    Mercury: 0\u00b0Pisces\n    Venus: 1\u00b0Pisces\n    Mars: 1\u00b0Aries\n    Jupiter: 12\u00b0Leo\n    Saturn: 25\u00b0Pisces\n    Uranus: 4\u00b0Virgo\n    Neptune: 14\u00b0Libra\n    Pluto: 36\u00b0Leo\n    Chiron: 11\u00b0Pisces\n    North Node: 29\u00b0Pisces\n    South Node: 26\u00b0Virgo\n  -- ENNEAGRAM --\n    inferred_core: 7\n    inferred_wing: 8\n    confidence: 0.4946\n    confidence_tier: high\n    enneagram_computed_details: {'center': 'head', 'hornevian_group': 'assertive', 'harmonic_group': 'positive_outlook', 'object_relations': 'frustration', 'social_style_tags': ['enthusiast', 'epicure', 'optimistic', 'scattered', 'adventurous', 'versatile'], 'stress_line_to': 1, 'growth_line_to': 5, 'wing_left_type': 6, 'wing_righ"
+      },
+      "llm_response": "You're reflecting on what might be needed in the relationship with Isaac. With Isaac's Enneagram core being Type 8, there's often a need for autonomy and respect in the way their space is navigated. They may thrive when they feel supported in their independence, and when their strong sense of truth is acknowledged. One possibility to explore is how you can balance providing guidance while also respecting their need for self-direction. This might involve listening deeply to what they express and acknowledging their viewpoints. As you think about this, what qualities do you feel called to embody in your relationship with Isaac right now?",
+      "checks": {
+        "names_in_response": {
+          "Isaac": true
+        },
+        "all_expected_names_present": true,
+        "generic_phrases_found": [],
+        "no_generic_language": true,
+        "role_confusions": [],
+        "no_role_confusion": true
+      },
+      "pass": true,
+      "duration_s": 3.71,
+      "raw_api": {
+        "session_id": "113e3b60-25b6-4afe-9cc3-d9daed645a1f",
+        "timestamp": "2026-06-13T02:33:14.108717+00:00",
+        "memory_update": {
+          "themes": [
+            "relationship with Isaac",
+            "emotional awareness",
+            "vulnerability in relationships"
+          ],
+          "recurring_tensions": [
+            "balancing guidance and respect for Isaac's independence",
+            "managing personal emotional burden"
+          ],
+          "supportive_moves": [
+            "sitting with thoughts and emotions",
+            "open conversations with partner"
+          ],
+          "drainers": [
+            "feelings of burden and tension",
+            "emotional slowness"
+          ],
+          "inferred_state": "integrating",
+          "confidence": 0.85,
+          "evidence": [
+            "Reflecting on what is needed in the relationship with Isaac.",
+            "Recognizing the need to sit with thoughts and emotions.",
+            "Feeling burdened and tense in shoulders."
+          ],
+          "updated_at_iso": "2026-06-13T02:33:14.106503+00:00"
+        },
+        "thread": null,
+        "debug": {
+          "pattern_memory": {
+            "marker": "pattern-memory-v1",
+            "matched_patterns": [],
+            "surfaceable_count": 0,
+            "growth_shifts_count": 0,
+            "surfaced_keys": [],
+            "growth_keys": []
+          },
+          "micro_reflection": {
+            "marker": "micro-reflection-v2",
+            "growth_score": 0,
+            "resistance_score": 0,
+            "resonance_score": 0,
+            "total_recent": 0,
+            "softened_patterns": [],
+            "stuck_patterns": [],
+            "loop_applied": null
+          },
+          "contradictions": {
+            "marker": "contradiction-intelligence-v1",
+            "scope": "individual",
+            "contradiction_level": "LOW",
+            "contradiction_types": [],
+            "surfaced": false,
+            "softened_by_reflection": false,
+            "forum_related": false,
+            "recurrence_overlap": []
+          }
+        },
+        "evidence": {
+          "marker": "evidence-drawer-v2",
+          "calibration": [
+            "reflective",
+            "observational"
+          ]
+        }
+      }
+    },
+    {
+      "id": "f4.boys_differ",
+      "message": "How do the boys differ emotionally?",
+      "expected_names": [
+        "Isaac",
+        "Thaddeus"
+      ],
+      "fkr": {
+        "modes": [
+          "COMPARISON"
+        ],
+        "targets": [
+          "Thaddeus",
+          "Isaac"
+        ],
+        "block_chars": 6465,
+        "block_names_present": {
+          "Isaac": true,
+          "Thaddeus": true
+        },
+        "block_preview": "============================================================\nFKR v1 \u2014 KNOWLEDGE RETRIEVAL EVIDENCE\nQuery modes: COMPARISON\n============================================================\n\nASKER (you)\n  Name: Pete\n  Birth date: 1968-04-01 00:00:00\n  -- HUMAN DESIGN --\n    Type: Manifestor\n    Strategy: To Inform\n    Authority: Emotional\n    Profile: 5/1\n    Definition: Split\n    Incarnation Cross: Left Angle Cross of Migration 1\n    Defined centers: Ego, Throat, Ajna, Head, Solar Plexus\n    Undefined centers: G Center, Sacral, Spleen, Root\n  -- ASTROLOGY --\n    Sun: 22\u00b0Pisces\n    Moon: 11\u00b0Aries\n    Ascendant: 19\u00b0Sagittarius\n    Midheaven / MC: 28\u00b0Virgo\n    IC: 31\u00b0Pisces\n    Descendant / DC: 18\u00b0Gemini\n    Mercury: 0\u00b0Pisces\n    Venus: 1\u00b0Pisces\n    Mars: 1\u00b0Aries\n    Jupiter: 12\u00b0Leo\n    Saturn: 25\u00b0Pisces\n    Uranus: 4\u00b0Virgo\n    Neptune: 14\u00b0Libra\n    Pluto: 36\u00b0Leo\n    Chiron: 11\u00b0Pisces\n    North Node: 29\u00b0Pisces\n    South Node: 26\u00b0Virgo\n  -- ENNEAGRAM --\n    inferred_core: 7\n    inferred_wing: 8\n    confidence: 0.4946\n    confidence_tier: high\n    enneagram_computed_details: {'center': 'head', 'hornevian_group': 'assertive', 'harmonic_group': 'positive_outlook', 'object_relations': 'frustration', 'social_style_tags': ['enthusiast', 'epicure', 'optimistic', 'scattered', 'adventurous', 'versatile'], 'stress_line_to': 1, 'growth_line_to': 5, 'wing_left_type': 6, 'wing_right_type': 8, 'wing_"
+      },
+      "llm_response": "Okay, let's take a closer look at how Thaddeus and Isaac might differ emotionally using what's on file. Thaddeus, born on June 23, 2014, is identified with traits that align with a core of Enneagram Type 4. This suggests he may have a rich emotional life, often experiencing feelings deeply. Thaddeus might value expressing his individuality and have a tendency toward introspection. In contrast, Isaac, born on April 5, 2012, shows characteristics aligned with Enneagram Type 8. This could mean he approaches emotions with a direct and assertive style, often expressing them openly and decisively. He might prioritize strength and control in his emotional expression. These profiles could indicate that Thaddeus tends to a more sensitive, expressive way of experiencing emotions, while Isaac may handle emotions in a way that's more confrontational and forthright.",
+      "checks": {
+        "names_in_response": {
+          "Isaac": true,
+          "Thaddeus": true
+        },
+        "all_expected_names_present": true,
+        "generic_phrases_found": [],
+        "no_generic_language": true,
+        "role_confusions": [],
+        "no_role_confusion": true
+      },
+      "pass": true,
+      "duration_s": 3.99,
+      "raw_api": {
+        "session_id": "2ea05ea0-92ab-46ca-9de9-b7616be0f94b",
+        "timestamp": "2026-06-13T02:33:18.101447+00:00",
+        "memory_update": {
+          "themes": [
+            "emotional processing",
+            "relationship connection",
+            "self-awareness"
+          ],
+          "recurring_tensions": [
+            "managing emotional burden",
+            "balancing introspection with action"
+          ],
+          "supportive_moves": [
+            "open conversations",
+            "sitting with emotions"
+          ],
+          "drainers": [
+            "physical tension",
+            "rushing through emotions"
+          ],
+          "inferred_state": "integrating",
+          "confidence": 0.8,
+          "evidence": [
+            "Recognizing when to sit with thoughts and emotions",
+            "Feeling connected and safe in relationships through vulnerability",
+            "Experiencing physical tension linked to emotional states"
+          ],
+          "updated_at_iso": "2026-06-13T02:33:18.099219+00:00"
+        },
+        "thread": null,
+        "debug": {
+          "pattern_memory": {
+            "marker": "pattern-memory-v1",
+            "matched_patterns": [],
+            "surfaceable_count": 0,
+            "growth_shifts_count": 0,
+            "surfaced_keys": [],
+            "growth_keys": []
+          },
+          "micro_reflection": {
+            "marker": "micro-reflection-v2",
+            "growth_score": 0,
+            "resistance_score": 0,
+            "resonance_score": 0,
+            "total_recent": 0,
+            "softened_patterns": [],
+            "stuck_patterns": [],
+            "loop_applied": null
+          },
+          "contradictions": {
+            "marker": "contradiction-intelligence-v1",
+            "scope": "individual",
+            "contradiction_level": "LOW",
+            "contradiction_types": [],
+            "surfaced": false,
+            "softened_by_reflection": false,
+            "forum_related": false,
+            "recurrence_overlap": []
+          }
+        },
+        "evidence": {
+          "marker": "evidence-drawer-v2",
+          "calibration": [
+            "reflective",
+            "observational"
+          ]
+        }
+      }
+    },
+    {
+      "id": "f5.more_like_me",
+      "message": "Which child is more like me?",
+      "expected_names": [
+        "Isaac",
+        "Thaddeus"
+      ],
+      "fkr": {
+        "modes": [
+          "COMPARISON"
+        ],
+        "targets": [
+          "Thaddeus",
+          "Isaac"
+        ],
+        "block_chars": 6465,
+        "block_names_present": {
+          "Isaac": true,
+          "Thaddeus": true
+        },
+        "block_preview": "============================================================\nFKR v1 \u2014 KNOWLEDGE RETRIEVAL EVIDENCE\nQuery modes: COMPARISON\n============================================================\n\nASKER (you)\n  Name: Pete\n  Birth date: 1968-04-01 00:00:00\n  -- HUMAN DESIGN --\n    Type: Manifestor\n    Strategy: To Inform\n    Authority: Emotional\n    Profile: 5/1\n    Definition: Split\n    Incarnation Cross: Left Angle Cross of Migration 1\n    Defined centers: Ego, Throat, Ajna, Head, Solar Plexus\n    Undefined centers: G Center, Sacral, Spleen, Root\n  -- ASTROLOGY --\n    Sun: 22\u00b0Pisces\n    Moon: 11\u00b0Aries\n    Ascendant: 19\u00b0Sagittarius\n    Midheaven / MC: 28\u00b0Virgo\n    IC: 31\u00b0Pisces\n    Descendant / DC: 18\u00b0Gemini\n    Mercury: 0\u00b0Pisces\n    Venus: 1\u00b0Pisces\n    Mars: 1\u00b0Aries\n    Jupiter: 12\u00b0Leo\n    Saturn: 25\u00b0Pisces\n    Uranus: 4\u00b0Virgo\n    Neptune: 14\u00b0Libra\n    Pluto: 36\u00b0Leo\n    Chiron: 11\u00b0Pisces\n    North Node: 29\u00b0Pisces\n    South Node: 26\u00b0Virgo\n  -- ENNEAGRAM --\n    inferred_core: 7\n    inferred_wing: 8\n    confidence: 0.4946\n    confidence_tier: high\n    enneagram_computed_details: {'center': 'head', 'hornevian_group': 'assertive', 'harmonic_group': 'positive_outlook', 'object_relations': 'frustration', 'social_style_tags': ['enthusiast', 'epicure', 'optimistic', 'scattered', 'adventurous', 'versatile'], 'stress_line_to': 1, 'growth_line_to': 5, 'wing_left_type': 6, 'wing_right_type': 8, 'wing_"
+      },
+      "llm_response": "To see which of your children shares more similarities with you, let's look at a few key patterns in both astrology and Human Design. You, Pete, are a Manifestor in Human Design, with a focus on initiating and informing. You also have Aries Moon, which can bring a strong personal drive and desire for action. Your child Isaac is a Generator, centered around responding to life, with a focus on persistence and energy sustainability. He has a Leo Moon, which can carry a natural charisma and need for self-expression, which is a different emotional landscape than your Aries Moon. Thaddeus, on the other hand, is a Manifesting Generator, a type that combines the qualities of both Manifestors and Generators. He has an Aries Moon, aligning more directly with your lunar position, which might suggest a shared emotional pattern between the two of you. From this perspective, Thaddeus's pattern seems to hold more direct parallels with yours, particularly in the shared Aries Moon.",
+      "checks": {
+        "names_in_response": {
+          "Isaac": true,
+          "Thaddeus": true
+        },
+        "all_expected_names_present": true,
+        "generic_phrases_found": [],
+        "no_generic_language": true,
+        "role_confusions": [],
+        "no_role_confusion": true
+      },
+      "pass": true,
+      "duration_s": 4.93,
+      "raw_api": {
+        "session_id": "ae2751a1-69ca-4fd3-ab71-aea738f42433",
+        "timestamp": "2026-06-13T02:33:23.033237+00:00",
+        "memory_update": {
+          "themes": [
+            "family dynamics",
+            "relationship connection",
+            "self-awareness"
+          ],
+          "recurring_tensions": [
+            "balancing action with rest",
+            "managing emotional burdens"
+          ],
+          "supportive_moves": [
+            "having open conversations",
+            "sitting with thoughts and emotions"
+          ],
+          "drainers": [
+            "physical tension",
+            "feeling slow"
+          ],
+          "inferred_state": "integrating",
+          "confidence": 0.7,
+          "evidence": [
+            "Feeling tense and burdened which might relate to emotional management",
+            "Noted importance of sitting with thoughts and emotions",
+            "Recent positive connection and honest communication with partner"
+          ],
+          "updated_at_iso": "2026-06-13T02:33:23.030580+00:00"
+        },
+        "thread": null,
+        "debug": {
+          "pattern_memory": {
+            "marker": "pattern-memory-v1",
+            "matched_patterns": [],
+            "surfaceable_count": 0,
+            "growth_shifts_count": 0,
+            "surfaced_keys": [],
+            "growth_keys": []
+          },
+          "micro_reflection": {
+            "marker": "micro-reflection-v2",
+            "growth_score": 0,
+            "resistance_score": 0,
+            "resonance_score": 0,
+            "total_recent": 0,
+            "softened_patterns": [],
+            "stuck_patterns": [],
+            "loop_applied": null
+          },
+          "contradictions": {
+            "marker": "contradiction-intelligence-v1",
+            "scope": "individual",
+            "contradiction_level": "LOW",
+            "contradiction_types": [],
+            "surfaced": false,
+            "softened_by_reflection": false,
+            "forum_related": false,
+            "recurrence_overlap": []
+          }
+        },
+        "evidence": {
+          "marker": "evidence-drawer-v2",
+          "calibration": [
+            "reflective",
+            "observational"
+          ]
+        }
+      }
+    },
+    {
+      "id": "f6.mel_role_dynamic",
+      "message": "What role is Mel playing in the family dynamic?",
+      "expected_names": [
+        "Mel"
+      ],
+      "fkr": {
+        "modes": [
+          "FORUM_DYNAMICS"
+        ],
+        "targets": [
+          "Mel",
+          "Thaddeus",
+          "Isaac"
+        ],
+        "block_chars": 7792,
+        "block_names_present": {
+          "Mel": true
+        },
+        "block_preview": "============================================================\nFKR v1 \u2014 KNOWLEDGE RETRIEVAL EVIDENCE\nQuery modes: FORUM_DYNAMICS\n============================================================\n\nASKER (you)\n  Name: Pete\n  Birth date: 1968-04-01 00:00:00\n  -- HUMAN DESIGN --\n    Type: Manifestor\n    Strategy: To Inform\n    Authority: Emotional\n    Profile: 5/1\n    Definition: Split\n    Incarnation Cross: Left Angle Cross of Migration 1\n    Defined centers: Ego, Throat, Ajna, Head, Solar Plexus\n    Undefined centers: G Center, Sacral, Spleen, Root\n  -- ASTROLOGY --\n    Sun: 22\u00b0Pisces\n    Moon: 11\u00b0Aries\n    Ascendant: 19\u00b0Sagittarius\n    Midheaven / MC: 28\u00b0Virgo\n    IC: 31\u00b0Pisces\n    Descendant / DC: 18\u00b0Gemini\n    Mercury: 0\u00b0Pisces\n    Venus: 1\u00b0Pisces\n    Mars: 1\u00b0Aries\n    Jupiter: 12\u00b0Leo\n    Saturn: 25\u00b0Pisces\n    Uranus: 4\u00b0Virgo\n    Neptune: 14\u00b0Libra\n    Pluto: 36\u00b0Leo\n    Chiron: 11\u00b0Pisces\n    North Node: 29\u00b0Pisces\n    South Node: 26\u00b0Virgo\n  -- ENNEAGRAM --\n    inferred_core: 7\n    inferred_wing: 8\n    confidence: 0.4946\n    confidence_tier: high\n    enneagram_computed_details: {'center': 'head', 'hornevian_group': 'assertive', 'harmonic_group': 'positive_outlook', 'object_relations': 'frustration', 'social_style_tags': ['enthusiast', 'epicure', 'optimistic', 'scattered', 'adventurous', 'versatile'], 'stress_line_to': 1, 'growth_line_to': 5, 'wing_left_type': 6, 'wing_right_type': 8, 'w"
+      },
+      "llm_response": "Mel is identified as your spouse in the Pete & Mel forum. With her Human Design as a Reflector and her Enneagram leaning towards Type 3 with a wing of 4, she often brings a unique blend of reflection and ambition into the family dynamic. Reflectors naturally tune into the energies around them, often acting as a mirror to the family, reflecting the collective moods and needs. With her Enneagram Type 3, she tends to be quite goal-oriented and driven, possibly playing a role in setting objectives or acting as a motivator within the family. The influence of her Type 4 wing might also add a layer of depth and creativity to how she approaches family interactions, offering unique perspectives and emotional insight. How do you see these qualities manifesting in your family interactions with Mel?",
+      "checks": {
+        "names_in_response": {
+          "Mel": true
+        },
+        "all_expected_names_present": true,
+        "generic_phrases_found": [],
+        "no_generic_language": true,
+        "role_confusions": [],
+        "no_role_confusion": true
+      },
+      "pass": true,
+      "duration_s": 4.33,
+      "raw_api": {
+        "session_id": "6107a8cb-f4c1-4ae3-8ae1-ff86b5848c57",
+        "timestamp": "2026-06-13T02:33:27.358380+00:00",
+        "memory_update": {
+          "themes": [
+            "family dynamics",
+            "emotional processing",
+            "connection with partner"
+          ],
+          "recurring_tensions": [
+            "feeling burdened",
+            "rushing vs. sitting with emotions"
+          ],
+          "supportive_moves": [
+            "open conversations",
+            "feeling safe to be vulnerable"
+          ],
+          "drainers": [
+            "tension in shoulders",
+            "feeling of burden"
+          ],
+          "inferred_state": "integrating",
+          "confidence": 0.8,
+          "evidence": [
+            "Need to sometimes just sit with thoughts and emotions",
+            "Feeling burdened by tension in shoulders",
+            "Open conversation with partner brought warmth and trust"
+          ],
+          "updated_at_iso": "2026-06-13T02:33:27.356064+00:00"
+        },
+        "thread": null,
+        "debug": {
+          "pattern_memory": {
+            "marker": "pattern-memory-v1",
+            "matched_patterns": [],
+            "surfaceable_count": 0,
+            "growth_shifts_count": 0,
+            "surfaced_keys": [],
+            "growth_keys": []
+          },
+          "micro_reflection": {
+            "marker": "micro-reflection-v2",
+            "growth_score": 0,
+            "resistance_score": 0,
+            "resonance_score": 0,
+            "total_recent": 0,
+            "softened_patterns": [],
+            "stuck_patterns": [],
+            "loop_applied": null
+          },
+          "contradictions": {
+            "marker": "contradiction-intelligence-v1",
+            "scope": "individual",
+            "contradiction_level": "LOW",
+            "contradiction_types": [],
+            "surfaced": false,
+            "softened_by_reflection": false,
+            "forum_related": false,
+            "recurrence_overlap": []
+          }
+        },
+        "evidence": {
+          "marker": "evidence-drawer-v2",
+          "calibration": [
+            "reflective",
+            "observational"
+          ]
+        }
+      }
+    },
+    {
+      "id": "f7.mel_and_boys",
+      "message": "What is emerging between Mel and the boys?",
+      "expected_names": [
+        "Mel",
+        "Isaac",
+        "Thaddeus"
+      ],
+      "fkr": {
+        "modes": [
+          "TIMELINE"
+        ],
+        "targets": [
+          "Mel",
+          "Thaddeus",
+          "Isaac"
+        ],
+        "block_chars": 7786,
+        "block_names_present": {
+          "Mel": true,
+          "Isaac": true,
+          "Thaddeus": true
+        },
+        "block_preview": "============================================================\nFKR v1 \u2014 KNOWLEDGE RETRIEVAL EVIDENCE\nQuery modes: TIMELINE\n============================================================\n\nASKER (you)\n  Name: Pete\n  Birth date: 1968-04-01 00:00:00\n  -- HUMAN DESIGN --\n    Type: Manifestor\n    Strategy: To Inform\n    Authority: Emotional\n    Profile: 5/1\n    Definition: Split\n    Incarnation Cross: Left Angle Cross of Migration 1\n    Defined centers: Ego, Throat, Ajna, Head, Solar Plexus\n    Undefined centers: G Center, Sacral, Spleen, Root\n  -- ASTROLOGY --\n    Sun: 22\u00b0Pisces\n    Moon: 11\u00b0Aries\n    Ascendant: 19\u00b0Sagittarius\n    Midheaven / MC: 28\u00b0Virgo\n    IC: 31\u00b0Pisces\n    Descendant / DC: 18\u00b0Gemini\n    Mercury: 0\u00b0Pisces\n    Venus: 1\u00b0Pisces\n    Mars: 1\u00b0Aries\n    Jupiter: 12\u00b0Leo\n    Saturn: 25\u00b0Pisces\n    Uranus: 4\u00b0Virgo\n    Neptune: 14\u00b0Libra\n    Pluto: 36\u00b0Leo\n    Chiron: 11\u00b0Pisces\n    North Node: 29\u00b0Pisces\n    South Node: 26\u00b0Virgo\n  -- ENNEAGRAM --\n    inferred_core: 7\n    inferred_wing: 8\n    confidence: 0.4946\n    confidence_tier: high\n    enneagram_computed_details: {'center': 'head', 'hornevian_group': 'assertive', 'harmonic_group': 'positive_outlook', 'object_relations': 'frustration', 'social_style_tags': ['enthusiast', 'epicure', 'optimistic', 'scattered', 'adventurous', 'versatile'], 'stress_line_to': 1, 'growth_line_to': 5, 'wing_left_type': 6, 'wing_right_type': 8, 'wing_le"
+      },
+      "llm_response": "It sounds like you're sensing something new developing in the relationship between Mel and the boys, Thaddeus and Isaac. Let\u2019s explore this a bit. You've noted feeling more connected with Mel recently. The open and honest conversations you\u2019ve shared might be creating a ripple effect, influencing how Mel interacts with Thaddeus and Isaac. Mel, being guided by a Reflector's natural perception, may be picking up on shifts and finding new ways to engage with the boys' unique energies. Thaddeus, with his creative and expressive nature, might be showing changes in how he communicates or expresses his feelings. Meanwhile, Isaac, with his assertive and protective qualities, could be more vocal or active in family dynamics. How do you feel about the current dynamics in your family?",
+      "checks": {
+        "names_in_response": {
+          "Mel": true,
+          "Isaac": true,
+          "Thaddeus": true
+        },
+        "all_expected_names_present": true,
+        "generic_phrases_found": [],
+        "no_generic_language": true,
+        "role_confusions": [],
+        "no_role_confusion": true
+      },
+      "pass": true,
+      "duration_s": 3.88,
+      "raw_api": {
+        "session_id": "688159de-8379-455f-b3e2-2d224d794db2",
+        "timestamp": "2026-06-13T02:33:31.238294+00:00",
+        "memory_update": {
+          "themes": [
+            "relationship dynamics",
+            "self-awareness of emotions"
+          ],
+          "recurring_tensions": [
+            "managing emotional intensity"
+          ],
+          "supportive_moves": [
+            "open conversations with partner",
+            "sitting with thoughts and emotions"
+          ],
+          "drainers": [
+            "physical tension",
+            "feeling slow"
+          ],
+          "inferred_state": "integrating",
+          "confidence": 0.8,
+          "evidence": [
+            "Feeling connected and having open conversations with partner",
+            "Realizing the importance of processing emotions at their own pace",
+            "Awareness of tension and burden in the body"
+          ],
+          "updated_at_iso": "2026-06-13T02:33:31.235630+00:00"
+        },
+        "thread": null,
+        "debug": {
+          "pattern_memory": {
+            "marker": "pattern-memory-v1",
+            "matched_patterns": [],
+            "surfaceable_count": 0,
+            "growth_shifts_count": 0,
+            "surfaced_keys": [],
+            "growth_keys": []
+          },
+          "micro_reflection": {
+            "marker": "micro-reflection-v2",
+            "growth_score": 0,
+            "resistance_score": 0,
+            "resonance_score": 0,
+            "total_recent": 0,
+            "softened_patterns": [],
+            "stuck_patterns": [],
+            "loop_applied": null
+          },
+          "contradictions": {
+            "marker": "contradiction-intelligence-v1",
+            "scope": "individual",
+            "contradiction_level": "LOW",
+            "contradiction_types": [],
+            "surfaced": false,
+            "softened_by_reflection": false,
+            "forum_related": false,
+            "recurrence_overlap": []
+          }
+        },
+        "evidence": {
+          "marker": "evidence-drawer-v2",
+          "calibration": [
+            "reflective",
+            "observational"
+          ]
+        }
+      }
+    },
+    {
+      "id": "f8.family_blind_spot",
+      "message": "What blind spot exists in our family?",
+      "expected_names": [
+        "Mel",
+        "Isaac",
+        "Thaddeus"
+      ],
+      "fkr": {
+        "modes": [
+          "FORUM_DYNAMICS"
+        ],
+        "targets": [
+          "Mel",
+          "Thaddeus",
+          "Isaac"
+        ],
+        "block_chars": 7796,
+        "block_names_present": {
+          "Mel": true,
+          "Isaac": true,
+          "Thaddeus": true
+        },
+        "block_preview": "============================================================\nFKR v1 \u2014 KNOWLEDGE RETRIEVAL EVIDENCE\nQuery modes: FORUM_DYNAMICS\n============================================================\n\nASKER (you)\n  Name: Pete\n  Birth date: 1968-04-01 00:00:00\n  -- HUMAN DESIGN --\n    Type: Manifestor\n    Strategy: To Inform\n    Authority: Emotional\n    Profile: 5/1\n    Definition: Split\n    Incarnation Cross: Left Angle Cross of Migration 1\n    Defined centers: Ego, Throat, Ajna, Head, Solar Plexus\n    Undefined centers: G Center, Sacral, Spleen, Root\n  -- ASTROLOGY --\n    Sun: 22\u00b0Pisces\n    Moon: 11\u00b0Aries\n    Ascendant: 19\u00b0Sagittarius\n    Midheaven / MC: 28\u00b0Virgo\n    IC: 31\u00b0Pisces\n    Descendant / DC: 18\u00b0Gemini\n    Mercury: 0\u00b0Pisces\n    Venus: 1\u00b0Pisces\n    Mars: 1\u00b0Aries\n    Jupiter: 12\u00b0Leo\n    Saturn: 25\u00b0Pisces\n    Uranus: 4\u00b0Virgo\n    Neptune: 14\u00b0Libra\n    Pluto: 36\u00b0Leo\n    Chiron: 11\u00b0Pisces\n    North Node: 29\u00b0Pisces\n    South Node: 26\u00b0Virgo\n  -- ENNEAGRAM --\n    inferred_core: 7\n    inferred_wing: 8\n    confidence: 0.4946\n    confidence_tier: high\n    enneagram_computed_details: {'center': 'head', 'hornevian_group': 'assertive', 'harmonic_group': 'positive_outlook', 'object_relations': 'frustration', 'social_style_tags': ['enthusiast', 'epicure', 'optimistic', 'scattered', 'adventurous', 'versatile'], 'stress_line_to': 1, 'growth_line_to': 5, 'wing_left_type': 6, 'wing_right_type': 8, 'w"
+      },
+      "llm_response": "You're looking for an unseen pattern in your family. There's a sense of practicality and \"getting on with it\" energy in your family dynamics, particularly in the Yoong family forum. This can be a strength when managing emotionally charged situations. However, it could also lead to bypassing emotional complexities or not fully acknowledging what might be simmering beneath the surface. Sometimes in families, this kind of focus on moving forward can unintentionally overlook deeper feelings or needs, particularly if expressing vulnerability isn\u2019t a collective comfort zone. What small shift might invite more space for these deeper layers to safely emerge in your family conversations?",
+      "checks": {
+        "names_in_response": {
+          "Mel": false,
+          "Isaac": false,
+          "Thaddeus": false
+        },
+        "all_expected_names_present": false,
+        "generic_phrases_found": [],
+        "no_generic_language": true,
+        "role_confusions": [],
+        "no_role_confusion": true
+      },
+      "pass": false,
+      "duration_s": 3.57,
+      "raw_api": {
+        "session_id": "f3491b7f-8b0d-4e3b-a49d-b522bad912a3",
+        "timestamp": "2026-06-13T02:33:34.807619+00:00",
+        "memory_update": {
+          "themes": [
+            "family dynamics",
+            "emotional awareness"
+          ],
+          "recurring_tensions": [
+            "balancing practicality and emotional depth"
+          ],
+          "supportive_moves": [
+            "open conversations with partner",
+            "sitting with emotions"
+          ],
+          "drainers": [
+            "burdensome tension",
+            "rushing through emotions"
+          ],
+          "inferred_state": "integrating",
+          "confidence": 0.8,
+          "evidence": [
+            "Feeling very tense in my shoulders... like a burden",
+            "Need to sometimes just sit with thoughts and emotions",
+            "Feeling connected with partner through open conversation"
+          ],
+          "updated_at_iso": "2026-06-13T02:33:34.805078+00:00"
+        },
+        "thread": null,
+        "debug": {
+          "pattern_memory": {
+            "marker": "pattern-memory-v1",
+            "matched_patterns": [],
+            "surfaceable_count": 0,
+            "growth_shifts_count": 0,
+            "surfaced_keys": [],
+            "growth_keys": []
+          },
+          "micro_reflection": {
+            "marker": "micro-reflection-v2",
+            "growth_score": 0,
+            "resistance_score": 0,
+            "resonance_score": 0,
+            "total_recent": 0,
+            "softened_patterns": [],
+            "stuck_patterns": [],
+            "loop_applied": null
+          },
+          "contradictions": {
+            "marker": "contradiction-intelligence-v1",
+            "scope": "individual",
+            "contradiction_level": "LOW",
+            "contradiction_types": [],
+            "surfaced": false,
+            "softened_by_reflection": false,
+            "forum_related": false,
+            "recurrence_overlap": []
+          }
+        },
+        "evidence": {
+          "marker": "evidence-drawer-v2",
+          "calibration": [
+            "reflective",
+            "observational"
+          ]
+        }
+      }
+    },
+    {
+      "id": "f9.family_growing",
+      "message": "Where is the family growing?",
+      "expected_names": [
+        "Mel",
+        "Isaac",
+        "Thaddeus"
+      ],
+      "fkr": {
+        "modes": [
+          "FORUM_DYNAMICS"
+        ],
+        "targets": [
+          "Mel",
+          "Thaddeus",
+          "Isaac"
+        ],
+        "block_chars": 7796,
+        "block_names_present": {
+          "Mel": true,
+          "Isaac": true,
+          "Thaddeus": true
+        },
+        "block_preview": "============================================================\nFKR v1 \u2014 KNOWLEDGE RETRIEVAL EVIDENCE\nQuery modes: FORUM_DYNAMICS\n============================================================\n\nASKER (you)\n  Name: Pete\n  Birth date: 1968-04-01 00:00:00\n  -- HUMAN DESIGN --\n    Type: Manifestor\n    Strategy: To Inform\n    Authority: Emotional\n    Profile: 5/1\n    Definition: Split\n    Incarnation Cross: Left Angle Cross of Migration 1\n    Defined centers: Ego, Throat, Ajna, Head, Solar Plexus\n    Undefined centers: G Center, Sacral, Spleen, Root\n  -- ASTROLOGY --\n    Sun: 22\u00b0Pisces\n    Moon: 11\u00b0Aries\n    Ascendant: 19\u00b0Sagittarius\n    Midheaven / MC: 28\u00b0Virgo\n    IC: 31\u00b0Pisces\n    Descendant / DC: 18\u00b0Gemini\n    Mercury: 0\u00b0Pisces\n    Venus: 1\u00b0Pisces\n    Mars: 1\u00b0Aries\n    Jupiter: 12\u00b0Leo\n    Saturn: 25\u00b0Pisces\n    Uranus: 4\u00b0Virgo\n    Neptune: 14\u00b0Libra\n    Pluto: 36\u00b0Leo\n    Chiron: 11\u00b0Pisces\n    North Node: 29\u00b0Pisces\n    South Node: 26\u00b0Virgo\n  -- ENNEAGRAM --\n    inferred_core: 7\n    inferred_wing: 8\n    confidence: 0.4946\n    confidence_tier: high\n    enneagram_computed_details: {'center': 'head', 'hornevian_group': 'assertive', 'harmonic_group': 'positive_outlook', 'object_relations': 'frustration', 'social_style_tags': ['enthusiast', 'epicure', 'optimistic', 'scattered', 'adventurous', 'versatile'], 'stress_line_to': 1, 'growth_line_to': 5, 'wing_left_type': 6, 'wing_right_type': 8, 'w"
+      },
+      "llm_response": "It sounds like your family is in a phase of integrating experiences, opening new chapters for each member. From the recent context about your connection with your partner, Mel, it seems like warmth and trust are returning, suggesting a deepening of your relationship after some distance. This could be a key area of growth for your family unit. For your children, Thaddeus and Isaac, their unique ways of engaging with the world\u2014whether through Thaddeus's creative exploration or Isaac's decisive nature\u2014may present opportunities for personal and family development. What are some family dynamics or areas where you've noticed growth or a desire for more connection recently?",
+      "checks": {
+        "names_in_response": {
+          "Mel": true,
+          "Isaac": true,
+          "Thaddeus": true
+        },
+        "all_expected_names_present": true,
+        "generic_phrases_found": [],
+        "no_generic_language": true,
+        "role_confusions": [],
+        "no_role_confusion": true
+      },
+      "pass": true,
+      "duration_s": 3.07,
+      "raw_api": {
+        "session_id": "d0482388-3f43-47b1-b025-3fa4de1b4e7b",
+        "timestamp": "2026-06-13T02:33:37.880034+00:00",
+        "memory_update": {
+          "themes": [
+            "family growth",
+            "relationship connection",
+            "personal emotional awareness"
+          ],
+          "recurring_tensions": [
+            "managing emotional burdens",
+            "need for emotional presence without rushing"
+          ],
+          "supportive_moves": [
+            "open conversations with partner",
+            "sitting with thoughts and emotions"
+          ],
+          "drainers": [
+            "physical tension",
+            "slow days"
+          ],
+          "inferred_state": "integrating",
+          "confidence": 0.8,
+          "evidence": [
+            "Warmth and trust are returning in the relationship.",
+            "Need to sometimes just sit with thoughts and emotions.",
+            "Feeling of burden tied to physical tension in shoulders."
+          ],
+          "updated_at_iso": "2026-06-13T02:33:37.877449+00:00"
+        },
+        "thread": null,
+        "debug": {
+          "pattern_memory": {
+            "marker": "pattern-memory-v1",
+            "matched_patterns": [],
+            "surfaceable_count": 0,
+            "growth_shifts_count": 0,
+            "surfaced_keys": [],
+            "growth_keys": []
+          },
+          "micro_reflection": {
+            "marker": "micro-reflection-v2",
+            "growth_score": 0,
+            "resistance_score": 0,
+            "resonance_score": 0,
+            "total_recent": 0,
+            "softened_patterns": [],
+            "stuck_patterns": [],
+            "loop_applied": null
+          },
+          "contradictions": {
+            "marker": "contradiction-intelligence-v1",
+            "scope": "individual",
+            "contradiction_level": "LOW",
+            "contradiction_types": [],
+            "surfaced": false,
+            "softened_by_reflection": false,
+            "forum_related": false,
+            "recurrence_overlap": []
+          }
+        },
+        "evidence": {
+          "marker": "evidence-drawer-v2",
+          "calibration": [
+            "reflective",
+            "observational"
+          ]
+        }
+      }
+    },
+    {
+      "id": "f10.tension_at_home",
+      "message": "What tension needs attention at home?",
+      "expected_names": [
+        "Mel",
+        "Isaac",
+        "Thaddeus"
+      ],
+      "fkr": {
+        "modes": [
+          "FORUM_DYNAMICS"
+        ],
+        "targets": [
+          "Mel",
+          "Thaddeus",
+          "Isaac"
+        ],
+        "block_chars": 7796,
+        "block_names_present": {
+          "Mel": true,
+          "Isaac": true,
+          "Thaddeus": true
+        },
+        "block_preview": "============================================================\nFKR v1 \u2014 KNOWLEDGE RETRIEVAL EVIDENCE\nQuery modes: FORUM_DYNAMICS\n============================================================\n\nASKER (you)\n  Name: Pete\n  Birth date: 1968-04-01 00:00:00\n  -- HUMAN DESIGN --\n    Type: Manifestor\n    Strategy: To Inform\n    Authority: Emotional\n    Profile: 5/1\n    Definition: Split\n    Incarnation Cross: Left Angle Cross of Migration 1\n    Defined centers: Ego, Throat, Ajna, Head, Solar Plexus\n    Undefined centers: G Center, Sacral, Spleen, Root\n  -- ASTROLOGY --\n    Sun: 22\u00b0Pisces\n    Moon: 11\u00b0Aries\n    Ascendant: 19\u00b0Sagittarius\n    Midheaven / MC: 28\u00b0Virgo\n    IC: 31\u00b0Pisces\n    Descendant / DC: 18\u00b0Gemini\n    Mercury: 0\u00b0Pisces\n    Venus: 1\u00b0Pisces\n    Mars: 1\u00b0Aries\n    Jupiter: 12\u00b0Leo\n    Saturn: 25\u00b0Pisces\n    Uranus: 4\u00b0Virgo\n    Neptune: 14\u00b0Libra\n    Pluto: 36\u00b0Leo\n    Chiron: 11\u00b0Pisces\n    North Node: 29\u00b0Pisces\n    South Node: 26\u00b0Virgo\n  -- ENNEAGRAM --\n    inferred_core: 7\n    inferred_wing: 8\n    confidence: 0.4946\n    confidence_tier: high\n    enneagram_computed_details: {'center': 'head', 'hornevian_group': 'assertive', 'harmonic_group': 'positive_outlook', 'object_relations': 'frustration', 'social_style_tags': ['enthusiast', 'epicure', 'optimistic', 'scattered', 'adventurous', 'versatile'], 'stress_line_to': 1, 'growth_line_to': 5, 'wing_left_type': 6, 'wing_right_type': 8, 'w"
+      },
+      "llm_response": "In the reflection of current patterns, there's a quality within your household dynamic that's seeking presence. Your Moon in Aries placed in the fourth house can sometimes bring urgency and assertiveness into the home sphere. This may manifest as a restlessness or a drive to initiate change, particularly in nurturing spaces. The recent feeling of tension and burdens you've associated with physical sensations, like the tension in your shoulders, might be an echo of this pattern. It's worth noticing whether moments of connection, like your open conversation with your partner, bring relief or if there's an underlying stirring that persists. One way forward might be to explore where this urgency or tension arises in daily interactions. What does this suggest about what you're looking to initiate or transform in the space you call home?",
+      "checks": {
+        "names_in_response": {
+          "Mel": false,
+          "Isaac": false,
+          "Thaddeus": false
+        },
+        "all_expected_names_present": false,
+        "generic_phrases_found": [],
+        "no_generic_language": true,
+        "role_confusions": [],
+        "no_role_confusion": true
+      },
+      "pass": false,
+      "duration_s": 3.98,
+      "raw_api": {
+        "session_id": "8e492f42-d617-4a98-897a-2f1eefe41bb4",
+        "timestamp": "2026-06-13T02:33:41.859840+00:00",
+        "memory_update": {
+          "themes": [
+            "household dynamics",
+            "emotional awareness",
+            "connectedness with partner"
+          ],
+          "recurring_tensions": [
+            "feeling of burden and tension",
+            "urgency to change in nurturing spaces"
+          ],
+          "supportive_moves": [
+            "open conversations with partner",
+            "sitting with thoughts and emotions"
+          ],
+          "drainers": [
+            "physical sensations of tension",
+            "feeling slow"
+          ],
+          "inferred_state": "stabilizing",
+          "confidence": 0.7,
+          "evidence": [
+            "Mention of household dynamic needing attention.",
+            "Feeling very tense and burdened, especially in shoulders.",
+            "Realization about sitting with thoughts and emotions."
+          ],
+          "updated_at_iso": "2026-06-13T02:33:41.857038+00:00"
+        },
+        "thread": null,
+        "debug": {
+          "pattern_memory": {
+            "marker": "pattern-memory-v1",
+            "matched_patterns": [],
+            "surfaceable_count": 0,
+            "growth_shifts_count": 0,
+            "surfaced_keys": [],
+            "growth_keys": []
+          },
+          "micro_reflection": {
+            "marker": "micro-reflection-v2",
+            "growth_score": 0,
+            "resistance_score": 0,
+            "resonance_score": 0,
+            "total_recent": 0,
+            "softened_patterns": [],
+            "stuck_patterns": [],
+            "loop_applied": null
+          },
+          "contradictions": {
+            "marker": "contradiction-intelligence-v1",
+            "scope": "individual",
+            "contradiction_level": "LOW",
+            "contradiction_types": [],
+            "surfaced": false,
+            "softened_by_reflection": false,
+            "forum_related": false,
+            "recurrence_overlap": []
+          }
+        },
+        "evidence": {
+          "marker": "evidence-drawer-v2",
+          "calibration": [
+            "reflective",
+            "observational"
+          ]
+        }
+      }
+    }
+  ]
+}
