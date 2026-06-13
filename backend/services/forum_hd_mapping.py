@@ -1988,6 +1988,58 @@ async def get_forum_member_mappings(
                         # the UI can render it as the dedicated section.
                         mapping["astrology_dynamics"] = _deep["astrology_card"]
 
+                # ── BaZi Dynamics narrative card (v2.2) ────────────────────
+                # relationship-mapping-bazi-narrative-v1
+                # Adds a 5-section deterministic interpretation layer above
+                # the existing Elemental Dynamics (which remains as evidence).
+                # No calculator changes; pure synthesis from compute_bazi_signals
+                # output + already-computed chart.bazi fields.
+                try:
+                    from services.relationship_bazi_engine import (
+                        build_relationship_bazi as _build_bazi,
+                        BUILD_MARKER as _BAZI_MARKER,
+                    )
+                    _sigs_now = mapping.get("signals") or {}
+                    _bsigs = _sigs_now.get("bazi") or {}
+                    _bazi_out = _build_bazi(
+                        chart_a=current_chart,
+                        chart_b=member_chart,
+                        name_a=current_user_name,
+                        name_b=member_name,
+                        relationship_role=_role,
+                        support_signals=_bsigs.get("support") or [],
+                        tension_signals=_bsigs.get("tension") or [],
+                        growth_signals=_bsigs.get("growth") or [],
+                    )
+                    if _bazi_out.get("success"):
+                        # Surface at top level (parallel to astrology_dynamics)
+                        mapping["bazi_dynamics"] = _bazi_out["bazi_card"]
+                        mapping["bazi_dynamics"]["build_marker"] = _BAZI_MARKER
+                        # Also nest under signals.bazi so consumers can find
+                        # the card alongside the evidence arrays.
+                        if isinstance(_bsigs, dict):
+                            _bsigs["v2_card"] = _bazi_out["bazi_card"]
+                            _bsigs["build_marker"] = _BAZI_MARKER
+                            _bsigs["diagnostics"] = _bazi_out.get("diagnostics") or {}
+                            _sigs_now["bazi"] = _bsigs
+                            mapping["signals"] = _sigs_now
+                        logger.info(
+                            f"[BaziNarrative] pair={current_user_name}<->{member_name} "
+                            f"role={_role} cycle={_bazi_out['diagnostics'].get('cycle')} "
+                            f"el={_bazi_out['diagnostics'].get('element_a')}-"
+                            f"{_bazi_out['diagnostics'].get('element_b')}"
+                        )
+                    else:
+                        logger.info(
+                            f"[BaziNarrative] skipped pair={current_user_name}<->{member_name}: "
+                            f"{_bazi_out.get('reason')}"
+                        )
+                except Exception as _bz_err:
+                    logger.warning(
+                        f"[BaziNarrative] error for {member_name}: "
+                        f"{type(_bz_err).__name__}: {_bz_err}"
+                    )
+
                 # Attach relationship_context debug
                 mapping.setdefault("debug", {})["relationship_context"] = {
                     "target_name":          member_name,

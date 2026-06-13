@@ -851,6 +851,51 @@ export default function ForumMappingsScreen() {
                       </View>
                     )}
 
+                    {/* BAZI DYNAMICS — narrative card (5 sections) */}
+                    {/* relationship-mapping-bazi-narrative-v1                */}
+                    {/* Renders ABOVE Elemental Dynamics so users land on the */}
+                    {/* interpretation layer first; Elemental Dynamics stays  */}
+                    {/* below as the proof/evidence layer.                    */}
+                    {(() => {
+                      const baziDyn: any =
+                        (selectedMember as any)?.bazi_dynamics ||
+                        signals?.bazi?.v2_card ||
+                        null;
+                      if (!baziDyn || typeof baziDyn !== 'object') return null;
+                      const SECTIONS: Array<{ key: string; label: string }> = [
+                        { key: 'core_dynamic',     label: 'Core Dynamic' },
+                        { key: 'what_strengthens', label: 'What Strengthens This Relationship' },
+                        { key: 'growth_edge',      label: 'Growth Edge' },
+                        { key: 'shadow_pattern',   label: 'Shadow Pattern' },
+                        { key: 'why_matters',      label: 'Why This Relationship Matters' },
+                      ];
+                      const anyText = SECTIONS.some(
+                        s => typeof baziDyn[s.key] === 'string' && baziDyn[s.key].trim().length > 0,
+                      );
+                      if (!anyText) return null;
+                      return (
+                        <View style={styles.lensSection}>
+                          <Text style={[styles.signalsNote, { color: theme.textTertiary }]}>
+                            BAZI DYNAMICS
+                          </Text>
+                          {SECTIONS.map(({ key, label }) => {
+                            const body = baziDyn[key];
+                            if (typeof body !== 'string' || body.trim().length === 0) return null;
+                            return (
+                              <View key={`bzd-${key}`} style={{ marginTop: 10 }}>
+                                <Text style={[styles.lensSignalText, { color: theme.text, fontWeight: '600', marginBottom: 4 }]}>
+                                  {label}
+                                </Text>
+                                <Text style={[styles.lensSignalText, { color: theme.textSecondary }]}>
+                                  {body}
+                                </Text>
+                              </View>
+                            );
+                          })}
+                        </View>
+                      );
+                    })()}
+
                     {/* BAZI SIGNALS */}
                     {signals?.bazi && Object.keys(signals.bazi).length > 0 ? (
                         <View style={styles.lensSection}>
