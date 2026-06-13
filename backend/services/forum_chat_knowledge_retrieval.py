@@ -58,6 +58,17 @@ _FACT_LOOKUP_PATTERNS = [
     r"bazi|element|day master)\b",
     r"\bwhich (centers?|channels?|gates?|houses?|signs?)\b",
     r"\bwho is\b",
+    # ophiuchus-inventory-engine-v1: catch sign-shaped questions about
+    # Ophiuchus so the FKR EVIDENCE block (which dumps the user's
+    # planet/angle inventory) is injected. Without this, FKR returned
+    # an empty block for "Do I have Ophiuchus in my chart?" and the
+    # LLM had no engine-grounded ground truth to answer from.
+    r"\b(ophiuchus|ophi|serpent[\s-]?bearer|13th\s+sign|thirteenth\s+sign)\b",
+    # Sign-form phrasing — covers "what sign is my X" / "what sign is
+    # X's Y" which the original `what is` anchor missed.
+    r"\bwhat sign\b.*\b(mc|midheaven|ic|imum coeli|ascendant|asc|rising|"
+    r"descendant|dc|sun|moon|chiron|north node|south node|venus|mars|"
+    r"mercury|jupiter|saturn|uranus|neptune|pluto)\b",
 ]
 _INTERPRET_PATTERNS = [
     r"\bwhat does .* mean\b",

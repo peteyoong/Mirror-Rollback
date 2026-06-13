@@ -2155,6 +2155,49 @@ NOT: "I opened a generic chat"
                                 f"object={obj_name} user={request.user_id[:8]}..."
                             )
 
+                            # ── ophiuchus_inventory branch ─────────────────────
+                            # ophiuchus-inventory-engine-v1
+                            # Direct, sign-shaped Ophiuchus queries ("Do I
+                            # have Ophiuchus in my chart?", "What's in
+                            # Ophiuchus?"). Mirror's canonical zodiac is
+                            # 13-sign Variant A (midpoint13_variant_a_v1);
+                            # without this branch the LLM defaulted to its
+                            # 12-sign RLHF prior and produced "Traditional
+                            # astrology does not recognize Ophiuchus".
+                            if mode_label == "ophiuchus_inventory":
+                                try:
+                                    from services.ophiuchus_inventory import (
+                                        build_ophiuchus_inventory,
+                                        build_ophiuchus_inventory_proof_block,
+                                    )
+                                    _ophi_env = build_ophiuchus_inventory(_astro_chart)
+                                    astro_chat_debug["ophiuchus_has_placement"] = (
+                                        _ophi_env.get("has_ophiuchus")
+                                    )
+                                    astro_chat_debug["ophiuchus_placements"] = [
+                                        p["name"]
+                                        for p in (_ophi_env.get("placements") or [])
+                                    ]
+                                    astro_chat_debug["ophiuchus_house_cusps"] = (
+                                        _ophi_env.get("house_cusps_in_ophiuchus") or []
+                                    )
+                                    astro_chat_debug["astro_sources_used"].append(
+                                        "ophiuchus_inventory"
+                                    )
+                                    system_prompt += (
+                                        "\n\n"
+                                        + build_ophiuchus_inventory_proof_block(_ophi_env)
+                                    )
+                                    logger.info(
+                                        f"[OphiuchusInventory] has={_ophi_env.get('has_ophiuchus')} "
+                                        f"placements={[p['name'] for p in (_ophi_env.get('placements') or [])]} "
+                                        f"cusps={_ophi_env.get('house_cusps_in_ophiuchus')}"
+                                    )
+                                except Exception as _ophi_err:
+                                    logger.warning(
+                                        f"[OphiuchusInventory] skipped: {_ophi_err}"
+                                    )
+
                             # ── house_inventory branch ─────────────────────────
                             # astrology-chat-house-hierarchy-v5
                             # Multi-body house synthesis. Must aggregate the

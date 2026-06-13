@@ -96,6 +96,22 @@ _HOUSE_WORD_TO_NUM = {
     "10th":10,"tenth":10,"11th":11,"eleventh":11,"12th":12,"twelfth":12,
 }
 
+# Ophiuchus inventory — direct, sign-shaped queries about Ophiuchus.
+# Mirror's canonical engine is 13-sign (midpoint13_variant_a_v1) where
+# Ophiuchus is a first-class sign. The chat path previously had no
+# deterministic engine for these queries and the LLM would fall back
+# to a 12-sign denial. Build marker: ophiuchus-inventory-engine-v1
+_OPHIUCHUS_INVENTORY_RE = re.compile(
+    r"\b("
+    r"ophiuchus"
+    r"|ophi\b"
+    r"|serpent[\s-]?bearer"
+    r"|13th\s+sign"
+    r"|thirteenth\s+sign"
+    r")\b",
+    re.IGNORECASE,
+)
+
 # Pressure-topology / whole-chart synthesis questions.
 # Fires on "tell me about my chart", "what does my chart say",
 # "synthesize my chart", "what's the core pattern", "master read", etc.
@@ -334,6 +350,24 @@ def classify_astrology_intent(
     natal_obj_body_match = _NATAL_OBJECT_BODIES_RE.search(text)
     has_natal_obj_trigger = bool(_NATAL_OBJECT_TRIGGER_RE.search(text))
     house_match = _HOUSE_INVENTORY_RE.search(text)
+    has_ophiuchus = bool(_OPHIUCHUS_INVENTORY_RE.search(text))
+
+    # ── ophiuchus_inventory ────────────────────────────────────────────
+    # ophiuchus-inventory-engine-v1
+    # Fires FIRST when the user mentions Ophiuchus directly. Mirror's
+    # canonical zodiac is 13-sign (midpoint13_variant_a_v1) where
+    # Ophiuchus is a first-class sign — but a sign-shaped query like
+    # "Do I have Ophiuchus in my chart?" has no body / aspect / house
+    # anchor, so without this branch the engine returned None and the
+    # LLM fell back to its 12-sign RLHF prior and denied Ophiuchus.
+    # Must fire BEFORE lifecycle/house/natal_object so "is my Mercury
+    # in Ophiuchus?" goes to the inventory builder, not transit_to_natal.
+    if has_ophiuchus:
+        return {
+            "data_mode":    "ophiuchus_inventory",
+            "object":       None,
+            "natural_form": text,
+        }
 
     # ── lifecycle (Saturn return / Chiron return / Nodal / Uranus opp …) ──
     # astrology-lifecycle-v1
