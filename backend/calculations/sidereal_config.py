@@ -140,22 +140,64 @@ def normalize_degrees(degrees: float) -> float:
 
 def longitude_to_sign_degree(longitude: float) -> Dict[str, Any]:
     """Convert longitude to sign and degree within sign.
-    
+
+    ── REMEDIATION (angle-staleness-step1-v1, 2026-02) ─────────────────
+    This function previously hosted an independent uniform_30 (12-sign)
+    attribution implementation that diverged from the canonical
+    midpoint-13 Variant A attributor used by `calculations.astrology`.
+
+    Multiple downstream services
+    (canonical_astronomy / transit_signals / lunar_cycle / etc.)
+    imported this function and therefore minted uniform_30 sign labels
+    for transits, lunar phases, Earth-gate, and the drift-detection
+    diagnostic — directly contradicting the chart writer's Variant A
+    output.
+
+    To eliminate the divergence, this function now DELEGATES to the
+    canonical attributor at `calculations.astrology.longitude_to_sign_degree`,
+    which honours the global `DEFAULT_MODE = MODE_MIDPOINT13_VARIANT_A`.
+
+    Behaviour change visible to callers:
+      * `sign` may now return "Ophiuchus" for longitudes in the
+        Ophiuchus band (~14.50° wide, between Scorpio and Sagittarius).
+      * `sign_index` continues to be returned. For Variant A it indexes
+        into the 13-sign list (Ophiuchus = 8); for legacy uniform_30
+        callers that hardcoded `ZODIAC_SIGNS[sign_index]` (12-sign) this
+        is a contract change — those callers must read `sign` instead.
+      * Return shape (keys + types) is unchanged.
+
     Args:
-        longitude: Ecliptic longitude (0-360)
-    
+        longitude: Ecliptic longitude (0-360). For Mirror's sidereal
+                   pipeline this is the sidereal longitude AFTER SVP
+                   subtraction.
+
     Returns:
-        Dict with sign index, sign name, degree in sign, formatted string
+        Dict with sign_index, sign name, degree in sign, formatted string.
+    """
+    # Lazy import to avoid load-time circular dependency. `calculations.astrology`
+    # does not import from this module, but the lazy import keeps the dependency
+    # graph one-directional even if a future import is added.
+    from calculations.astrology import longitude_to_sign_degree as _canonical
+    return _canonical(normalize_degrees(longitude))
+
+
+def _legacy_longitude_to_sign_degree_uniform_30(longitude: float) -> Dict[str, Any]:
+    """LEGACY — pure uniform_30 (12-sign) attributor preserved verbatim
+    for forensic comparisons only. NEVER call from production paths.
+
+    Use `calculations.sign_attribution.attribute_sign_uniform_30(trop)`
+    for the public uniform_30 API.
+
+    Build marker: angle-staleness-step1-v1 (preservation block)
     """
     longitude = normalize_degrees(longitude)
     sign_num = int(longitude / 30)
     degree_in_sign = longitude % 30
-    
     return {
         'sign_index': sign_num,
         'sign': ZODIAC_SIGNS[sign_num],
         'degree': degree_in_sign,
-        'formatted': f"{int(degree_in_sign)}°{ZODIAC_SIGNS[sign_num]}"
+        'formatted': f"{int(degree_in_sign)}°{ZODIAC_SIGNS[sign_num]}",
     }
 
 

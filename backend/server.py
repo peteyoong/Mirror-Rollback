@@ -14778,7 +14778,11 @@ async def get_astrology_full_chart(user_id: str, force_recompute: bool = False):
         # Calculate balances from planet data
         planets = astro.get('planets', {})
         
-        element_counts = {'Fire': 0, 'Earth': 0, 'Air': 0, 'Water': 0}
+        # angle-staleness-step1-v1: 'Ether' bucket added to receive any
+        # Ophiuchus-attributed planets under canonical Variant A. Without
+        # this bucket, a planet with sign='Ophiuchus' would trigger
+        # KeyError on element_counts[element] += weight below.
+        element_counts = {'Fire': 0, 'Earth': 0, 'Air': 0, 'Water': 0, 'Ether': 0}
         modality_counts = {'Cardinal': 0, 'Fixed': 0, 'Mutable': 0}
         polarity_counts = {'Masculine': 0, 'Feminine': 0}
         house_counts = {}
@@ -14787,12 +14791,21 @@ async def get_astrology_full_chart(user_id: str, force_recompute: bool = False):
             'Aries': 'Fire', 'Leo': 'Fire', 'Sagittarius': 'Fire',
             'Taurus': 'Earth', 'Virgo': 'Earth', 'Capricorn': 'Earth',
             'Gemini': 'Air', 'Libra': 'Air', 'Aquarius': 'Air',
-            'Cancer': 'Water', 'Scorpio': 'Water', 'Pisces': 'Water'
+            'Cancer': 'Water', 'Scorpio': 'Water', 'Pisces': 'Water',
+            # angle-staleness-step1-v1: Ophiuchus is first-class under
+            # canonical Variant A (midpoint13_variant_a_v1). It belongs
+            # to the 5th transcendent element "Ether" — matches
+            # services/ophiuchus_metadata.py and forum_lens_helpers
+            # so element-balance counts stay consistent across surfaces.
+            'Ophiuchus': 'Ether',
         }
         SIGN_TO_MODALITY = {
             'Aries': 'Cardinal', 'Cancer': 'Cardinal', 'Libra': 'Cardinal', 'Capricorn': 'Cardinal',
             'Taurus': 'Fixed', 'Leo': 'Fixed', 'Scorpio': 'Fixed', 'Aquarius': 'Fixed',
-            'Gemini': 'Mutable', 'Virgo': 'Mutable', 'Sagittarius': 'Mutable', 'Pisces': 'Mutable'
+            'Gemini': 'Mutable', 'Virgo': 'Mutable', 'Sagittarius': 'Mutable', 'Pisces': 'Mutable',
+            # angle-staleness-step1-v1: Ophiuchus classified as Mutable
+            # (matches services/ophiuchus_metadata.py).
+            'Ophiuchus': 'Mutable',
         }
         SIGN_TO_POLARITY = {
             'Aries': 'Masculine', 'Gemini': 'Masculine', 'Leo': 'Masculine', 
@@ -27146,16 +27159,23 @@ async def diagnose_astro_system():
         ok = False
         guard_error = str(e)
     return {
-        "astro_system": "True Sidereal-M (Midpoint) — Chimeri-aligned, IAU-midpoint sign boundaries",
-        "zodiac_mode": "true_sidereal_midpoint_12_merged_candidate",
+        "astro_system": "True Sidereal-M Midpoint, 13-sign canonical (Variant A, Ophiuchus first-class) — IAU-midpoint sign boundaries",
+        # angle-staleness-step1-v1: diagnostic mislabel fix. Previously
+        # reported the legacy 12-sign Variant B candidate; the canonical
+        # default is now midpoint13_variant_a_v1.
+        "zodiac_mode": "midpoint13_variant_a_v1 (canonical Variant A — 13 signs)",
+        "sign_attribution_mode_canonical": "midpoint13_variant_a",
+        "sign_attribution_mode_legacy_forensic": "midpoint12_variant_b (Ophiuchus merged into Scorpio — kept for forensic rollback only)",
+        "sign_attribution_mode_deprecated": "uniform_30 (legacy 30°-equal, retained only as a wrapper for back-compat)",
         "ayanamsa_or_svp": SVP_DEGREES,
         "reference_epoch_jd": J2000_EPOCH,
         "yearly_increment": 0.0,
-        "ophiuchus_enabled": False,  # 12-sign; Ophiuchus merged into Scorpius per Variant B
+        "ophiuchus_enabled": True,  # 13-sign canonical; Ophiuchus is first-class
         "hd_source_system": "True Sidereal-M — HD reads its planet longitudes from the SAME canonical layer as Astrology",
         "canonical_config": CANONICAL_SIDEREAL_CONFIG,
         "canonical_planet_set": CANONICAL_PLANET_SET,
         "single_source_of_truth": "/app/backend/services/canonical_astronomy.compute_canonical_birth_positions",
+        "single_source_of_truth_for_sign_labels": "/app/backend/calculations/astrology.longitude_to_sign_degree (routes via attribute_sign with DEFAULT_MODE=midpoint13_variant_a)",
         "consumed_by": [
             "GET /api/astrology/chart/{user_id}        (via calculations.astrology.get_full_natal_chart)",
             "GET /api/astrology-today/{user_id}        (via services.astrology_today_engine)",
@@ -31764,9 +31784,11 @@ async def admin_asc_forensic(user_id: str, attribution: Optional[str] = None) ->
     from calculations.sidereal_config import SVP_DEGREES, J2000_EPOCH
     from calculations.sign_attribution import (
         attribute_sign_uniform_30,
-        attribute_sign_true_sidereal_midpoint,
+        attribute_sign_true_sidereal_midpoint,         # LEGACY alias → Variant B (forensic only)
+        attribute_sign_midpoint13_variant_a,           # CANONICAL Variant A
         MODE_UNIFORM_30,
-        MODE_TRUE_SIDEREAL_MIDPOINT,
+        MODE_TRUE_SIDEREAL_MIDPOINT,                   # legacy alias = midpoint12_variant_b
+        MODE_MIDPOINT13_VARIANT_A,                     # canonical default mode
         MIDPOINT_MODEL_NAME,
     )
     from bson import ObjectId
@@ -31910,22 +31932,39 @@ async def admin_asc_forensic(user_id: str, attribution: Optional[str] = None) ->
                 "resulting_sidereal_asc": fmt(sid),
             })
 
-    # ----- BODIES — both-mode attribution preview (Build: true-sidereal-midpoint-toggle-v1) -----
-    # Pull each body's TROPICAL longitude and run it through both attribution
-    # functions. This NEVER mutates stored chart data — pure read-and-derive.
+    # ----- BODIES — three-mode attribution preview (Build: angle-staleness-step1-v1) -----
+    # Pull each body's TROPICAL longitude and run it through all three
+    # attribution functions, with provenance labels for the reviewer:
+    #   - midpoint13_variant_a  → CANONICAL (current production sign labels)
+    #   - midpoint12_variant_b  → LEGACY / FORENSIC ROLLBACK ONLY
+    #   - uniform_30            → DEPRECATED (kept as back-compat wrapper)
+    # This NEVER mutates stored chart data — pure read-and-derive.
     requested_mode = (attribution or "").strip().lower() or None
     include_uniform   = requested_mode in (None, MODE_UNIFORM_30)
     include_midpoint  = requested_mode in (None, MODE_TRUE_SIDEREAL_MIDPOINT)
+    include_variant_a = requested_mode in (None, MODE_MIDPOINT13_VARIANT_A, "midpoint13_variant_a_v1", "canonical", "variant_a")
 
     def _both_modes(trop: Optional[float]) -> Dict[str, Any]:
         out: Dict[str, Any] = {"tropical_longitude": None if trop is None else round(trop % 360, 6)}
         if trop is None:
             return out
+        if include_variant_a:
+            a = attribute_sign_midpoint13_variant_a(trop)
+            out[MODE_MIDPOINT13_VARIANT_A] = {
+                "sign":              a["sign"],
+                "degree":            a["degree_within_sign"],
+                "sign_start":        a["sign_start"],
+                "sign_end":          a["sign_end"],
+                "sign_width":        a["sign_width"],
+                "attribution_model": a["attribution_mode"],
+                "provenance":        "CANONICAL (Variant A — midpoint13_variant_a_v1)",
+            }
         if include_uniform:
             u = attribute_sign_uniform_30(trop, ayanamsa=SVP_DEGREES)
             out[MODE_UNIFORM_30] = {
                 "sign": u["sign"],
                 "degree": u["degree_within_sign"],
+                "provenance": "DEPRECATED (uniform_30 — legacy 30°-equal; back-compat only)",
             }
         if include_midpoint:
             m = attribute_sign_true_sidereal_midpoint(trop)
@@ -31936,6 +31975,7 @@ async def admin_asc_forensic(user_id: str, attribution: Optional[str] = None) ->
                 "sign_end":          m["sign_end"],
                 "sign_width":        m["sign_width"],
                 "attribution_model": m["attribution_mode"],
+                "provenance":        "LEGACY / FORENSIC ROLLBACK (Variant B — midpoint12_variant_b; Ophiuchus merged into Scorpio)",
             }
         return out
 

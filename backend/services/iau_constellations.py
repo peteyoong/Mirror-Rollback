@@ -35,6 +35,22 @@ from __future__ import annotations
 from typing import Dict, List, Optional, Tuple, Any
 
 # ---------------------------------------------------------------------------
+# Canonical SVP — used to reconstruct tropical longitude from a stored
+# sidereal longitude when callers provide only `longitude` (sidereal) on
+# an angle / body record.
+#
+# Build marker: angle-staleness-step1-v1 (remediation)
+#
+# Prior to this remediation, this module hardcoded a literal `28.69`
+# offset in four places (sources marked `D9` in the forensic audit).
+# `28.69` ≠ canonical `SVP_DEGREES = 31.2836` — Δ = −2.5936°, large
+# enough to misplace any body within ~3° of an IAU constellation
+# boundary.  We now import the canonical constant from the single
+# source-of-truth sidereal config module.
+# ---------------------------------------------------------------------------
+from calculations.sidereal_config import SVP_DEGREES as _CANONICAL_SVP_OFFSET
+
+# ---------------------------------------------------------------------------
 # IAU ecliptic boundaries — tropical J2000 longitude ranges.
 # Each entry: (constellation_name, start_longitude_deg, end_longitude_deg)
 # Ranges are half-open [start, end). Pisces wraps around 360°.
@@ -653,12 +669,14 @@ def resolve_constellation_overlay(astrology_chart: Dict[str, Any]) -> Dict[str, 
                 entry.get("tropical_longitude")
                 or entry.get("tropical_lon")
                 or entry.get("longitude_tropical")
-                # if only sidereal is stored, reconstruct approximate tropical
-                # using the canonical SVP offset — good enough for boundary
-                # lookup (the IAU boundaries are not tight to sub-degree).
+                # If only sidereal is stored, reconstruct tropical using
+                # the canonical SVP offset (angle-staleness-step1-v1).
+                # Pre-remediation this used a literal `28.69` which was
+                # ~2.59° off from canonical SVP=31.2836 and could
+                # misplace bodies at constellation boundaries.
                 or (
                     (entry.get("longitude") or entry.get("sidereal_longitude"))
-                    + 28.69
+                    + _CANONICAL_SVP_OFFSET
                     if (entry.get("longitude") is not None
                         or entry.get("sidereal_longitude") is not None)
                     else None
@@ -669,7 +687,7 @@ def resolve_constellation_overlay(astrology_chart: Dict[str, Any]) -> Dict[str, 
                 return None
             return (float(lon), sign)
         if isinstance(entry, (int, float)):
-            return (float(entry) + 28.69, None)
+            return (float(entry) + _CANONICAL_SVP_OFFSET, None)
         return None
 
     for name, entry in (planets or {}).items():
@@ -695,7 +713,7 @@ def resolve_constellation_overlay(astrology_chart: Dict[str, Any]) -> Dict[str, 
                     v.get("tropical_longitude")
                     or v.get("tropical_lon")
                     or (
-                        (v.get("longitude") or v.get("sidereal_longitude")) + 28.69
+                        (v.get("longitude") or v.get("sidereal_longitude")) + _CANONICAL_SVP_OFFSET
                         if v.get("longitude") is not None
                         or v.get("sidereal_longitude") is not None
                         else None
@@ -705,7 +723,7 @@ def resolve_constellation_overlay(astrology_chart: Dict[str, Any]) -> Dict[str, 
                 if lon is not None:
                     return (float(lon), sign)
             elif isinstance(v, (int, float)):
-                return (float(v) + 28.69, None)
+                return (float(v) + _CANONICAL_SVP_OFFSET, None)
         return None
 
     asc_rec = _angle(["asc", "Ascendant", "ascendant", "ASC"])
