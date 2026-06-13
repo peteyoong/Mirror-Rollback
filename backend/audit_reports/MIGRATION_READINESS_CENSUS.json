@@ -1,0 +1,108 @@
+{
+  "build_marker": "migration-readiness-census-v1",
+  "database": "test_database",
+  "audit_timestamp_utc": "2026-06-13T11:05:12.174900+00:00",
+  "canonical_engine": "midpoint13_variant_a_v1",
+  "totals": {
+    "users": 175,
+    "charts": 171,
+    "on_canonical": 168,
+    "legacy_non_canonical": 0,
+    "missing_all_stamps": 3,
+    "non_canonical_with_missing_birth_data": 3,
+    "would_be_skipped_by_migration": 0
+  },
+  "engine_version_top_level": {
+    "midpoint13_variant_a_v1": 168,
+    "<missing>": 3
+  },
+  "engine_version_metadata": {
+    "midpoint13_variant_a_v1": 168,
+    "<missing>": 3
+  },
+  "migration_markers": {
+    "variant-a-13-sign-migration-v1": 168,
+    "<missing>": 3
+  },
+  "cross_tab": [
+    {
+      "top_engine": "midpoint13_variant_a_v1",
+      "metadata_engine": "midpoint13_variant_a_v1",
+      "migration_marker": "variant-a-13-sign-migration-v1",
+      "house_system": "Equal",
+      "count": 168
+    },
+    {
+      "top_engine": null,
+      "metadata_engine": null,
+      "migration_marker": null,
+      "house_system": null,
+      "count": 3
+    }
+  ],
+  "non_canonical_charts": [
+    {
+      "chart_id": "6a110c549ea9d4f6f4e1e962",
+      "user_id": "6a110c549ea9d4f6f4e1e961",
+      "name": "Certainty Demo",
+      "email": "certainty.demo@test.com",
+      "top_engine_version": null,
+      "metadata_engine_version": null,
+      "migration_marker": null,
+      "house_system": null,
+      "birth_data_complete": false,
+      "missing_birth_fields": [
+        "lat",
+        "lon"
+      ],
+      "migration_eligibility": "INELIGIBLE \u2014 missing lat,lon",
+      "calculated_at": "2026-05-23 02:09:24.714000",
+      "updated_at": null
+    },
+    {
+      "chart_id": "6a111013f662cf2da04a389d",
+      "user_id": "6a111013f662cf2da04a389c",
+      "name": "Permeability Demo",
+      "email": "permeability.demo@test.com",
+      "top_engine_version": null,
+      "metadata_engine_version": null,
+      "migration_marker": null,
+      "house_system": null,
+      "birth_data_complete": false,
+      "missing_birth_fields": [
+        "lat",
+        "lon"
+      ],
+      "migration_eligibility": "INELIGIBLE \u2014 missing lat,lon",
+      "calculated_at": "2026-05-23 02:25:23.878000",
+      "updated_at": null
+    },
+    {
+      "chart_id": "6a111d24328ffbb9b24c74ce",
+      "user_id": "6a111d24328ffbb9b24c74cd",
+      "name": "Achievement Demo",
+      "email": "achievement.demo@test.com",
+      "top_engine_version": null,
+      "metadata_engine_version": null,
+      "migration_marker": null,
+      "house_system": null,
+      "birth_data_complete": false,
+      "missing_birth_fields": [
+        "lat",
+        "lon"
+      ],
+      "migration_eligibility": "INELIGIBLE \u2014 missing lat,lon",
+      "calculated_at": "2026-05-23 03:21:08.757000",
+      "updated_at": null
+    }
+  ],
+  "skipped_by_migration": [],
+  "continuity": {
+    "previous_audit_total_charts": 171,
+    "previous_audit_migrated_count": 168,
+    "current_total_charts": 171,
+    "current_on_canonical": 168,
+    "delta_total": 0,
+    "delta_on_canonical": 0
+  }
+}
