@@ -64,6 +64,9 @@ _INTERPRET_PATTERNS = [
     r"\bexplain\b",
     r"\bhow does .* express\b",
     r"\binterpret\b",
+    # P1 expansion — relational "need from me" reads as interpretation
+    # AND relationship (multi-label).
+    r"\bwhat does .+ need from (me|us)\b",
 ]
 _RELATIONSHIP_PATTERNS = [
     r"\bhow does .* (affect|impact|map to|relate to) (me|us)\b",
@@ -75,6 +78,15 @@ _RELATIONSHIP_PATTERNS = [
     r"\bus together\b",
     r"\bmap to me\b",
     r"\bdynamic with\b",
+    # P1 expansion — natural-language relationship phrasings:
+    r"\b\w+ and i\b",                       # "Mel and I", "Isaac and I"
+    r"\b\w+ and me\b",                      # "Mel and me"
+    r"\bwhat does \w+ need from (me|us)\b",
+    r"\bhow is \w+ different from (me|us)\b",
+    r"\bwhat keeps happening between\b",    # "between us / them"
+    r"\bwhat (do|are) we (struggle|fight|argue|repeat)\b",
+    r"\bwhat are we repeating\b",
+    r"\bwhat are we working through\b",
 ]
 _TIMELINE_PATTERNS = [
     r"\b(emerging|upcoming|next|future|moving through|going through|"
@@ -86,12 +98,29 @@ _COMPARISON_PATTERNS = [
     r"\bdifference between\b",
     r"\bhow are .* (and|vs|versus|different)\b",
     r"\b(vs\.?|versus)\b",
+    # P1 expansion — natural comparison phrasings without "compare/vs":
+    r"\bhow is \w+ different from\b",
+    r"\bhow do .* differ\b",                # "How do the boys differ", "how do my kids differ"
+    r"\bwhich (one|child|kid|boy|girl|of \w+) is more\b",
+    r"\bwhich (one|child|kid|boy|girl|of \w+) (does|is|has)\b",
+    r"\bmore like (me|you|us)\b",
+    r"\bwhich (\w+) (challenges|tests|stretches) me\b",
+    r"\bstrengths complement\b",
 ]
 _FORUM_DYNAMICS_PATTERNS = [
     r"\bwhat is happening in\b",
     r"\bwho is carrying\b",
     r"\bin the (family|team|forum|group)\b",
     r"\bforum dynamics?\b",
+    # P1 expansion — natural forum-dynamic phrasings:
+    r"\bwho (balances|complements|grounds|steadies|tensions?)\b",
+    r"\bwho creates (the )?(most )?tension\b",
+    r"\bwhat is (this|the|our) (group|family|team|forum)'?s? blind ?spot\b",
+    r"\bblind ?spot\b",
+    r"\bthis group\b",
+    r"\bthis forum\b",
+    r"\bthis (family|team)\b",
+    r"\bwhat role does \w+ play\b",
 ]
 
 
@@ -223,7 +252,90 @@ async def resolve_targets(*, db, user_id: str, message: str,
                 })
                 break
 
-    # "between us / we / our" → bind spouse if unique high-conf spouse edge.
+    # ── P1 group / plural resolution ────────────────────────────
+    # Resolve common kinship plurals into the underlying set of
+    # forum_relationship_edges.role_type-typed people.  Only fires when
+    # the alias loop hasn't already resolved the same individuals.
+    GROUP_PATTERNS = {
+        "children": re.compile(
+            r"\b("
+            r"the boys|my boys|both boys|"
+            r"the kids|my kids|both kids|"
+            r"the children|my children|the babies|my babies|"
+            r"both children|both of them|my offspring|"
+            # "which child / which kid / which one of the kids / which of my children"
+            r"which child|which kid|which boy|which girl|"
+            r"which one of (the|my) (kids|children|boys|girls)|"
+            r"which of (the|my) (kids|children|boys|girls)"
+            r")\b",
+            re.IGNORECASE,
+        ),
+        "family": re.compile(
+            r"\b(our family|the family|my family)\b",
+            re.IGNORECASE,
+        ),
+    }
+
+    async def _expand_group(role_filter: List[str]) -> List[Dict[str, Any]]:
+        """Pull from forum_relationship_edges where asker→to_user has a
+        role_type in role_filter; return target dicts with names resolved."""
+        found: List[Dict[str, Any]] = []
+        try:
+            cur = db.forum_relationship_edges.find({
+                "from_user_id": user_id,
+                "role_type":    {"$in": role_filter},
+            })
+            seen_uids: set = set()
+            async for e in cur:
+                tu = e.get("to_user_id")
+                if not tu or tu in seen_uids or tu in matched_uids:
+                    continue
+                seen_uids.add(tu)
+                # Resolve name from known_people first, then users.
+                name = None
+                fid  = e.get("forum_id")
+                for p in people:
+                    if p["user_id"] == tu:
+                        name = p["name"]; fid = fid or p.get("forum_id")
+                        break
+                if not name:
+                    try:
+                        uobj = ObjectId(tu) if _looks_objectid(tu) else tu
+                        u = await db.users.find_one({"_id": uobj})
+                        if u:
+                            name = u.get("name") or u.get("first_name")
+                    except Exception:
+                        pass
+                found.append({
+                    "user_id":  tu,
+                    "name":     name or "(unknown)",
+                    "role":     e.get("role_type") or "forum_peer",
+                    "forum_id": fid,
+                    "source":   "group_expansion",
+                })
+        except Exception:
+            pass
+        return found
+
+    # children-group plurals
+    if GROUP_PATTERNS["children"].search(msg):
+        children = await _expand_group(["child"])
+        for c in children:
+            if c["user_id"] not in matched_uids:
+                matched_uids.add(c["user_id"])
+                targets.append(c)
+
+    # family-group plural — include spouse + children (and any other
+    # explicit kinship edges) only.  We deliberately do NOT pull
+    # every forum_member because "the family" implies kin, not
+    # acquaintance.
+    if GROUP_PATTERNS["family"].search(msg):
+        family = await _expand_group(["spouse", "child", "parent", "sibling"])
+        for c in family:
+            if c["user_id"] not in matched_uids:
+                matched_uids.add(c["user_id"])
+                targets.append(c)
+
     pronoun_match = bool(re.search(
         r"\b(between us|we keep|what are we|our relationship|our marriage|"
         r"our growth|our argument|us together|the two of us)\b", msg))

@@ -117,8 +117,28 @@ SCENARIOS: List[Dict[str, Any]] = [
         "message": "How do the boys differ emotionally?",
         "expected_role": None,
         "expected_bucket": None,
-        "expected_targets": [],               # no proper names — relies on "the boys"
+        "expected_targets": ["Isaac", "Thaddeus"],   # group expansion now resolves
         "expected_modes": ["COMPARISON"],
+    },
+    {
+        "id": "child_child.more_like_me",
+        "category": "child_child",
+        "asker": PETE_ID,
+        "message": "Which child is more like me?",
+        "expected_role": None,
+        "expected_bucket": None,
+        "expected_targets": ["Isaac", "Thaddeus"],   # "which child" expands children-group
+        "expected_modes": ["COMPARISON"],
+    },
+    {
+        "id": "family.our_family",
+        "category": "family",
+        "asker": PETE_ID,
+        "message": "What is happening in our family?",
+        "expected_role": None,
+        "expected_bucket": None,
+        "expected_targets": ["Mel", "Isaac", "Thaddeus"],  # family kin expansion
+        "expected_modes": ["FORUM_DYNAMICS"],
     },
     # ── 4. Forum member (generic) ───────────────────────────────
     {
