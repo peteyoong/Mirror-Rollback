@@ -325,7 +325,7 @@ const RelationshipInsightV2Card: React.FC<Props> = ({
               )}
 
               {/* BaZi Signals */}
-              {(data.signals.bazi.strengthens.length > 0 || data.signals.bazi.drains.length > 0) && (
+              {(data.signals.bazi.strengthens.length > 0 || data.signals.bazi.drains.length > 0 || data.signals.bazi.activates_growth.length > 0) && (
                 <View style={styles.signalGroup}>
                   <Text style={[styles.signalGroupLabel, { color: theme.textTertiary }]}>
                     ELEMENTAL DYNAMICS
@@ -335,6 +335,9 @@ const RelationshipInsightV2Card: React.FC<Props> = ({
                   ))}
                   {data.signals.bazi.drains.map((item, i) => (
                     <Text key={`bd-${i}`} style={[styles.signalText, { color: theme.textSecondary }]}>- {item}</Text>
+                  ))}
+                  {data.signals.bazi.activates_growth.map((item, i) => (
+                    <Text key={`bg-${i}`} style={[styles.signalText, { color: theme.textSecondary }]}>↑ {item}</Text>
                   ))}
                 </View>
               )}
