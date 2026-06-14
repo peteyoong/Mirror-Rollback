@@ -521,6 +521,14 @@ of Section 7.
 
 ## 7. Proposed Architecture (no implementation — review only)
 
+> **Update (2026-06-14):** Superseded by
+> `RELATIONSHIP_FIELD_V2_DESIGN_REFINEMENT.md`, which adds
+> `relationship_stance` as a first-class field, locks the schema, and
+> provides worked example envelopes for Mel · Thaddeus · Isaac ·
+> forum_member · unknown person. Read that document for the current
+> design; this section is preserved for change-history continuity.
+
+
 A **single canonical resolver call** that Mirror Chat, Forum Chat,
 and any future surface all consult before assembling a prompt.
 
