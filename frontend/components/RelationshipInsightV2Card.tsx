@@ -32,6 +32,20 @@ interface HDSignal {
   translation: string;
 }
 
+// ── Astrology Re-Story V1 surface wiring (additive) ───────────────
+// Single section of the producer payload (see backend
+// services/astrology_relationship_restory_v1.py).
+//
+// `headline` / `body` are user-facing strings — guaranteed jargon-free
+// by the producer's acceptance tests.
+// `hidden_evidence` may contain astro tokens — must NOT be rendered
+// in the main narrative block.
+interface ReStorySection {
+  headline:        string;
+  body:            string;
+  hidden_evidence: string[];
+}
+
 interface BaziDiagnostics {
   element_a?: string;
   element_b?: string;
@@ -61,7 +75,27 @@ interface RelInsightV2Data {
   };
   signals: {
     human_design: HDSignal[];
-    astrology: { attraction: string[]; tension: string[]; growth: string[] };
+    astrology: {
+      attraction: string[];
+      tension: string[];
+      growth: string[];
+      // ── Astrology Re-Story V1 surface wiring (additive) ──────────
+      // Present only when the backend `ASTROLOGY_RELATIONSHIP_RESTORY_V1`
+      // flag is set.  When undefined, the card renders the legacy
+      // attraction / tension / growth bullets exactly as before.
+      restory_v1?: {
+        success:           boolean;
+        build_marker:      string;
+        relationship_role: string;
+        sections: {
+          what_lives_between_you:             ReStorySection;
+          what_strengthens_this_relationship: ReStorySection;
+          growth_edge:                        ReStorySection;
+          shadow_pattern:                     ReStorySection;
+          why_this_person_matters:            ReStorySection;
+        };
+      };
+    };
     bazi: {
       strengthens: string[];
       drains: string[];
@@ -327,23 +361,82 @@ const RelationshipInsightV2Card: React.FC<Props> = ({
                 </View>
               )}
 
-              {/* Astrology Signals */}
-              {(data.signals.astrology.attraction.length > 0 || data.signals.astrology.tension.length > 0 || data.signals.astrology.growth.length > 0) && (
-                <View style={styles.signalGroup}>
-                  <Text style={[styles.signalGroupLabel, { color: theme.textTertiary }]}>
-                    ASTROLOGICAL DYNAMICS
-                  </Text>
-                  {data.signals.astrology.attraction.map((item, i) => (
-                    <Text key={`aa-${i}`} style={[styles.signalText, { color: theme.textSecondary }]}>✦ {item}</Text>
-                  ))}
-                  {data.signals.astrology.tension.map((item, i) => (
-                    <Text key={`at-${i}`} style={[styles.signalText, { color: theme.textSecondary }]}>⚡ {item}</Text>
-                  ))}
-                  {data.signals.astrology.growth.map((item, i) => (
-                    <Text key={`ag-${i}`} style={[styles.signalText, { color: theme.textSecondary }]}>↑ {item}</Text>
-                  ))}
-                </View>
-              )}
+              {/* Astrology Signals — Re-Story V1 takes precedence when present */}
+              {(() => {
+                const restory = data.signals.astrology.restory_v1;
+                if (restory && restory.success && restory.sections) {
+                  // Render the 5-section narrative.  All strings are
+                  // guaranteed jargon-free by the backend producer's
+                  // acceptance tests.  `hidden_evidence` is INTENTIONALLY
+                  // NOT rendered here (kept for a future expandable tray).
+                  const sections = [
+                    restory.sections.what_lives_between_you,
+                    restory.sections.what_strengthens_this_relationship,
+                    restory.sections.growth_edge,
+                    restory.sections.shadow_pattern,
+                    restory.sections.why_this_person_matters,
+                  ];
+                  return (
+                    <View
+                      style={styles.signalGroup}
+                      // surface marker: astrology-relationship-restory-v1
+                      accessibilityLabel="Relationship narrative"
+                    >
+                      {sections.map((sec, i) =>
+                        sec && sec.headline && sec.body ? (
+                          <View
+                            key={`rsv1-${i}`}
+                            style={[
+                              styles.signalItem,
+                              { borderColor: theme.border, marginBottom: 12 },
+                            ]}
+                          >
+                            <Text
+                              style={[
+                                styles.signalGroupLabel,
+                                { color: theme.textTertiary, marginBottom: 6 },
+                              ]}
+                            >
+                              {sec.headline.toUpperCase()}
+                            </Text>
+                            <Text
+                              style={[
+                                styles.signalTranslation,
+                                { color: theme.textSecondary, lineHeight: 20 },
+                              ]}
+                            >
+                              {sec.body}
+                            </Text>
+                          </View>
+                        ) : null,
+                      )}
+                    </View>
+                  );
+                }
+                // Legacy fallback — preserved byte-for-byte when restory
+                // is absent (flag off, missing charts, or producer error).
+                const hasLegacy =
+                  data.signals.astrology.attraction.length > 0 ||
+                  data.signals.astrology.tension.length > 0 ||
+                  data.signals.astrology.growth.length > 0;
+                if (!hasLegacy) return null;
+                return (
+                  <View style={styles.signalGroup}>
+                    <Text style={[styles.signalGroupLabel, { color: theme.textTertiary }]}>
+                      ASTROLOGICAL DYNAMICS
+                    </Text>
+                    {data.signals.astrology.attraction.map((item, i) => (
+                      <Text key={`aa-${i}`} style={[styles.signalText, { color: theme.textSecondary }]}>✦ {item}</Text>
+                    ))}
+                    {data.signals.astrology.tension.map((item, i) => (
+                      <Text key={`at-${i}`} style={[styles.signalText, { color: theme.textSecondary }]}>⚡ {item}</Text>
+                    ))}
+                    {data.signals.astrology.growth.map((item, i) => (
+                      <Text key={`ag-${i}`} style={[styles.signalText, { color: theme.textSecondary }]}>↑ {item}</Text>
+                    ))}
+                  </View>
+                );
+              })()}
 
               {/* BaZi Signals — Evidence Layer V2 (parity with Forum Mapping) */}
               {/* MARKER: bazi-evidence-layer-v2                                */}

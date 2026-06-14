@@ -30,11 +30,59 @@ how Slice 1 introduced the resolver before any surface consumed it).
 from __future__ import annotations
 
 import logging
+import os
 from typing import Any, Dict, List, Optional, Tuple
 
 logger = logging.getLogger(__name__)
 
 BUILD_MARKER = "astrology-relationship-restory-v1"
+FLAG_NAME = "ASTROLOGY_RELATIONSHIP_RESTORY_V1"
+
+
+# ════════════════════════════════════════════════════════════════════
+# FLAG GATE  (used by surface wiring — see *_SURFACE_WIRING.md)
+# ════════════════════════════════════════════════════════════════════
+def is_enabled() -> bool:
+    """Return True iff `ASTROLOGY_RELATIONSHIP_RESTORY_V1=true` in env.
+
+    Surfaces call this BEFORE invoking `compute_relationship_restory_v1`
+    so they can preserve their legacy output byte-for-byte when the
+    flag is unset (default).
+    """
+    return (os.environ.get(FLAG_NAME, "") or "").strip().lower() == "true"
+
+
+def maybe_compute_restory(
+    chart_a: Optional[Dict[str, Any]],
+    chart_b: Optional[Dict[str, Any]],
+    relationship_role: str,
+    name_a: str,
+    name_b: str,
+) -> Optional[Dict[str, Any]]:
+    """Convenience wrapper for surface code.
+
+    Returns `None` when:
+      * the flag is unset / not "true"
+      * either chart is missing
+      * the producer raised
+    Otherwise returns the producer's payload.
+    """
+    if not is_enabled():
+        return None
+    if not chart_a or not chart_b:
+        return None
+    try:
+        out = compute_relationship_restory_v1(
+            chart_a=chart_a,
+            chart_b=chart_b,
+            relationship_role=relationship_role,
+            name_a=name_a,
+            name_b=name_b,
+        )
+        return out if out.get("success") else None
+    except Exception as e:    # pragma: no cover
+        logger.warning(f"[AstroReStoryV1] surface compute failed: {e!r}")
+        return None
 
 
 # ════════════════════════════════════════════════════════════════════

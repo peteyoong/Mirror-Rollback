@@ -14548,6 +14548,35 @@ async def get_relationship_insight_v2_endpoint(
                         "tension":    list(_astro.get("tension") or []),
                         "growth":     list(_astro.get("growth") or []),
                     }
+                    # ── Surface wiring v1: Astrology Relationship Re-Story V1 ──
+                    # Returns None when the `ASTROLOGY_RELATIONSHIP_RESTORY_V1`
+                    # flag is unset (default).  Otherwise the 5-section
+                    # payload is attached under `restory_v1` so the FE can
+                    # render it in place of the legacy bullet arrays.
+                    try:
+                        from services.astrology_relationship_restory_v1 import (
+                            maybe_compute_restory as _maybe_restory_v1,
+                        )
+                        # Heuristic role inference at this surface: the
+                        # endpoint accepts a free-text `relationship_type`,
+                        # we lowercase and pass through.  Producer is
+                        # role-aware and falls back to a generic body
+                        # when the role is unknown.
+                        _restory_role = (relationship_type or "").lower().strip() or "forum_member"
+                        _restory_payload = _maybe_restory_v1(
+                            chart_a=user_chart,
+                            chart_b=other_chart,
+                            relationship_role=_restory_role,
+                            name_a=u_name,
+                            name_b=o_name,
+                        )
+                        if _restory_payload is not None:
+                            astro_signals["restory_v1"] = _restory_payload
+                    except Exception as _rsv1_err:    # pragma: no cover
+                        logger.debug(
+                            f"[RelV2][ReStoryV1] compute skipped: "
+                            f"{type(_rsv1_err).__name__}: {_rsv1_err!r}"
+                        )
                 # BaZi: forum={support, tension?, growth} → V2={strengthens, drains, activates_growth}
                 if isinstance(_bazi, dict):
                     bazi_signals = {

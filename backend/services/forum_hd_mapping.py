@@ -1945,6 +1945,29 @@ async def get_forum_member_mappings(
                         closeness=_rel_ctx.get("closeness", "medium"),
                         emotional_weight=_rel_ctx.get("emotional_weight", "medium"),
                     )
+                    # ── Surface wiring v1: Astrology Relationship Re-Story V1 ──
+                    # Strictly additive.  Returns None when the
+                    # `ASTROLOGY_RELATIONSHIP_RESTORY_V1` flag is unset, or
+                    # either chart is missing.  Otherwise emits the 5-section
+                    # payload (see services/astrology_relationship_restory_v1).
+                    try:
+                        from services.astrology_relationship_restory_v1 import (
+                            maybe_compute_restory as _maybe_restory_v1,
+                        )
+                        _restory_v1 = _maybe_restory_v1(
+                            chart_a=current_chart,
+                            chart_b=member_chart,
+                            relationship_role=_role,
+                            name_a=current_user_name,
+                            name_b=member_name,
+                        )
+                    except Exception as _rsv1_err:    # pragma: no cover
+                        logger.debug(
+                            f"[RelMappingV2][ReStoryV1] compute skipped: "
+                            f"{type(_rsv1_err).__name__}: {_rsv1_err!r}"
+                        )
+                        _restory_v1 = None
+
                     if _deep.get("success"):
                         # Promote the deep astrology card into the
                         # signals.astrology surface so the UI picks it up.
@@ -1966,6 +1989,10 @@ async def get_forum_member_mappings(
                             astro_existing["what_b_triggers_in_a"] = _deep.get("what_b_triggers_in_a")
                             astro_existing["supporting_signals"] = _deep["supporting_signals"]
                             astro_existing["build_marker"] = _RAE_MARKER
+                            # Surface wiring v1 — only present when the
+                            # flag is on AND both charts are available.
+                            if _restory_v1 is not None:
+                                astro_existing["restory_v1"] = _restory_v1
                             # relationship-v2-final-cleanup: suppress
                             # legacy bullets (attraction/tension/growth)
                             # when V2 deep card is present so the

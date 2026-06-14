@@ -175,6 +175,14 @@ class ForumChatResponse(BaseModel):
     resolved_context: Optional[ResolvedContextBlock] = None
     requires_clarification: bool = False
     clarification_candidates: List[ClarificationCandidate] = []
+    # Astrology Re-Story V1 surface wiring — present only when:
+    #   1. FORUM_CHAT_AUTO_CONTEXT=true        (Slice B active)
+    #   2. ASTROLOGY_RELATIONSHIP_RESTORY_V1=true (this slice's flag)
+    #   3. resolved frame is MEMBER or PAIRWISE with both charts loadable
+    # Otherwise stays None.  This is metadata only — the LLM is NOT given
+    # this payload as system prompt input in this slice (no prompt redesign
+    # per scope).
+    astrology_restory_v1: Optional[Dict[str, Any]] = None
 
 
 # ---------------------------------------------------------------------------
@@ -786,12 +794,56 @@ def register(
 
             logger.info(f"[ForumChat] Message stored: {message_id}")
 
+            # ── Astrology Re-Story V1 surface wiring ─────────────────
+            # Attach the 5-section relational narrative ONLY when:
+            #   • Slice B auto-context is enabled (we have a resolver result)
+            #   • The Re-Story V1 flag is on
+            #   • Resolver landed on MEMBER or PAIRWISE (both members known)
+            #   • Both charts are loadable
+            # Metadata only — the LLM prompt is unchanged.  Future slice
+            # may wire this into the system prompt.
+            astrology_restory_payload: Optional[Dict[str, Any]] = None
+            if auto_ctx_enabled and resolved_field is not None and resolved_context_block is not None:
+                try:
+                    from services.astrology_relationship_restory_v1 import (
+                        maybe_compute_restory as _maybe_restory_v1,
+                    )
+                    if resolved_field.active_frame in ("MEMBER", "PAIRWISE"):
+                        target_id_for_chart = resolved_field.target_user_id
+                        if target_id_for_chart and target_id_for_chart != request.user_id:
+                            asker_chart  = await db.charts.find_one({"user_id": request.user_id})
+                            target_chart = await db.charts.find_one({"user_id": target_id_for_chart})
+                            asker_user   = await db.users.find_one({"_id": ObjectId(request.user_id)}) \
+                                if ObjectId.is_valid(request.user_id) else \
+                                await db.users.find_one({"_id": request.user_id})
+                            asker_name   = (asker_user or {}).get("name") or "You"
+                            target_name  = resolved_field.target_name or "Member"
+                            astrology_restory_payload = _maybe_restory_v1(
+                                chart_a=asker_chart,
+                                chart_b=target_chart,
+                                relationship_role=resolved_field.relationship_role or "forum_member",
+                                name_a=asker_name,
+                                name_b=target_name,
+                            )
+                            if astrology_restory_payload:
+                                logger.info(
+                                    f"[ForumChat][ReStoryV1] attached payload for "
+                                    f"frame={resolved_field.active_frame} "
+                                    f"target={target_name!r}"
+                                )
+                except Exception as _rsv1_err:    # pragma: no cover
+                    logger.debug(
+                        f"[ForumChat][ReStoryV1] surface attach skipped: "
+                        f"{type(_rsv1_err).__name__}: {_rsv1_err!r}"
+                    )
+
             return ForumChatResponse(
                 success=True,
                 message_id=message_id,
                 response=response_text,
                 timestamp=now.isoformat(),
                 resolved_context=resolved_context_block,
+                astrology_restory_v1=astrology_restory_payload,
             )
 
         except HTTPException:
