@@ -868,6 +868,7 @@ export default function ForumMappingsScreen() {
                         { key: 'growth_edge',      label: 'Growth Edge' },
                         { key: 'shadow_pattern',   label: 'Shadow Pattern' },
                         { key: 'why_matters',      label: 'Why This Relationship Matters' },
+                        { key: 'what_bazi_sees',   label: 'What BaZi Sees Here' },
                       ];
                       const anyText = SECTIONS.some(
                         s => typeof baziDyn[s.key] === 'string' && baziDyn[s.key].trim().length > 0,
