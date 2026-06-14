@@ -1455,6 +1455,43 @@ SUPPORT STYLE: {v1_support}
                         f"signals={_iv2_debug.get('intent_v2_signals')}"
                     )
 
+                # ── Slice 3 — RESOLVED RELATIONSHIP FIELD prompt block ──
+                # New, dedicated, default-OFF flag: RELATIONSHIP_FIELD_V2_PROMPT.
+                # Does NOT reuse RELATIONSHIP_ORCHESTRATION_PROMPT.
+                # Gated by flag + confidence >= 0.70 + allowed-source +
+                # no proposed_unresolved + no conflicts. Receipt is
+                # unaffected — only the LLM-visible prompt is touched
+                # when all gates pass.
+                try:
+                    from services.relationship_field_v2_prompt import (
+                        build_relationship_field_v2_prompt_block,
+                    )
+                    _rfv2_block, _rfv2_debug = build_relationship_field_v2_prompt_block(
+                        v2_receipt
+                    )
+                    phase4_debug["relationship_field_v2_block"] = _rfv2_debug
+                    if _rfv2_block:
+                        system_prompt += "\n\n" + _rfv2_block
+                        logger.info(
+                            f"[MIRROR_CHAT][RFv2-prompt] block_emitted=True "
+                            f"role={_rfv2_debug.get('role')} "
+                            f"stance={_rfv2_debug.get('stance')} "
+                            f"source={_rfv2_debug.get('source')} "
+                            f"conf={_rfv2_debug.get('confidence')}"
+                        )
+                    else:
+                        logger.info(
+                            f"[MIRROR_CHAT][RFv2-prompt] block_emitted=False "
+                            f"flag_enabled={_rfv2_debug.get('flag_enabled')} "
+                            f"reason={_rfv2_debug.get('reason_skipped')!r}"
+                        )
+                except Exception as _rfv2_pb_exc:
+                    logger.warning(
+                        f"[MIRROR_CHAT][RFv2-prompt] builder failed: "
+                        f"{type(_rfv2_pb_exc).__name__}: {_rfv2_pb_exc!r}"
+                    )
+                # ── End Slice 3 ─────────────────────────────────────────
+
                 # R1 — Timeline V2 read-side retrieval
                 _tl_block, _tl_debug = await build_timeline_v2_context(
                     db=db, user_id=request.user_id, window_days=14, max_events=8
