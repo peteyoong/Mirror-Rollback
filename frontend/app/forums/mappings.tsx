@@ -926,7 +926,7 @@ export default function ForumMappingsScreen() {
                       const animA = diag.animal_a || '';
                       const animB = diag.animal_b || '';
                       const animRel = diag.animal_relation || 'unknown';
-                      const nameA = currentUserName || 'You';
+                      const nameA = user?.name || 'You';
                       const nameB = selectedMember?.member_name || 'Them';
                       const flowRows = EL.buildFlowRows(cycle, elA, elB, nameA, nameB);
                       const flowHeader = EL.flowHeaderForCycle(cycle);
