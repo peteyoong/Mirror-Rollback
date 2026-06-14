@@ -232,6 +232,48 @@ def register(
                         f"{type(_enr_exc).__name__}: {_enr_exc!r}"
                     )
 
+                # ── Slice 2 — RelationshipField V2 attachment (read-only) ──
+                # Resolve the canonical Relationship Field and attach it to
+                # the receipt for observability. No prompt mutation; no
+                # downstream consumer is wired yet. This block is fail-soft:
+                # any exception leaves the rest of the request untouched.
+                try:
+                    from services.relationship_field_v2 import (
+                        resolve_relationship_field,
+                    )
+                    _rfv2_hints = {
+                        "about_person_id": getattr(request, "about_person_id", None),
+                        "forum_topology":  getattr(request, "forum_topology", None),
+                        "life_domain":     getattr(request, "life_domain", None),
+                        # last_target_id is not yet plumbed from FE; leave
+                        # null for Slice 2 (Slice 2 acceptance does not
+                        # exercise pronoun threading).
+                        "last_target_id":  None,
+                    }
+                    _rfv2 = await resolve_relationship_field(
+                        db=db,
+                        self_user_id=request.user_id,
+                        message=request.message or "",
+                        hints=_rfv2_hints,
+                    )
+                    # Attach as a dict so the receipt is JSON-serialisable.
+                    v2_receipt["relationship_field_v2"] = _rfv2.to_dict()
+                    logger.info(
+                        f"[MIRROR_CHAT][RFv2] user={request.user_id[:8]} "
+                        f"target={ (str(_rfv2.target_user_id)[:8] if _rfv2.target_user_id else None) } "
+                        f"role={_rfv2.relationship_role} "
+                        f"stance={_rfv2.relationship_stance} "
+                        f"frame={_rfv2.active_frame} "
+                        f"src={_rfv2.resolution_source} "
+                        f"conf={_rfv2.confidence}"
+                    )
+                except Exception as _rfv2_exc:
+                    logger.warning(
+                        f"[MIRROR_CHAT][RFv2] resolver failed: "
+                        f"{type(_rfv2_exc).__name__}: {_rfv2_exc!r}"
+                    )
+                # ── End Slice 2 attachment ─────────────────────────────────
+
                 # ASYNC step: persistence is fire-and-forget so the
                 # response latency stays unchanged.
                 # NOTE (R3b telemetry fix): We DEFER persistence until
