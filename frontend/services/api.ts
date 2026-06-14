@@ -1187,6 +1187,36 @@ export const getForumLiveField = async (
 
 export type ForumChatMode = 'self' | 'member' | 'forum';
 
+// Slice B — Auto-context resolved frame.  Includes the legacy modes
+// plus PAIRWISE / MULTI_PERSON / AMBIGUOUS.
+export type ResolvedFrame =
+  | 'SELF'
+  | 'MEMBER'
+  | 'FORUM'
+  | 'PAIRWISE'
+  | 'MULTI_PERSON'
+  | 'AMBIGUOUS';
+
+export interface ResolvedContextBlock {
+  frame: ResolvedFrame;
+  target_user_id?: string | null;
+  target_name?: string | null;
+  target_role?: string | null;
+  target_user_id_b?: string | null;
+  target_name_b?: string | null;
+  scope_class?: string | null;
+  source: string;
+  confidence: number;
+}
+
+export interface ClarificationCandidate {
+  user_id?: string | null;
+  name: string;
+  role?: string | null;
+  confidence: number;
+  source: string;
+}
+
 export interface ForumChatMessage {
   id: string;
   mode: ForumChatMode;
@@ -1195,13 +1225,19 @@ export interface ForumChatMessage {
   message: string;
   response: string;
   timestamp: string;
+  // Slice C — present on locally-appended messages only (history endpoint
+  // does NOT persist this yet; that's a future migration).
+  resolved_context?: ResolvedContextBlock | null;
 }
 
 export interface ForumChatRequest {
   user_id: string;
   message: string;
-  mode: ForumChatMode;
+  // Slice B — when FORUM_CHAT_AUTO_CONTEXT=true on the backend, both
+  // `mode` and `target_member_id` are optional.
+  mode?: ForumChatMode;
   target_member_id?: string;
+  last_target_id?: string;
 }
 
 export interface ForumChatResponse {
@@ -1209,6 +1245,10 @@ export interface ForumChatResponse {
   message_id: string;
   response: string;
   timestamp: string;
+  // Slice B additive — may be null when the backend flag is off.
+  resolved_context?: ResolvedContextBlock | null;
+  requires_clarification?: boolean;
+  clarification_candidates?: ClarificationCandidate[];
 }
 
 // Get forum chat history

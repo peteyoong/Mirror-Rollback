@@ -26,6 +26,7 @@ Call signature:
 from __future__ import annotations
 
 import asyncio
+import os
 import time
 from datetime import datetime, timezone
 from enum import Enum
@@ -41,6 +42,32 @@ from services.forum_lens_helpers import (
     format_lens_for_prompt,
     format_dynamics_for_prompt,
 )
+
+
+# ---------------------------------------------------------------------------
+# Slice B — FORUM_CHAT_AUTO_CONTEXT flag.  When set to "true" the explicit
+# `mode` and `target_member_id` request fields become OPTIONAL and the
+# request is auto-classified by `services.relationship_field_v2.resolve_…`.
+# When unset / "false" / any other value the legacy behaviour is preserved
+# byte-for-byte (mode is required, mode=MEMBER requires target_member_id).
+# ---------------------------------------------------------------------------
+def _forum_chat_auto_context_enabled() -> bool:
+    raw = os.environ.get("FORUM_CHAT_AUTO_CONTEXT", "").strip().lower()
+    return raw == "true"
+
+
+# ---------------------------------------------------------------------------
+# Mapping from RelationshipField.active_frame → legacy ForumChatMode.
+# PAIRWISE   → MEMBER (target_a is primary, target_b travels in context)
+# MULTI_PERSON → FORUM (scope_class travels in context)
+# ---------------------------------------------------------------------------
+_FRAME_TO_LEGACY_MODE: Dict[str, str] = {
+    "SELF":         "self",
+    "MEMBER":       "member",
+    "FORUM":        "forum",
+    "PAIRWISE":     "member",
+    "MULTI_PERSON": "forum",
+}
 
 
 # ---------------------------------------------------------------------------
@@ -105,8 +132,36 @@ class ForumChatMode(str, Enum):
 class ForumChatRequest(BaseModel):
     user_id: str
     message: str
-    mode: ForumChatMode
+    # Slice B: `mode` is now optional.  When `FORUM_CHAT_AUTO_CONTEXT=true`
+    # the resolver decides the effective frame.  When the flag is off and
+    # the field is omitted we 400 with the original error.
+    mode: Optional[ForumChatMode] = None
     target_member_id: Optional[str] = None
+    # Slice B: optional pronoun-memory hint (protects future Slice E).
+    last_target_id: Optional[str] = None
+
+
+# Slice B — Compact context block the FE renders as a chip (no internal
+# taxonomy ever bleeds through; this is the SOURCE for the chip but Slice C
+# maps it to user-friendly icons + labels).
+class ResolvedContextBlock(BaseModel):
+    frame:          str               # SELF | MEMBER | FORUM | PAIRWISE | MULTI_PERSON | AMBIGUOUS
+    target_user_id: Optional[str] = None
+    target_name:    Optional[str] = None
+    target_role:    Optional[str] = None         # spouse | child | parent | …
+    target_user_id_b: Optional[str] = None       # PAIRWISE only
+    target_name_b:    Optional[str] = None       # PAIRWISE only
+    scope_class:    Optional[str] = None         # MULTI_PERSON only
+    source:         str               # forum_relationship_edges | scope_class | …
+    confidence:     float
+
+
+class ClarificationCandidate(BaseModel):
+    user_id:    Optional[str] = None
+    name:       str
+    role:       Optional[str] = None
+    confidence: float
+    source:     str
 
 
 class ForumChatResponse(BaseModel):
@@ -114,6 +169,12 @@ class ForumChatResponse(BaseModel):
     message_id: str
     response: str
     timestamp: str
+    # Slice B additive fields — present only when `FORUM_CHAT_AUTO_CONTEXT`
+    # is enabled.  When the flag is off these stay `None` so the legacy
+    # response shape is preserved byte-for-byte.
+    resolved_context: Optional[ResolvedContextBlock] = None
+    requires_clarification: bool = False
+    clarification_candidates: List[ClarificationCandidate] = []
 
 
 # ---------------------------------------------------------------------------
@@ -230,7 +291,7 @@ def register(
     async def forum_chat(forum_id: str, request: ForumChatRequest):
         logger.info(
             f"[ForumChat] Request: forum={forum_id}, user={request.user_id[:8]}..., "
-            f"mode={request.mode}"
+            f"mode={request.mode.value if request.mode else 'auto'}"
         )
 
         if not ObjectId.is_valid(forum_id):
@@ -251,9 +312,163 @@ def register(
         if not membership:
             raise HTTPException(status_code=403, detail="You are not a member of this forum")
 
+        # ─── Slice B — auto-context resolution (flag-gated) ───────────
+        # When `FORUM_CHAT_AUTO_CONTEXT=true`:
+        #   * Run the Slice A resolver against the message + viewer graph
+        #   * Use the resolved frame to drive `effective_mode` /
+        #     `effective_target_id`, overriding the request's `mode` /
+        #     `target_member_id`.
+        #   * On AMBIGUOUS, return 200 + `requires_clarification=true`
+        #     without invoking the LLM.
+        # When the flag is off:
+        #   * Keep the original "mode is mandatory" contract intact.
+        resolved_field = None
+        resolved_context_block: Optional[ResolvedContextBlock] = None
+        auto_ctx_enabled = _forum_chat_auto_context_enabled()
+
+        # Determine effective_mode / effective_target before we look up
+        # `target_member_name`.  These start as the request's literal
+        # values and may be overridden by the resolver below.
+        effective_mode: Optional[ForumChatMode] = request.mode
+        effective_target_id: Optional[str] = request.target_member_id
+
+        if auto_ctx_enabled:
+            try:
+                from services.relationship_field_v2 import (
+                    resolve_relationship_field,
+                    ActiveFrame as _ActiveFrame,
+                )
+                # Pass forum_topology so the resolver can prefer in-forum
+                # members for ambiguous names.  The resolver itself is
+                # read-only.
+                hints: Dict[str, Any] = {
+                    "forum_id": forum_id,
+                    "forum_topology": {
+                        "forum_id": forum_id,
+                        "active_member_id": request.target_member_id,
+                    },
+                }
+                if request.last_target_id:
+                    hints["last_target_id"] = request.last_target_id
+                if request.target_member_id:
+                    hints["about_person_id"] = request.target_member_id
+
+                resolved_field = await resolve_relationship_field(
+                    db=db,
+                    self_user_id=request.user_id,
+                    message=request.message,
+                    hints=hints,
+                )
+
+                # AMBIGUOUS — short-circuit BEFORE any LLM call.
+                if resolved_field.active_frame == _ActiveFrame.AMBIGUOUS:
+                    logger.info(
+                        f"[ForumChat][SliceB] AMBIGUOUS — "
+                        f"candidates={len(resolved_field.ambiguity_candidates)} "
+                        f"path={resolved_field.resolution_path}"
+                    )
+                    return ForumChatResponse(
+                        success=True,
+                        message_id="",
+                        response="",
+                        timestamp=datetime.now(timezone.utc).isoformat(),
+                        resolved_context=ResolvedContextBlock(
+                            frame="AMBIGUOUS",
+                            source=resolved_field.resolution_source,
+                            confidence=resolved_field.confidence,
+                        ),
+                        requires_clarification=True,
+                        clarification_candidates=[
+                            ClarificationCandidate(
+                                user_id=c.get("user_id"),
+                                name=c.get("name") or "Unknown",
+                                role=c.get("role"),
+                                confidence=float(c.get("confidence", 0.0)),
+                                source=c.get("source") or "unknown",
+                            )
+                            for c in resolved_field.ambiguity_candidates[:6]
+                        ],
+                    )
+
+                # Map frame → legacy mode for the existing context builder.
+                legacy_mode = _FRAME_TO_LEGACY_MODE.get(
+                    resolved_field.active_frame, "self",
+                )
+                # Only override the request's mode if it was unset OR the
+                # resolver landed on a HIGH-confidence binding.  This
+                # guarantees a UI-supplied explicit mode is never silently
+                # discarded by a low-confidence resolver call.
+                if request.mode is None or resolved_field.confidence >= 0.70:
+                    effective_mode = ForumChatMode(legacy_mode)
+
+                # Target override: prefer the resolver's primary target
+                # whenever it's set.  Verify forum membership before
+                # accepting; if the resolver picked someone outside this
+                # forum we demote to SELF so we never leak private info.
+                resolver_target_id = resolved_field.target_user_id
+                if resolver_target_id and (resolver_target_id != request.user_id):
+                    target_in_forum = await db.forum_members.find_one({
+                        "forum_id": forum_id,
+                        "user_id": resolver_target_id,
+                        "status": "active",
+                    })
+                    if target_in_forum:
+                        effective_target_id = resolver_target_id
+                    else:
+                        logger.info(
+                            f"[ForumChat][SliceB] resolver target "
+                            f"{resolver_target_id} not a member of forum "
+                            f"{forum_id}; demoting to SELF"
+                        )
+                        effective_mode = ForumChatMode.SELF
+                        effective_target_id = None
+                        resolved_field.active_frame = _ActiveFrame.SELF
+                        resolved_field.target_user_id = None
+
+                # Emit the resolved-context block for the FE chip.
+                resolved_context_block = ResolvedContextBlock(
+                    frame=resolved_field.active_frame,
+                    target_user_id=resolved_field.target_user_id,
+                    target_name=resolved_field.target_name,
+                    target_role=resolved_field.relationship_role,
+                    target_user_id_b=resolved_field.target_user_id_b,
+                    target_name_b=resolved_field.target_name_b,
+                    scope_class=resolved_field.scope_class,
+                    source=resolved_field.resolution_source,
+                    confidence=resolved_field.confidence,
+                )
+                logger.info(
+                    f"[ForumChat][SliceB] auto-context resolved: "
+                    f"frame={resolved_field.active_frame} "
+                    f"target={resolved_field.target_name!r} "
+                    f"role={resolved_field.relationship_role!r} "
+                    f"source={resolved_field.resolution_source} "
+                    f"conf={resolved_field.confidence:.2f} "
+                    f"→ legacy_mode={effective_mode.value if effective_mode else None} "
+                    f"effective_target={effective_target_id}"
+                )
+            except Exception as _slice_b_err:  # noqa: BLE001
+                logger.warning(
+                    f"[ForumChat][SliceB] resolver failed, falling back to "
+                    f"legacy mode-driven path: "
+                    f"{type(_slice_b_err).__name__}: {_slice_b_err!r}"
+                )
+                resolved_field = None
+                resolved_context_block = None
+
+        # Legacy contract — `mode` is REQUIRED when auto-context is off.
+        if effective_mode is None:
+            raise HTTPException(
+                status_code=400,
+                detail=(
+                    "mode is required (set FORUM_CHAT_AUTO_CONTEXT=true to "
+                    "enable automatic mode resolution)"
+                ),
+            )
+
         target_member_name: Optional[str] = None
-        if request.mode == ForumChatMode.MEMBER:
-            if not request.target_member_id:
+        if effective_mode == ForumChatMode.MEMBER:
+            if not effective_target_id:
                 raise HTTPException(
                     status_code=400,
                     detail="target_member_id required for member mode",
@@ -261,7 +476,7 @@ def register(
 
             target_membership = await db.forum_members.find_one({
                 "forum_id": forum_id,
-                "user_id": request.target_member_id,
+                "user_id": effective_target_id,
                 "status": "active",
             })
 
@@ -271,7 +486,10 @@ def register(
                     detail="Target member not found in this forum",
                 )
 
-            target_user = await db.users.find_one({"_id": ObjectId(request.target_member_id)})
+            try:
+                target_user = await db.users.find_one({"_id": ObjectId(effective_target_id)})
+            except Exception:
+                target_user = await db.users.find_one({"_id": effective_target_id})
             target_member_name = target_user.get("name", "Unknown") if target_user else "Unknown"
 
         try:
@@ -282,8 +500,8 @@ def register(
             context = await _build_forum_chat_context(
                 forum_id=forum_id,
                 user_id=request.user_id,
-                mode=request.mode,
-                target_member_id=request.target_member_id,
+                mode=effective_mode,
+                target_member_id=effective_target_id,
             )
 
             # ── FORUM MIRROR RELATIONAL ORCHESTRATOR V1 ──────────────────
@@ -302,8 +520,8 @@ def register(
                     forum_id=forum_id,
                     asker_user_id=request.user_id,
                     message=request.message,
-                    mode=request.mode.value,
-                    target_member_id=request.target_member_id,
+                    mode=effective_mode.value,
+                    target_member_id=effective_target_id,
                 )
                 logger.info(
                     f"[ForumMirrorOrchestrator] frame={orchestrator_payload.get('frame')} "
@@ -379,7 +597,7 @@ def register(
             if orchestrator_payload.get("system_prompt_addendum"):
                 system_prompt += orchestrator_payload["system_prompt_addendum"]
 
-            if request.mode == ForumChatMode.SELF:
+            if effective_mode == ForumChatMode.SELF:
                 if resolved_target_block:
                     # User is on Me tab but referenced another member.
                     # Override the generic "asking about themselves"
@@ -394,7 +612,7 @@ def register(
                     )
                 else:
                     system_prompt += "\n\nThe user is asking about THEMSELVES in the context of this forum."
-            elif request.mode == ForumChatMode.MEMBER:
+            elif effective_mode == ForumChatMode.MEMBER:
                 system_prompt += (
                     f"\n\nThe user is asking about another member ({target_member_name}). "
                     f"Use the DETERMINISTIC EVIDENCE above. Be respectful and "
@@ -403,6 +621,29 @@ def register(
                 )
             else:  # FORUM mode
                 system_prompt += "\n\nThe user is asking about the FORUM GROUP DYNAMICS as a whole."
+
+            # ── Slice B — pairwise / multi-person framing hint ─────────
+            # When the resolver landed on PAIRWISE or MULTI_PERSON we add
+            # a small additional directive WITHOUT exposing the internal
+            # taxonomy to the LLM (Mirror voice only, no jargon).
+            if resolved_field is not None:
+                if resolved_field.active_frame == "PAIRWISE" and resolved_field.target_name_b:
+                    system_prompt += (
+                        f"\n\nThe user is asking about the relationship "
+                        f"between {resolved_field.target_name} and "
+                        f"{resolved_field.target_name_b}.  Answer from the "
+                        f"field BETWEEN them, not about either one in "
+                        f"isolation."
+                    )
+                elif resolved_field.active_frame == "MULTI_PERSON":
+                    scope_label = (resolved_field.scope_class or "").replace("_", " ")
+                    if scope_label:
+                        system_prompt += (
+                            f"\n\nThe user is asking about a group within "
+                            f"the forum (scope: {scope_label}).  Answer "
+                            f"from the shared field across these people, "
+                            f"not from any single profile in isolation."
+                        )
 
             from emergent_contract import emergent_generate
             from llm_model_config import get_primary_model
@@ -414,7 +655,7 @@ def register(
                         user_message=request.message,
                         endpoint="forum_chat",
                         user_id=request.user_id,
-                        context={"forum_id": forum_id, "mode": request.mode.value},
+                        context={"forum_id": forum_id, "mode": effective_mode.value},
                         additional_system_prompt=system_prompt,
                         model=get_primary_model(),
                     ),
@@ -532,8 +773,8 @@ def register(
             message_doc = {
                 "forum_id": forum_id,
                 "user_id": request.user_id,
-                "mode": request.mode.value,
-                "target_member_id": request.target_member_id,
+                "mode": effective_mode.value,
+                "target_member_id": effective_target_id,
                 "target_member_name": target_member_name,
                 "message": request.message,
                 "response": response_text,
@@ -550,6 +791,7 @@ def register(
                 message_id=message_id,
                 response=response_text,
                 timestamp=now.isoformat(),
+                resolved_context=resolved_context_block,
             )
 
         except HTTPException:

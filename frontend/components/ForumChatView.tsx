@@ -18,9 +18,20 @@ import {
   ForumChatMode,
   ForumChatMessage,
   ForumPulseMemberCard,
+  ClarificationCandidate,
+  ResolvedContextBlock,
   getForumChatHistory,
   sendForumChatMessage,
 } from '../services/api';
+import ResolvedContextChip from './forum/ResolvedContextChip';
+import AmbiguityClarificationPanel from './forum/AmbiguityClarificationPanel';
+
+// Slice C — FORUM_CHAT_AUTO_CONTEXT flag (frontend mirror of the backend flag).
+// When `true`, the Me/Member/Forum tab strip is hidden and the resolver-decided
+// context chip is shown above each Mirror response.  When unset / not "true",
+// the legacy mode-driven UI is preserved byte-for-byte.
+const AUTO_CTX_ENABLED =
+  (process.env.EXPO_PUBLIC_FORUM_CHAT_AUTO_CONTEXT || '').toLowerCase() === 'true';
 
 interface ForumChatViewProps {
   forumId: string;
@@ -60,6 +71,15 @@ export default function ForumChatView({ forumId, members, onClose, initialMode, 
   const [loading, setLoading] = useState(false);
   const [initialLoading, setInitialLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  // Slice C — auto-context state.  Holds the most recent target_user_id
+  // so a follow-up pronoun ("she", "they") can be resolved by the backend.
+  const [lastTargetId, setLastTargetId] = useState<string | null>(null);
+  // Holds the AMBIGUOUS clarification banner data, if any.
+  const [clarification, setClarification] = useState<{
+    candidates: ClarificationCandidate[];
+    originalMessage: string;
+  } | null>(null);
   
   const scrollViewRef = useRef<ScrollView>(null);
   
@@ -115,12 +135,14 @@ export default function ForumChatView({ forumId, members, onClose, initialMode, 
   };
   
   // Handle send message
-  const handleSend = async (text?: string) => {
+  const handleSend = async (text?: string, opts?: {
+    overrideTargetId?: string;
+  }) => {
     const messageText = text || message.trim();
     if (!messageText || !user?.id) return;
     
-    // Validate member mode
-    if (mode === 'member' && !selectedMember) {
+    // Validate member mode — only when AUTO_CTX is OFF (legacy contract)
+    if (!AUTO_CTX_ENABLED && mode === 'member' && !selectedMember) {
       setError('Please select a member first');
       return;
     }
@@ -129,24 +151,73 @@ export default function ForumChatView({ forumId, members, onClose, initialMode, 
       setLoading(true);
       setError(null);
       setMessage('');
+      setClarification(null);
       Keyboard.dismiss();
-      
-      const response = await sendForumChatMessage(forumId, {
-        user_id: user.id,
-        message: messageText,
-        mode: mode,
-        target_member_id: selectedMember?.user_id,
-      });
-      
+
+      // Build the request.  When AUTO_CTX is on we OMIT `mode` so the
+      // backend resolver decides; when off, we send the legacy fields.
+      const requestBody = AUTO_CTX_ENABLED
+        ? {
+            user_id:          user.id,
+            message:          messageText,
+            target_member_id: opts?.overrideTargetId,
+            last_target_id:   lastTargetId || undefined,
+          }
+        : {
+            user_id:          user.id,
+            message:          messageText,
+            mode:             mode,
+            target_member_id: selectedMember?.user_id,
+          };
+
+      const response = await sendForumChatMessage(forumId, requestBody);
+
+      // Slice C — handle the AMBIGUOUS short-circuit.  The backend
+      // returned 200 with `requires_clarification=true` and a list of
+      // candidates; render the panel and STOP (do not append a message).
+      if (response.requires_clarification) {
+        setClarification({
+          candidates:      response.clarification_candidates || [],
+          originalMessage: messageText,
+        });
+        return;
+      }
+
+      const rc = response.resolved_context ?? null;
+
+      // Track the most recently resolved target so pronoun follow-ups
+      // can find it on the next turn.
+      if (rc?.target_user_id) {
+        setLastTargetId(rc.target_user_id);
+      }
+
+      // Derive a display mode for legacy renderers (the chip carries
+      // the real frame info; this is only the message bubble's icon).
+      const displayMode: ForumChatMode = (() => {
+        if (!AUTO_CTX_ENABLED) return mode;
+        if (!rc)                return 'self';
+        switch (rc.frame) {
+          case 'MEMBER':
+          case 'PAIRWISE':
+            return 'member';
+          case 'FORUM':
+          case 'MULTI_PERSON':
+            return 'forum';
+          default:
+            return 'self';
+        }
+      })();
+
       // Add to messages
       const newMessage: ForumChatMessage = {
-        id: response.message_id,
-        mode: mode,
-        target_member_id: selectedMember?.user_id || null,
-        target_member_name: selectedMember?.name || null,
-        message: messageText,
-        response: response.response,
-        timestamp: response.timestamp,
+        id:                 response.message_id,
+        mode:               displayMode,
+        target_member_id:   rc?.target_user_id   ?? (selectedMember?.user_id ?? null),
+        target_member_name: rc?.target_name      ?? (selectedMember?.name    ?? null),
+        message:            messageText,
+        response:           response.response,
+        timestamp:          response.timestamp,
+        resolved_context:   rc,
       };
       
       setMessages(prev => [...prev, newMessage]);
@@ -161,6 +232,19 @@ export default function ForumChatView({ forumId, members, onClose, initialMode, 
     } finally {
       setLoading(false);
     }
+  };
+
+  // Slice C — clarification chooser.  Re-issues the original message with
+  // the user-picked candidate as `target_member_id` so the resolver binds
+  // unambiguously on the second pass.
+  const handleClarificationPick = (cand: ClarificationCandidate) => {
+    if (!clarification) return;
+    const originalMessage = clarification.originalMessage;
+    setClarification(null);
+    if (cand.user_id) {
+      setLastTargetId(cand.user_id);
+    }
+    handleSend(originalMessage, { overrideTargetId: cand.user_id || undefined });
   };
   
   // Get mode label
@@ -202,37 +286,39 @@ export default function ForumChatView({ forumId, members, onClose, initialMode, 
         <View style={{ width: 24 }} />
       </View>
       
-      {/* Mode Selector */}
-      <View style={[styles.modeSelector, { backgroundColor: theme.surface }]}>
-        {(['self', 'member', 'forum'] as ForumChatMode[]).map((m) => (
-          <TouchableOpacity
-            key={m}
-            style={[
-              styles.modeButton,
-              mode === m && { backgroundColor: theme.accent + '20' },
-            ]}
-            onPress={() => handleModeChange(m)}
-          >
-            <Ionicons
-              name={getModeIcon(m) as any}
-              size={18}
-              color={mode === m ? theme.accent : theme.textSecondary}
-            />
-            <Text
+      {/* Mode Selector — Slice C: hidden when auto-context is enabled */}
+      {!AUTO_CTX_ENABLED && (
+        <View style={[styles.modeSelector, { backgroundColor: theme.surface }]}>
+          {(['self', 'member', 'forum'] as ForumChatMode[]).map((m) => (
+            <TouchableOpacity
+              key={m}
               style={[
-                styles.modeButtonText,
-                { color: mode === m ? theme.accent : theme.textSecondary },
+                styles.modeButton,
+                mode === m && { backgroundColor: theme.accent + '20' },
               ]}
-              numberOfLines={1}
+              onPress={() => handleModeChange(m)}
             >
-              {m === 'self' ? 'Me' : m === 'member' ? 'Member' : 'Forum'}
-            </Text>
-          </TouchableOpacity>
-        ))}
-      </View>
+              <Ionicons
+                name={getModeIcon(m) as any}
+                size={18}
+                color={mode === m ? theme.accent : theme.textSecondary}
+              />
+              <Text
+                style={[
+                  styles.modeButtonText,
+                  { color: mode === m ? theme.accent : theme.textSecondary },
+                ]}
+                numberOfLines={1}
+              >
+                {m === 'self' ? 'Me' : m === 'member' ? 'Member' : 'Forum'}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+      )}
       
-      {/* Member Picker (for member mode) */}
-      {mode === 'member' && (
+      {/* Member Picker (for member mode) — also hidden when auto-context is on */}
+      {!AUTO_CTX_ENABLED && mode === 'member' && (
         otherMembers.length > 0 ? (
           // Show member picker button when there are members
           <TouchableOpacity
@@ -256,8 +342,8 @@ export default function ForumChatView({ forumId, members, onClose, initialMode, 
         )
       )}
       
-      {/* Member Picker Dropdown - only show when in member mode AND picker is open AND members exist */}
-      {mode === 'member' && showMemberPicker && otherMembers.length > 0 && (
+      {/* Member Picker Dropdown — Slice C: hidden when auto-context is enabled */}
+      {!AUTO_CTX_ENABLED && mode === 'member' && showMemberPicker && otherMembers.length > 0 && (
         <View style={[styles.memberPickerDropdown, { backgroundColor: theme.surface, borderColor: theme.border }]}>
           <ScrollView style={styles.memberPickerList}>
             {otherMembers.map((member) => (
@@ -299,10 +385,12 @@ export default function ForumChatView({ forumId, members, onClose, initialMode, 
         ) : showSuggested ? (
           <View style={styles.suggestedContainer}>
             <Text style={[styles.suggestedTitle, { color: theme.text }]}>
-              {getModeLabel(mode)}
+              {AUTO_CTX_ENABLED ? 'Ask Mirror' : getModeLabel(mode)}
             </Text>
             <Text style={[styles.suggestedSubtitle, { color: theme.textTertiary }]}>
-              Tap a prompt or type your own question
+              {AUTO_CTX_ENABLED
+                ? 'Ask anything — about yourself, a member, or the forum'
+                : 'Tap a prompt or type your own question'}
             </Text>
             <View style={styles.suggestedPrompts}>
               {SUGGESTED_PROMPTS[mode].map((prompt, idx) => (
@@ -310,7 +398,7 @@ export default function ForumChatView({ forumId, members, onClose, initialMode, 
                   key={idx}
                   style={[styles.suggestedPrompt, { backgroundColor: theme.surface, borderColor: theme.border }]}
                   onPress={() => handleSend(prompt)}
-                  disabled={loading || (mode === 'member' && !selectedMember)}
+                  disabled={loading || (!AUTO_CTX_ENABLED && mode === 'member' && !selectedMember)}
                 >
                   <Text style={[styles.suggestedPromptText, { color: theme.text }]}>{prompt}</Text>
                 </TouchableOpacity>
@@ -335,6 +423,10 @@ export default function ForumChatView({ forumId, members, onClose, initialMode, 
               
               {/* Mirror response */}
               <View style={[styles.mirrorMessage, { backgroundColor: theme.surface }]}>
+                {/* Slice C — resolved context chip (auto-context only) */}
+                {AUTO_CTX_ENABLED && msg.resolved_context && (
+                  <ResolvedContextChip ctx={msg.resolved_context} />
+                )}
                 <View style={styles.messageHeader}>
                   <Text style={[styles.mirrorLabel, { color: theme.accent }]}>Mirror</Text>
                 </View>
@@ -342,6 +434,18 @@ export default function ForumChatView({ forumId, members, onClose, initialMode, 
               </View>
             </View>
           ))
+        )}
+
+        {/* Slice C — clarification banner shown when backend returns
+            requires_clarification=true.  Tapping a candidate re-issues
+            the original message with the resolved target_member_id. */}
+        {clarification && (
+          <AmbiguityClarificationPanel
+            candidates={clarification.candidates}
+            originalMessage={clarification.originalMessage}
+            onChoose={handleClarificationPick}
+            onCancel={() => setClarification(null)}
+          />
         )}
         
         {/* Loading indicator */}
@@ -369,11 +473,15 @@ export default function ForumChatView({ forumId, members, onClose, initialMode, 
           style={[styles.input, { backgroundColor: theme.surface, color: theme.text, borderColor: theme.border }]}
           value={message}
           onChangeText={setMessage}
-          placeholder={mode === 'member' && !selectedMember ? 'Select a member first...' : 'Type your question...'}
+          placeholder={
+            !AUTO_CTX_ENABLED && mode === 'member' && !selectedMember
+              ? 'Select a member first...'
+              : 'Type your question...'
+          }
           placeholderTextColor={theme.textTertiary}
           multiline
           maxLength={500}
-          editable={!loading && !(mode === 'member' && !selectedMember)}
+          editable={!loading && !(!AUTO_CTX_ENABLED && mode === 'member' && !selectedMember)}
         />
         <TouchableOpacity
           style={[
@@ -381,7 +489,7 @@ export default function ForumChatView({ forumId, members, onClose, initialMode, 
             { backgroundColor: message.trim() && !loading ? theme.accent : theme.border },
           ]}
           onPress={() => handleSend()}
-          disabled={!message.trim() || loading || (mode === 'member' && !selectedMember)}
+          disabled={!message.trim() || loading || (!AUTO_CTX_ENABLED && mode === 'member' && !selectedMember)}
         >
           <Ionicons name="send" size={18} color={message.trim() && !loading ? '#fff' : theme.textTertiary} />
         </TouchableOpacity>
