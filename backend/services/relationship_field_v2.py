@@ -148,10 +148,12 @@ _DIRECTIONALITY_BY_ROLE: Dict[str, str] = {
 # ════════════════════════════════════════════════════════════════════
 
 class ActiveFrame:
-    SELF      = "SELF"
-    MEMBER    = "MEMBER"
-    FORUM     = "FORUM"
-    RELATIONAL = "RELATIONAL"
+    SELF         = "SELF"
+    MEMBER       = "MEMBER"
+    FORUM        = "FORUM"
+    PAIRWISE     = "PAIRWISE"        # Slice A — two specific targets
+    MULTI_PERSON = "MULTI_PERSON"    # Slice A — scope class
+    AMBIGUOUS    = "AMBIGUOUS"       # Slice A — multi-candidate clarification
 
 
 class Closeness:
@@ -170,6 +172,11 @@ class ResolutionSource:
     PRONOUN_MEMORY      = "pronoun_memory"
     PROPOSED_UNRESOLVED = "proposed_unresolved"
     SELF_NO_TARGET      = "self_no_target"
+    AT_MENTION          = "at_mention"           # Slice A
+    PAIRWISE_PATTERN    = "pairwise_pattern"     # Slice A
+    SCOPE_CLASS         = "scope_class"          # Slice A
+    FORUM_INTENT        = "forum_intent"         # Slice A
+    AMBIGUITY           = "ambiguity"            # Slice A — multi-candidate
     NONE                = "none"
 
 
@@ -215,6 +222,12 @@ class RelationshipField:
     conflicts: List[str] = field(default_factory=list)
     missing_data: List[str] = field(default_factory=list)
     router_version: str = ROUTER_VERSION
+
+    # ── Slice A — multi-target / scope / ambiguity (additive) ──
+    target_user_id_b: Optional[str] = None
+    target_name_b:    Optional[str] = None
+    scope_class:      Optional[str] = None
+    ambiguity_candidates: List[Dict[str, Any]] = field(default_factory=list)
 
     # Downstream hints — populated for §3 of design ref. In slice-1
     # these are reserved placeholders (None / empty) and will be
@@ -426,6 +439,109 @@ async def resolve_relationship_field(
         fld.confidence          = 0.95
         return fld
 
+    # ── Slice A — early-return paths (only when no explicit hint) ─────
+    # Order: @mention → pairwise → scope (multi-person) → forum-intent
+    # All branches are no-ops when explicit hints are provided so that
+    # MEMBER resolution via about_person_id/forum_topology remains
+    # canonical (per priority order in the audit's §5.3).
+    if not has_target_hint:
+        # 0.5 — @mention extraction (highest priority among message-only paths)
+        at_name = _extract_at_mention(message)
+        if at_name:
+            cands_at = await _resolve_name_to_candidates(db, self_user_id, at_name)
+            # @mention is an explicit user gesture; accept the top
+            # candidate unless multiple are within 0.10 confidence of each
+            # other (per ambiguity rule).
+            if cands_at:
+                amb = _evaluate_ambiguity(cands_at)
+                if amb["ambiguous"]:
+                    fld.active_frame         = ActiveFrame.AMBIGUOUS
+                    fld.relationship_role    = None
+                    fld.relationship_stance  = "neutral"
+                    fld.resolution_source    = ResolutionSource.AMBIGUITY
+                    fld.confidence           = 0.50
+                    fld.ambiguity_candidates = cands_at
+                    fld.target_aliases       = [at_name]
+                    fld.missing_data.append("target_ambiguous")
+                    fld.resolution_path.append(f"at_mention_ambiguous:{at_name}:{len(cands_at)}")
+                    return fld
+                # Single best candidate — feed into existing MEMBER path
+                top = cands_at[0]
+                candidate_target_id = top["user_id"]
+                candidate_name      = top["name"]
+                fld.resolution_path.append(f"at_mention_resolved:{at_name}->{top['name']}")
+                # fall through to Step 2 with the resolved candidate
+            # else (no candidates) — fall through; later steps handle
+
+        # 0.7 — PAIRWISE pattern ("X and Y", "X & Y")
+        if candidate_target_id is None:
+            pair = _extract_pairwise_names(message)
+            if pair:
+                a_name, b_name = pair
+                cands_a = await _resolve_name_to_candidates(db, self_user_id, a_name)
+                cands_b = await _resolve_name_to_candidates(db, self_user_id, b_name)
+                # Only emit PAIRWISE when BOTH names resolve to a single
+                # high-confidence candidate.  Otherwise let later steps
+                # handle (avoids false positives like "Mel and I").
+                if (cands_a and cands_b
+                        and not _evaluate_ambiguity(cands_a)["ambiguous"]
+                        and not _evaluate_ambiguity(cands_b)["ambiguous"]):
+                    a, b = cands_a[0], cands_b[0]
+                    fld.active_frame         = ActiveFrame.PAIRWISE
+                    fld.target_user_id       = a["user_id"]
+                    fld.target_name          = a["name"]
+                    fld.target_user_id_b     = b["user_id"]
+                    fld.target_name_b        = b["name"]
+                    fld.relationship_role    = None    # pairwise = relation between two others
+                    fld.relationship_stance  = "neutral"
+                    fld.resolution_source    = ResolutionSource.PAIRWISE_PATTERN
+                    fld.confidence           = min(a.get("confidence", 0.7),
+                                                   b.get("confidence", 0.7))
+                    fld.resolution_path.append(
+                        f"pairwise:{a_name}+{b_name}->{a['name']}+{b['name']}"
+                    )
+                    return fld
+
+        # 0.8 — MULTI_PERSON scope ("my children", "all my forum members")
+        scope = _extract_scope_class(message)
+        if scope and candidate_target_id is None:
+            fld.active_frame         = ActiveFrame.MULTI_PERSON
+            fld.scope_class          = scope
+            fld.relationship_role    = None
+            fld.relationship_stance  = "neutral"
+            fld.resolution_source    = ResolutionSource.SCOPE_CLASS
+            fld.confidence           = 0.85
+            fld.resolution_path.append(f"scope_class:{scope}")
+            return fld
+
+        # 0.9 — Conservative FORUM intent (only the approved seed list)
+        if _has_forum_intent(message) and candidate_target_id is None:
+            # Cross-check: viewer must have at least one matching forum.
+            # If 0 forums → leave alone; later steps will fall through.
+            # If 1 forum → bind it.  If >1 → bind nothing and surface
+            # missing_data so the FE can ask which one.
+            try:
+                viewer_forums: List[Dict[str, Any]] = []
+                async for fm in db.forum_members.find(
+                    {"user_id": self_user_id, "status": "active"},
+                ):
+                    viewer_forums.append(fm)
+                if len(viewer_forums) >= 1:
+                    fld.active_frame      = ActiveFrame.FORUM
+                    fld.resolution_source = ResolutionSource.FORUM_INTENT
+                    fld.confidence        = 0.85 if len(viewer_forums) == 1 else 0.55
+                    if len(viewer_forums) == 1:
+                        fld.forum_id      = viewer_forums[0].get("forum_id")
+                        # forum_name hydrated below in Step 7 via existing logic
+                    else:
+                        fld.missing_data.append("forum_intent_multi_match")
+                    fld.resolution_path.append(
+                        f"forum_intent:viewer_forums={len(viewer_forums)}"
+                    )
+                    return fld
+            except Exception as e:    # pragma: no cover
+                logger.debug(f"[RelField] forum-intent probe failed: {e!r}")
+
     # ── Step 1 — Pick a candidate target_user_id to resolve against ─
     # Priority of hint inputs (does NOT yet say what the role is — that
     # comes from the edges-first resolver below).
@@ -524,22 +640,75 @@ async def resolve_relationship_field(
     if not fld.target_user_id and not candidate_target_id:
         name = _extract_proper_name_candidate(message)
         if name:
-            fld.target_aliases = [name]
-            fld.resolution_source = ResolutionSource.PROPOSED_UNRESOLVED
-            fld.resolution_path.append(f"proper_name_fallback:{name}")
-            fld.missing_data.append("target_unresolved")
-            fld.proposed_action = {
-                "type":           "add_to_circle",
-                "suggested_name": name,
-                "reason":         (
-                    f"name '{name}' appears in message but is not in "
-                    f"user's saved_people OR any of their forums"
-                ),
-                "source_text":    (message or "").strip()[:500],
-                "confidence":     0.55,
-            }
-            fld.confidence = 0.55
-            fld.active_frame = ActiveFrame.SELF
+            # Slice A — check for ambiguity in the candidate pool BEFORE
+            # falling through to proposed_unresolved.
+            cands_fb = await _resolve_name_to_candidates(db, self_user_id, name)
+            if cands_fb:
+                amb = _evaluate_ambiguity(cands_fb)
+                if amb["ambiguous"]:
+                    fld.active_frame         = ActiveFrame.AMBIGUOUS
+                    fld.target_aliases       = [name]
+                    fld.relationship_role    = None
+                    fld.relationship_stance  = "neutral"
+                    fld.resolution_source    = ResolutionSource.AMBIGUITY
+                    fld.confidence           = 0.50
+                    fld.ambiguity_candidates = cands_fb
+                    fld.missing_data.append("target_ambiguous")
+                    fld.resolution_path.append(
+                        f"ambiguity:{name}:{len(cands_fb)}_candidates"
+                    )
+                    return fld
+                # Single best candidate: graceful upgrade to MEMBER
+                top = cands_fb[0]
+                candidate_target_id = top["user_id"]
+                candidate_name      = top["name"]
+                fld.resolution_path.append(
+                    f"name_match_single:{name}->{top['name']}"
+                )
+                # Continue below — the canonical resolver fills role/stance
+                try:
+                    from services.relationship_resolver import resolve_relationship
+                    role_result = await resolve_relationship(
+                        db=db,
+                        asker_user_id=self_user_id,
+                        target_user_id=candidate_target_id,
+                        target_name=candidate_name,
+                        forum_id=fld.forum_id,
+                    )
+                except Exception:
+                    role_result = None
+                if role_result and role_result.get("relationship_detected"):
+                    fld.target_user_id   = candidate_target_id
+                    fld.target_name      = candidate_name
+                    fld.relationship_role = role_result.get("relationship_role")
+                    fld.closeness        = _closeness_to_enum(role_result.get("closeness"))
+                    fld.emotional_weight = _closeness_to_enum(role_result.get("emotional_weight"))
+                    legacy_src = role_result.get("relationship_source")
+                    fld.resolution_source = {
+                        "explicit_map":             ResolutionSource.EXPLICIT_MAP,
+                        "saved_people":             ResolutionSource.SAVED_PEOPLE,
+                        "forum_relationship":       ResolutionSource.FORUM_MEMBERS,
+                        "forum_inference":          ResolutionSource.FORUM_INFERENCE,
+                        "forum_relationship_edges": ResolutionSource.EDGES,
+                    }.get(legacy_src, ResolutionSource.NONE)
+            else:
+                # No candidates at all — original proposed_unresolved path
+                fld.target_aliases = [name]
+                fld.resolution_source = ResolutionSource.PROPOSED_UNRESOLVED
+                fld.resolution_path.append(f"proper_name_fallback:{name}")
+                fld.missing_data.append("target_unresolved")
+                fld.proposed_action = {
+                    "type":           "add_to_circle",
+                    "suggested_name": name,
+                    "reason":         (
+                        f"name '{name}' appears in message but is not in "
+                        f"user's saved_people OR any of their forums"
+                    ),
+                    "source_text":    (message or "").strip()[:500],
+                    "confidence":     0.55,
+                }
+                fld.confidence = 0.55
+                fld.active_frame = ActiveFrame.SELF
 
     # ── Step 4 — Derive stance + directionality ────────────────────
     stance, stance_rules = _derive_stance(
