@@ -897,32 +897,146 @@ export default function ForumMappingsScreen() {
                       );
                     })()}
 
-                    {/* BAZI SIGNALS */}
-                    {signals?.bazi && Object.keys(signals.bazi).length > 0 ? (
+                    {/* BAZI EVIDENCE LAYER v2 — 4 grouped cards beneath wisdom layer */}
+                    {/* MARKER: bazi-evidence-layer-v2                                       */}
+                    {(() => {
+                      const baziSig: any = signals?.bazi;
+                      if (!baziSig || typeof baziSig !== 'object' || Object.keys(baziSig).length === 0) return null;
+                      const diag = baziSig.diagnostics || null;
+                      const support: string[] = baziSig.support || [];
+                      const growth:  string[] = baziSig.growth  || [];
+                      const tension: string[] = baziSig.tension || [];
+                      // legacy fallback: if no diagnostics, render the original flat list
+                      if (!diag) {
+                        return (
+                          <View style={styles.lensSection}>
+                            <Text style={[styles.signalsNote, { color: theme.textTertiary }]}>ELEMENTAL DYNAMICS — Evidence</Text>
+                            {support.map((it, i) => (<View key={`bs-${i}`} style={styles.lensSignalRow}><Text style={[styles.lensSignalIcon, { color: '#81C784' }]}>+</Text><Text style={[styles.lensSignalText, { color: theme.textSecondary }]}>{it}</Text></View>))}
+                            {tension.map((it, i) => (<View key={`bt-${i}`} style={styles.lensSignalRow}><Text style={[styles.lensSignalIcon, { color: '#CF6679' }]}>−</Text><Text style={[styles.lensSignalText, { color: theme.textSecondary }]}>{it}</Text></View>))}
+                            {growth.map((it, i) => (<View key={`bg-${i}`} style={styles.lensSignalRow}><Text style={[styles.lensSignalIcon, { color: '#90CAF9' }]}>↑</Text><Text style={[styles.lensSignalText, { color: theme.textSecondary }]}>{it}</Text></View>))}
+                          </View>
+                        );
+                      }
+                      // Dynamic import deferred to top of file — use require to avoid hoist issues here.
+                      // eslint-disable-next-line @typescript-eslint/no-var-requires
+                      const EL = require('../../services/bazi/evidenceLabels');
+                      const cycle = diag.cycle || 'unknown';
+                      const elA = diag.element_a || '?';
+                      const elB = diag.element_b || '?';
+                      const animA = diag.animal_a || '';
+                      const animB = diag.animal_b || '';
+                      const animRel = diag.animal_relation || 'unknown';
+                      const nameA = currentUserName || 'You';
+                      const nameB = selectedMember?.member_name || 'Them';
+                      const flowRows = EL.buildFlowRows(cycle, elA, elB, nameA, nameB);
+                      const flowHeader = EL.flowHeaderForCycle(cycle);
+                      const geo = EL.geometryArrow(cycle, elA, elB);
+                      const animLabel = (animA && animB) ? EL.animalRelationLabel(animRel, animA, animB) : null;
+                      const growthSub = EL.growthTriggerSubtitle(animRel);
+
+                      const card = {
+                        backgroundColor: theme.cardSurface || theme.surface || 'rgba(255,255,255,0.03)',
+                        borderColor: theme.border, borderWidth: StyleSheet.hairlineWidth,
+                        borderRadius: 10, padding: 12, marginTop: 10,
+                      };
+                      const tinyHeader = { fontSize: 11, fontWeight: '700' as const, letterSpacing: 1.0 };
+                      const labelText  = { fontSize: 13, fontWeight: '600' as const, marginBottom: 2 };
+
+                      return (
                         <View style={styles.lensSection}>
                           <Text style={[styles.signalsNote, { color: theme.textTertiary }]}>
-                            ELEMENTAL DYNAMICS
+                            ELEMENTAL DYNAMICS — Evidence
                           </Text>
-                          {signals.bazi.support?.map((item: string, i: number) => (
-                            <View key={`bs-${i}`} style={styles.lensSignalRow}>
-                              <Text style={[styles.lensSignalIcon, { color: '#81C784' }]}>+</Text>
-                              <Text style={[styles.lensSignalText, { color: theme.textSecondary }]}>{item}</Text>
+
+                          {/* 1. ELEMENTAL STRUCTURE */}
+                          <View style={card}>
+                            <Text style={[tinyHeader, { color: theme.textTertiary, marginBottom: 8 }]}>1 · ELEMENTAL STRUCTURE</Text>
+                            <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 4 }}>
+                              <Text style={[styles.lensSignalText, { color: theme.textSecondary }]}>{nameA}</Text>
+                              <Text style={[styles.lensSignalText, { color: theme.text, fontWeight: '600' }]}>{elA}</Text>
                             </View>
-                          ))}
-                          {signals.bazi.tension?.map((item: string, i: number) => (
-                            <View key={`bt-${i}`} style={styles.lensSignalRow}>
-                              <Text style={[styles.lensSignalIcon, { color: '#CF6679' }]}>−</Text>
-                              <Text style={[styles.lensSignalText, { color: theme.textSecondary }]}>{item}</Text>
+                            <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 6 }}>
+                              <Text style={[styles.lensSignalText, { color: theme.textSecondary }]}>{nameB}</Text>
+                              <Text style={[styles.lensSignalText, { color: theme.text, fontWeight: '600' }]}>{elB}</Text>
                             </View>
-                          ))}
-                          {signals.bazi.growth?.map((item: string, i: number) => (
-                            <View key={`bg-${i}`} style={styles.lensSignalRow}>
-                              <Text style={[styles.lensSignalIcon, { color: '#90CAF9' }]}>↑</Text>
-                              <Text style={[styles.lensSignalText, { color: theme.textSecondary }]}>{item}</Text>
+                            <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 10 }}>
+                              <Text style={[styles.lensSignalText, { color: theme.textSecondary }]}>Relationship Geometry</Text>
+                              <Text style={[styles.lensSignalText, { color: theme.text, fontWeight: '600' }]}>{geo}</Text>
                             </View>
-                          ))}
+                            <Text style={[labelText, { color: theme.textTertiary }]}>{flowHeader}</Text>
+                            {flowRows.length === 0 ? (
+                              <Text style={[styles.lensSignalText, { color: theme.textSecondary, fontStyle: 'italic' }]}>
+                                No automatic cycle — flow is built by agreement.
+                              </Text>
+                            ) : flowRows.map((r: any, i: number) => (
+                              <View key={`fr-${i}`} style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 2 }}>
+                                <Text style={[styles.lensSignalText, { color: theme.textSecondary, flexShrink: 1 }]} numberOfLines={2}>{r.left}</Text>
+                                <Text style={[styles.lensSignalText, { color: theme.textTertiary, paddingHorizontal: 6 }]}>→</Text>
+                                <Text style={[styles.lensSignalText, { color: theme.textSecondary, flexShrink: 1, textAlign: 'right' }]} numberOfLines={2}>{r.right}</Text>
+                              </View>
+                            ))}
+                            {animLabel ? (
+                              <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 10 }}>
+                                <Text style={[styles.lensSignalText, { color: theme.textSecondary }]}>Year Animals</Text>
+                                <Text style={[styles.lensSignalText, { color: theme.text }]}>{animLabel}</Text>
+                              </View>
+                            ) : null}
+                          </View>
+
+                          {/* 2. WHAT STRENGTHENS THE FLOW */}
+                          {support.length > 0 ? (
+                            <View style={card}>
+                              <Text style={[tinyHeader, { color: theme.textTertiary, marginBottom: 8 }]}>2 · WHAT STRENGTHENS THE FLOW</Text>
+                              {support.map((item: string, i: number) => (
+                                <View key={`ev-s-${i}`} style={{ marginBottom: 8 }}>
+                                  <View style={{ flexDirection: 'row' }}>
+                                    <Text style={[styles.lensSignalIcon, { color: '#81C784' }]}>✓</Text>
+                                    <Text style={[labelText, { color: theme.text, flexShrink: 1 }]}>{EL.labelFor(cycle, 'strengthen', i)}</Text>
+                                  </View>
+                                  <Text style={[styles.lensSignalText, { color: theme.textSecondary, paddingLeft: 18 }]}>{item}</Text>
+                                </View>
+                              ))}
+                            </View>
+                          ) : null}
+
+                          {/* 3. GROWTH TRIGGER */}
+                          {growth.length > 0 ? (
+                            <View style={card}>
+                              <Text style={[tinyHeader, { color: theme.textTertiary, marginBottom: 8 }]}>3 · GROWTH TRIGGER</Text>
+                              {animA && animB ? (
+                                <Text style={[labelText, { color: theme.text, marginBottom: 4 }]}>↑  {animA}  ↔  {animB}</Text>
+                              ) : null}
+                              <Text style={[styles.lensSignalText, { color: theme.textTertiary, fontStyle: 'italic', marginBottom: 8 }]}>{growthSub}</Text>
+                              {growth.map((item: string, i: number) => (
+                                <View key={`ev-g-${i}`} style={{ marginBottom: 8 }}>
+                                  <View style={{ flexDirection: 'row' }}>
+                                    <Text style={[styles.lensSignalIcon, { color: '#90CAF9' }]}>↑</Text>
+                                    <Text style={[labelText, { color: theme.text, flexShrink: 1 }]}>{EL.labelFor(cycle, 'growth', i)}</Text>
+                                  </View>
+                                  <Text style={[styles.lensSignalText, { color: theme.textSecondary, paddingLeft: 18 }]}>{item}</Text>
+                                </View>
+                              ))}
+                            </View>
+                          ) : null}
+
+                          {/* 4. SHADOW SIGNAL — hidden when tension is empty */}
+                          {tension.length > 0 ? (
+                            <View style={card}>
+                              <Text style={[tinyHeader, { color: theme.textTertiary, marginBottom: 8 }]}>4 · SHADOW SIGNAL</Text>
+                              {tension.map((item: string, i: number) => (
+                                <View key={`ev-t-${i}`} style={{ marginBottom: 8 }}>
+                                  <View style={{ flexDirection: 'row' }}>
+                                    <Text style={[styles.lensSignalIcon, { color: '#CF6679' }]}>⚠</Text>
+                                    <Text style={[labelText, { color: theme.text, flexShrink: 1 }]}>{EL.labelFor(cycle, 'shadow', i)}</Text>
+                                  </View>
+                                  <Text style={[styles.lensSignalText, { color: theme.textSecondary, paddingLeft: 18 }]}>{item}</Text>
+                                </View>
+                              ))}
+                            </View>
+                          ) : null}
                         </View>
-                    ) : null}
+                      );
+                    })()}
                   </View>
                 )}
               </View>

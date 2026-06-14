@@ -19,6 +19,8 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import api from '../services/api';
+import * as EL from '../services/bazi/evidenceLabels';
+import type { BaziCycle, AnimalRelation } from '../services/bazi/evidenceLabels';
 
 // ============================================
 // INTERFACES
@@ -30,10 +32,24 @@ interface HDSignal {
   translation: string;
 }
 
+interface BaziDiagnostics {
+  element_a?: string;
+  element_b?: string;
+  cycle?: string;
+  animal_a?: string;
+  animal_b?: string;
+  animal_relation?: string;
+  role_key?: string;
+  support_count?: number;
+  tension_count?: number;
+  growth_count?: number;
+}
+
 interface RelInsightV2Data {
   success: boolean;
   version: string;
   other_name: string;
+  you_name?: string;
   story: {
     headline: string;
     summary: string;
@@ -46,7 +62,12 @@ interface RelInsightV2Data {
   signals: {
     human_design: HDSignal[];
     astrology: { attraction: string[]; tension: string[]; growth: string[] };
-    bazi: { strengthens: string[]; drains: string[]; activates_growth: string[] };
+    bazi: {
+      strengthens: string[];
+      drains: string[];
+      activates_growth: string[];
+      diagnostics?: BaziDiagnostics;
+    };
     enneagram: { gift_to_them: string[]; gift_to_you: string[] };
     numerology: { complementarity: string[]; missing_traits: string[] };
   };
@@ -324,23 +345,156 @@ const RelationshipInsightV2Card: React.FC<Props> = ({
                 </View>
               )}
 
-              {/* BaZi Signals */}
-              {(data.signals.bazi.strengthens.length > 0 || data.signals.bazi.drains.length > 0 || data.signals.bazi.activates_growth.length > 0) && (
-                <View style={styles.signalGroup}>
-                  <Text style={[styles.signalGroupLabel, { color: theme.textTertiary }]}>
-                    ELEMENTAL DYNAMICS
-                  </Text>
-                  {data.signals.bazi.strengthens.map((item, i) => (
-                    <Text key={`bs-${i}`} style={[styles.signalText, { color: theme.textSecondary }]}>+ {item}</Text>
-                  ))}
-                  {data.signals.bazi.drains.map((item, i) => (
-                    <Text key={`bd-${i}`} style={[styles.signalText, { color: theme.textSecondary }]}>- {item}</Text>
-                  ))}
-                  {data.signals.bazi.activates_growth.map((item, i) => (
-                    <Text key={`bg-${i}`} style={[styles.signalText, { color: theme.textSecondary }]}>↑ {item}</Text>
-                  ))}
-                </View>
-              )}
+              {/* BaZi Signals — Evidence Layer V2 (parity with Forum Mapping) */}
+              {/* MARKER: bazi-evidence-layer-v2                                */}
+              {hasBaziSignals && (() => {
+                const baziSig = data.signals.bazi;
+                const support = baziSig.strengthens || [];
+                const tension = baziSig.drains || [];
+                const growth  = baziSig.activates_growth || [];
+                const diag = baziSig.diagnostics;
+
+                // Legacy fallback when diagnostics are not yet available
+                if (!diag || !diag.element_a || !diag.element_b) {
+                  return (
+                    <View style={styles.signalGroup}>
+                      <Text style={[styles.signalGroupLabel, { color: theme.textTertiary }]}>
+                        ELEMENTAL DYNAMICS — Evidence
+                      </Text>
+                      {support.map((item, i) => (
+                        <Text key={`bs-${i}`} style={[styles.signalText, { color: theme.textSecondary }]}>+ {item}</Text>
+                      ))}
+                      {tension.map((item, i) => (
+                        <Text key={`bd-${i}`} style={[styles.signalText, { color: theme.textSecondary }]}>- {item}</Text>
+                      ))}
+                      {growth.map((item, i) => (
+                        <Text key={`bg-${i}`} style={[styles.signalText, { color: theme.textSecondary }]}>↑ {item}</Text>
+                      ))}
+                    </View>
+                  );
+                }
+
+                const cycle = (diag.cycle as BaziCycle) || 'unknown';
+                const elA = diag.element_a || '?';
+                const elB = diag.element_b || '?';
+                const animA = diag.animal_a || '';
+                const animB = diag.animal_b || '';
+                const animRel = (diag.animal_relation as AnimalRelation) || 'unknown';
+                const nameA = data.you_name || 'You';
+                const nameB = data.other_name || otherName || 'Them';
+
+                const flowRows = EL.buildFlowRows(cycle, elA, elB, nameA, nameB);
+                const flowHeader = EL.flowHeaderForCycle(cycle);
+                const geo = EL.geometryArrow(cycle, elA, elB);
+                const animLabel = (animA && animB) ? EL.animalRelationLabel(animRel, animA, animB) : null;
+                const growthSub = EL.growthTriggerSubtitle(animRel);
+
+                const card = {
+                  backgroundColor: (theme.cardSurface || theme.surface || 'rgba(255,255,255,0.03)'),
+                  borderColor: theme.border,
+                  borderWidth: StyleSheet.hairlineWidth,
+                  borderRadius: 10,
+                  padding: 12,
+                  marginTop: 10,
+                };
+                const tinyHeader = { fontSize: 11, fontWeight: '700' as const, letterSpacing: 1.0 };
+                const labelText  = { fontSize: 13, fontWeight: '600' as const, marginBottom: 2 };
+
+                return (
+                  <View style={styles.signalGroup}>
+                    <Text style={[styles.signalGroupLabel, { color: theme.textTertiary }]}>
+                      ELEMENTAL DYNAMICS — Evidence
+                    </Text>
+
+                    {/* 1. ELEMENTAL STRUCTURE */}
+                    <View style={card}>
+                      <Text style={[tinyHeader, { color: theme.textTertiary, marginBottom: 8 }]}>1 · ELEMENTAL STRUCTURE</Text>
+                      <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 4 }}>
+                        <Text style={[styles.signalText, { color: theme.textSecondary }]}>{nameA}</Text>
+                        <Text style={[styles.signalText, { color: theme.text, fontWeight: '600' }]}>{elA}</Text>
+                      </View>
+                      <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 6 }}>
+                        <Text style={[styles.signalText, { color: theme.textSecondary }]}>{nameB}</Text>
+                        <Text style={[styles.signalText, { color: theme.text, fontWeight: '600' }]}>{elB}</Text>
+                      </View>
+                      <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 10 }}>
+                        <Text style={[styles.signalText, { color: theme.textSecondary }]}>Relationship Geometry</Text>
+                        <Text style={[styles.signalText, { color: theme.text, fontWeight: '600' }]}>{geo}</Text>
+                      </View>
+                      <Text style={[labelText, { color: theme.textTertiary }]}>{flowHeader}</Text>
+                      {flowRows.length === 0 ? (
+                        <Text style={[styles.signalText, { color: theme.textSecondary, fontStyle: 'italic' }]}>
+                          No automatic cycle — flow is built by agreement.
+                        </Text>
+                      ) : flowRows.map((r, i) => (
+                        <View key={`fr-${i}`} style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 2 }}>
+                          <Text style={[styles.signalText, { color: theme.textSecondary, flexShrink: 1 }]} numberOfLines={2}>{r.left}</Text>
+                          <Text style={[styles.signalText, { color: theme.textTertiary, paddingHorizontal: 6 }]}>→</Text>
+                          <Text style={[styles.signalText, { color: theme.textSecondary, flexShrink: 1, textAlign: 'right' }]} numberOfLines={2}>{r.right}</Text>
+                        </View>
+                      ))}
+                      {animLabel ? (
+                        <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 10 }}>
+                          <Text style={[styles.signalText, { color: theme.textSecondary }]}>Year Animals</Text>
+                          <Text style={[styles.signalText, { color: theme.text }]}>{animLabel}</Text>
+                        </View>
+                      ) : null}
+                    </View>
+
+                    {/* 2. WHAT STRENGTHENS THE FLOW */}
+                    {support.length > 0 ? (
+                      <View style={card}>
+                        <Text style={[tinyHeader, { color: theme.textTertiary, marginBottom: 8 }]}>2 · WHAT STRENGTHENS THE FLOW</Text>
+                        {support.map((item, i) => (
+                          <View key={`ev-s-${i}`} style={{ marginBottom: 8 }}>
+                            <View style={{ flexDirection: 'row' }}>
+                              <Text style={[styles.signalText, { color: '#81C784', paddingLeft: 0, width: 18 }]}>✓</Text>
+                              <Text style={[labelText, { color: theme.text, flexShrink: 1 }]}>{EL.labelFor(cycle, 'strengthen', i)}</Text>
+                            </View>
+                            <Text style={[styles.signalText, { color: theme.textSecondary, paddingLeft: 18 }]}>{item}</Text>
+                          </View>
+                        ))}
+                      </View>
+                    ) : null}
+
+                    {/* 3. GROWTH TRIGGER */}
+                    {growth.length > 0 ? (
+                      <View style={card}>
+                        <Text style={[tinyHeader, { color: theme.textTertiary, marginBottom: 8 }]}>3 · GROWTH TRIGGER</Text>
+                        {animA && animB ? (
+                          <Text style={[labelText, { color: theme.text, marginBottom: 4 }]}>↑  {animA}  ↔  {animB}</Text>
+                        ) : null}
+                        <Text style={[styles.signalText, { color: theme.textTertiary, fontStyle: 'italic', marginBottom: 8 }]}>{growthSub}</Text>
+                        {growth.map((item, i) => (
+                          <View key={`ev-g-${i}`} style={{ marginBottom: 8 }}>
+                            <View style={{ flexDirection: 'row' }}>
+                              <Text style={[styles.signalText, { color: '#90CAF9', paddingLeft: 0, width: 18 }]}>↑</Text>
+                              <Text style={[labelText, { color: theme.text, flexShrink: 1 }]}>{EL.labelFor(cycle, 'growth', i)}</Text>
+                            </View>
+                            <Text style={[styles.signalText, { color: theme.textSecondary, paddingLeft: 18 }]}>{item}</Text>
+                          </View>
+                        ))}
+                      </View>
+                    ) : null}
+
+                    {/* 4. SHADOW SIGNAL — hidden when tension is empty */}
+                    {tension.length > 0 ? (
+                      <View style={card}>
+                        <Text style={[tinyHeader, { color: theme.textTertiary, marginBottom: 8 }]}>4 · SHADOW SIGNAL</Text>
+                        {tension.map((item, i) => (
+                          <View key={`ev-t-${i}`} style={{ marginBottom: 8 }}>
+                            <View style={{ flexDirection: 'row' }}>
+                              <Text style={[styles.signalText, { color: '#CF6679', paddingLeft: 0, width: 18 }]}>⚠</Text>
+                              <Text style={[labelText, { color: theme.text, flexShrink: 1 }]}>{EL.labelFor(cycle, 'shadow', i)}</Text>
+                            </View>
+                            <Text style={[styles.signalText, { color: theme.textSecondary, paddingLeft: 18 }]}>{item}</Text>
+                          </View>
+                        ))}
+                      </View>
+                    ) : null}
+                  </View>
+                );
+              })()}
             </View>
           )}
         </>

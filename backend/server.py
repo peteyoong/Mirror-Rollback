@@ -14555,6 +14555,34 @@ async def get_relationship_insight_v2_endpoint(
                         "drains":           list(_bazi.get("tension") or _bazi.get("drains") or []),
                         "activates_growth": list(_bazi.get("growth") or _bazi.get("activates_growth") or []),
                     }
+                    # ── Evidence Layer V2 parity passthrough ──────────────
+                    # Surface the same diagnostics block forum-mappings uses
+                    # so the V2 card can render the 4-section evidence layer
+                    # (Elemental Structure / Strengthens / Growth Trigger /
+                    # Shadow Signal). Pure passthrough of existing engine
+                    # output — no math changes, no new signal categories,
+                    # no schema changes.
+                    try:
+                        from services.relationship_bazi_engine import (
+                            build_relationship_bazi as _build_bazi_v2,
+                        )
+                        _bazi_out = _build_bazi_v2(
+                            chart_a=user_chart,
+                            chart_b=other_chart,
+                            name_a=u_name,
+                            name_b=o_name,
+                            relationship_role=None,
+                            support_signals=bazi_signals["strengthens"],
+                            tension_signals=bazi_signals["drains"],
+                            growth_signals=bazi_signals["activates_growth"],
+                        )
+                        if isinstance(_bazi_out, dict) and _bazi_out.get("success"):
+                            bazi_signals["diagnostics"] = _bazi_out.get("diagnostics") or {}
+                    except Exception as _bdiag_err:
+                        logger.warning(
+                            f"[RelV2] bazi diagnostics passthrough skipped: "
+                            f"{type(_bdiag_err).__name__}: {_bdiag_err}"
+                        )
                 # Enneagram: forum={how_you_help_them, how_they_help_you, friction_pattern}
                 # → V2={gift_to_them, gift_to_you}
                 if isinstance(_ennea, dict):
@@ -14593,6 +14621,12 @@ async def get_relationship_insight_v2_endpoint(
         )
         
         result["user_id"] = user_id
+        # ── Evidence Layer V2 parity: surface viewer's display name so the
+        # V2 card can render the same nameA / nameB labels Forum Mapping uses.
+        try:
+            result["you_name"] = (user.get("name") if user else None) or "You"
+        except Exception:
+            result["you_name"] = "You"
         
         logger.info(f"[RelV2] Generated 3-layer for {user_id[:8]} + {other_name}: {user_type} x {other_type}")
         
