@@ -1,0 +1,32 @@
+{
+  "summary": "Slice A — Forum Chat Auto Relationship Context Resolution (FKR v1) VERIFIED at HTTP layer. 7/7 pytest scenarios PASS (100%) against POST /api/mirror/chat on the public preview URL. All scenarios return 200, all responses contain non-empty LLM text, and the explicit leakage check confirms NONE of the internal taxonomy tokens (PAIRWISE, MULTI_PERSON, AMBIGUOUS, scope_class, forum_intent, covenant_partner, steward_guardian) appear in any LLM-visible surface — they stay inside the receipt envelope as designed. Backend log evidence (grep '[MIRROR_CHAT][RFv2]' /var/log/supervisor/backend.err.log) confirms the new resolver auto-detected every frame correctly: S1 'Tell me about Mel' (about_person_id=MEL) → frame=MEMBER role=spouse stance=covenant_partner src=forum_relationship_edges conf=0.95; S2 'What does Thaddeus need from me?' (NO about_person_id — Slice A name-only path) → frame=MEMBER role=child stance=steward_guardian src=forum_relationship_edges conf=0.95; S3 'Tell me about myself' → frame=SELF src=self_no_target conf=0.95; S4 'How are Mel and Thaddeus affecting each other?' → frame=PAIRWISE src=pairwise_pattern conf=0.8; S5 'What about my children right now?' → frame=MULTI_PERSON src=scope_class conf=0.85; S6 & S7 forum-whole variants → frame=FORUM src=forum_intent conf=0.55. Every request also logs '[MIRROR_CHAT][RFv2-prompt] block_emitted=False flag_enabled=False reason=flag_off' — prompt-surface remains correctly gated off, no Slice A prompt-side mutation reached the LLM. Slice 2 regression (explicit about_person_id) is intact: Mel still resolves as spouse / covenant_partner via forum_relationship_edges. /api/health 200. No crashes, no 5xx, no taxonomy leakage.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [],
+    "react_native_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_slice_a_auto_context_http.py",
+    "/app/test_reports/pytest/slice_a_auto_context_http.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "Routers/mirror_chat.py Slice 2 attachment (lines ~240-275) correctly stores relationship_field_v2 only inside the receipt (v2_receipt['relationship_field_v2']) and never injects taxonomy into context_parts — verified by leakage check.",
+    "RFv2 resolver is fail-soft (try/except in routers/mirror_chat.py L270) — any resolver exception logs a WARN and lets the request continue; consistent with the 'no regressions' contract.",
+    "Slice A name-only path (S2: 'What does Thaddeus need from me?' with NO about_person_id) is observably wired live — log line confirms frame=MEMBER role=child resolution via forum_relationship_edges, NOT a fallback."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_slice_a_auto_context_http.py (new — 7-scenario HTTP regression suite, reusable for future Slice B/C verification)"
+  ],
+  "success_rate": {"backend": "100% (7/7)", "frontend": "N/A (backend only per request)"},
+  "seed_data_creation": "None — reused existing Pete/Mel/Thaddeus/Isaac user_ids and Yoong family forum from /app/memory/test_credentials.md.",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Slice A backend resolver is live and frame-correct on all 7 scenarios. The new HTTP suite at /app/backend/tests/test_slice_a_auto_context_http.py auto-detects EXPO_PUBLIC_BACKEND_URL from env or /app/frontend/.env. To verify Slice A frame resolution in future runs, grep '[MIRROR_CHAT][RFv2]' in /var/log/supervisor/backend.err.log — each chat turn emits one line with target, role, stance, frame, src, conf. The RELATIONSHIP_FIELD_V2_PROMPT flag is confirmed OFF (block_emitted=False reason=flag_off) — when Slice B flips it on, expect block_emitted=True in the same log channel.",
+  "rca_of_issue": "N/A — secondary independent verification pass. All 7 HTTP scenarios green, all 6 auto-detected frames observable in backend log, zero taxonomy leakage into LLM-visible text."
+}

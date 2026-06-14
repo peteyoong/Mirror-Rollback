@@ -439,11 +439,23 @@ async def resolve_relationship_field(
         fld.confidence          = 0.95
         return fld
 
+    # ── Step 1a — Pre-declare candidate accumulators ────────────────
+    # These must exist BEFORE the Slice A early-return block because the
+    # @mention path may set them and pairwise/scope/forum-intent paths
+    # gate on `candidate_target_id is None`.  If they were declared only
+    # at Step 1 (below) Python would raise NameError on the gates.
+    candidate_target_id: Optional[str] = None
+    candidate_name: Optional[str] = target_name_hint
+    candidate_source_hint: Optional[str] = None
+
     # ── Slice A — early-return paths (only when no explicit hint) ─────
     # Order: @mention → pairwise → scope (multi-person) → forum-intent
     # All branches are no-ops when explicit hints are provided so that
     # MEMBER resolution via about_person_id/forum_topology remains
     # canonical (per priority order in the audit's §5.3).
+    # Bias (per user directive): MEMBER > PAIRWISE > FORUM.  FORUM
+    # intent uses an intentionally conservative seed list — better to
+    # miss a forum-level question than misclassify a member question.
     if not has_target_hint:
         # 0.5 — @mention extraction (highest priority among message-only paths)
         at_name = _extract_at_mention(message)
@@ -467,9 +479,13 @@ async def resolve_relationship_field(
                     return fld
                 # Single best candidate — feed into existing MEMBER path
                 top = cands_at[0]
-                candidate_target_id = top["user_id"]
-                candidate_name      = top["name"]
-                fld.resolution_path.append(f"at_mention_resolved:{at_name}->{top['name']}")
+                candidate_target_id   = top["user_id"]
+                candidate_name        = top["name"]
+                candidate_source_hint = "at_mention"
+                fld.active_frame      = ActiveFrame.MEMBER
+                fld.resolution_path.append(
+                    f"at_mention_resolved:{at_name}->{top['name']}"
+                )
                 # fall through to Step 2 with the resolved candidate
             # else (no candidates) — fall through; later steps handle
 
@@ -503,16 +519,17 @@ async def resolve_relationship_field(
                     return fld
 
         # 0.8 — MULTI_PERSON scope ("my children", "all my forum members")
-        scope = _extract_scope_class(message)
-        if scope and candidate_target_id is None:
-            fld.active_frame         = ActiveFrame.MULTI_PERSON
-            fld.scope_class          = scope
-            fld.relationship_role    = None
-            fld.relationship_stance  = "neutral"
-            fld.resolution_source    = ResolutionSource.SCOPE_CLASS
-            fld.confidence           = 0.85
-            fld.resolution_path.append(f"scope_class:{scope}")
-            return fld
+        if candidate_target_id is None:
+            scope = _extract_scope_class(message)
+            if scope:
+                fld.active_frame         = ActiveFrame.MULTI_PERSON
+                fld.scope_class          = scope
+                fld.relationship_role    = None
+                fld.relationship_stance  = "neutral"
+                fld.resolution_source    = ResolutionSource.SCOPE_CLASS
+                fld.confidence           = 0.85
+                fld.resolution_path.append(f"scope_class:{scope}")
+                return fld
 
         # 0.9 — Conservative FORUM intent (only the approved seed list)
         if _has_forum_intent(message) and candidate_target_id is None:
@@ -544,10 +561,8 @@ async def resolve_relationship_field(
 
     # ── Step 1 — Pick a candidate target_user_id to resolve against ─
     # Priority of hint inputs (does NOT yet say what the role is — that
-    # comes from the edges-first resolver below).
-    candidate_target_id: Optional[str] = None
-    candidate_name: Optional[str] = target_name_hint
-    candidate_source_hint: Optional[str] = None
+    # comes from the edges-first resolver below).  candidate_target_id
+    # may already be set by the @mention path above.
 
     if about_person_id:
         candidate_target_id = about_person_id
@@ -782,3 +797,199 @@ _PRONOUN_RE = re.compile(
 
 def _has_pronoun(text: str) -> bool:
     return bool(_PRONOUN_RE.search(text or ""))
+
+
+# ════════════════════════════════════════════════════════════════════
+# Slice A — message-pattern helpers
+# ════════════════════════════════════════════════════════════════════
+
+# @mention: matches "@Name" tokens.  Accepts letters, digits, and
+# underscore.  Restricted to a first letter so we don't pick up
+# "@123abc" emoji-style placeholders.
+_AT_MENTION_RE = re.compile(r"@([A-Za-z][A-Za-z0-9_]{1,30})\b")
+
+
+def _extract_at_mention(text: str) -> Optional[str]:
+    if not text:
+        return None
+    m = _AT_MENTION_RE.search(text)
+    return m.group(1) if m else None
+
+
+# PAIRWISE: "X and Y", "X & Y", "X vs Y", "X versus Y".
+# Both tokens MUST be capitalised proper-name candidates AND not in the
+# global blocklist (otherwise "Mel and I" or "Sun and Moon" would slip
+# through).  Per user directive we intentionally bias *narrow* — better
+# to miss a pairwise question than treat a member question as pairwise.
+_PAIR_RE = re.compile(
+    r"\b([A-Z][a-z]{1,30})\s+(?:and|&|vs\.?|versus)\s+([A-Z][a-z]{1,30})\b"
+)
+
+
+def _extract_pairwise_names(text: str) -> Optional[Tuple[str, str]]:
+    if not text:
+        return None
+    m = _PAIR_RE.search(text)
+    if not m:
+        return None
+    a, b = m.group(1), m.group(2)
+    if a in _NAME_BLOCKLIST or b in _NAME_BLOCKLIST:
+        return None
+    if a.lower() == b.lower():
+        return None
+    return a, b
+
+
+# MULTI_PERSON scope classes.  Conservative seed list; only common
+# scope phrasings are recognised.  Each pattern maps to a stable
+# `scope_class` label that downstream surfaces can route on.
+_SCOPE_PATTERNS: List[Tuple[re.Pattern, str]] = [
+    (re.compile(r"\b(?:all\s+)?my\s+(?:children|kids)\b", re.IGNORECASE),       "my_children"),
+    (re.compile(r"\b(?:all\s+)?my\s+(?:siblings|brothers|sisters)\b", re.IGNORECASE), "my_siblings"),
+    (re.compile(r"\b(?:all\s+)?my\s+parents\b", re.IGNORECASE),                 "my_parents"),
+    (re.compile(r"\b(?:all\s+)?my\s+(?:forum\s+members?|circle|family)\b", re.IGNORECASE), "my_circle"),
+    (re.compile(r"\beveryone\s+in\s+(?:the\s+|my\s+)?forum\b", re.IGNORECASE),  "my_circle"),
+    (re.compile(r"\ball\s+forum\s+members?\b", re.IGNORECASE),                  "my_circle"),
+]
+
+
+def _extract_scope_class(text: str) -> Optional[str]:
+    if not text:
+        return None
+    for rx, label in _SCOPE_PATTERNS:
+        if rx.search(text):
+            return label
+    return None
+
+
+# FORUM intent: deliberately narrow seed list (per user directive
+# "do not over-engineer FORUM detection").  Only fires for explicit
+# self-referential forum phrasings.
+_FORUM_INTENT_RE = re.compile(
+    r"\b("
+    r"this\s+forum"
+    r"|the\s+forum"
+    r"|my\s+forum"
+    r"|the\s+forum\s+(?:dynamic|energy|theme|field)"
+    r"|this\s+(?:family|circle|group)\s+(?:dynamic|energy|theme|field)"
+    r"|forum\s+as\s+a\s+whole"
+    r")\b",
+    re.IGNORECASE,
+)
+
+
+def _has_forum_intent(text: str) -> bool:
+    return bool(_FORUM_INTENT_RE.search(text or ""))
+
+
+# Ambiguity evaluator.  A pool is "ambiguous" iff 2+ candidates sit
+# within 0.10 confidence of the top.  Single-candidate pools are NEVER
+# ambiguous (per user directive: bias toward MEMBER resolution).
+def _evaluate_ambiguity(cands: List[Dict[str, Any]]) -> Dict[str, Any]:
+    if not cands or len(cands) < 2:
+        return {"ambiguous": False, "competing_count": len(cands or [])}
+    top_conf = float(cands[0].get("confidence", 0.0))
+    close = [c for c in cands if (top_conf - float(c.get("confidence", 0.0))) <= 0.10]
+    return {
+        "ambiguous":       len(close) >= 2,
+        "competing_count": len(close),
+        "top_confidence":  top_conf,
+    }
+
+
+# Name-to-candidates lookup.  Walks the viewer's saved_people and
+# forum-co-members for a name prefix-match.  Read-only.  Returns a
+# confidence-ranked list of `{user_id, name, role, confidence, source}`.
+#
+# Per G2 of slice-1: this helper does NOT bind a HIGH-CONFIDENCE target
+# on its own; it is *advisory* for the caller (which may demote to
+# AMBIGUOUS or feed into the canonical edges-first resolver).
+async def _resolve_name_to_candidates(
+    db,
+    self_user_id: str,
+    name: str,
+) -> List[Dict[str, Any]]:
+    cands: List[Dict[str, Any]] = []
+    if not name or not self_user_id:
+        return cands
+    seen: set = set()
+    name_lc = name.strip().lower()
+    name_rx_pattern = rf"^{re.escape(name)}"
+
+    # 1. saved_people — names known to the viewer.  Highest signal
+    #    because the user explicitly added them.
+    try:
+        async for sp in db.saved_people.find({
+            "user_id": self_user_id,
+            "name":    {"$regex": name_rx_pattern, "$options": "i"},
+        }):
+            uid = (
+                sp.get("linked_user_id")
+                or sp.get("emergent_user_id")
+                or (str(sp.get("_id")) if sp.get("_id") else None)
+            )
+            if not uid or uid in seen:
+                continue
+            cands.append({
+                "user_id":    uid,
+                "name":       sp.get("name") or name,
+                "role":       sp.get("relationship_type"),
+                "confidence": 0.90,
+                "source":     "saved_people",
+            })
+            seen.add(uid)
+    except Exception as e:    # pragma: no cover
+        logger.debug(f"[RelField] saved_people scan failed: {e!r}")
+
+    # 2. forum_members → users.  Viewer's forum co-members whose name
+    #    starts with the token.
+    try:
+        viewer_forum_ids: List[str] = []
+        async for fm in db.forum_members.find({
+            "user_id": self_user_id, "status": "active",
+        }):
+            fid = fm.get("forum_id")
+            if fid:
+                viewer_forum_ids.append(fid)
+        if viewer_forum_ids:
+            async for fm in db.forum_members.find({
+                "forum_id": {"$in": viewer_forum_ids},
+                "user_id":  {"$ne": self_user_id},
+            }):
+                co_uid = fm.get("user_id")
+                if not co_uid or co_uid in seen:
+                    continue
+                # Resolve the co-member's name from the users collection
+                u_doc = None
+                try:
+                    u_doc = await db.users.find_one({"_id": co_uid})
+                    if not u_doc:
+                        from bson import ObjectId
+                        try:
+                            u_doc = await db.users.find_one({"_id": ObjectId(co_uid)})
+                        except Exception:
+                            u_doc = None
+                except Exception:
+                    u_doc = None
+                if not u_doc:
+                    continue
+                u_name = (
+                    u_doc.get("name")
+                    or u_doc.get("first_name")
+                    or u_doc.get("display_name")
+                    or ""
+                )
+                if u_name and u_name.lower().startswith(name_lc):
+                    cands.append({
+                        "user_id":    co_uid,
+                        "name":       u_name,
+                        "role":       fm.get("relationship_type"),
+                        "confidence": 0.80,
+                        "source":     "forum_members",
+                    })
+                    seen.add(co_uid)
+    except Exception as e:    # pragma: no cover
+        logger.debug(f"[RelField] forum_members scan failed: {e!r}")
+
+    cands.sort(key=lambda c: float(c.get("confidence", 0.0)), reverse=True)
+    return cands
