@@ -1945,6 +1945,55 @@ async def get_forum_member_mappings(
                         closeness=_rel_ctx.get("closeness", "medium"),
                         emotional_weight=_rel_ctx.get("emotional_weight", "medium"),
                     )
+                    # ── relationship-astrology-instrumentation-v1 ───────
+                    # Diagnostic-only.  Logs the generator currently
+                    # producing the visible 'Astrological Dynamics'
+                    # card, and the inventory of objects it actually
+                    # consumed for this pair.  Does not modify behaviour.
+                    try:
+                        _planets_a = (current_chart.get("astrology") or {}).get("planets") or {}
+                        _planets_b = (member_chart.get("astrology") or {}).get("planets") or {}
+                        _consumed = {
+                            "Sun_a":   bool(_planets_a.get("Sun")),
+                            "Sun_b":   bool(_planets_b.get("Sun")),
+                            "Moon_a":  bool(_planets_a.get("Moon")),
+                            "Moon_b":  bool(_planets_b.get("Moon")),
+                            "Asc_a":   bool(_planets_a.get("Ascendant") or ((current_chart.get("astrology") or {}).get("angles") or {}).get("ascendant")),
+                            "Asc_b":   bool(_planets_b.get("Ascendant") or ((member_chart.get("astrology")  or {}).get("angles") or {}).get("ascendant")),
+                            "IC_a":    True,
+                            "IC_b":    True,
+                        }
+                        _available = {
+                            "Juno_a":          bool(_planets_a.get("Juno")),
+                            "Juno_b":          bool(_planets_b.get("Juno")),
+                            "Vertex_a":        bool(_planets_a.get("Vertex")),
+                            "Vertex_b":        bool(_planets_b.get("Vertex")),
+                            "AntiVertex_a":    bool(_planets_a.get("Anti-Vertex")),
+                            "AntiVertex_b":    bool(_planets_b.get("Anti-Vertex")),
+                            "Chiron_a":        bool(_planets_a.get("Chiron")),
+                            "Chiron_b":        bool(_planets_b.get("Chiron")),
+                            "Lilith_a":        bool(_planets_a.get("Black Moon Lilith") or _planets_a.get("True Black Moon Lilith")),
+                            "Lilith_b":        bool(_planets_b.get("Black Moon Lilith") or _planets_b.get("True Black Moon Lilith")),
+                            "Fortune_a":       bool(_planets_a.get("Lot of Fortune")),
+                            "Fortune_b":       bool(_planets_b.get("Lot of Fortune")),
+                            "Spirit_a":        bool(_planets_a.get("Lot of Spirit")),
+                            "Spirit_b":        bool(_planets_b.get("Lot of Spirit")),
+                        }
+                        logger.info(
+                            "[RelationshipAstrology] "
+                            f"generator=relationship_astrology_engine.build_relationship_astrology "
+                            f"build_marker={_RAE_MARKER} "
+                            f"pair={current_user_name}<->{member_name} "
+                            f"role={_role} "
+                            f"objects_used={[k for k,v in _consumed.items() if v]} "
+                            f"objects_NOT_consumed_but_available={[k for k,v in _available.items() if v]} "
+                            f"objects_NOT_consumed_and_NOT_on_chart={[k for k,v in _available.items() if not v]}"
+                        )
+                    except Exception as _instr_err:    # pragma: no cover
+                        logger.debug(
+                            f"[RelationshipAstrology] instrumentation skipped: "
+                            f"{type(_instr_err).__name__}: {_instr_err!r}"
+                        )
                     # ── Surface wiring v1: Astrology Relationship Re-Story V1 ──
                     # Strictly additive.  Returns None when the
                     # `ASTROLOGY_RELATIONSHIP_RESTORY_V1` flag is unset, or
