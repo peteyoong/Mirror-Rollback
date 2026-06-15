@@ -70,6 +70,46 @@ interface RelationshipCurriculum {
   };
 }
 
+// ── "Why Mirror sees this" tray helpers ──────────────────────────
+// Lightweight prettifier that turns backend proof strings into more
+// readable evidence bullets WITHOUT inventing new content.  Examples:
+//   "Descendant in Gemini → ..." → "Gemini Descendant → ..."
+//   "Sun in Gemini activates 'curiosity'" → "Sun in Gemini → activates curiosity"
+//   "Manifestor ↔ Reflector dynamic → ..." → "Manifestor ↔ Reflector → ..."
+//   "Gemini ruler (Mercury) in Pisces, house 3" → "Mercury (Gemini ruler) in Pisces, house 3"
+// If no rule matches, return the input unchanged.
+function prettifyProofLine(line: string): string {
+  if (!line) return '';
+  let out = line.trim();
+  // 1. "Descendant in X → ..." → "X Descendant → ..."
+  out = out.replace(
+    /^Descendant\s+in\s+([A-Z][a-z]+)\s*→\s*(.+)$/,
+    '$1 Descendant → $2',
+  );
+  // 2. "X ruler (Y) in Z, house N" → "Y (X ruler) in Z, house N"
+  out = out.replace(
+    /^([A-Z][a-z]+)\s+ruler\s+\(([A-Z][a-z]+)\)\s+in\s+(.+)$/,
+    '$2 ($1 ruler) in $3',
+  );
+  // 3. "P in S activates 'T'" → "P in S → activates T"
+  out = out.replace(
+    /^(.+?)\s+activates\s+'([^']+)'$/,
+    '$1 → activates $2',
+  );
+  // 4. "X ↔ Y dynamic → ..." → "X ↔ Y → ..."
+  out = out.replace(
+    /\s+dynamic\s*→\s*/,
+    ' → ',
+  );
+  // 5. "BaZi day pillars: A ↔ B" → "BaZi day-pillars: A ↔ B" (cosmetic)
+  out = out.replace(
+    /^BaZi day pillars:\s*/,
+    'BaZi day-pillars: ',
+  );
+  return out;
+}
+
+
 interface BaziDiagnostics {
   element_a?: string;
   element_b?: string;
@@ -182,6 +222,10 @@ const RelationshipInsightV2Card: React.FC<Props> = ({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [signalsExpanded, setSignalsExpanded] = useState(false);
+  // Slice — "Why Mirror sees this" tray under WHY THIS PERSON MATTERS.
+  // Default collapsed; expanded state lives next to signalsExpanded for
+  // consistency.
+  const [proofExpanded, setProofExpanded] = useState(false);
 
   const loadInsight = useCallback(async () => {
     if (!userId || !otherName) return;
@@ -391,6 +435,95 @@ const RelationshipInsightV2Card: React.FC<Props> = ({
             >
               {confidenceLabel}
             </Text>
+
+            {/* ── "Why Mirror sees this" tray ─────────────────────── */}
+            {/* Default collapsed.  Renders only proof groups with     */}
+            {/* data.  Plain-language bullets via prettifyProofLine.   */}
+            {/* Tone: evidence, not verdict.                           */}
+            {(() => {
+              const proofGroups: Array<{ label: string; items: string[] }> = [
+                { label: 'Astrology',    items: rc.proof?.astrology    || [] },
+                { label: 'Human Design', items: rc.proof?.human_design || [] },
+                { label: 'Enneagram',    items: rc.proof?.enneagram    || [] },
+                { label: 'BaZi',         items: rc.proof?.bazi         || [] },
+                { label: 'Numerology',   items: rc.proof?.numerology   || [] },
+              ].filter(g => g.items.length > 0);
+              if (proofGroups.length === 0) return null;
+              return (
+                <View style={{ marginTop: 12 }}>
+                  <TouchableOpacity
+                    style={[styles.signalsToggle, { borderColor: theme.border }]}
+                    onPress={() => setProofExpanded(!proofExpanded)}
+                    activeOpacity={0.7}
+                    accessibilityRole="button"
+                    accessibilityLabel="Why Mirror sees this"
+                  >
+                    <Text style={[styles.signalsToggleText, { color: theme.textSecondary }]}>
+                      {proofExpanded ? 'Hide why Mirror sees this' : 'Why Mirror sees this'}
+                    </Text>
+                    <Ionicons
+                      name={proofExpanded ? 'chevron-up' : 'chevron-down'}
+                      size={20}
+                      color={theme.textTertiary}
+                    />
+                  </TouchableOpacity>
+                  {proofExpanded && (
+                    <View
+                      style={[
+                        styles.signalsContainer,
+                        { backgroundColor: theme.surface, borderColor: theme.border },
+                      ]}
+                    >
+                      {proofGroups.map((group, gIdx) => (
+                        <View
+                          key={`proof-${gIdx}`}
+                          style={[styles.signalGroup, { marginBottom: 12 }]}
+                        >
+                          <Text
+                            style={[
+                              styles.signalGroupLabel,
+                              { color: theme.textTertiary, marginBottom: 6 },
+                            ]}
+                          >
+                            {group.label.toUpperCase()}
+                          </Text>
+                          {group.items.map((line, lIdx) => (
+                            <Text
+                              key={`proof-${gIdx}-${lIdx}`}
+                              style={[
+                                styles.signalTranslation,
+                                {
+                                  color: theme.textSecondary,
+                                  lineHeight: 19,
+                                  marginBottom: 4,
+                                  paddingLeft: 4,
+                                },
+                              ]}
+                            >
+                              {'• ' + prettifyProofLine(line)}
+                            </Text>
+                          ))}
+                        </View>
+                      ))}
+                      <Text
+                        style={[
+                          styles.signalTranslation,
+                          {
+                            color: theme.textTertiary,
+                            fontStyle: 'italic',
+                            fontSize: 11,
+                            marginTop: 4,
+                          },
+                        ]}
+                      >
+                        Evidence, not verdict.  These are the signals that
+                        landed in Mirror's read — not predictions about you.
+                      </Text>
+                    </View>
+                  )}
+                </View>
+              );
+            })()}
           </View>
         );
       })()}
