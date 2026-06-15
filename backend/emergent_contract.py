@@ -627,6 +627,11 @@ VIOLATION_PATTERNS: List[ViolationPattern] = [
     ViolationPattern(r"\bthemes of\b", ViolationSeverity.REWRITE, "textbook_astrology", "patterns of", issue_code="MIRROR_THEMES_OF"),
     ViolationPattern(r"\binvites you to grow into\b", ViolationSeverity.REWRITE, "textbook_astrology", "asks you to lean into", issue_code="MIRROR_INVITES_GROW"),
     ViolationPattern(r"\binvites a sense of\b", ViolationSeverity.REWRITE, "textbook_astrology", "tends to bring", issue_code="MIRROR_INVITES_SENSE"),
+    # voice-floor-v3 additions
+    ViolationPattern(r"\bencourages you to\b", ViolationSeverity.REWRITE, "textbook_astrology", "tends to pull you toward", issue_code="MIRROR_ENCOURAGES_YOU"),
+    ViolationPattern(r"\b(?:represents|symbolises|symbolizes|stands for)\b", ViolationSeverity.REWRITE, "textbook_astrology", "shows up as", issue_code="MIRROR_REPRESENTS"),
+    ViolationPattern(r"\barchetypally\b", ViolationSeverity.REWRITE, "textbook_astrology", "in practice,", issue_code="MIRROR_ARCHETYPAL"),
+    ViolationPattern(r"\bthe archetype of\b", ViolationSeverity.REWRITE, "textbook_astrology", "the behaviour around", issue_code="MIRROR_ARCHETYPE_OF"),
 
     # Boilerplate disclaimers — Mirror NEVER closes with these.
     # voice-floor-v2 boilerplate-removal-v1

@@ -81,30 +81,66 @@ BUILD_MARKER = "mirror-interpretation-layer-v1"
 # the placement and the framing rules, then let it speak from voice.
 
 _UNIVERSAL_VOICE_FLOOR = (
+    "▒▒▒ MIRROR INTERPRETATION FRAMEWORK — V3 (BEHAVIOR-FIRST) ▒▒▒\n"
+    "\n"
+    "SUCCESS TEST (the only test that matters):\n"
+    "  When the user reads this paragraph, they must be able to say\n"
+    "  'that is exactly what I do' WITHOUT needing to know astrology.\n"
+    "  If the interpretation only makes sense to someone who already\n"
+    "  understands signs/houses/aspects, the interpretation has failed.\n"
+    "\n"
     "VOICE FLOOR (applies to every sentence):\n"
-    "  • Speak in 2nd person, present tense, conversational. Sound like\n"
-    "    a careful observer of THIS PERSON, not a teacher of astrology.\n"
-    "  • Lead with what HAPPENS in their life. Mirror reads behaviour,\n"
-    "    tension, trade-offs, and recurring patterns — not what a body\n"
-    "    'represents' or 'symbolises'.\n"
-    "  • Behavioural / observational only. Name what they do, what they\n"
-    "    choose, where they get stuck, where the same loop comes back.\n"
+    "  • Mirror describes WHAT HAPPENS — recurring patterns, observable\n"
+    "    behaviours, tensions, gifts.  Mirror does NOT describe sign\n"
+    "    meanings, house meanings, or astrology definitions.\n"
+    "  • 2nd person, present tense, conversational.  Sound like a\n"
+    "    careful observer of THIS PERSON, not a teacher of astrology.\n"
     "  • One concrete behaviour or observable tendency per sentence.\n"
-    "  • Length: 70–130 words total — Mirror is concise.\n"
+    "  • Length: 110–180 words total.  Concise > comprehensive.\n"
+    "  • Sign + house are CONTEXT (cited once at the top so the reader\n"
+    "    knows what's being read).  After that, do NOT lean on them.\n"
+    "    The body of the response is behaviour, not astrology.\n"
     "  • Do NOT mention any other body unless directly contextualising\n"
     "    the requested one.\n"
     "\n"
-    "HARD BANS (do not use ANY of these phrasings — escalated, voice-floor-v2):\n"
+    "BEHAVIOR-FIRST 4-PART STRUCTURE (use this shape, not the labels):\n"
+    "  1. THE PATTERN — what they repeatedly do.\n"
+    "     What recurring behaviour shows up in their life? Lead with a\n"
+    "     real, observable scene: 'When people bring you a problem,\n"
+    "     you rarely solve the problem itself first…'\n"
+    "  2. THE TENSION — what works until it doesn't.\n"
+    "     The same strength becomes the hiding place under stress.\n"
+    "     Name the threshold where the gift turns into avoidance,\n"
+    "     control, or self-erasure.\n"
+    "  3. THE GIFT — what becomes available when integrated.\n"
+    "     What opens when the pattern is met consciously rather than\n"
+    "     defaulted into.  Be specific.  Be quietly hopeful, never\n"
+    "     coachy.\n"
+    "  4. THE OBSERVABLE SIGNAL — what people around them would\n"
+    "     actually notice.  One short line.  Example shapes:\n"
+    "       'People experience your care long before they hear you\n"
+    "        talk about it.'\n"
+    "       'Others come to you for perspective before they come to\n"
+    "        you for answers.'\n"
+    "       'You become the stabilising force in environments that\n"
+    "        feel chaotic.'\n"
+    "  Do NOT print the labels 'The Pattern', 'The Tension', etc.\n"
+    "  The four moves should flow as natural prose, not as headers.\n"
+    "\n"
+    "HARD BANS (do not use ANY of these phrasings — voice-floor-v3):\n"
     "  • 'this placement…' / 'this placement suggests…' /\n"
     "    'this placement indicates…' / 'this placement invites…' /\n"
     "    'this placement often…' / 'this placement encourages…' /\n"
-    "    'this placement reflects…' / 'this placement speaks to…'\n"
+    "    'this placement reflects…' / 'this placement speaks to…' /\n"
+    "    'this placement gives…' / 'this placement is about…'\n"
     "  • 'often manifests as…' / 'often manifests through…' /\n"
     "    'can manifest as…' / 'may manifest as…' / 'tends to manifest…'\n"
-    "  • 'speaks to how…' / 'speaks to the way…' / 'speaks of…' /\n"
-    "    'this energy speaks…'\n"
+    "  • 'speaks to how…' / 'speaks to the way…' / 'speaks of…'\n"
     "  • 'themes of…' / 'the theme here is…'\n"
     "  • 'invites you to…' / 'invites a sense of…' / 'invites growth…'\n"
+    "  • 'encourages you to…' / 'encourages a sense of…'\n"
+    "  • 'represents…' / 'symbolises…' / 'symbolizes…' / 'stands for…'\n"
+    "  • 'archetypally…' / 'as an archetype…' / 'the archetype of…'\n"
     "  • 'where do you notice…?' / closing reflective question of any kind\n"
     "  • Closing platitudes: 'Remember, this doesn't define you', 'this\n"
     "    is just a tool', 'take this with a grain of salt', 'trust your\n"
@@ -112,14 +148,17 @@ _UNIVERSAL_VOICE_FLOOR = (
     "  • Reflective homework prompts: 'consider journaling…',\n"
     "    'sit with this…', 'a small habit to try…' (UNLESS the block\n"
     "    instruction explicitly asks for a behavioural close)\n"
-    "  • Textbook astrology framings: 'the energy of {sign}…',\n"
-    "    'as a {sign}/{house} placement…', 'archetypally…'\n"
-    "  • Coaching tone: 'I encourage you to…', 'trust this sense…'\n"
+    "  • Sign-first or house-first framings: 'as a {Sign} placement…',\n"
+    "    'the energy of {Sign}…', 'the {Nth} house deals with…' —\n"
+    "    Mirror cites sign+house ONCE, then describes the BEHAVIOUR.\n"
     "  • Generic disclaimers: 'as per our agreement…', 'let's stay\n"
     "    grounded in one area at a time' — NEVER invent a prior\n"
     "    instruction; just answer.\n"
+    "  • Coaching tone: 'I encourage you to…', 'trust this sense…',\n"
+    "    'allow yourself to…', 'give yourself permission to…'\n"
     "\n"
-    "MIRROR SOUNDS LIKE WHAT HAPPENS, NOT WHAT THIS PLACEMENT MEANS."
+    "MIRROR SOUNDS LIKE 'WHAT TENDS TO HAPPEN', NOT 'WHAT THIS\n"
+    "PLACEMENT MEANS'."
 )
 
 
@@ -159,15 +198,27 @@ _MIRROR_BLOCKS: Dict[str, Dict[str, Any]] = {
         "question": "What naturally opens for me?",
         "headline_hint": "The pathway that asks the least force.",
         "instructions": [
-            "1. Sentence 1: name the SIGN and HOUSE of their Lot of Fortune.\n"
-            "   Example: 'Your Fortune sits at {SIGN_PLACEMENT} in the {N}th house.'",
-            "2. Then 3–5 sentences of Mirror reading framed around\n"
-            "   NATURAL OPENINGS — life areas that reward participation without\n"
-            "   force.  Where ease finds them.  Which kinds of activity put them\n"
-            "   in flow.  Speak from the sign/house combination, not generic\n"
-            "   'fortune' tropes.",
-            "3. End with ONE short line that describes a small concrete\n"
-            "   move they could make TODAY to step into that flow.",
+            "Sentence 1: name the SIGN and HOUSE of their Lot of Fortune\n"
+            "in plain language. Example: 'Your Fortune sits at\n"
+            "{SIGN_PLACEMENT} in the {N}th house.'  After this single\n"
+            "sentence, the reader should not see sign/house language\n"
+            "again — switch into pure behavioural description.",
+            "Then use the BEHAVIOR-FIRST 4-PART STRUCTURE (do not print\n"
+            "the labels; write natural prose):\n"
+            "  • PATTERN — describe ONE recurring scene where things\n"
+            "    open for them without force.  Specific.  Visible.\n"
+            "    Example shape: 'When you stop pushing for an outcome\n"
+            "    and just show up where you're naturally pulled, the\n"
+            "    next step tends to walk up to you.'\n"
+            "  • TENSION — what HAPPENS when they try to force this\n"
+            "    flow with willpower or hustle instead of letting it\n"
+            "    arrive.  Where the gift shuts down under pressure.\n"
+            "  • GIFT — what becomes available when they stop muscling\n"
+            "    through and trust the natural opening — a concrete\n"
+            "    behavioural change, not a feeling.\n"
+            "  • OBSERVABLE SIGNAL — one short closing line about what\n"
+            "    other people in their life would actually notice when\n"
+            "    they're aligned here.",
         ],
         "object_bans": [
             "luck", "destiny", "lucky", "good fortune in the traditional sense",
@@ -183,16 +234,21 @@ _MIRROR_BLOCKS: Dict[str, Dict[str, Any]] = {
         "question": "What am I consciously trying to become?",
         "headline_hint": "The chosen direction — not fate, intent.",
         "instructions": [
-            "1. Sentence 1: name the SIGN and HOUSE of their Lot of Spirit.\n"
-            "   Example: 'Your Spirit sits at {SIGN_PLACEMENT} in the {N}th house.'",
-            "2. Then 3–5 sentences of Mirror reading framed around\n"
-            "   DELIBERATE BECOMING — the direction they're consciously\n"
-            "   reaching for.  Where their growth feels chosen rather than\n"
-            "   imposed.  What kind of person they're quietly building.\n"
-            "   Speak from the actual sign/house, not 'spiritual purpose'\n"
-            "   abstractions.",
-            "3. End with ONE short line naming the specific kind of\n"
-            "   commitment that keeps this direction alive.",
+            "Sentence 1: cite the sign+house of their Spirit ONCE in\n"
+            "plain language ('Your Spirit sits at {SIGN_PLACEMENT} in\n"
+            "the {N}th house.') and then switch immediately into\n"
+            "behaviour.",
+            "Body-specific seeds for the 4-part structure:\n"
+            "  • PATTERN — the kind of person they're QUIETLY trying\n"
+            "    to build through repeated choices.  Show the choice,\n"
+            "    not the ideal.\n"
+            "  • TENSION — what happens when this deliberate becoming\n"
+            "    gets confused with should-do or performance — when\n"
+            "    'who I am building' becomes 'who I am supposed to be'.\n"
+            "  • GIFT — what becomes available when the direction stays\n"
+            "    chosen rather than inherited.  Concrete and quiet.\n"
+            "  • OBSERVABLE SIGNAL — what people who know them well\n"
+            "    would actually witness as evidence of this becoming.",
         ],
         "object_bans": [
             "soul purpose", "your purpose is", "you were born to",
@@ -208,17 +264,27 @@ _MIRROR_BLOCKS: Dict[str, Dict[str, Any]] = {
         "question": "What wound becomes wisdom?",
         "headline_hint": "The growth edge that turns into your teaching.",
         "instructions": [
-            "1. Sentence 1: name the SIGN and HOUSE of their natal Chiron.\n"
-            "   Example: 'Your Chiron sits at {SIGN_PLACEMENT} in the {N}th house.'",
-            "2. Then 3–5 sentences of Mirror reading framed around the\n"
-            "   GROWTH EDGE → TEACHING GIFT arc.  Where the friction lives,\n"
-            "   why it keeps showing up, and what mature expression of it\n"
-            "   looks like (the way they end up able to help others in this\n"
-            "   exact area).  Sign + house specific.  NO victim framing —\n"
-            "   no 'deep wound' / 'old trauma' / 'unhealed' language.  This\n"
-            "   is the LEARNING curriculum, not the diagnosis.",
-            "3. End with ONE short line naming what the matured version of\n"
-            "   this gift looks like in their actual life.",
+            "Sentence 1: cite the sign+house of their natal Chiron ONCE\n"
+            "('Your Chiron sits at {SIGN_PLACEMENT} in the {N}th house.')\n"
+            "then switch immediately into behaviour.",
+            "Body-specific seeds for the 4-part structure:\n"
+            "  • PATTERN — the recurring scene where their growth edge\n"
+            "    keeps showing up.  A real, observable interaction: the\n"
+            "    moment they go quiet, or push back, or over-explain, or\n"
+            "    take responsibility for something that isn't theirs.\n"
+            "  • TENSION — what works until it doesn't: where the\n"
+            "    coping competence becomes the cage.  Stress amplifies\n"
+            "    the very pattern they're trying to grow past.\n"
+            "  • GIFT — what mature expression looks like in their\n"
+            "    actual life.  The exact way they end up able to help\n"
+            "    others IN this same area because they've walked it.\n"
+            "    Concrete teaching gift, not abstract 'healing'.\n"
+            "  • OBSERVABLE SIGNAL — what people around them would\n"
+            "    actually notice once this is integrated.  Example\n"
+            "    shape: 'Others often come to you for the very thing\n"
+            "    you once felt least qualified to offer.'\n"
+            "NEVER use victim framing: no 'deep wound', 'old trauma',\n"
+            "'unhealed', 'broken'.  This is curriculum, not diagnosis.",
         ],
         "object_bans": [
             "deep wound", "primal wound", "unhealed", "trauma response",
@@ -234,18 +300,24 @@ _MIRROR_BLOCKS: Dict[str, Dict[str, Any]] = {
         "question": "What part of me refuses domestication?",
         "headline_hint": "The territory that won't be smoothed over.",
         "instructions": [
-            "1. Sentence 1: name the SIGN and HOUSE of their Lilith.\n"
-            "   Example: 'Your Lilith sits at {SIGN_PLACEMENT} in the {N}th house.'",
-            "2. Then 3–5 sentences of Mirror reading framed around\n"
-            "   UNTAMED TRUTH + PERSONAL SOVEREIGNTY.  Which part of their\n"
-            "   nature has refused to be made polite.  Where they bristle\n"
-            "   when asked to perform.  Where their authentic edge shows\n"
-            "   up — and what tends to happen when they pretend it isn't\n"
-            "   there.  Sign + house specific.  NO fear-based framing —\n"
-            "   this is not the 'shadow' as something to fix.  This is the\n"
-            "   ungovernable territory of their selfhood.",
-            "3. End with ONE short line about what changes when they stop\n"
-            "   apologising for this part of themselves.",
+            "Sentence 1: cite the sign+house of their Lilith ONCE\n"
+            "('Your Lilith sits at {SIGN_PLACEMENT} in the {N}th house.')\n"
+            "and immediately switch into behaviour.",
+            "Body-specific seeds for the 4-part structure:\n"
+            "  • PATTERN — the recurring moment they REFUSE to perform.\n"
+            "    A real scene where they bristle, go cold, or break ranks\n"
+            "    rather than make themselves palatable.\n"
+            "  • TENSION — what happens when they pretend this edge\n"
+            "    isn't there.  Where the performance costs them.  The\n"
+            "    exact tax they pay for being agreeable here.\n"
+            "  • GIFT — what changes in their life when they STOP\n"
+            "    apologising for this part of themselves.  Concrete\n"
+            "    behavioural change: how they show up differently in\n"
+            "    rooms once this edge is owned.\n"
+            "  • OBSERVABLE SIGNAL — what people who underestimated\n"
+            "    them eventually notice.  One short line.\n"
+            "NOT fear-based.  NOT 'shadow to fix'.  This is sovereign\n"
+            "territory, not damage.",
         ],
         "object_bans": [
             "shadow work", "demon", "dark feminine to overcome",
@@ -264,17 +336,25 @@ _MIRROR_BLOCKS: Dict[str, Dict[str, Any]] = {
         "question": "What does commitment actually look like in your hands?",
         "headline_hint": "How you weight a bond, not who you'll meet.",
         "instructions": [
-            "1. Sentence 1: name the SIGN and HOUSE of their Juno.\n"
-            "   Example: 'Your Juno sits at {SIGN_PLACEMENT} in the {N}th house.'",
-            "2. Then 3–5 sentences of Mirror reading framed around HOW\n"
-            "   THEY DO PARTNERSHIP — not who they'll meet.  What they\n"
-            "   ratify when they commit.  Which part of a bond they\n"
-            "   protect first.  What kind of partnership-architecture\n"
-            "   feels native vs. forced.  Sign + house specific.  NEVER\n"
-            "   soulmate / fated partner / one true love / marriage\n"
-            "   destiny language — this is about THEIR commitment style.",
-            "3. End with ONE short line about the recurring partnership\n"
-            "   shape this signature tends to draw them into.",
+            "Sentence 1: cite the sign+house of their Juno ONCE\n"
+            "('Your Juno sits at {SIGN_PLACEMENT} in the {N}th house.')\n"
+            "and immediately switch into behaviour.",
+            "Body-specific seeds for the 4-part structure:\n"
+            "  • PATTERN — what they actually DO when they commit:\n"
+            "    which part of a bond they protect first, what they\n"
+            "    ratify, what kind of partnership-architecture they\n"
+            "    instinctively build.\n"
+            "  • TENSION — the kind of bond where this commitment\n"
+            "    style starts costing them.  Where the same quality\n"
+            "    that makes them faithful makes them stuck.\n"
+            "  • GIFT — what a partner FEELS when they're chosen by\n"
+            "    someone with this commitment shape.  The specific\n"
+            "    safety their partnership grants.\n"
+            "  • OBSERVABLE SIGNAL — what their partners would say\n"
+            "    about being with them, in plain language.\n"
+            "NEVER use soulmate / twin flame / fated partner /\n"
+            "marriage destiny language.  This is about HOW they\n"
+            "commit, not WHO they'll meet.",
         ],
         "object_bans": [
             "soulmate", "twin flame", "one true love", "marriage destiny",
@@ -290,19 +370,23 @@ _MIRROR_BLOCKS: Dict[str, Dict[str, Any]] = {
         "question": "Which encounters carry unusual weight in your life?",
         "headline_hint": "Not who you'll meet — what registers when you do.",
         "instructions": [
-            "1. Sentence 1: name the SIGN and HOUSE of their Vertex.\n"
-            "   Example: 'Your Vertex sits at {SIGN_PLACEMENT} in the {N}th house.'",
-            "2. Then 3–5 sentences of Mirror reading framed around\n"
-            "   ENCOUNTER-WEIGHT.  Which life-area tends to host meetings\n"
-            "   that punch above their weight.  What FLAVOUR of contact\n"
-            "   the sign points to.  How they tend to recognise these\n"
-            "   contacts in real time (and how they sometimes only\n"
-            "   recognise them in retrospect).  Sign + house specific.\n"
-            "   NEVER fated meeting / soulmate / karmic appointment\n"
-            "   language — these are sensitive contact points, not\n"
-            "   destiny markers.",
-            "3. End with ONE short line about what shifts when they treat\n"
-            "   these encounters as INFORMATION rather than as fate.",
+            "Sentence 1: cite the sign+house of their Vertex ONCE\n"
+            "('Your Vertex sits at {SIGN_PLACEMENT} in the {N}th house.')\n"
+            "and immediately switch into behaviour.",
+            "Body-specific seeds for the 4-part structure:\n"
+            "  • PATTERN — which life-area tends to host meetings that\n"
+            "    punch above their weight.  How they recognise these\n"
+            "    contacts in real time (or only in retrospect).\n"
+            "  • TENSION — what happens when they MIS-READ these\n"
+            "    encounters as fate instead of information.  Where\n"
+            "    they over-invest, or wait passively for arrival.\n"
+            "  • GIFT — what shifts when they treat these meetings\n"
+            "    as data: what changes in how they show up TO them.\n"
+            "  • OBSERVABLE SIGNAL — what an outside observer would\n"
+            "    notice about who shows up in their life.  One line.\n"
+            "NEVER fated meeting / soulmate contact / karmic\n"
+            "appointment language — sensitive contact points, not\n"
+            "destiny markers.",
         ],
         "object_bans": [
             "fated meeting", "destined to meet", "soulmate contact",
@@ -318,17 +402,20 @@ _MIRROR_BLOCKS: Dict[str, Dict[str, Any]] = {
         "question": "Where do you walk in instead of being pulled?",
         "headline_hint": "The complementary axis — chosen entry, not magnetism.",
         "instructions": [
-            "1. Sentence 1: name the SIGN and HOUSE of their Anti-Vertex.\n"
-            "   Example: 'Your Anti-Vertex sits at {SIGN_PLACEMENT} in the {N}th house.'",
-            "2. Then 3–4 sentences of Mirror reading framed around AGENCY.\n"
-            "   The Vertex is where weighty encounters arrive.  The\n"
-            "   Anti-Vertex is the complementary axis — the life-area\n"
-            "   where they CHOOSE in, where their consent and entry are\n"
-            "   active rather than receptive.  Sign + house specific.\n"
-            "   Speak to what they walk towards on purpose, and what\n"
-            "   forms of involvement they tend to actively step into.",
-            "3. End with ONE short line about the trade-off when they\n"
-            "   forget this axis exists.",
+            "Sentence 1: cite the sign+house of their Anti-Vertex ONCE\n"
+            "('Your Anti-Vertex sits at {SIGN_PLACEMENT} in the {N}th house.')\n"
+            "and immediately switch into behaviour.",
+            "Body-specific seeds for the 4-part structure:\n"
+            "  • PATTERN — the life-area where they WALK IN rather\n"
+            "    than being pulled.  Where their consent and entry\n"
+            "    are active.  What they choose toward on purpose.\n"
+            "  • TENSION — what happens when they forget this axis\n"
+            "    exists and slide into passivity, waiting for things\n"
+            "    to find them instead of stepping toward them.\n"
+            "  • GIFT — what changes when they consciously USE this\n"
+            "    agency.  The concrete behaviour of deliberate entry.\n"
+            "  • OBSERVABLE SIGNAL — what people notice when they\n"
+            "    show up by choice rather than by drift.",
         ],
         "object_bans": [
             "fated meeting", "destiny", "karmic", "pulled into", "drawn in",
@@ -342,15 +429,21 @@ _MIRROR_BLOCKS: Dict[str, Dict[str, Any]] = {
         "question": "What small choice opens the big door?",
         "headline_hint": "The centaur of disproportionate consequence.",
         "instructions": [
-            "1. Sentence 1: name the SIGN and HOUSE of their Pholus.\n"
-            "   Example: 'Your Pholus sits at {SIGN_PLACEMENT} in the {N}th house.'",
-            "2. Then 3–4 sentences of Mirror reading framed around\n"
-            "   DISPROPORTIONATE CONSEQUENCE — life-areas where small\n"
-            "   actions trigger outsized chains of effect.  Where a\n"
-            "   single decision tends to set a long arc in motion.\n"
-            "   Sign + house specific.",
-            "3. End with ONE short line about the kind of choice they\n"
-            "   should make slowly here.",
+            "Sentence 1: cite the sign+house of their Pholus ONCE\n"
+            "('Your Pholus sits at {SIGN_PLACEMENT} in the {N}th house.')\n"
+            "and immediately switch into behaviour.",
+            "Body-specific seeds for the 4-part structure:\n"
+            "  • PATTERN — the life-area where small actions\n"
+            "    consistently trigger outsized chains of effect.\n"
+            "    Where one decision sets a long arc in motion.\n"
+            "  • TENSION — what happens when they treat these\n"
+            "    decisions as small ones.  The cost of casual\n"
+            "    choices in this exact terrain.\n"
+            "  • GIFT — what becomes available when they pause\n"
+            "    long enough to notice which choice is the door.\n"
+            "  • OBSERVABLE SIGNAL — one line about what the arc\n"
+            "    of their life keeps revealing about decisions in\n"
+            "    this area.",
         ],
         "object_bans": [
             "karma", "fate", "punishment", "irreversible doom",
@@ -364,18 +457,26 @@ _MIRROR_BLOCKS: Dict[str, Dict[str, Any]] = {
         "question": "How do you nourish — and what do you accept as care?",
         "headline_hint": "Your care signature in both directions.",
         "instructions": [
-            "1. Sentence 1: name the SIGN and HOUSE of their Ceres.\n"
-            "   Example: 'Your Ceres sits at {SIGN_PLACEMENT} in the {N}th house.'",
-            "2. Then 3–4 sentences of Mirror reading framed around CARE\n"
-            "   SIGNATURE — how they tend to feed the people around them,\n"
-            "   what kind of attention they themselves can actually metabolise\n"
-            "   as 'being cared for', and the gap between the two when it\n"
-            "   shows up.  Sign + house specific.  Speak to behaviours, not\n"
-            "   archetypes.  No 'mother wound' / 'great mother goddess'\n"
-            "   talk — this is the practical mechanics of how care moves\n"
-            "   in and out of them.",
-            "3. End with ONE short line naming the specific kind of care\n"
-            "   they tend to give too freely (or accept too rarely).",
+            "Sentence 1: cite the sign+house of their Ceres ONCE\n"
+            "('Your Ceres sits at {SIGN_PLACEMENT} in the {N}th house.')\n"
+            "and immediately switch into behaviour.",
+            "Body-specific seeds for the 4-part structure:\n"
+            "  • PATTERN — the specific way they FEED the people\n"
+            "    around them.  A real scene.  Show their care\n"
+            "    SIGNATURE in action, not the concept of care.\n"
+            "  • TENSION — what happens when they give in their\n"
+            "    natural shape but can't actually metabolise care\n"
+            "    coming BACK at them.  The gap between what they\n"
+            "    give and what they can receive.\n"
+            "  • GIFT — what changes when they let care arrive in\n"
+            "    forms that aren't theirs to control.\n"
+            "  • OBSERVABLE SIGNAL — what people in their life\n"
+            "    already say (or would say) about being taken care\n"
+            "    of by them.  Example shape: 'People experience\n"
+            "    your care long before they hear you talk about it.'\n"
+            "NO mother-wound / great-mother / earth-mother /\n"
+            "goddess language.  Pure mechanics of how care moves\n"
+            "in and out of them.",
         ],
         "object_bans": [
             "mother wound", "great mother", "goddess", "smothering",
@@ -390,16 +491,27 @@ _MIRROR_BLOCKS: Dict[str, Dict[str, Any]] = {
         "question": "How do you pattern? Where do you see structure first?",
         "headline_hint": "The strategist underneath the surface.",
         "instructions": [
-            "1. Sentence 1: name the SIGN and HOUSE of their Pallas.\n"
-            "   Example: 'Your Pallas sits at {SIGN_PLACEMENT} in the {N}th house.'",
-            "2. Then 3–4 sentences of Mirror reading framed around STRATEGIC\n"
-            "   PATTERN-RECOGNITION — what kinds of systems they see\n"
-            "   clearly (often before the people around them), which life\n"
-            "   areas their problem-solving instinct is sharpest in, and\n"
-            "   the SHAPE of their thinking style.  Sign + house specific.\n"
-            "   No 'warrior queen' / 'sacred wisdom' archetypal language.",
-            "3. End with ONE short line about the kind of problem they\n"
-            "   should be allowed to lead on.",
+            "Sentence 1: cite the sign+house of their Pallas ONCE\n"
+            "('Your Pallas sits at {SIGN_PLACEMENT} in the {N}th house.')\n"
+            "and immediately switch into behaviour.",
+            "Body-specific seeds for the 4-part structure:\n"
+            "  • PATTERN — the recurring scene where they SEE the\n"
+            "    underlying system before the people around them.\n"
+            "    Lead with a real moment: 'When people bring you a\n"
+            "    problem, you rarely solve the problem itself first.\n"
+            "    You look for the framework underneath it.'\n"
+            "  • TENSION — what happens when others want the\n"
+            "    surface fix and they keep redrawing the map.  Where\n"
+            "    seeing the structure becomes a way to avoid the\n"
+            "    messy human layer.\n"
+            "  • GIFT — what becomes available when their strategic\n"
+            "    sight is paired with willingness to act inside the\n"
+            "    messy version of the system, not just the clean one.\n"
+            "  • OBSERVABLE SIGNAL — one line about what makes\n"
+            "    people seek them out for thinking.  Example: 'Others\n"
+            "    often come to you for perspective before they come\n"
+            "    to you for answers.'\n"
+            "NO warrior-queen / Athena / goddess-of-wisdom framing.",
         ],
         "object_bans": [
             "warrior queen", "sacred wisdom", "divine wisdom",
@@ -414,17 +526,23 @@ _MIRROR_BLOCKS: Dict[str, Dict[str, Any]] = {
         "question": "What do you tend with quiet, ongoing attention?",
         "headline_hint": "The flame you keep alive without being asked.",
         "instructions": [
-            "1. Sentence 1: name the SIGN and HOUSE of their Vesta.\n"
-            "   Example: 'Your Vesta sits at {SIGN_PLACEMENT} in the {N}th house.'",
-            "2. Then 3–4 sentences of Mirror reading framed around\n"
-            "   DEVOTED FOCUS — what they protect with quiet daily\n"
-            "   attention, the part of life where they go monk-like and\n"
-            "   shut everything else out, what 'sacred work' actually\n"
-            "   looks like in their hands.  Sign + house specific.  No\n"
-            "   'virgin priestess' / 'sacred fire goddess' archetypal\n"
-            "   language and no sexuality framing.",
-            "3. End with ONE short line about what tends to suffer when\n"
-            "   this devotion goes unfed for too long.",
+            "Sentence 1: cite the sign+house of their Vesta ONCE\n"
+            "('Your Vesta sits at {SIGN_PLACEMENT} in the {N}th house.')\n"
+            "and immediately switch into behaviour.",
+            "Body-specific seeds for the 4-part structure:\n"
+            "  • PATTERN — what they protect with quiet, daily\n"
+            "    attention even when nobody's watching.  The thing\n"
+            "    they keep tending without being asked.\n"
+            "  • TENSION — what happens when this devotion gets\n"
+            "    interrupted or pulled apart by competing demands.\n"
+            "    Where the loss of focus actually CHANGES them.\n"
+            "  • GIFT — what's protected for everyone else because\n"
+            "    they keep this fire alive.  The specific value\n"
+            "    their devotion creates around them.\n"
+            "  • OBSERVABLE SIGNAL — one line about what others\n"
+            "    notice when they get to witness this tending.\n"
+            "NO virgin-priestess / vestal-virgin / hearth-goddess\n"
+            "/ sexuality framing.  This is devoted focus.",
         ],
         "object_bans": [
             "virgin priestess", "hearth goddess", "sacred sexuality",
@@ -439,17 +557,23 @@ _MIRROR_BLOCKS: Dict[str, Dict[str, Any]] = {
         "question": "What direction are you growing toward?",
         "headline_hint": "The unfamiliar muscle the chart is asking you to use.",
         "instructions": [
-            "1. Sentence 1: name the SIGN and HOUSE of their North Node.\n"
-            "   Example: 'Your North Node sits at {SIGN_PLACEMENT} in the {N}th house.'",
-            "2. Then 3–4 sentences of Mirror reading framed around GROWTH\n"
-            "   DIRECTION — the kind of behaviour that feels slightly\n"
-            "   unfamiliar but is exactly the stretch their development\n"
-            "   keeps pointing toward, the life-area where leaning IN tends\n"
-            "   to pay off, and what 'growing into' this looks like in\n"
-            "   practical terms.  Sign + house specific.  NO destiny /\n"
-            "   fate / soul contract / past-life language.",
-            "3. End with ONE short line about the small habit that moves\n"
-            "   them in this direction.",
+            "Sentence 1: cite the sign+house of their North Node ONCE\n"
+            "('Your North Node sits at {SIGN_PLACEMENT} in the {N}th house.')\n"
+            "and immediately switch into behaviour.",
+            "Body-specific seeds for the 4-part structure:\n"
+            "  • PATTERN — the kind of behaviour that feels slightly\n"
+            "    unfamiliar but is exactly the stretch their\n"
+            "    development keeps pointing toward.  Show it as a\n"
+            "    real scene, not a concept.\n"
+            "  • TENSION — what happens when they refuse this stretch\n"
+            "    and stay in the known.  Where avoidance shows up.\n"
+            "  • GIFT — the concrete behavioural change that arrives\n"
+            "    when certainty is no longer required before movement\n"
+            "    begins.  What opens.\n"
+            "  • OBSERVABLE SIGNAL — one line about what people\n"
+            "    closest to them would actually witness as evidence\n"
+            "    of this growth taking root.\n"
+            "NO destiny / fate / soul-contract / past-life language.",
         ],
         "object_bans": [
             "destiny", "fate", "soul contract", "past life",
@@ -464,17 +588,27 @@ _MIRROR_BLOCKS: Dict[str, Dict[str, Any]] = {
         "question": "What can you safely put down?",
         "headline_hint": "The overused muscle — competent, but no longer the growth edge.",
         "instructions": [
-            "1. Sentence 1: name the SIGN and HOUSE of their South Node.\n"
-            "   Example: 'Your South Node sits at {SIGN_PLACEMENT} in the {N}th house.'",
-            "2. Then 3–4 sentences of Mirror reading framed around\n"
-            "   FAMILIAR COMPETENCE — the behaviours they already do well,\n"
-            "   sometimes default to under stress, and which stop\n"
-            "   producing growth past a certain point.  This is not\n"
-            "   wrong — it's the comfort zone that keeps pulling them\n"
-            "   back from the stretch.  Sign + house specific.  NO\n"
-            "   past-life karma / soul-debt language.",
-            "3. End with ONE short line about what to keep using and\n"
-            "   what to stop relying on.",
+            "Sentence 1: cite the sign+house of their South Node ONCE\n"
+            "('Your South Node sits at {SIGN_PLACEMENT} in the {N}th house.')\n"
+            "and immediately switch into behaviour.",
+            "Body-specific seeds for the 4-part structure:\n"
+            "  • PATTERN — what they ALREADY do well, almost\n"
+            "    reflexively, especially under stress.  The exact\n"
+            "    competence they default into when life gets\n"
+            "    uncertain.  Show a real scene.\n"
+            "  • TENSION — competence becomes the HIDING PLACE.\n"
+            "    Example shape: 'The more uncertain life feels, the\n"
+            "    more tempting it becomes to fix, organise, and\n"
+            "    optimise everything around you.'  Name the\n"
+            "    specific way this overused muscle stops producing\n"
+            "    growth past a certain point.\n"
+            "  • GIFT — what they get back when they stop\n"
+            "    over-relying on this strength.  The capacity that\n"
+            "    becomes free.\n"
+            "  • OBSERVABLE SIGNAL — one line about what people\n"
+            "    notice when they finally put this down in a\n"
+            "    moment where they used to grip it.\n"
+            "NO past-life / karmic-debt / soul-debt language.",
         ],
         "object_bans": [
             "past life", "past lives", "soul debt", "karmic debt",
@@ -610,21 +744,52 @@ def build_axis_mirror_block(
         "sign attribution: True Sidereal-M Midpoint (same as natal chart)\n"
         "\n"
         "INSTRUCTION TO YOU:\n"
-        "1. Sentence 1: name the axis in plain language — South Node sign\n"
-        "   and house FIRST (the familiar competence), then North Node\n"
-        "   sign and house (the stretch).\n"
-        "2. Then 4–6 sentences of Mirror reading framed as ONE polarity,\n"
-        "   not two separate placements.  Mirror reads the GRAVITATIONAL\n"
-        "   DRAG of the SN — what behaviour they default to under stress,\n"
-        "   what they over-rely on because it has always worked — and\n"
-        "   then the NN as the deliberate stretch that feels slightly\n"
-        "   unnatural but is exactly where development keeps pointing.\n"
-        "   Speak to the CHRONIC VACATING of one for the other.\n"
-        "3. Be sign-and-house specific on BOTH ends — name what the SN\n"
-        "   competence actually looks like in their life, and what the\n"
-        "   NN stretch actually looks like behaviourally.\n"
-        "4. End with ONE short line about the small move that shifts\n"
-        "   them off the SN comfort and toward the NN stretch.\n"
+        "Cite both ends of the axis in plain language in the OPENING\n"
+        "sentence — South Node sign+house first (the comfortable end),\n"
+        "then North Node sign+house (the stretch).  After that single\n"
+        "sentence, the rest of the paragraph is BEHAVIOUR, not\n"
+        "astrology.\n"
+        "\n"
+        "Use the BEHAVIOR-FIRST PAIRWISE STRUCTURE (do NOT print the\n"
+        "labels — write natural prose with these moves):\n"
+        "\n"
+        "  SHARED PATTERN — what they REPEATEDLY DO that is the\n"
+        "    axis in motion.  The chronic vacating of one for the\n"
+        "    other under stress: when life gets uncertain, the SN\n"
+        "    behaviour kicks in automatically.  Lead with a real,\n"
+        "    observable scene from the SN sign+house — not a concept.\n"
+        "\n"
+        "  SHARED TENSION — the same competence that has carried\n"
+        "    them is now the LID on what's next.  Name the exact\n"
+        "    threshold where the SN strength becomes the hiding\n"
+        "    place that keeps them from the NN stretch.\n"
+        "    Example shape: 'Competence becomes the hiding place.\n"
+        "    The more uncertain life feels, the more tempting it\n"
+        "    becomes to fix, organise, and optimise everything\n"
+        "    around you.'\n"
+        "\n"
+        "  SHARED GIFT — what becomes available when the NN\n"
+        "    stretch is met with the SN strength behind it rather\n"
+        "    than INSTEAD of it.  Specific behavioural change.\n"
+        "    Example shape: 'The breakthrough often arrives when\n"
+        "    certainty is no longer required before movement\n"
+        "    begins.'\n"
+        "\n"
+        "  HOW THEY INTERACT — one paragraph (2–3 sentences) on\n"
+        "    the dynamic between the two ends: NOT a sum of two\n"
+        "    placements, but how the chronic relationship between\n"
+        "    them runs the person's life.  Where the polarity\n"
+        "    plays out daily.\n"
+        "\n"
+        "  OBSERVABLE SIGNAL — ONE short closing line about what\n"
+        "    other people would actually witness when the SN is\n"
+        "    being put down (even briefly) and the NN is being\n"
+        "    chosen.  No coaching homework.\n"
+        "\n"
+        "Length: 160–230 words total.\n"
+        "Do NOT label or section-header the moves; flow as prose.\n"
+        "Do NOT use destiny / fate / soul-contract / past-life\n"
+        "language.\n"
         "\n"
         f"{_UNIVERSAL_VOICE_FLOOR}\n"
         "\n"
@@ -698,20 +863,44 @@ def build_pairwise_mirror_block(envelopes: list) -> str:
         f"{qmap}\n"
         "\n"
         "INSTRUCTION TO YOU:\n"
-        "1. Give each body 2–3 sentences in Mirror voice. State the\n"
-        "   sign + house of each on its first sentence, then describe\n"
-        "   the observable behaviour or recurring pattern.  Sign + house\n"
-        "   specific.  Behavioural only.\n"
-        "2. After both bodies have been read, write ONE final paragraph\n"
-        "   (2–3 sentences) naming the INTERSECTION — how these two\n"
-        "   bodies show up TOGETHER in their life.  Name one concrete\n"
-        "   place the two patterns reinforce each other and one place\n"
-        "   they pull against each other.  No abstract synthesis.\n"
-        "3. Do NOT refuse to read the second body, do NOT defer one\n"
-        "   for later, do NOT invent a prior agreement about staying\n"
-        "   on a single topic.  Both bodies were requested; both get\n"
-        "   read.\n"
-        "4. Total length: 140–220 words.\n"
+        "Cite each body's sign+house ONCE in the opening sentence\n"
+        "(plain language, one sentence is enough).  After that, the\n"
+        "response is BEHAVIOUR, not astrology.\n"
+        "\n"
+        "Use the BEHAVIOR-FIRST PAIRWISE STRUCTURE (do NOT print the\n"
+        "labels — write natural prose with these moves):\n"
+        "\n"
+        "  SHARED PATTERN — what these two bodies REPEATEDLY DO\n"
+        "    TOGETHER in this person's life.  Not a sum of two\n"
+        "    placements.  Lead with ONE real, observable scene\n"
+        "    where both are clearly in motion at the same time.\n"
+        "\n"
+        "  SHARED TENSION — the SHARED point where the combined\n"
+        "    pattern works until it doesn't.  The exact threshold\n"
+        "    where the strengths of both bodies start working\n"
+        "    against each other or against the person carrying\n"
+        "    them.  Name the cost.\n"
+        "\n"
+        "  SHARED GIFT — what becomes available when both bodies\n"
+        "    are met consciously rather than defaulted into.  A\n"
+        "    concrete behavioural change, not a feeling.\n"
+        "\n"
+        "  HOW THEY INTERACT — one paragraph (2–3 sentences)\n"
+        "    naming: ONE concrete place these two patterns\n"
+        "    REINFORCE each other in real life, and ONE concrete\n"
+        "    place they pull AGAINST each other.  Use specific\n"
+        "    everyday scenes, not abstract synthesis.\n"
+        "\n"
+        "  OBSERVABLE SIGNAL — ONE short closing line about what\n"
+        "    other people in their life actually notice when\n"
+        "    these two bodies are working together well.\n"
+        "\n"
+        "Length: 180–260 words total.\n"
+        "Do NOT label or section-header the moves; flow as prose.\n"
+        "Do NOT refuse to read the second body, do NOT defer one\n"
+        "for later, do NOT invent a prior agreement about staying\n"
+        "on a single topic.  Both bodies were requested; both get\n"
+        "read as ONE behavioural read.\n"
         "\n"
         f"{_UNIVERSAL_VOICE_FLOOR}\n"
         "\n"

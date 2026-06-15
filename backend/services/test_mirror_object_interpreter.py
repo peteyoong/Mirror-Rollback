@@ -128,9 +128,15 @@ def test_spirit_block_bans_purpose_cliches():
 def test_true_lilith_aliases_to_lilith_block():
     block_bml = build_mirror_object_proof_block(_make_envelope("Black Moon Lilith"))
     block_tru = build_mirror_object_proof_block(_make_envelope("True Black Moon Lilith"))
-    # Same instruction set (just the object label differs in the header)
-    assert "untamed truth" in block_bml.lower()
-    assert "untamed truth" in block_tru.lower()
+    # Same instruction set (just the object label differs in the header).
+    # Stable Lilith-block markers (voice-floor-v3): Mirror question +
+    # "stop apologising" closing seed.
+    for marker in ("refuses domestication",):
+        assert marker.lower() in block_bml.lower()
+        assert marker.lower() in block_tru.lower()
+    # And both must contain the per-object ban list signature (Lilith-specific).
+    assert "shadow work" in block_bml.lower()
+    assert "shadow work" in block_tru.lower()
 
 
 # ----------------------------------------------------------------------
@@ -315,3 +321,70 @@ def test_display_degree_missing_degree_falls_back_to_sign_only():
     # No raw '?°' or numeric junk; sign alone is acceptable
     assert "Aries" in block
     assert "?°" not in block
+
+
+# ----------------------------------------------------------------------
+# voice-floor-v3 — BEHAVIOR-FIRST INTERPRETATION FRAMEWORK
+# ----------------------------------------------------------------------
+def test_voice_floor_v3_framework_primer_present():
+    """Every Mirror block surfaces the V3 framework + Pete Test."""
+    block = build_mirror_object_proof_block(_make_envelope("Ceres"))
+    # Framework primer markers
+    for marker in (
+        "BEHAVIOR-FIRST",
+        "SUCCESS TEST",
+        "that is exactly what I do",
+        "THE PATTERN",
+        "THE TENSION",
+        "THE GIFT",
+        "OBSERVABLE SIGNAL",
+        "MIRROR DESCRIBES WHAT HAPPENS".lower(),  # case-insensitive
+    ):
+        assert marker.lower() in block.lower(), f"v3 framework missing: {marker}"
+
+
+def test_voice_floor_v3_extra_bans_present():
+    """v3 voice floor adds 'represents', 'symbolises', 'encourages you',
+    sign-first / house-first prohibitions, and 'archetype' framings."""
+    block = build_mirror_object_proof_block(_make_envelope("Pallas"))
+    for forbidden in (
+        "represents",
+        "symbolises",
+        "encourages you to",
+        "the archetype of",
+        "sign-first or house-first framings",
+    ):
+        assert forbidden.lower() in block.lower(), (
+            f"voice-floor-v3: missing ban on {forbidden!r}"
+        )
+
+
+def test_axis_block_uses_pairwise_v3_framework():
+    """Axis builder uses Shared Pattern / Shared Tension / Shared Gift /
+    How They Interact framework, NOT two stacked single-body blocks."""
+    nn = _make_envelope("North Node", sign="Pisces", house=4)
+    sn = _make_envelope("South Node", sign="Virgo", house=10)
+    block = build_axis_mirror_block(nn, sn)
+    for marker in (
+        "SHARED PATTERN",
+        "SHARED TENSION",
+        "SHARED GIFT",
+        "HOW THEY INTERACT",
+        "OBSERVABLE SIGNAL",
+    ):
+        assert marker in block, f"axis-v3 framework missing: {marker}"
+
+
+def test_pairwise_block_uses_pairwise_v3_framework():
+    """Pairwise builder uses the Shared / How They Interact framework."""
+    ceres = _make_envelope("Ceres", sign="Virgo", house=10)
+    vesta = _make_envelope("Vesta", sign="Aquarius", house=2)
+    block = build_pairwise_mirror_block([ceres, vesta])
+    for marker in (
+        "SHARED PATTERN",
+        "SHARED TENSION",
+        "SHARED GIFT",
+        "HOW THEY INTERACT",
+        "OBSERVABLE SIGNAL",
+    ):
+        assert marker in block, f"pairwise-v3 framework missing: {marker}"
