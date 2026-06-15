@@ -737,4 +737,67 @@ def ensure_advanced_objects(chart: Optional[Dict[str, Any]]) -> Optional[Dict[st
         if new_angles_written:
             new_astro["angles"] = new_angles
 
+    # ────────────────────────────────────────────────────────────────────
+    # advanced-object-hydration-v2 (relationship-corroboration extension)
+    # ────────────────────────────────────────────────────────────────────
+    # Lazily hydrate Lilith / Lot of Fortune / Lot of Spirit so that
+    # downstream relationship surfaces can read them via the same
+    # `astrology.planets[...]` lookup path used for Sun/Moon/Mercury.
+    #
+    # Pattern is identical to Juno/Vertex hydration above:
+    #   • Side-effect free (works on a shallow chart copy)
+    #   • Best-effort (failures logged at debug, never raised)
+    #   • Idempotent (skipped if already present)
+    #   • Tagged with `amplifier: True` so consumers know these were
+    #     hydrated rather than stored at chart creation time
+    # ────────────────────────────────────────────────────────────────────
+    planets_for_v2 = (new_astro.get("planets") or astro.get("planets") or {})
+    needs_lilith = (
+        "Black Moon Lilith" not in planets_for_v2
+        and "True Black Moon Lilith" not in planets_for_v2
+    )
+    needs_fortune = "Lot of Fortune" not in planets_for_v2
+    needs_spirit  = "Lot of Spirit"  not in planets_for_v2
+
+    if needs_lilith or needs_fortune or needs_spirit:
+        _v2_writes: Dict[str, Dict[str, Any]] = {}
+        if needs_lilith:
+            try:
+                env = compute_natal_object(chart, "Black Moon Lilith")
+                if env.get("success"):
+                    _v2_writes["Black Moon Lilith"] = {
+                        **env["placement"], "amplifier": True,
+                    }
+            except Exception as e:
+                logger.debug(
+                    f"[ensure_advanced_objects] Lilith hydration skipped: {e}"
+                )
+        if needs_fortune:
+            try:
+                env = compute_natal_object(chart, "Lot of Fortune")
+                if env.get("success"):
+                    _v2_writes["Lot of Fortune"] = {
+                        **env["placement"], "amplifier": True,
+                    }
+            except Exception as e:
+                logger.debug(
+                    f"[ensure_advanced_objects] Fortune hydration skipped: {e}"
+                )
+        if needs_spirit:
+            try:
+                env = compute_natal_object(chart, "Lot of Spirit")
+                if env.get("success"):
+                    _v2_writes["Lot of Spirit"] = {
+                        **env["placement"], "amplifier": True,
+                    }
+            except Exception as e:
+                logger.debug(
+                    f"[ensure_advanced_objects] Spirit hydration skipped: {e}"
+                )
+        if _v2_writes:
+            merged = dict(new_astro.get("planets") or planets_for_v2)
+            for k, v in _v2_writes.items():
+                merged[k] = v
+            new_astro["planets"] = merged
+
     return new_chart

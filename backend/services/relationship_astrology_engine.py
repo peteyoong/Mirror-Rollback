@@ -391,6 +391,24 @@ def build_relationship_astrology(
     if not chart_a or not chart_b:
         return {"success": False, "reason": "missing_chart_data",
                 "build_marker": BUILD_MARKER}
+    # ──────────────────────────────────────────────────────────────────
+    # advanced-object corroboration v1 — relationship-mapping-deep-astrology-v2.1
+    # Lazily hydrate Juno / Vertex / Anti-Vertex / Lilith / Fortune /
+    # Spirit on both charts so this engine can attach corroborating
+    # signals UNDER the existing Sun/Moon/ASC/IC narrative.  Advanced
+    # objects NEVER replace the headline and NEVER produce fatalistic
+    # / soulmate / shadow-cliché / fortune-telling phrasing.
+    # ──────────────────────────────────────────────────────────────────
+    try:
+        from services.natal_object_engine import ensure_advanced_objects
+        chart_a = ensure_advanced_objects(chart_a)
+        chart_b = ensure_advanced_objects(chart_b)
+    except Exception as _eao_err:    # pragma: no cover
+        logger.debug(
+            f"[RelationshipAstrology] ensure_advanced_objects failed "
+            f"(soft-fall): {type(_eao_err).__name__}: {_eao_err!r}"
+        )
+
     astro_a = chart_a.get("astrology") or {}
     astro_b = chart_b.get("astrology") or {}
     planets_a = astro_a.get("planets") or {}
@@ -513,6 +531,159 @@ def build_relationship_astrology(
     if ic_layer:
         supporting.append(ic_layer)
 
+    # ──────────────────────────────────────────────────────────────────
+    # advanced-object corroboration v1 — relationship-mapping-deep-astrology-v2.1
+    # Build a SEPARATE list of corroborating evidence lines that the UI
+    # can render under "Why this is showing up" / "Why the stakes feel
+    # higher".  Rules (enforced by phrasing — no destiny / soulmate /
+    # shadow cliché / fortune-telling vocabulary appears anywhere
+    # below).  If no meaningful contact exists, the list stays empty
+    # and the surface omits silently.
+    # ──────────────────────────────────────────────────────────────────
+    advanced_supporting: List[str] = []
+    advanced_objects_used: List[str] = []
+
+    angles_a = (astro_a or {}).get("angles") or {}
+    angles_b = (astro_b or {}).get("angles") or {}
+
+    juno_a = (planets_a.get("Juno") or {}).get("sign")
+    juno_b = (planets_b.get("Juno") or {}).get("sign")
+    if juno_a:
+        advanced_supporting.append(
+            f"{name_a} carries a commitment-style anchored in {juno_a} — "
+            "the part of you that decides how a bond gets weighted."
+        )
+        advanced_objects_used.append("Juno_a")
+    if juno_b:
+        advanced_supporting.append(
+            f"{name_b}'s commitment-style is anchored in {juno_b} — how "
+            "they show up when they decide a bond matters."
+        )
+        advanced_objects_used.append("Juno_b")
+
+    vx_a_sign = (angles_a.get("vertex") or {}).get("sign")
+    vx_b_sign = (angles_b.get("vertex") or {}).get("sign")
+    if vx_a_sign:
+        advanced_supporting.append(
+            f"{name_a} has a sensitive contact-point in {vx_a_sign} — "
+            "this is a chart-area where encounters tend to register with "
+            "extra weight (not a destiny marker — just a register sensitivity)."
+        )
+        advanced_objects_used.append("Vertex_a")
+    if vx_b_sign:
+        advanced_supporting.append(
+            f"{name_b}'s sensitive contact-point sits in {vx_b_sign} — "
+            "interactions here tend to land more vividly for them."
+        )
+        advanced_objects_used.append("Vertex_b")
+
+    avx_a_sign = (angles_a.get("anti_vertex") or {}).get("sign")
+    avx_b_sign = (angles_b.get("anti_vertex") or {}).get("sign")
+    if avx_a_sign:
+        advanced_supporting.append(
+            f"{name_a}'s active-entry axis is in {avx_a_sign} — the side "
+            "of the field where you tend to walk in by choice rather "
+            "than wait to be pulled."
+        )
+        advanced_objects_used.append("AntiVertex_a")
+    if avx_b_sign:
+        advanced_supporting.append(
+            f"{name_b}'s active-entry axis is in {avx_b_sign}."
+        )
+        advanced_objects_used.append("AntiVertex_b")
+
+    chiron_a = (planets_a.get("Chiron") or {}).get("sign")
+    chiron_b = (planets_b.get("Chiron") or {}).get("sign")
+    if chiron_a and chiron_b and chiron_a == chiron_b:
+        advanced_supporting.append(
+            f"You both carry the growth edge in {chiron_a} — the same "
+            "terrain shows up as friction for both of you, which is "
+            "part of why this relationship doesn't stay surface-level."
+        )
+        advanced_objects_used.extend(["Chiron_a", "Chiron_b"])
+    elif chiron_a:
+        advanced_supporting.append(
+            f"{name_a}'s growth edge sits in {chiron_a} — a tender "
+            "competence area, not a deficit."
+        )
+        advanced_objects_used.append("Chiron_a")
+    if chiron_b and not (chiron_a == chiron_b):
+        advanced_supporting.append(
+            f"{name_b}'s growth edge sits in {chiron_b}."
+        )
+        advanced_objects_used.append("Chiron_b")
+
+    lilith_a = (
+        (planets_a.get("Black Moon Lilith") or {}).get("sign")
+        or (planets_a.get("True Black Moon Lilith") or {}).get("sign")
+    )
+    lilith_b = (
+        (planets_b.get("Black Moon Lilith") or {}).get("sign")
+        or (planets_b.get("True Black Moon Lilith") or {}).get("sign")
+    )
+    # Behavioural framing only — no 'shadow' / 'dark side' language.
+    if lilith_a:
+        advanced_supporting.append(
+            f"{name_a} carries an ungovernable edge in {lilith_a} — the "
+            "part that refuses to be smoothed over.  Worth knowing it's "
+            "there before you ask it to be smaller."
+        )
+        advanced_objects_used.append("Lilith_a")
+    if lilith_b:
+        advanced_supporting.append(
+            f"{name_b}'s ungovernable edge sits in {lilith_b} — same "
+            "principle in the other direction."
+        )
+        advanced_objects_used.append("Lilith_b")
+
+    fortune_a = (planets_a.get("Lot of Fortune") or {}).get("sign")
+    fortune_b = (planets_b.get("Lot of Fortune") or {}).get("sign")
+    # Behavioural framing only — no 'lucky' / 'fated' / 'fortune-telling'.
+    if fortune_a:
+        advanced_supporting.append(
+            f"{name_a}'s natural opening sits in {fortune_a} — the "
+            "life-area that asks the least force to participate in."
+        )
+        advanced_objects_used.append("Fortune_a")
+    if fortune_b:
+        advanced_supporting.append(
+            f"{name_b}'s natural opening sits in {fortune_b}."
+        )
+        advanced_objects_used.append("Fortune_b")
+
+    spirit_a = (planets_a.get("Lot of Spirit") or {}).get("sign")
+    spirit_b = (planets_b.get("Lot of Spirit") or {}).get("sign")
+    if spirit_a:
+        advanced_supporting.append(
+            f"{name_a}'s chosen direction — what you're consciously "
+            f"building toward — points to {spirit_a}."
+        )
+        advanced_objects_used.append("Spirit_a")
+    if spirit_b:
+        advanced_supporting.append(
+            f"{name_b}'s chosen direction points to {spirit_b}."
+        )
+        advanced_objects_used.append("Spirit_b")
+
+    # ──────────────────────────────────────────────────────────────────
+    # Diagnostic log — observable surface of what this engine just used
+    # to build the visible Astrological Dynamics card.
+    # ──────────────────────────────────────────────────────────────────
+    _core_objects_used = [
+        nm for nm, present in (
+            ("Sun_a", bool(sun_a)),   ("Sun_b",  bool(sun_b)),
+            ("Moon_a", bool(moon_a)), ("Moon_b", bool(moon_b)),
+            ("Asc_a",  bool(rising_a)), ("Asc_b", bool(rising_b)),
+            ("IC_b",   bool(ic_layer)),
+        ) if present
+    ]
+    logger.info(
+        "[RelationshipAstrology] "
+        f"pair={name_a}<->{name_b} role={relationship_role} "
+        f"objects_used={_core_objects_used} "
+        f"advanced_objects_used={advanced_objects_used}"
+    )
+
     # ASTROLOGY CARD (replaces the shallow line in member-mappings UI)
     a_sun_m = SIGN_MECHANICS.get(sun_a) if sun_a else None
     b_sun_m = SIGN_MECHANICS.get(sun_b) if sun_b else None
@@ -570,10 +741,20 @@ def build_relationship_astrology(
         "spouse_specific_translation": spouse_translation if is_intimate else None,
         "ic_emotional_foundation":  ic_layer,
         "supporting_signals":       supporting,
+        # advanced-object corroboration v1 — separate from supporting_signals
+        # so the UI can render them under "Why this is showing up" without
+        # mixing them into the core Sun/Moon/Rising evidence list.
+        "advanced_supporting_signals": advanced_supporting,
+        "advanced_objects_used":       advanced_objects_used,
         "astrology_card": {
             "headline":             headline,
             "body":                 body,
             "supporting_signals":   supporting,
+            # Mirror the v2.1 corroboration onto the card payload so the
+            # frontend `mapping.astrology_dynamics` consumer can render
+            # the evidence tray without a second backend round-trip.
+            "advanced_supporting_signals": advanced_supporting,
+            "advanced_objects_used":       advanced_objects_used,
         },
     }
 

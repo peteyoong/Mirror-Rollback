@@ -744,6 +744,28 @@ export default function ForumMappingsScreen() {
                                 ))}
                               </View>
                             ) : null}
+                            {/* relationship-mapping-deep-astrology-v2.1 — advanced-object corroboration tray.
+                                These are advanced-body signals (Juno / Vertex / Anti-Vertex / Chiron /
+                                Lilith / Fortune / Spirit) attached BELOW the core Sun/Moon/IC evidence
+                                so the user feels the read got deeper without becoming technical. */}
+                            {Array.isArray((v2 as any).advanced_supporting_signals) &&
+                             (v2 as any).advanced_supporting_signals.length > 0 ? (
+                              <View style={{ marginTop: 14 }}>
+                                <Text style={[styles.signalsNote, { color: theme.textTertiary, fontSize: 11 }]}>
+                                  WHY THE STAKES FEEL HIGHER
+                                </Text>
+                                {((v2 as any).advanced_supporting_signals as string[])
+                                  .slice(0, 8)
+                                  .map((sig: string, i: number) => (
+                                    <View key={`v2adv-acc-${i}`} style={styles.lensSignalRow}>
+                                      <Text style={[styles.lensSignalIcon, { color: '#9B7CC8' }]}>·</Text>
+                                      <Text style={[styles.lensSignalText, { color: theme.textTertiary, fontSize: 12 }]}>
+                                        {sig}
+                                      </Text>
+                                    </View>
+                                  ))}
+                              </View>
+                            ) : null}
                           </View>
                         );
                       }
