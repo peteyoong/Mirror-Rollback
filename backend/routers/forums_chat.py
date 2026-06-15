@@ -302,6 +302,23 @@ def register(
 
     @api_router.post("/forums/{forum_id}/chat", response_model=ForumChatResponse)
     async def forum_chat(forum_id: str, request: ForumChatRequest):
+        # ── ASK-MIRROR-ROUTE-PROOF-v1 (temp diagnostic) ────────────────
+        # Identifies the actual route handling the visible "Ask Mirror"
+        # UI on https://*.emergent.host.  The natal_object dispatcher
+        # repaired earlier lives in routers/mirror_chat.py (a DIFFERENT
+        # route).  Until parity is wired here, the Mirror block path
+        # below will NOT execute and the LLM will improvise the "your
+        # chart doesn't list this asteroid" fallback.  Diagnostic only.
+        logger.warning(
+            "[ASK_MIRROR_ENTRY] "
+            f"query={request.message!r} "
+            f"route=/api/forums/{forum_id}/chat "
+            f"handler=routers.forums_chat.forum_chat "
+            f"forum_id={forum_id} "
+            f"requested_mode={(request.mode.value if request.mode else 'auto')!r} "
+            f"has_natal_object_dispatcher=False "
+            f"AUDIT_NOTE='natal_object dispatcher lives in routers/mirror_chat.py:2532 — NOT wired here'"
+        )
         logger.info(
             f"[ForumChat] Request: forum={forum_id}, user={request.user_id[:8]}..., "
             f"mode={request.mode.value if request.mode else 'auto'}"
