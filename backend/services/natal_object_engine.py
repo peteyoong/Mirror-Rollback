@@ -574,9 +574,27 @@ def compute_natal_object(chart: Dict[str, Any], object_name: str) -> Dict[str, A
 def build_natal_object_proof_block(envelope: Dict[str, Any]) -> str:
     """Build a deterministic system-prompt block from a natal-object
     envelope. Appended to the lens prompt before the LLM is called.
+
+    For objects that have a dedicated Mirror interpretation block
+    (Vertex, Anti-Vertex, Juno, Chiron, Lilith, Part of Fortune,
+    Part of Spirit, Pholus), this delegates to the Phase-2 interpreter
+    so the chat answer feels Mirror-native rather than generic.
     """
     if not envelope:
         return ""
+    # Phase-2 Mirror interpretation routing
+    try:
+        if envelope.get("success"):
+            from services.mirror_object_interpreter import (
+                has_mirror_interpretation,
+                build_mirror_object_proof_block,
+            )
+            if has_mirror_interpretation(envelope.get("object") or ""):
+                mirror_block = build_mirror_object_proof_block(envelope)
+                if mirror_block:
+                    return mirror_block
+    except Exception as e:  # pragma: no cover — defensive
+        logger.warning(f"[NatalObjectEngine] mirror interpretation skipped: {e}")
     if not envelope.get("success"):
         obj = envelope.get("object", "this object")
         msg = envelope.get("message", f"{obj} is not wired into the astrology engine yet.")

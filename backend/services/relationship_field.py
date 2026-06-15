@@ -353,7 +353,10 @@ def compute_juno_amplifier(
             )
 
     if juno_a:
-        for pt_name in ("Sun", "Moon", "Venus"):
+        # mirror-interpretation-layer-v1 — extended Juno corroboration
+        # coverage: Sun / Moon / Venus / Mars / Asc (Juno↔Venus + Juno↔nodes
+        # + Juno↔Juno additions per Phase 2).
+        for pt_name in ("Sun", "Moon", "Venus", "Mars"):
             asp = _aspect_between(juno_a, _planet(planets_b, pt_name))
             if asp:
                 candidates.append((asp, _emit("Juno", pt_name, asp, "ab")))
@@ -362,9 +365,32 @@ def compute_juno_amplifier(
             asp = _aspect_between(juno_a, angles_b.get("asc"))
             if asp:
                 candidates.append((asp, _emit("Juno", "Asc", asp, "ab")))
+        # Juno ↔ Juno synastry — shared commitment signature
+        if not candidates and juno_b:
+            asp = _aspect_between(juno_a, juno_b)
+            if asp in ("conjunction", "trine", "opposition", "square"):
+                line_jj = (
+                    f"You and {name_b} carry partnership in a similar key — "
+                    f"the way each of you weights commitment maps onto the "
+                    f"other's, so what's already alive in the bond gets "
+                    f"reinforced rather than translated."
+                )
+                candidates.append((asp, line_jj))
+        # Juno ↔ Nodes — commitment direction crossing growth direction
+        if not candidates:
+            nn_b = _get_north_node(astro_b)
+            asp = _aspect_between(juno_a, nn_b)
+            if asp in ("conjunction", "opposition"):
+                line_jn = (
+                    f"The part of you that ratifies commitment crosses the "
+                    f"direction {name_b} is growing toward — which means the "
+                    f"way you bond and the way they evolve get tied together "
+                    f"more than usual."
+                )
+                candidates.append((asp, line_jn))
 
     if not candidates and juno_b:
-        for pt_name in ("Sun", "Moon", "Venus"):
+        for pt_name in ("Sun", "Moon", "Venus", "Mars"):
             asp = _aspect_between(juno_b, _planet(planets_a, pt_name))
             if asp:
                 candidates.append((asp, _emit(pt_name, "Juno", asp, "ba")))
@@ -449,9 +475,13 @@ def compute_vertex_amplifier(
 
     planets_a = (astro_a or {}).get("planets") or {}
     planets_b = (astro_b or {}).get("planets") or {}
+    angles_a = (astro_a or {}).get("angles") or {}
+    angles_b = (astro_b or {}).get("angles") or {}
 
     line = None
     if vx_a:
+        # mirror-interpretation-layer-v1 — extended Vertex corroboration:
+        # personal planets (already) + Nodes + Angles.
         for pt_name in ("Sun", "Moon", "Venus", "Mars"):
             asp = _aspect_between(vx_a, _planet(planets_b, pt_name))
             if asp in ("conjunction", "opposition"):
@@ -462,6 +492,29 @@ def compute_vertex_amplifier(
                     f"average interaction."
                 )
                 break
+        # Vertex ↔ Nodes — growth-direction contact
+        if not line:
+            nn_b = _get_north_node(astro_b)
+            asp = _aspect_between(vx_a, nn_b)
+            if asp in ("conjunction", "opposition"):
+                line = (
+                    f"The direction {name_b} is growing toward lands on your "
+                    f"contact-point — which means meetings with them tend to "
+                    f"happen at developmental crossroads, not on a smooth "
+                    f"stretch."
+                )
+        # Vertex ↔ Angles (Asc / MC) — encounter through how-they-show-up
+        if not line:
+            for ang_key in ("asc", "mc"):
+                asp = _aspect_between(vx_a, angles_b.get(ang_key))
+                if asp in ("conjunction", "opposition"):
+                    ang_label = "presence" if ang_key == "asc" else "trajectory"
+                    line = (
+                        f"How {name_b}'s {ang_label} comes across lands on a "
+                        f"sensitive contact-point in your chart — it adds "
+                        f"weight to what's already moving here."
+                    )
+                    break
 
     if not line and vx_b:
         for pt_name in ("Sun", "Moon", "Venus", "Mars"):
