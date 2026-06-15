@@ -213,29 +213,53 @@ def _extract_natal_objects(text: str) -> list:
     names referenced in `text`.  Used by the natal_object branch to
     detect multi-object queries like 'Ceres and Vesta' or 'my North Node
     and South Node'.  astrology-chat-multi-object-v1
+
+    ADV-OBJ-12 (regex-bleed fix): when a match consumes a span of the
+    input (e.g. "Anti-Vertex" → Anti-Vertex), subsequent shorter
+    patterns whose match falls INSIDE that span are suppressed.  This
+    prevents "Tell me about my Anti-Vertex" from also resolving the
+    bare "Vertex" token inside the hyphenated word.
     """
     found: list = []
     seen: set = set()
-    # Find earliest position of each pattern, then sort by position so
-    # the order matches the user's phrasing (helps the LLM read SN→NN
-    # vs NN→SN as the user wrote it).
+    # Find ALL matches (with spans) and sort by position so the order
+    # matches the user's phrasing (helps the LLM read SN→NN vs NN→SN
+    # as the user wrote it).  Longer / earlier-listed patterns get
+    # priority — any later pattern whose span is fully inside an
+    # already-consumed span is dropped (regex-bleed suppression).
     hits: list = []
     for pat, canon in _NATAL_OBJECT_PATTERN_TO_CANON:
-        m = pat.search(text)
-        if m:
-            hits.append((m.start(), canon))
-    hits.sort(key=lambda h: h[0])
-    for _, canon in hits:
+        # Use finditer so all occurrences of a pattern get their own
+        # span (otherwise '...Anti-Vertex and my Vertex' would only
+        # see the first match of \bvertex\b and miss the standalone
+        # Vertex token entirely).
+        for m in pat.finditer(text):
+            hits.append((m.start(), m.end(), canon))
+    hits.sort(key=lambda h: (h[0], -(h[1] - h[0])))   # earliest first; longest-among-tied first
+
+    consumed_spans: list = []   # list of (start, end) already taken
+
+    def _is_inside_consumed(s: int, e: int) -> bool:
+        for cs, ce in consumed_spans:
+            if s >= cs and e <= ce:
+                return True
+        return False
+
+    for s, e, canon in hits:
+        if _is_inside_consumed(s, e):
+            continue
         # Expand the bare-plural "_NODES_PAIR_" sentinel into both ends.
         if canon == "_NODES_PAIR_":
             for nm in ("North Node", "South Node"):
                 if nm not in seen:
                     seen.add(nm)
                     found.append(nm)
+            consumed_spans.append((s, e))
             continue
         if canon not in seen:
             seen.add(canon)
             found.append(canon)
+            consumed_spans.append((s, e))
     return found
 _NATAL_OBJECT_TRIGGER_RE = re.compile(
     r"\b("

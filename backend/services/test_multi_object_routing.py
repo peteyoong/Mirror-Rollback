@@ -82,3 +82,48 @@ def test_rahu_ketu_aliases_to_nodal_axis():
     objs = intent.get("objects") or []
     assert "North Node" in objs and "South Node" in objs
     assert intent.get("axis") == "nodal"
+
+
+# ----------------------------------------------------------------------
+# ADV-OBJ-12 — Anti-Vertex must not also resolve the bare "Vertex" token
+# that sits inside the hyphenated word.
+# ----------------------------------------------------------------------
+def test_anti_vertex_does_not_dual_resolve_vertex():
+    """'Tell me about my Anti-Vertex' must NOT produce two proof blocks.
+    The shorter, embedded `\\bvertex\\b` match must be suppressed when
+    it falls inside the Anti-Vertex span."""
+    for q in (
+        "Tell me about my Anti-Vertex",
+        "Tell me about my anti-vertex",
+        "what does my anti vertex mean",
+        "my AntiVertex",   # no hyphen variant
+    ):
+        intent = classify_astrology_intent(q)
+        assert intent and intent["data_mode"] == "natal_object", q
+        objs = intent.get("objects") or []
+        assert objs == ["Anti-Vertex"], (
+            f"ADV-OBJ-12 regression: query {q!r} returned {objs!r} — "
+            "must contain ONLY 'Anti-Vertex', not also 'Vertex'."
+        )
+        assert intent.get("multi") is False, q
+
+
+def test_anti_vertex_plus_vertex_explicit_still_returns_both():
+    """If the user EXPLICITLY says both, both must surface (no over-suppression)."""
+    intent = classify_astrology_intent(
+        "Tell me about my Anti-Vertex and my Vertex."
+    )
+    assert intent and intent["data_mode"] == "natal_object"
+    objs = intent.get("objects") or []
+    # Both ends present; user wrote them as distinct tokens.
+    assert "Anti-Vertex" in objs
+    assert "Vertex" in objs
+    assert intent.get("multi") is True
+
+
+def test_bare_vertex_still_resolves():
+    """Bare Vertex queries continue to work (no false suppression)."""
+    intent = classify_astrology_intent("Tell me about my Vertex")
+    assert intent and intent["data_mode"] == "natal_object"
+    assert intent.get("objects") == ["Vertex"]
+    assert intent.get("multi") is False
