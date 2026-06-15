@@ -301,6 +301,131 @@ _MIRROR_BLOCKS: Dict[str, Dict[str, Any]] = {
             "karma", "fate", "punishment", "irreversible doom",
         ],
     },
+
+    # ─────────────────────────────────────────────────────────────────
+    # Ceres — how you nourish (and what you receive as nourishment)
+    # ─────────────────────────────────────────────────────────────────
+    "Ceres": {
+        "question": "How do you nourish — and what do you accept as care?",
+        "headline_hint": "Your care signature in both directions.",
+        "instructions": [
+            "1. Sentence 1: name the SIGN and HOUSE of their Ceres.\n"
+            "   Example: 'Your Ceres sits at {SIGN_PLACEMENT} in the {N}th house.'",
+            "2. Then 3–4 sentences of Mirror reading framed around CARE\n"
+            "   SIGNATURE — how they tend to feed the people around them,\n"
+            "   what kind of attention they themselves can actually metabolise\n"
+            "   as 'being cared for', and the gap between the two when it\n"
+            "   shows up.  Sign + house specific.  Speak to behaviours, not\n"
+            "   archetypes.  No 'mother wound' / 'great mother goddess'\n"
+            "   talk — this is the practical mechanics of how care moves\n"
+            "   in and out of them.",
+            "3. End with ONE short line naming the specific kind of care\n"
+            "   they tend to give too freely (or accept too rarely).",
+        ],
+        "object_bans": [
+            "mother wound", "great mother", "goddess", "smothering",
+            "co-dependent", "earth mother", "divine feminine",
+        ],
+    },
+
+    # ─────────────────────────────────────────────────────────────────
+    # Pallas — how you pattern (strategic sight)
+    # ─────────────────────────────────────────────────────────────────
+    "Pallas": {
+        "question": "How do you pattern? Where do you see structure first?",
+        "headline_hint": "The strategist underneath the surface.",
+        "instructions": [
+            "1. Sentence 1: name the SIGN and HOUSE of their Pallas.\n"
+            "   Example: 'Your Pallas sits at {SIGN_PLACEMENT} in the {N}th house.'",
+            "2. Then 3–4 sentences of Mirror reading framed around STRATEGIC\n"
+            "   PATTERN-RECOGNITION — what kinds of systems they see\n"
+            "   clearly (often before the people around them), which life\n"
+            "   areas their problem-solving instinct is sharpest in, and\n"
+            "   the SHAPE of their thinking style.  Sign + house specific.\n"
+            "   No 'warrior queen' / 'sacred wisdom' archetypal language.",
+            "3. End with ONE short line about the kind of problem they\n"
+            "   should be allowed to lead on.",
+        ],
+        "object_bans": [
+            "warrior queen", "sacred wisdom", "divine wisdom",
+            "athena archetype", "goddess of wisdom",
+        ],
+    },
+
+    # ─────────────────────────────────────────────────────────────────
+    # Vesta — what you tend (devotion / sacred flame)
+    # ─────────────────────────────────────────────────────────────────
+    "Vesta": {
+        "question": "What do you tend with quiet, ongoing attention?",
+        "headline_hint": "The flame you keep alive without being asked.",
+        "instructions": [
+            "1. Sentence 1: name the SIGN and HOUSE of their Vesta.\n"
+            "   Example: 'Your Vesta sits at {SIGN_PLACEMENT} in the {N}th house.'",
+            "2. Then 3–4 sentences of Mirror reading framed around\n"
+            "   DEVOTED FOCUS — what they protect with quiet daily\n"
+            "   attention, the part of life where they go monk-like and\n"
+            "   shut everything else out, what 'sacred work' actually\n"
+            "   looks like in their hands.  Sign + house specific.  No\n"
+            "   'virgin priestess' / 'sacred fire goddess' archetypal\n"
+            "   language and no sexuality framing.",
+            "3. End with ONE short line about what tends to suffer when\n"
+            "   this devotion goes unfed for too long.",
+        ],
+        "object_bans": [
+            "virgin priestess", "hearth goddess", "sacred sexuality",
+            "celibacy", "virgin archetype", "vestal virgin",
+        ],
+    },
+
+    # ─────────────────────────────────────────────────────────────────
+    # North Node — direction of growth (deliberate stretch)
+    # ─────────────────────────────────────────────────────────────────
+    "North Node": {
+        "question": "What direction are you growing toward?",
+        "headline_hint": "The unfamiliar muscle the chart is asking you to use.",
+        "instructions": [
+            "1. Sentence 1: name the SIGN and HOUSE of their North Node.\n"
+            "   Example: 'Your North Node sits at {SIGN_PLACEMENT} in the {N}th house.'",
+            "2. Then 3–4 sentences of Mirror reading framed around GROWTH\n"
+            "   DIRECTION — the kind of behaviour that feels slightly\n"
+            "   unfamiliar but is exactly the stretch their development\n"
+            "   keeps pointing toward, the life-area where leaning IN tends\n"
+            "   to pay off, and what 'growing into' this looks like in\n"
+            "   practical terms.  Sign + house specific.  NO destiny /\n"
+            "   fate / soul contract / past-life language.",
+            "3. End with ONE short line about the small habit that moves\n"
+            "   them in this direction.",
+        ],
+        "object_bans": [
+            "destiny", "fate", "soul contract", "past life",
+            "karmic path", "soul mission", "you were born to",
+        ],
+    },
+
+    # ─────────────────────────────────────────────────────────────────
+    # South Node — what you can put down (overused competence)
+    # ─────────────────────────────────────────────────────────────────
+    "South Node": {
+        "question": "What can you safely put down?",
+        "headline_hint": "The overused muscle — competent, but no longer the growth edge.",
+        "instructions": [
+            "1. Sentence 1: name the SIGN and HOUSE of their South Node.\n"
+            "   Example: 'Your South Node sits at {SIGN_PLACEMENT} in the {N}th house.'",
+            "2. Then 3–4 sentences of Mirror reading framed around\n"
+            "   FAMILIAR COMPETENCE — the behaviours they already do well,\n"
+            "   sometimes default to under stress, and which stop\n"
+            "   producing growth past a certain point.  This is not\n"
+            "   wrong — it's the comfort zone that keeps pulling them\n"
+            "   back from the stretch.  Sign + house specific.  NO\n"
+            "   past-life karma / soul-debt language.",
+            "3. End with ONE short line about what to keep using and\n"
+            "   what to stop relying on.",
+        ],
+        "object_bans": [
+            "past life", "past lives", "soul debt", "karmic debt",
+            "previous incarnation", "what you owe",
+        ],
+    },
 }
 
 

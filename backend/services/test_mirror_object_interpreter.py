@@ -28,9 +28,13 @@ from services.natal_object_engine import build_natal_object_proof_block
     ("Lot of Fortune", True),
     ("Lot of Spirit", True),
     ("Pholus", True),
+    # T2 additions — mirror-interpretation-layer-v1.1
+    ("Ceres", True),
+    ("Pallas", True),
+    ("Vesta", True),
+    ("North Node", True),
+    ("South Node", True),
     # Not Mirror-wrapped — fall back to generic block
-    ("Pallas", False),
-    ("Ceres", False),
     ("Sun", False),
     ("", False),
 ])
@@ -146,8 +150,12 @@ def test_natal_object_engine_uses_mirror_block_for_juno():
     assert "What does commitment actually look like" in block
 
 
-def test_natal_object_engine_falls_back_to_generic_for_ceres():
-    env = _make_envelope("Ceres")
+def test_natal_object_engine_falls_back_to_generic_for_non_mirror_object():
+    # Eros is a valid engine object but is NOT in the Mirror interpretation
+    # layer — used here to prove the generic fallback path still fires for
+    # bodies outside the Mirror catalogue.  (Ceres was the original example
+    # here but Ceres is now T2-extended into the Mirror layer.)
+    env = _make_envelope("Eros")
     block = build_natal_object_proof_block(env)
     # Not Mirror-wrapped → generic block (no MIRROR INTERPRETATION header)
     assert "ENGINE OUTPUT" in block
