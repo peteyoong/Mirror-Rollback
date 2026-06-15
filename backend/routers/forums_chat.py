@@ -675,6 +675,80 @@ def register(
                             f"not from any single profile in isolation."
                         )
 
+            # ── ADVANCED-OBJECT-RESOLVER-V1 ─────────────────────────────
+            # Shared natal-object dispatcher (Option C).  Closes the
+            # Ask-Mirror parity gap that left the forum chat surface
+            # unable to discuss Juno / Vertex / Anti-Vertex / Chiron /
+            # Lilith / Fortune / Spirit while the /api/mirror/chat
+            # surface already could.
+            #
+            # Frame mapping:
+            #   ForumChatMode.SELF   → FRAME_SELF
+            #   ForumChatMode.MEMBER → FRAME_MEMBER   (or PAIRWISE if
+            #                            resolved_field also indicates
+            #                            a relational frame)
+            #   ForumChatMode.FORUM  → FRAME_FORUM
+            try:
+                from services.advanced_object_resolver import (
+                    resolve_advanced_object,
+                    FRAME_SELF, FRAME_MEMBER, FRAME_PAIRWISE, FRAME_FORUM,
+                )
+                _resolver_frame = FRAME_SELF
+                if effective_mode == ForumChatMode.MEMBER:
+                    _resolver_frame = FRAME_MEMBER
+                elif effective_mode == ForumChatMode.FORUM:
+                    _resolver_frame = FRAME_FORUM
+                # Slice B can elevate SELF→PAIRWISE when both names appear
+                # in the message; honour that.
+                if resolved_field is not None and getattr(
+                    resolved_field, "active_frame", None
+                ) == "PAIRWISE":
+                    _resolver_frame = FRAME_PAIRWISE
+
+                _self_chart = await db.charts.find_one(
+                    {"user_id": request.user_id},
+                    sort=[("created_at", -1)],
+                )
+                _target_chart = None
+                _target_name_for_resolver = None
+                if effective_target_id and effective_target_id != request.user_id:
+                    _target_chart = await db.charts.find_one(
+                        {"user_id": effective_target_id},
+                        sort=[("created_at", -1)],
+                    )
+                    _target_name_for_resolver = target_member_name
+
+                _self_name_for_resolver = (
+                    (resolved_field.self_name
+                     if resolved_field is not None
+                     else None)
+                    or "you"
+                )
+
+                _resolved = resolve_advanced_object(
+                    query=request.message,
+                    self_chart=_self_chart,
+                    target_chart=_target_chart,
+                    frame=_resolver_frame,
+                    self_name=_self_name_for_resolver,
+                    target_name=_target_name_for_resolver,
+                    route_tag="forums_chat",
+                )
+                if _resolved.get("matched") and _resolved.get("proof_block"):
+                    system_prompt += "\n\n" + _resolved["proof_block"]
+                    logger.info(
+                        f"[ForumChat][AdvObjResolver] matched=True "
+                        f"mode={_resolved.get('mode')} "
+                        f"frame={_resolver_frame} "
+                        f"objects={_resolved.get('objects')} "
+                        f"axis={_resolved.get('axis')}"
+                    )
+            except Exception as _aor_err:
+                logger.warning(
+                    f"[ForumChat][AdvObjResolver] resolver soft-failed: "
+                    f"{type(_aor_err).__name__}: {_aor_err!r}"
+                )
+
             from emergent_contract import emergent_generate
             from llm_model_config import get_primary_model
 

@@ -2530,113 +2530,61 @@ NOT: "I opened a generic chat"
                                 # else: let the LLM read the proof block and answer
 
                             # ── natal_object branch ─────────────────────────────
-                            # astrology-chat-master-interpreter-v3
-                            # Handles: Lilith, Chiron, Vertex, Nodes, Juno, etc.
-                            # CRITICAL: if engine returns not-wired, the proof
-                            # block forbids substitution with another body
-                            # (no Lilith→Moon swap).
-                            #
-                            # Multi-object extension: astrology-chat-multi-object-v1
-                            # When the user references multiple bodies in one
-                            # turn (e.g. Ceres + Vesta, NN + SN), the router
-                            # returns `objects=[...]` and the dispatcher
-                            # computes EACH envelope and emits a unified
-                            # pairwise / axis Mirror block instead of one
-                            # block + the LLM hallucinating the rest.
+                            # All dispatcher logic now lives in the shared
+                            # services/advanced_object_resolver.py module
+                            # (ADVANCED-OBJECT-RESOLVER-V1).  This branch
+                            # delegates to it so the SAME resolution
+                            # behaviour serves /api/mirror/chat,
+                            # /api/forums/{id}/chat, and
+                            # /api/forums/{id}/mirror-chat.  Per-route
+                            # debug fields are still surfaced here for
+                            # back-compat with downstream consumers
+                            # (`astro_chat_debug["natal_object_*"]`).
                             elif mode_label == "natal_object" and (
                                 grounded_intent.get("object")
                                 or grounded_intent.get("objects")
                             ):
-                                multi_objects = grounded_intent.get("objects") or []
-                                axis_tag      = grounded_intent.get("axis")
-                                if not multi_objects:
-                                    multi_objects = [grounded_intent["object"]]
+                                from services.advanced_object_resolver import (
+                                    resolve_advanced_object, FRAME_SELF,
+                                )
+                                _resolved = resolve_advanced_object(
+                                    query=request.message,
+                                    self_chart=_astro_chart,
+                                    target_chart=None,
+                                    frame=FRAME_SELF,
+                                    self_name="you",
+                                    target_name=None,
+                                    route_tag="mirror_chat",
+                                    history=history,
+                                )
+                                envelopes_list = _resolved.get("envelopes") or []
+                                primary_env    = _resolved.get("primary_envelope") or {}
+                                proof_block    = _resolved.get("proof_block") or ""
 
-                                envelopes_list = []
-                                for _obj_q in multi_objects:
-                                    _env = compute_natal_object(
-                                        chart=_astro_chart, object_name=_obj_q,
-                                    )
-                                    envelopes_list.append(_env)
-                                    logger.info(
-                                        f"[NatalObject] query={_obj_q!r} "
-                                        f"canonical={_env.get('object')} "
-                                        f"success={_env.get('success')} "
-                                        f"reason={_env.get('reason')} "
-                                        f"source={_env.get('source')}"
-                                    )
-
-                                # Back-compat debug fields (primary object).
-                                primary_env = envelopes_list[0]
+                                # Back-compat debug fields (preserve the
+                                # exact shape downstream consumers rely on).
                                 astro_chat_debug["natal_object_success"] = bool(
-                                    primary_env.get("success")
+                                    (primary_env or {}).get("success")
                                 )
                                 astro_chat_debug["natal_object_canonical"] = (
-                                    primary_env.get("object")
+                                    (primary_env or {}).get("object")
                                 )
                                 astro_chat_debug["natal_object_reason"] = (
-                                    primary_env.get("reason")
+                                    (primary_env or {}).get("reason")
                                 )
                                 astro_chat_debug["natal_object_source"] = (
-                                    primary_env.get("source")
+                                    (primary_env or {}).get("source")
                                 )
-                                # Multi-object debug fields
                                 astro_chat_debug["natal_object_multi"] = (
                                     len(envelopes_list) > 1
                                 )
-                                astro_chat_debug["natal_object_axis"] = axis_tag
+                                astro_chat_debug["natal_object_axis"] = (
+                                    _resolved.get("axis")
+                                )
                                 astro_chat_debug["natal_object_canonical_list"] = [
                                     e.get("object") for e in envelopes_list
                                 ]
-                                logger.info(
-                                    f"[NatalObject][multi-object] "
-                                    f"count={len(envelopes_list)} "
-                                    f"axis={axis_tag!r} "
-                                    f"objects={[e.get('object') for e in envelopes_list]}"
-                                )
-
-                                # Choose builder based on shape.
-                                if len(envelopes_list) >= 2:
-                                    try:
-                                        from services.mirror_object_interpreter import (
-                                            build_axis_mirror_block,
-                                            build_pairwise_mirror_block,
-                                        )
-                                        if axis_tag == "nodal":
-                                            nn_env = next(
-                                                (e for e in envelopes_list
-                                                 if e.get("object") == "North Node"),
-                                                envelopes_list[0],
-                                            )
-                                            sn_env = next(
-                                                (e for e in envelopes_list
-                                                 if e.get("object") == "South Node"),
-                                                envelopes_list[-1],
-                                            )
-                                            proof_block = build_axis_mirror_block(
-                                                nn_env, sn_env,
-                                            )
-                                        else:
-                                            proof_block = build_pairwise_mirror_block(
-                                                envelopes_list,
-                                            )
-                                    except Exception as multi_exc:
-                                        logger.warning(
-                                            f"[NatalObject] multi-object builder "
-                                            f"failed: {multi_exc} — falling back "
-                                            "to single-block primary"
-                                        )
-                                        proof_block = build_natal_object_proof_block(
-                                            primary_env,
-                                        )
-                                else:
-                                    proof_block = build_natal_object_proof_block(
-                                        primary_env,
-                                    )
-
-                                if primary_env.get("success") or any(
-                                    e.get("success") for e in envelopes_list
-                                ):
+                                if any(e.get("success") for e in envelopes_list):
                                     astro_chat_debug["astro_sources_used"].append(
                                         "natal_object:"
                                         + "+".join(
@@ -2646,44 +2594,26 @@ NOT: "I opened a generic chat"
                                         )
                                     )
 
-                                system_prompt += "\n\n" + proof_block
-                                # ── ASK-MIRROR-PARITY-AUDIT-v1 ──────────
-                                # Diagnostic-only.  Surfaces the proof
-                                # block actually injected into the LLM
-                                # context (the deterministic Mirror
-                                # block) and whether the fallback path
-                                # was triggered.
-                                try:
-                                    _pl = (primary_env.get("placement") or {})
-                                    _has_mirror = (
-                                        "MIRROR INTERPRETATION" in proof_block
-                                    )
-                                    logger.info(
-                                        "[ObjectInterpreter] "
-                                        f"object_received={primary_env.get('object')!r} "
-                                        f"success={primary_env.get('success')} "
-                                        f"sign={_pl.get('sign')!r} "
-                                        f"house={_pl.get('house')} "
-                                        f"mirror_block_injected={_has_mirror} "
-                                        f"proof_block_chars={len(proof_block)}"
-                                    )
-                                except Exception:
-                                    pass
+                                if proof_block:
+                                    system_prompt += "\n\n" + proof_block
                                 if not any(
                                     e.get("success") for e in envelopes_list
                                 ):
                                     astro_chat_debug["fallback_triggered"] = True
-                                    response_text = primary_env.get("message")
+                                    response_text = (primary_env or {}).get(
+                                        "message"
+                                    )
                                     logger.warning(
                                         "[Fallback] triggered=True "
-                                        f"reason={primary_env.get('reason')!r} "
-                                        f"message={primary_env.get('message')!r}"
+                                        f"reason={(primary_env or {}).get('reason')!r} "
+                                        f"message={(primary_env or {}).get('message')!r}"
                                     )
                                 else:
                                     logger.info(
                                         "[Fallback] triggered=False "
                                         f"(natal_object proof block "
-                                        f"injected for {primary_env.get('object')!r})"
+                                        f"injected via resolver for "
+                                        f"{(primary_env or {}).get('object')!r})"
                                     )
 
                             # ── pressure_topology branch (V6) ──────────────────

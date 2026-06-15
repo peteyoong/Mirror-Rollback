@@ -237,6 +237,44 @@ def register(
 
         response_text: str = ""
         try:
+            # ── ADVANCED-OBJECT-RESOLVER-V1 ─────────────────────────────
+            # Same shared resolver as /api/mirror/chat and
+            # /api/forums/{id}/chat.  Frame is treated as SELF for this
+            # forum-mirror-chat surface (no target_member_id in the
+            # request payload) — the orchestrator already injects
+            # forum-context evidence; the resolver only adds Mirror-voiced
+            # natal-object proof blocks when the message names one.
+            try:
+                from services.advanced_object_resolver import (
+                    resolve_advanced_object, FRAME_SELF,
+                )
+                _self_chart = await db.charts.find_one(
+                    {"user_id": request.user_id},
+                    sort=[("created_at", -1)],
+                )
+                _resolved = resolve_advanced_object(
+                    query=request.message,
+                    self_chart=_self_chart,
+                    target_chart=None,
+                    frame=FRAME_SELF,
+                    self_name="you",
+                    target_name=None,
+                    route_tag="forums_mirror_chat",
+                )
+                if _resolved.get("matched") and _resolved.get("proof_block"):
+                    system_prompt += "\n\n" + _resolved["proof_block"]
+                    logger.info(
+                        f"[ForumMirrorChat][AdvObjResolver] matched=True "
+                        f"mode={_resolved.get('mode')} "
+                        f"objects={_resolved.get('objects')} "
+                        f"axis={_resolved.get('axis')}"
+                    )
+            except Exception as _aor_err:
+                logger.warning(
+                    f"[ForumMirrorChat][AdvObjResolver] soft-failed: "
+                    f"{type(_aor_err).__name__}: {_aor_err!r}"
+                )
+
             from emergent_contract import emergent_generate
             from llm_model_config import get_primary_model
             context_blob: Dict[str, Any] = {"forum_id": forum_id}
