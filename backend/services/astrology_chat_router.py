@@ -177,6 +177,66 @@ _NATAL_OBJECT_BODIES_RE = re.compile(
     r")\b",
     re.IGNORECASE,
 )
+
+
+# Canonical-name mapping for multi-object detection inside natal_object
+# branch. Pattern → canonical-string-used-by-natal_object_engine.
+# Multi-object dispatch resolves through these.
+# astrology-chat-multi-object-v1
+_NATAL_OBJECT_PATTERN_TO_CANON: list = [
+    (re.compile(r"\bnorth\s*node\b|\brahu\b", re.IGNORECASE),           "North Node"),
+    (re.compile(r"\bsouth\s*node\b|\bketu\b", re.IGNORECASE),           "South Node"),
+    (re.compile(r"\bnodes\b|\bnodal\s+axis\b", re.IGNORECASE),          "_NODES_PAIR_"),
+    (re.compile(r"\btrue\s*lilith\b", re.IGNORECASE),                    "True Black Moon Lilith"),
+    (re.compile(r"\bblack\s*moon(\s*lilith)?\b|\bbml\b|\blilith\b|\bmean\s*lilith\b", re.IGNORECASE), "Black Moon Lilith"),
+    (re.compile(r"\bchiron\b", re.IGNORECASE),                           "Chiron"),
+    (re.compile(r"\banti.?vertex\b", re.IGNORECASE),                     "Anti-Vertex"),
+    (re.compile(r"\bvertex\b", re.IGNORECASE),                           "Vertex"),
+    (re.compile(r"\b(part|pars|lot)\s*of\s*fortune\b|\bfortuna\b", re.IGNORECASE), "Lot of Fortune"),
+    (re.compile(r"\b(part|pars|lot)\s*of\s*spirit\b", re.IGNORECASE),    "Lot of Spirit"),
+    (re.compile(r"\bpholus\b", re.IGNORECASE),                           "Pholus"),
+    (re.compile(r"\bjuno\b", re.IGNORECASE),                             "Juno"),
+    (re.compile(r"\bceres\b", re.IGNORECASE),                            "Ceres"),
+    (re.compile(r"\bpallas\b", re.IGNORECASE),                           "Pallas"),
+    (re.compile(r"\bvesta\b", re.IGNORECASE),                            "Vesta"),
+    (re.compile(r"\beros\b", re.IGNORECASE),                             "Eros"),
+    (re.compile(r"\bpsyche\b", re.IGNORECASE),                           "Psyche"),
+    (re.compile(r"\bhygi(?:e|ei)a\b", re.IGNORECASE),                    "Hygiea"),
+    (re.compile(r"\bastraea\b", re.IGNORECASE),                          "Astraea"),
+    (re.compile(r"\beris\b", re.IGNORECASE),                             "Eris"),
+    (re.compile(r"\b(selena|white\s*moon|dark\s*moon|waldemath)\b", re.IGNORECASE), "Selena/White Moon"),
+]
+
+
+def _extract_natal_objects(text: str) -> list:
+    """Return the ordered, de-duplicated list of canonical natal-object
+    names referenced in `text`.  Used by the natal_object branch to
+    detect multi-object queries like 'Ceres and Vesta' or 'my North Node
+    and South Node'.  astrology-chat-multi-object-v1
+    """
+    found: list = []
+    seen: set = set()
+    # Find earliest position of each pattern, then sort by position so
+    # the order matches the user's phrasing (helps the LLM read SN→NN
+    # vs NN→SN as the user wrote it).
+    hits: list = []
+    for pat, canon in _NATAL_OBJECT_PATTERN_TO_CANON:
+        m = pat.search(text)
+        if m:
+            hits.append((m.start(), canon))
+    hits.sort(key=lambda h: h[0])
+    for _, canon in hits:
+        # Expand the bare-plural "_NODES_PAIR_" sentinel into both ends.
+        if canon == "_NODES_PAIR_":
+            for nm in ("North Node", "South Node"):
+                if nm not in seen:
+                    seen.add(nm)
+                    found.append(nm)
+            continue
+        if canon not in seen:
+            seen.add(canon)
+            found.append(canon)
+    return found
 _NATAL_OBJECT_TRIGGER_RE = re.compile(
     r"\b("
     r"tell\s*me\s*about|what\s*does|what's|whats|what\s*is|where\s*is|"
@@ -402,11 +462,35 @@ def classify_astrology_intent(
     # "what house is my Vertex in", "my north node". Must run BEFORE
     # positional/aspect handlers so the LLM doesn't try to free-form it.
     # astrology-chat-master-interpreter-v3
+    #
+    # Multi-object extension: astrology-chat-multi-object-v1
+    # When the user references more than one natal body in one turn
+    # (e.g. "Ceres and Vesta", "my North Node and South Node"), the
+    # router resolves all of them and tags the envelope so the caller
+    # can dispatch through the pairwise / axis builder rather than
+    # picking the first match and silently dropping the rest.
     if natal_obj_body_match and (has_natal_obj_trigger or has_positional or has_natal):
         obj_raw = natal_obj_body_match.group(0)
+        canonical_list = _extract_natal_objects(text)
+        if len(canonical_list) >= 2:
+            is_nodal = ("North Node" in canonical_list) and (
+                "South Node" in canonical_list
+            )
+            return {
+                "data_mode":    "natal_object",
+                "object":       canonical_list[0],   # back-compat
+                "objects":      canonical_list,
+                "axis":         "nodal" if is_nodal else None,
+                "multi":        True,
+                "natural_form": text,
+            }
+        # Single-object fast path — preserve legacy shape.
         return {
             "data_mode":    "natal_object",
-            "object":       obj_raw,
+            "object":       canonical_list[0] if canonical_list else obj_raw,
+            "objects":      canonical_list or [obj_raw],
+            "axis":         None,
+            "multi":        False,
             "natural_form": text,
         }
 
@@ -453,9 +537,25 @@ def classify_astrology_intent(
     # ── natal_object ──────────────────────────────────────────────────
     # "where is my natal Chiron" / "what sign is my Sun" (no transit verb)
     if has_positional and body and has_natal and not has_transit_now:
+        canonical_list = _extract_natal_objects(text)
+        if len(canonical_list) >= 2:
+            is_nodal = ("North Node" in canonical_list) and (
+                "South Node" in canonical_list
+            )
+            return {
+                "data_mode":    "natal_object",
+                "object":       canonical_list[0],
+                "objects":      canonical_list,
+                "axis":         "nodal" if is_nodal else None,
+                "multi":        True,
+                "natural_form": text,
+            }
         return {
             "data_mode":    "natal_object",
             "object":       body,
+            "objects":      [body],
+            "axis":         None,
+            "multi":        False,
             "natural_form": text,
         }
 

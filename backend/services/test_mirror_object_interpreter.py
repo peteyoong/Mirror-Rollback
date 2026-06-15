@@ -177,3 +177,141 @@ def test_failed_envelope_does_not_invoke_mirror_block():
     assert "MIRROR INTERPRETATION" not in block
     assert "ENGINE STATUS" in block
     assert "couldn't be computed" in block
+
+
+# ----------------------------------------------------------------------
+# voice-floor-v2 — escalated bans baked into every Mirror block
+# ----------------------------------------------------------------------
+def test_voice_floor_v2_escalated_bans_present():
+    """Every Mirror block must surface the escalated voice-floor bans
+    so the LLM cannot silently drift back into textbook phrasing."""
+    block = build_mirror_object_proof_block(_make_envelope("Ceres"))
+    for forbidden in (
+        "this placement suggests",
+        "this placement indicates",
+        "this placement invites",
+        "often manifests as",
+        "speaks to how",
+        "Remember, this",
+        "as per our agreement",
+        "grounded in one area at a time",
+    ):
+        assert forbidden.lower() in block.lower(), (
+            f"voice-floor-v2: missing ban on {forbidden!r}"
+        )
+
+
+# ----------------------------------------------------------------------
+# Multi-object — pairwise builder + nodal axis builder
+# astrology-chat-multi-object-v1
+# ----------------------------------------------------------------------
+from services.mirror_object_interpreter import (  # noqa: E402
+    build_axis_mirror_block,
+    build_pairwise_mirror_block,
+    is_nodal_axis,
+)
+
+
+def test_is_nodal_axis_detection():
+    assert is_nodal_axis(["North Node", "South Node"]) is True
+    assert is_nodal_axis(["South Node", "North Node"]) is True
+    assert is_nodal_axis(["Ceres", "Vesta"]) is False
+    assert is_nodal_axis(["North Node"]) is False
+    assert is_nodal_axis([]) is False
+
+
+def test_nodal_axis_block_unifies_both_nodes():
+    nn = _make_envelope("North Node", sign="Pisces", house=4)
+    sn = _make_envelope("South Node", sign="Virgo", house=10)
+    block = build_axis_mirror_block(nn, sn)
+    assert "Nodal Axis" in block
+    assert "North Node" in block
+    assert "South Node" in block
+    # Both placements must surface in the unified block
+    assert "Pisces" in block
+    assert "Virgo" in block
+    # Polarity framing markers
+    assert "overused" in block.lower()
+    assert "stretch" in block.lower()
+    # Axis-specific ban list must still ban past-life / soul-debt language
+    assert "past life" in block.lower()
+    assert "soul debt" in block.lower()
+
+
+def test_pairwise_block_concatenates_two_bodies():
+    ceres = _make_envelope("Ceres", sign="Virgo", house=10)
+    vesta = _make_envelope("Vesta", sign="Aquarius", house=2)
+    block = build_pairwise_mirror_block([ceres, vesta])
+    assert "pairwise" in block.lower() or "INTERSECTION" in block.upper() or "intersection" in block.lower()
+    # Both objects surface in the block
+    assert "Ceres" in block
+    assert "Vesta" in block
+    # Both placements surface
+    assert "Virgo" in block
+    assert "Aquarius" in block
+    # Per-object Mirror questions are surfaced
+    assert "nourish" in block.lower()           # Ceres question
+    assert "quiet, ongoing attention" in block.lower()  # Vesta question
+    # The intersection instruction must explicitly forbid refusing the
+    # second body (so the LLM can't bail with "let's stay on one topic").
+    assert "do not refuse" in block.lower()
+    assert "do not invent a prior agreement" in block.lower()
+
+
+def test_pairwise_with_single_envelope_returns_single_block():
+    """Pairwise builder gracefully delegates to single-block when only
+    one envelope is passed."""
+    env = _make_envelope("Ceres", sign="Virgo", house=10)
+    block = build_pairwise_mirror_block([env])
+    assert "MIRROR INTERPRETATION: Ceres" in block
+    assert "pairwise" not in block.lower()
+
+
+def test_pairwise_with_one_failed_envelope_still_renders():
+    """If one body in a pair fails to compute, the block still emits
+    rather than silently dropping the multi-object query."""
+    ok = _make_envelope("Ceres", sign="Virgo", house=10)
+    fail = {
+        "success": False,
+        "object": "Eros",
+        "reason": "ephemeris_file_missing",
+        "message": "Eros isn't wired into this build (its .se1 file is "
+                   "missing).",
+    }
+    block = build_pairwise_mirror_block([ok, fail])
+    assert "Ceres" in block
+    assert "Eros" in block
+    assert "not computed" in block.lower()
+
+
+# ----------------------------------------------------------------------
+# Degree-rendering — Variant-A signs can be > 30° wide.
+# Display-cap at 29 so user-visible text never shows "33° Leo".
+# voice-floor-v2 degree-rendering-fix
+# ----------------------------------------------------------------------
+def test_display_degree_caps_above_29():
+    env = _make_envelope("Pallas", sign="Leo", house=9)
+    env["placement"]["degree"] = 33.3121   # Variant-A Pallas in wide Leo
+    block = build_mirror_object_proof_block(env)
+    # Capped to 29° in the user-visible proof block
+    assert "29°Leo" in block
+    # Raw 33° MUST NOT appear (would confuse users)
+    assert "33°" not in block
+    assert "33° Leo" not in block
+
+
+def test_display_degree_normal_range_unchanged():
+    env = _make_envelope("Chiron", sign="Aries", house=1)
+    env["placement"]["degree"] = 12.4
+    block = build_mirror_object_proof_block(env)
+    assert "12°Aries" in block
+
+
+def test_display_degree_missing_degree_falls_back_to_sign_only():
+    env = _make_envelope("Chiron", sign="Aries", house=1)
+    env["placement"]["degree"] = None
+    env["placement"].pop("formatted", None)
+    block = build_mirror_object_proof_block(env)
+    # No raw '?°' or numeric junk; sign alone is acceptable
+    assert "Aries" in block
+    assert "?°" not in block

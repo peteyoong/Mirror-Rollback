@@ -82,18 +82,73 @@ BUILD_MARKER = "mirror-interpretation-layer-v1"
 
 _UNIVERSAL_VOICE_FLOOR = (
     "VOICE FLOOR (applies to every sentence):\n"
-    "  • Speak in 2nd person, present tense, conversational.\n"
-    "  • Lead with WHERE this energy SHOWS UP in their life — not what the\n"
-    "    body 'represents' or 'symbolises'.\n"
-    "  • Behavioural / observational — what they do, not what they 'are'.\n"
-    "  • No 'this placement suggests…', no 'themes of…', no 'this can\n"
-    "    manifest as…', no 'where do you notice…?', no closing reflective\n"
-    "    question, no fortune-cookie generalities.\n"
-    "  • One concrete behaviour or pattern per sentence.\n"
+    "  • Speak in 2nd person, present tense, conversational. Sound like\n"
+    "    a careful observer of THIS PERSON, not a teacher of astrology.\n"
+    "  • Lead with what HAPPENS in their life. Mirror reads behaviour,\n"
+    "    tension, trade-offs, and recurring patterns — not what a body\n"
+    "    'represents' or 'symbolises'.\n"
+    "  • Behavioural / observational only. Name what they do, what they\n"
+    "    choose, where they get stuck, where the same loop comes back.\n"
+    "  • One concrete behaviour or observable tendency per sentence.\n"
     "  • Length: 70–130 words total — Mirror is concise.\n"
-    "  • Do NOT mention any other body unless directly contextualising the\n"
-    "    requested one."
+    "  • Do NOT mention any other body unless directly contextualising\n"
+    "    the requested one.\n"
+    "\n"
+    "HARD BANS (do not use ANY of these phrasings — escalated, voice-floor-v2):\n"
+    "  • 'this placement…' / 'this placement suggests…' /\n"
+    "    'this placement indicates…' / 'this placement invites…' /\n"
+    "    'this placement often…' / 'this placement encourages…' /\n"
+    "    'this placement reflects…' / 'this placement speaks to…'\n"
+    "  • 'often manifests as…' / 'often manifests through…' /\n"
+    "    'can manifest as…' / 'may manifest as…' / 'tends to manifest…'\n"
+    "  • 'speaks to how…' / 'speaks to the way…' / 'speaks of…' /\n"
+    "    'this energy speaks…'\n"
+    "  • 'themes of…' / 'the theme here is…'\n"
+    "  • 'invites you to…' / 'invites a sense of…' / 'invites growth…'\n"
+    "  • 'where do you notice…?' / closing reflective question of any kind\n"
+    "  • Closing platitudes: 'Remember, this doesn't define you', 'this\n"
+    "    is just a tool', 'take this with a grain of salt', 'trust your\n"
+    "    journey', 'embrace…', 'lean into…' (as a final coachy tail)\n"
+    "  • Reflective homework prompts: 'consider journaling…',\n"
+    "    'sit with this…', 'a small habit to try…' (UNLESS the block\n"
+    "    instruction explicitly asks for a behavioural close)\n"
+    "  • Textbook astrology framings: 'the energy of {sign}…',\n"
+    "    'as a {sign}/{house} placement…', 'archetypally…'\n"
+    "  • Coaching tone: 'I encourage you to…', 'trust this sense…'\n"
+    "  • Generic disclaimers: 'as per our agreement…', 'let's stay\n"
+    "    grounded in one area at a time' — NEVER invent a prior\n"
+    "    instruction; just answer.\n"
+    "\n"
+    "MIRROR SOUNDS LIKE WHAT HAPPENS, NOT WHAT THIS PLACEMENT MEANS."
 )
+
+
+# ---------------------------------------------------------------------------
+# Display-degree helper — Variant-A sign widths are non-uniform (some
+# signs span > 30°). Internal `degree` is preserved as the canonical
+# within-sign value (e.g. Pallas Leo 33.31° in a 33.34°-wide Leo band).
+# But user-facing rendering must NOT surface "33° Leo" because users
+# read degrees against a mental 0–29° model.  Display-cap at 29.
+# ---------------------------------------------------------------------------
+def _display_degree(degree: Any) -> Optional[int]:
+    """Return a 0–29 integer for user-facing rendering, or None if
+    `degree` isn't numeric. Internal float value stays untouched in the
+    envelope; this only affects the proof block string shown to the LLM."""
+    if not isinstance(degree, (int, float)):
+        return None
+    capped = max(0.0, min(float(degree), 29.999))
+    return int(capped)
+
+
+def _format_placement_display(placement: Dict[str, Any]) -> str:
+    """Compose a user-safe '{deg}°{sign}' string for proof blocks.
+    Falls back to '{sign}' alone when degree is missing or unparseable."""
+    sign = placement.get("sign") or "?"
+    deg = placement.get("degree")
+    d = _display_degree(deg)
+    if d is None:
+        return sign
+    return f"{d}°{sign}"
 
 
 _MIRROR_BLOCKS: Dict[str, Dict[str, Any]] = {
@@ -465,10 +520,7 @@ def build_mirror_object_proof_block(envelope: Dict[str, Any]) -> str:
 
     placement = envelope.get("placement") or {}
     sign = placement.get("sign", "?")
-    degree = placement.get("degree")
-    formatted = placement.get("formatted") or (
-        f"{int(degree) if isinstance(degree, (int, float)) else '?'}°{sign}"
-    )
+    formatted = _format_placement_display(placement)
     house = placement.get("house")
     house_line = f"House: {house}" if house is not None else "House: (not computed)"
 
@@ -496,3 +548,184 @@ def build_mirror_object_proof_block(envelope: Dict[str, Any]) -> str:
         f"{bans_str}\n"
         "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
     )
+
+
+# ---------------------------------------------------------------------------
+# Multi-object Mirror blocks — pairwise + axis
+# ---------------------------------------------------------------------------
+#
+# Single-object queries are the common case. When the user explicitly
+# references TWO or more natal objects in one turn (e.g. "Ceres and
+# Vesta", "my North Node and South Node"), the dispatcher resolves all
+# of them and asks for a UNIFIED interpretation rather than one block
+# per body.  Two shapes are supported:
+#
+#   • axis mode      — North Node ↔ South Node  (polarity reading)
+#   • pairwise mode  — any other pair, e.g. Ceres + Vesta
+#                      (two short blocks + ONE intersection sentence)
+#
+# Both honour the same VOICE FLOOR and HARD BANS as single-object reads.
+
+
+def _placement_line(envelope: Dict[str, Any]) -> str:
+    """Compose a single deterministic placement line for envelopes used
+    inside multi-object blocks. Falls back gracefully if the envelope is
+    not a success envelope (None / unwired)."""
+    if not envelope or not envelope.get("success"):
+        obj = (envelope or {}).get("object", "?")
+        return f"  {obj}: (not computed — engine_message: " \
+               f"{(envelope or {}).get('message','unknown')})"
+    obj = envelope.get("object", "?")
+    p = envelope.get("placement") or {}
+    formatted = _format_placement_display(p)
+    house = p.get("house")
+    house_blurb = f", house {house}" if house is not None else ", house (n/a)"
+    return f"  {obj}: {formatted}{house_blurb}"
+
+
+def build_axis_mirror_block(
+    nn_env: Dict[str, Any],
+    sn_env: Dict[str, Any],
+) -> str:
+    """Polarity-style Mirror prompt for the North Node ↔ South Node axis.
+
+    Treats the two nodes as ONE behavioural axis (overused competence on
+    the SN end, deliberate stretch on the NN end), not as two separate
+    bodies.  Returns the full prompt block.  Either envelope may be a
+    failure envelope — in that case the corresponding side of the axis
+    becomes 'not computed' but the block still emits so the LLM doesn't
+    silently fall back to free-form astrology.
+    """
+    nn_line = _placement_line(nn_env)
+    sn_line = _placement_line(sn_env)
+    return (
+        "━━━━ NATAL OBJECT — MIRROR INTERPRETATION: Nodal Axis "
+        "(North Node ↔ South Node) ━━━━\n"
+        "Mirror question:  What can you safely put down — and which "
+        "unfamiliar muscle is the chart asking you to use?\n"
+        "AXIS placements:\n"
+        f"{sn_line}    (the overused, comfortable end)\n"
+        f"{nn_line}    (the unfamiliar, growth end)\n"
+        f"build:            {BUILD_MARKER}\n"
+        "sign attribution: True Sidereal-M Midpoint (same as natal chart)\n"
+        "\n"
+        "INSTRUCTION TO YOU:\n"
+        "1. Sentence 1: name the axis in plain language — South Node sign\n"
+        "   and house FIRST (the familiar competence), then North Node\n"
+        "   sign and house (the stretch).\n"
+        "2. Then 4–6 sentences of Mirror reading framed as ONE polarity,\n"
+        "   not two separate placements.  Mirror reads the GRAVITATIONAL\n"
+        "   DRAG of the SN — what behaviour they default to under stress,\n"
+        "   what they over-rely on because it has always worked — and\n"
+        "   then the NN as the deliberate stretch that feels slightly\n"
+        "   unnatural but is exactly where development keeps pointing.\n"
+        "   Speak to the CHRONIC VACATING of one for the other.\n"
+        "3. Be sign-and-house specific on BOTH ends — name what the SN\n"
+        "   competence actually looks like in their life, and what the\n"
+        "   NN stretch actually looks like behaviourally.\n"
+        "4. End with ONE short line about the small move that shifts\n"
+        "   them off the SN comfort and toward the NN stretch.\n"
+        "\n"
+        f"{_UNIVERSAL_VOICE_FLOOR}\n"
+        "\n"
+        "AXIS-SPECIFIC BAN LIST (do not use any of these):\n"
+        "  past life, past lives, soul debt, karmic debt, karmic path,\n"
+        "  previous incarnation, you were born to, destiny, fate,\n"
+        "  soul contract, soul mission, what you owe, life purpose\n"
+        "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    )
+
+
+def build_pairwise_mirror_block(envelopes: list) -> str:
+    """Multi-object Mirror prompt for any combination of 2+ bodies that
+    is NOT the nodal axis.  Each body gets a short stand-alone read; an
+    explicit intersection paragraph forces the LLM to name how they
+    interact behaviourally rather than answer one and refuse the rest.
+
+    `envelopes` is a list of natal-object envelopes (from
+    services.natal_object_engine.compute_natal_object).
+    """
+    if not envelopes:
+        return ""
+    if len(envelopes) == 1:
+        return build_mirror_object_proof_block(envelopes[0])
+
+    placement_block = "\n".join(_placement_line(e) for e in envelopes)
+    obj_names = [
+        (e.get("object") or "?") for e in envelopes if e
+    ]
+    obj_names_str = " + ".join(obj_names)
+
+    # Mirror questions per body, when known — gives the LLM the framing
+    # for each side so it doesn't drift into textbook.
+    per_object_questions = []
+    for e in envelopes:
+        if not e or not e.get("success"):
+            continue
+        resolved = _resolve_alias(e.get("object") or "")
+        spec = _MIRROR_BLOCKS.get(resolved)
+        if isinstance(spec, dict):
+            q = spec.get("question", "")
+            per_object_questions.append(f"  • {e.get('object')} → {q}")
+    qmap = (
+        "Per-body Mirror question(s):\n" + "\n".join(per_object_questions)
+        if per_object_questions
+        else ""
+    )
+
+    # Collect the merged ban list across every body in the request.
+    merged_bans: set[str] = set()
+    for e in envelopes:
+        if not e or not e.get("success"):
+            continue
+        resolved = _resolve_alias(e.get("object") or "")
+        spec = _MIRROR_BLOCKS.get(resolved)
+        if isinstance(spec, dict):
+            for b in spec.get("object_bans") or []:
+                merged_bans.add(b)
+    bans_str = ""
+    if merged_bans:
+        bans_str = "OBJECT-SPECIFIC BAN LIST (do not use any of these):\n"
+        bans_str += "  " + ", ".join(sorted(merged_bans))
+
+    return (
+        f"━━━━ NATAL OBJECT — MIRROR INTERPRETATION (pairwise): "
+        f"{obj_names_str} ━━━━\n"
+        f"placements:\n{placement_block}\n"
+        f"build:            {BUILD_MARKER}\n"
+        "sign attribution: True Sidereal-M Midpoint (same as natal chart)\n"
+        "\n"
+        f"{qmap}\n"
+        "\n"
+        "INSTRUCTION TO YOU:\n"
+        "1. Give each body 2–3 sentences in Mirror voice. State the\n"
+        "   sign + house of each on its first sentence, then describe\n"
+        "   the observable behaviour or recurring pattern.  Sign + house\n"
+        "   specific.  Behavioural only.\n"
+        "2. After both bodies have been read, write ONE final paragraph\n"
+        "   (2–3 sentences) naming the INTERSECTION — how these two\n"
+        "   bodies show up TOGETHER in their life.  Name one concrete\n"
+        "   place the two patterns reinforce each other and one place\n"
+        "   they pull against each other.  No abstract synthesis.\n"
+        "3. Do NOT refuse to read the second body, do NOT defer one\n"
+        "   for later, do NOT invent a prior agreement about staying\n"
+        "   on a single topic.  Both bodies were requested; both get\n"
+        "   read.\n"
+        "4. Total length: 140–220 words.\n"
+        "\n"
+        f"{_UNIVERSAL_VOICE_FLOOR}\n"
+        "\n"
+        f"{bans_str}\n"
+        "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    )
+
+
+# ---------------------------------------------------------------------------
+# Public helpers for the dispatcher
+# ---------------------------------------------------------------------------
+def is_nodal_axis(objects: list) -> bool:
+    """Return True if the supplied canonical names form the NN/SN axis."""
+    if not objects:
+        return False
+    norm = {(o or "").strip() for o in objects}
+    return ("North Node" in norm) and ("South Node" in norm)

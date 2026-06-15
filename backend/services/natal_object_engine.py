@@ -619,7 +619,13 @@ def build_natal_object_proof_block(envelope: Dict[str, Any]) -> str:
 
     p = envelope["placement"]
     obj = envelope["object"]
-    formatted = p.get("formatted") or f"{p.get('sign')} {p.get('degree')}"
+    # Display-cap degree at 29 for user-visible rendering (Variant-A signs
+    # can be > 30° wide; raw `degree` stays untouched in the envelope).
+    try:
+        from services.mirror_object_interpreter import _format_placement_display
+        formatted = _format_placement_display(p)
+    except Exception:
+        formatted = p.get("formatted") or f"{p.get('sign')} {p.get('degree')}"
     house = p.get("house")
     src = envelope.get("source", "?")
 

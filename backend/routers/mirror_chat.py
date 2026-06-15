@@ -2521,26 +2521,123 @@ NOT: "I opened a generic chat"
                             # CRITICAL: if engine returns not-wired, the proof
                             # block forbids substitution with another body
                             # (no Lilith→Moon swap).
-                            elif mode_label == "natal_object" and grounded_intent.get("object"):
-                                obj_q = grounded_intent["object"]
-                                no_env = compute_natal_object(chart=_astro_chart, object_name=obj_q)
-                                astro_chat_debug["natal_object_success"] = bool(no_env.get("success"))
-                                astro_chat_debug["natal_object_canonical"] = no_env.get("object")
-                                astro_chat_debug["natal_object_reason"] = no_env.get("reason")
-                                astro_chat_debug["natal_object_source"] = no_env.get("source")
-                                if no_env.get("success"):
-                                    astro_chat_debug["astro_sources_used"].append(
-                                        f"natal_object:{no_env.get('object')}"
+                            #
+                            # Multi-object extension: astrology-chat-multi-object-v1
+                            # When the user references multiple bodies in one
+                            # turn (e.g. Ceres + Vesta, NN + SN), the router
+                            # returns `objects=[...]` and the dispatcher
+                            # computes EACH envelope and emits a unified
+                            # pairwise / axis Mirror block instead of one
+                            # block + the LLM hallucinating the rest.
+                            elif mode_label == "natal_object" and (
+                                grounded_intent.get("object")
+                                or grounded_intent.get("objects")
+                            ):
+                                multi_objects = grounded_intent.get("objects") or []
+                                axis_tag      = grounded_intent.get("axis")
+                                if not multi_objects:
+                                    multi_objects = [grounded_intent["object"]]
+
+                                envelopes_list = []
+                                for _obj_q in multi_objects:
+                                    _env = compute_natal_object(
+                                        chart=_astro_chart, object_name=_obj_q,
                                     )
-                                logger.info(
-                                    f"[NatalObject] query={obj_q!r} canonical={no_env.get('object')} "
-                                    f"success={no_env.get('success')} reason={no_env.get('reason')} "
-                                    f"source={no_env.get('source')}"
+                                    envelopes_list.append(_env)
+                                    logger.info(
+                                        f"[NatalObject] query={_obj_q!r} "
+                                        f"canonical={_env.get('object')} "
+                                        f"success={_env.get('success')} "
+                                        f"reason={_env.get('reason')} "
+                                        f"source={_env.get('source')}"
+                                    )
+
+                                # Back-compat debug fields (primary object).
+                                primary_env = envelopes_list[0]
+                                astro_chat_debug["natal_object_success"] = bool(
+                                    primary_env.get("success")
                                 )
-                                system_prompt += "\n\n" + build_natal_object_proof_block(no_env)
-                                if not no_env.get("success"):
+                                astro_chat_debug["natal_object_canonical"] = (
+                                    primary_env.get("object")
+                                )
+                                astro_chat_debug["natal_object_reason"] = (
+                                    primary_env.get("reason")
+                                )
+                                astro_chat_debug["natal_object_source"] = (
+                                    primary_env.get("source")
+                                )
+                                # Multi-object debug fields
+                                astro_chat_debug["natal_object_multi"] = (
+                                    len(envelopes_list) > 1
+                                )
+                                astro_chat_debug["natal_object_axis"] = axis_tag
+                                astro_chat_debug["natal_object_canonical_list"] = [
+                                    e.get("object") for e in envelopes_list
+                                ]
+                                logger.info(
+                                    f"[NatalObject][multi-object] "
+                                    f"count={len(envelopes_list)} "
+                                    f"axis={axis_tag!r} "
+                                    f"objects={[e.get('object') for e in envelopes_list]}"
+                                )
+
+                                # Choose builder based on shape.
+                                if len(envelopes_list) >= 2:
+                                    try:
+                                        from services.mirror_object_interpreter import (
+                                            build_axis_mirror_block,
+                                            build_pairwise_mirror_block,
+                                        )
+                                        if axis_tag == "nodal":
+                                            nn_env = next(
+                                                (e for e in envelopes_list
+                                                 if e.get("object") == "North Node"),
+                                                envelopes_list[0],
+                                            )
+                                            sn_env = next(
+                                                (e for e in envelopes_list
+                                                 if e.get("object") == "South Node"),
+                                                envelopes_list[-1],
+                                            )
+                                            proof_block = build_axis_mirror_block(
+                                                nn_env, sn_env,
+                                            )
+                                        else:
+                                            proof_block = build_pairwise_mirror_block(
+                                                envelopes_list,
+                                            )
+                                    except Exception as multi_exc:
+                                        logger.warning(
+                                            f"[NatalObject] multi-object builder "
+                                            f"failed: {multi_exc} — falling back "
+                                            "to single-block primary"
+                                        )
+                                        proof_block = build_natal_object_proof_block(
+                                            primary_env,
+                                        )
+                                else:
+                                    proof_block = build_natal_object_proof_block(
+                                        primary_env,
+                                    )
+
+                                if primary_env.get("success") or any(
+                                    e.get("success") for e in envelopes_list
+                                ):
+                                    astro_chat_debug["astro_sources_used"].append(
+                                        "natal_object:"
+                                        + "+".join(
+                                            e.get("object") or "?"
+                                            for e in envelopes_list
+                                            if e.get("success")
+                                        )
+                                    )
+
+                                system_prompt += "\n\n" + proof_block
+                                if not any(
+                                    e.get("success") for e in envelopes_list
+                                ):
                                     astro_chat_debug["fallback_triggered"] = True
-                                    response_text = no_env.get("message")
+                                    response_text = primary_env.get("message")
 
                             # ── pressure_topology branch (V6) ──────────────────
                             # astrology-pressure-topology-v6

@@ -606,7 +606,37 @@ VIOLATION_PATTERNS: List[ViolationPattern] = [
     ViolationPattern(r"\byou are a (\w+)\b", ViolationSeverity.REWRITE, "identity_claim", r"you may notice \1 patterns", issue_code="IDENT_YOU_ARE"),
     ViolationPattern(r"\bthis means you\b", ViolationSeverity.REWRITE, "certainty", "this often correlates with", issue_code="CERT_MEANS"),
     ViolationPattern(r"\bthis is who you are\b", ViolationSeverity.REWRITE, "identity_claim", "this is a pattern you might recognize", issue_code="IDENT_WHO"),
-    
+
+    # ── Mirror voice-floor rewrites — voice-floor-v2 ─────────────────
+    # Textbook-astrology framings that the Mirror voice floor forbids.
+    # These rewrites convert "this placement {verb}" → behavioural framings.
+    ViolationPattern(r"\bthis placement (?:often\s+)?suggests\b", ViolationSeverity.REWRITE, "textbook_astrology", "you tend to", issue_code="MIRROR_PLACEMENT_SUGGESTS"),
+    ViolationPattern(r"\bthis placement (?:often\s+)?indicates\b", ViolationSeverity.REWRITE, "textbook_astrology", "you tend to", issue_code="MIRROR_PLACEMENT_INDICATES"),
+    ViolationPattern(r"\bthis placement (?:often\s+)?reflects\b", ViolationSeverity.REWRITE, "textbook_astrology", "you tend to", issue_code="MIRROR_PLACEMENT_REFLECTS"),
+    ViolationPattern(r"\bthis placement (?:often\s+)?encourages\b", ViolationSeverity.REWRITE, "textbook_astrology", "you tend to", issue_code="MIRROR_PLACEMENT_ENCOURAGES"),
+    ViolationPattern(r"\bthis placement invites\b", ViolationSeverity.REWRITE, "textbook_astrology", "you find yourself", issue_code="MIRROR_PLACEMENT_INVITES"),
+    ViolationPattern(r"\bthis placement often sees you\b", ViolationSeverity.REWRITE, "textbook_astrology", "you", issue_code="MIRROR_PLACEMENT_SEES"),
+    ViolationPattern(r"\bthis placement (?:often\s+)?speaks (?:to|of)\b", ViolationSeverity.REWRITE, "textbook_astrology", "you tend to", issue_code="MIRROR_PLACEMENT_SPEAKS"),
+    ViolationPattern(r"\bthis placement often (?:manifests|shows up) (?:as|through)\b", ViolationSeverity.REWRITE, "textbook_astrology", "you tend to", issue_code="MIRROR_PLACEMENT_MANIFESTS"),
+    ViolationPattern(r"\bthis placement\b(?!\s+is\s+(?:correct|wrong))", ViolationSeverity.REWRITE, "textbook_astrology", "you", issue_code="MIRROR_PLACEMENT_BARE"),
+    ViolationPattern(r"\boften manifests as\b", ViolationSeverity.REWRITE, "textbook_astrology", "tends to look like", issue_code="MIRROR_MANIFESTS_AS"),
+    ViolationPattern(r"\boften manifests through\b", ViolationSeverity.REWRITE, "textbook_astrology", "tends to show up in", issue_code="MIRROR_MANIFESTS_THROUGH"),
+    ViolationPattern(r"\bcan manifest as\b", ViolationSeverity.REWRITE, "textbook_astrology", "tends to look like", issue_code="MIRROR_CAN_MANIFEST"),
+    ViolationPattern(r"\bmay manifest as\b", ViolationSeverity.REWRITE, "textbook_astrology", "tends to look like", issue_code="MIRROR_MAY_MANIFEST"),
+    ViolationPattern(r"\bspeaks to how (?:you )?\b", ViolationSeverity.REWRITE, "textbook_astrology", "shows up in how you ", issue_code="MIRROR_SPEAKS_TO_HOW"),
+    ViolationPattern(r"\bthemes of\b", ViolationSeverity.REWRITE, "textbook_astrology", "patterns of", issue_code="MIRROR_THEMES_OF"),
+    ViolationPattern(r"\binvites you to grow into\b", ViolationSeverity.REWRITE, "textbook_astrology", "asks you to lean into", issue_code="MIRROR_INVITES_GROW"),
+    ViolationPattern(r"\binvites a sense of\b", ViolationSeverity.REWRITE, "textbook_astrology", "tends to bring", issue_code="MIRROR_INVITES_SENSE"),
+
+    # Boilerplate disclaimers — Mirror NEVER closes with these.
+    # voice-floor-v2 boilerplate-removal-v1
+    ViolationPattern(r"(?i)\bRemember,?\s+this (?:information|placement|reading|chart|interpretation) doesn'?t define you[^.]*\.?", ViolationSeverity.REWRITE, "boilerplate_disclaimer", "", issue_code="MIRROR_DISCLAIM_DEFINE"),
+    ViolationPattern(r"(?i)\bthis (?:is\s+)?(?:just\s+)?(?:meant\s+to\s+be\s+)?a tool[,.][^.]*\.?", ViolationSeverity.REWRITE, "boilerplate_disclaimer", "", issue_code="MIRROR_DISCLAIM_TOOL"),
+    ViolationPattern(r"(?i)\btake this with a grain of salt[^.]*\.?", ViolationSeverity.REWRITE, "boilerplate_disclaimer", "", issue_code="MIRROR_DISCLAIM_SALT"),
+    ViolationPattern(r"(?i)\bas per our agreement[^.]*\.?", ViolationSeverity.REWRITE, "boilerplate_disclaimer", "", issue_code="MIRROR_DISCLAIM_AGREEMENT"),
+    ViolationPattern(r"(?i)\blet'?s stay grounded in one (?:area|topic|placement) at a time[^.]*\.?", ViolationSeverity.REWRITE, "boilerplate_disclaimer", "", issue_code="MIRROR_DISCLAIM_ONE_AT_A_TIME"),
+    ViolationPattern(r"(?i)\bone area at a time for clarity[^.]*\.?", ViolationSeverity.REWRITE, "boilerplate_disclaimer", "", issue_code="MIRROR_DISCLAIM_ONE_AREA"),
+
     # WARNING-level (log but allow)
     ViolationPattern(r"\bthe stars say\b", ViolationSeverity.WARNING, "mystical_tone", issue_code="MYSTIC_STARS"),
     ViolationPattern(r"\bthe universe wants\b", ViolationSeverity.WARNING, "mystical_tone", issue_code="MYSTIC_UNIVERSE"),
@@ -683,8 +713,11 @@ def validate_emergent_output(text: Any) -> ValidationResult:
             elif max_severity.value == "warning" and vp.severity.value == "rewrite":
                 max_severity = vp.severity
             
-            # Apply auto-rewrite for REWRITE severity
-            if vp.severity == ViolationSeverity.REWRITE and vp.replacement:
+            # Apply auto-rewrite for REWRITE severity. Note: replacement
+            # may be an empty string (used to STRIP boilerplate disclaimers
+            # entirely — voice-floor-v2), so check `is not None` rather
+            # than truthiness.
+            if vp.severity == ViolationSeverity.REWRITE and vp.replacement is not None:
                 rewritten_text = re.sub(vp.pattern, vp.replacement, rewritten_text, flags=re.IGNORECASE)
     
     is_valid = len(violations) == 0 or (max_severity == ViolationSeverity.WARNING)
