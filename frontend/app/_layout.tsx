@@ -4,6 +4,7 @@ import { View, Text, ActivityIndicator, StyleSheet, Platform, useWindowDimension
 import { useAppStore } from '../store';
 import { ThemeProvider, useTheme, LightTheme, DarkTheme } from '../contexts/ThemeContext';
 import { ForumContextProvider } from '../contexts/ForumContext';
+import { KeyboardProvider } from 'react-native-keyboard-controller';
 import { DebugViewportOverlay } from '../components/DebugViewportOverlay';
 import { AddToHomeScreenBanner, BannerProvider } from '../components/AddToHomeScreenBanner';
 
@@ -199,11 +200,13 @@ const errorStyles = StyleSheet.create({
 
 export default function RootLayout() {
   return (
-    <ThemeProvider>
-      <ForumContextProvider>
-        <ThemedRootLayout />
-      </ForumContextProvider>
-    </ThemeProvider>
+    <KeyboardProvider>
+      <ThemeProvider>
+        <ForumContextProvider>
+          <ThemedRootLayout />
+        </ForumContextProvider>
+      </ThemeProvider>
+    </KeyboardProvider>
   );
 }
 

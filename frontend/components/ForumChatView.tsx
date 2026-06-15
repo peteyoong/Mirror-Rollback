@@ -7,10 +7,19 @@ import {
   ScrollView,
   TextInput,
   ActivityIndicator,
-  KeyboardAvoidingView,
   Platform,
   Keyboard,
 } from 'react-native';
+// FORUM-COMPOSER-KBD-V1 (Option B):
+// Use react-native-keyboard-controller's KeyboardAvoidingView instead of
+// the stock react-native one.  Reason: on iPhone Safari (web), the stock
+// KeyboardAvoidingView does not subscribe to `window.visualViewport`
+// resize events, so the soft-keyboard overlay leaves the composer
+// hidden behind the keyboard.  The keyboard-controller version handles
+// both native iOS/Android keyboard events AND the visualViewport API on
+// web.  Chat surfaces should use `translate-with-padding` per the
+// expo-keyboard-experience skill recommendation.
+import { KeyboardAvoidingView } from 'react-native-keyboard-controller';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../contexts/ThemeContext';
 import { useAppStore } from '../store';
@@ -274,7 +283,14 @@ export default function ForumChatView({ forumId, members, onClose, initialMode, 
   return (
     <KeyboardAvoidingView 
       style={[styles.container, { backgroundColor: theme.background }]}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      // FORUM-COMPOSER-KBD-V1:
+      // 'translate-with-padding' is the chat-style behavior recommended by
+      // the expo-keyboard-experience skill for messaging UIs.  On iOS it
+      // pads-and-translates the content above the keyboard; on Android it
+      // falls back to height resizing; on web it consumes
+      // visualViewport.resize events so the composer no longer hides
+      // behind the iOS Safari soft keyboard.
+      behavior={Platform.OS === 'ios' ? 'translate-with-padding' : 'height'}
       keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
     >
       {/* Header */}
@@ -482,6 +498,17 @@ export default function ForumChatView({ forumId, members, onClose, initialMode, 
           multiline
           maxLength={500}
           editable={!loading && !(!AUTO_CTX_ENABLED && mode === 'member' && !selectedMember)}
+          // FORUM-COMPOSER-KBD-V1:
+          // When focus lands on the composer, give the layout a tick for
+          // KeyboardAvoidingView to translate, then bring the latest
+          // message into view above the keyboard.  Without this, the
+          // last bubble stays clipped behind the lifted composer on
+          // iPhone Safari.
+          onFocus={() => {
+            setTimeout(() => {
+              try { scrollViewRef.current?.scrollToEnd({ animated: true }); } catch {}
+            }, 150);
+          }}
         />
         <TouchableOpacity
           style={[
@@ -734,14 +761,21 @@ const styles = StyleSheet.create({
   },
   input: {
     flex: 1,
-    minHeight: 40,
+    // FORUM-COMPOSER-KBD-V1:
+    // 44px is the Apple HIG minimum touch target and also gives the
+    // caret enough vertical room that typed characters are not clipped
+    // by paddingVertical on iOS Safari multiline inputs.  Previously 40.
+    minHeight: 44,
     maxHeight: 100,
     paddingHorizontal: 14,
     paddingVertical: 10,
     borderRadius: 20,
     borderWidth: 1,
     fontSize: 17,
-    textAlignVertical: 'center',
+    // textAlignVertical was set to 'center' here — that prop is
+    // Android-only and gets stripped on RN-Web, which on iOS Safari
+    // combined with multiline made typed text appear obscured.
+    // Removed intentionally.
   },
   sendButton: {
     width: 40,
