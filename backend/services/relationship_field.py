@@ -1094,6 +1094,16 @@ def build_relationship_field(
     Stand-alone amplifier lines are suppressed.
     """
     try:
+        # astrology-chat-v5-advanced-object-reconnect — hydrate Juno / Vertex
+        # for legacy charts so the amplifier layer doesn't silently drop
+        # this person's relationship-significance signals.
+        try:
+            from services.natal_object_engine import ensure_advanced_objects
+            chart_a = ensure_advanced_objects(chart_a)
+            chart_b = ensure_advanced_objects(chart_b)
+        except Exception:
+            pass
+
         channel_ids = _extract_hd_channel_ids(hd_signals)
 
         # Build the activation + themes + gift first (from non-amplifier data).

@@ -58,16 +58,27 @@ _INVENTORY_TARGETS = [
     "Chiron",
     "Black Moon Lilith",
     "Juno", "Ceres", "Pallas", "Vesta",
-    "Vertex",
+    "Vertex", "Anti-Vertex",
     "Lot of Fortune", "Lot of Spirit",
 ]
 
 
 def _house_of(astro: Dict[str, Any], sid_longitude: float) -> Optional[int]:
     """Compute which house a sidereal longitude falls into using stored cusps."""
-    cusps = astro.get("houses") or astro.get("house_cusps")
-    if not cusps:
+    # Canonical shape: astro.houses.cusps = [12 longitudes]. Older builds
+    # wrote astro.house_cusps directly. Tolerate both.
+    cusps = astro.get("house_cusps")
+    if not isinstance(cusps, list):
+        houses = astro.get("houses")
+        if isinstance(houses, dict):
+            cusps = houses.get("cusps")
+        elif isinstance(houses, list):
+            cusps = houses
+    if not isinstance(cusps, list) or len(cusps) < 12:
         return None
+    # If we have a list of dicts (formatted cusps), flatten to longitudes.
+    if cusps and isinstance(cusps[0], dict):
+        cusps = [c.get("cusp") or c.get("longitude") for c in cusps]
     try:
         return get_house_for_planet(sid_longitude, cusps)
     except Exception:

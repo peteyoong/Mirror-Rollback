@@ -36,26 +36,41 @@ from calculations.astrology import (
 
 logger = logging.getLogger(__name__)
 
-BUILD_MARKER = "astrology-chat-v4-object-coverage"
+BUILD_MARKER = "astrology-chat-v5-advanced-object-reconnect"
 
 # Canonical name → swisseph body constant (for objects we COMPUTE on demand
 # because they're not pre-stored in the chart doc).
 #
-# Asteroids use swe.AST_OFFSET + minor planet number. The base asteroid
-# file (seas_18.se1) is bundled with pyswisseph and covers the major
-# main-belt bodies and many named asteroids.
+# Two flavours:
+#   • Direct first-class swisseph bodies (have a top-level constant) — these
+#     read from the standard seas_18.se1 asteroid file that ships with the
+#     pyswisseph wheel.  Juno / Vesta / Ceres / Pallas / Pholus belong here.
+#     Previously this engine routed them via AST_OFFSET + minor-planet-number,
+#     which was correct for asteroids but missed Juno entirely because the
+#     numbering offset and Juno's swisseph constant are different layers.
+#   • Named asteroids that require additional .se1 ephemeris files (Eros,
+#     Psyche, Hygiea, Astraea, Eris).  Those calls will fail with a
+#     "file not found" error and the engine reports them as
+#     `ephemeris_file_missing` (a distinct reason from "not designed").
 _AST_OFFSET = getattr(swe, "AST_OFFSET", 10000)
 _COMPUTE_ON_DEMAND = {
+    # Lunar apogee family
     "Black Moon Lilith":      swe.MEAN_APOG,   # Mean Lunar Apogee — standard BML
     "True Black Moon Lilith": swe.OSCU_APOG,   # Osculating apogee, less common
-    "Ceres":                  _AST_OFFSET + 1,
-    "Pallas":                 _AST_OFFSET + 2,
-    "Vesta":                  _AST_OFFSET + 4,
+    # Major asteroids — use direct swisseph constants (always in seas_18.se1)
+    "Ceres":                  swe.CERES,
+    "Pallas":                 swe.PALLAS,
+    "Juno":                   swe.JUNO,
+    "Vesta":                  swe.VESTA,
+    # Centaur — also in standard ephemeris
+    "Pholus":                 swe.PHOLUS,
+    # Named asteroids — require additional ephemeris files NOT bundled by default.
+    # These return `ephemeris_file_missing` until the .se1 files are installed.
     "Astraea":                _AST_OFFSET + 5,
     "Hygiea":                 _AST_OFFSET + 10,
     "Psyche":                 _AST_OFFSET + 16,
     "Eros":                   _AST_OFFSET + 433,
-    "Eris":                   _AST_OFFSET + 136199,   # needs s136199s.se1 ephemeris
+    "Eris":                   _AST_OFFSET + 136199,
 }
 
 # Aliases — the surface the user is likely to use → canonical name.
@@ -95,6 +110,7 @@ _ALIAS = {
     "hygiea":              "Hygiea",
     "hygieia":             "Hygiea",
     "astraea":             "Astraea",
+    "pholus":              "Pholus",
     # Lots / Arabic Parts
     "part of fortune":     "Lot of Fortune",
     "lot of fortune":      "Lot of Fortune",
@@ -143,7 +159,8 @@ def resolve_natal_object_name(raw: str) -> Optional[str]:
     cap = raw.strip()
     known_titles = (
         list(_COMPUTE_ON_DEMAND.keys())
-        + ["Chiron", "North Node", "South Node", "Vertex", "Anti-Vertex", "Juno"]
+        + ["Chiron", "North Node", "South Node", "Vertex", "Anti-Vertex",
+           "Pholus"]
         + list(_FORMULA_OBJECTS)
         + list(_NOT_WIRED)
     )
@@ -181,7 +198,9 @@ def _compute_lot(
         return p.get("tropical_longitude") if p.get("tropical_longitude") is not None else (
             (p.get("longitude") + SVP_DEGREES) if p.get("longitude") is not None else None
         )
-    sun_t = _trop(sun); moon_t = _trop(moon); asc_t = _trop(asc)
+    sun_t = _trop(sun)
+    moon_t = _trop(moon)
+    asc_t = _trop(asc)
     if sun_t is None or moon_t is None or asc_t is None:
         return None
 
@@ -208,7 +227,7 @@ def _compute_lot(
     sid = normalize_degrees(lot_trop - SVP_DEGREES)
     sign_data = longitude_to_sign_degree(sid, tropical_longitude=lot_trop)
     house = None
-    cusps = astro.get("houses") or astro.get("house_cusps")
+    cusps = _extract_cusps_list(astro)
     if cusps:
         try:
             house = get_house_for_planet(sid, cusps)
@@ -240,7 +259,7 @@ def _read_stored_natal_object(chart: Dict[str, Any], name: str) -> Optional[Dict
         p = dict(planets[name])
         if "house" not in p or p.get("house") is None:
             # Compute house from cusps if we have them
-            cusps = astro.get("houses") or astro.get("house_cusps")
+            cusps = _extract_cusps_list(astro)
             if cusps and "longitude" in p:
                 try:
                     p["house"] = get_house_for_planet(p["longitude"], cusps)
@@ -266,6 +285,96 @@ def _read_stored_natal_object(chart: Dict[str, Any], name: str) -> Optional[Dict
         return a
 
     return None
+
+
+def _extract_cusps_list(astro: Dict[str, Any]) -> Optional[list]:
+    """Extract the 12-element house-cusp list from a stored chart, regardless
+    of shape. The current canonical shape is `astro.houses.cusps` (list of
+    longitudes) but older builds wrote `astro.house_cusps` directly.
+    """
+    cusps = astro.get("house_cusps")
+    if isinstance(cusps, list) and len(cusps) >= 12:
+        return cusps
+    houses = astro.get("houses")
+    if isinstance(houses, dict):
+        inner = houses.get("cusps")
+        if isinstance(inner, list) and len(inner) >= 12:
+            return inner
+    if isinstance(houses, list) and len(houses) >= 12:
+        # Already a flat list of cusps
+        if all(isinstance(x, (int, float)) for x in houses):
+            return houses
+        # List of dicts with "cusp" / "longitude"
+        try:
+            return [h.get("cusp") or h.get("longitude") for h in houses]
+        except Exception:
+            return None
+    return None
+
+
+def _compute_natal_vertex(chart: Dict[str, Any], anti: bool = False) -> Optional[Dict[str, Any]]:
+    """Compute the natal Vertex (or Anti-Vertex) on demand for charts that
+    don't have it pre-stored in `astrology.angles.vertex`.
+
+    The Vertex is the 4th element returned by `swe.houses_ex(...)`'s ASC/MC
+    array. We use Placidus + sidereal flag to match the same intent as the
+    main chart builder (relationship-field amplifier layer in
+    `calculations/astrology.py`).
+
+    Requires the chart to expose:
+        astrology.metadata.julian_day   (or .jd_ut)
+        astrology.metadata.coordinates.{lat,lon}   (or a sibling field)
+    Returns None when those inputs are missing.
+    """
+    astro = (chart or {}).get("astrology") or {}
+    metadata = astro.get("metadata") or {}
+    jd = metadata.get("julian_day") or metadata.get("jd_ut")
+    coords = metadata.get("coordinates") or {}
+    lat = coords.get("lat") if coords else None
+    lon = coords.get("lon") if coords else None
+    if lat is None:
+        lat = metadata.get("birth_lat") or metadata.get("latitude")
+    if lon is None:
+        lon = metadata.get("birth_lon") or metadata.get("longitude")
+    if jd is None or lat is None or lon is None:
+        return None
+    try:
+        _h_cusps, ascmc_sid = swe.houses_ex(float(jd), float(lat), float(lon),
+                                            b'P', swe.FLG_SIDEREAL)
+        if ascmc_sid is None or len(ascmc_sid) <= 3:
+            return None
+        vx_sid = normalize_degrees(float(ascmc_sid[3]))
+        # Anti-vertex = vertex opposition
+        if anti:
+            vx_sid = normalize_degrees(vx_sid + 180.0)
+        # Tropical fallback for the formatted payload
+        try:
+            _, ascmc_trop = swe.houses(float(jd), float(lat), float(lon), b'P')
+            vx_trop = normalize_degrees(float(ascmc_trop[3]) + (180.0 if anti else 0.0)) \
+                if ascmc_trop and len(ascmc_trop) > 3 else None
+        except Exception:
+            vx_trop = None
+        sign_data = longitude_to_sign_degree(vx_sid, tropical_longitude=vx_trop)
+        # House lookup if cusps are stored
+        house = None
+        cusps = _extract_cusps_list(astro)
+        if cusps:
+            try:
+                house = get_house_for_planet(vx_sid, cusps)
+            except Exception:
+                pass
+        return {
+            **sign_data,
+            "longitude":          vx_sid,
+            "tropical_longitude": vx_trop,
+            "house":              house,
+            "body_type":          "angle",
+            "source":             "swisseph_houses_ex_FLG_SIDEREAL",
+            "amplifier":          True,
+        }
+    except Exception as e:
+        logger.warning(f"[NatalObjectEngine] vertex compute failed: {e}")
+        return None
 
 
 def _compute_natal_lilith(
@@ -302,7 +411,7 @@ def _compute_natal_lilith(
         sign_data = longitude_to_sign_degree(sid, tropical_longitude=trop)
         # House lookup if cusps are stored
         house = None
-        cusps = astro.get("houses") or astro.get("house_cusps")
+        cusps = _extract_cusps_list(astro)
         if cusps:
             try:
                 house = get_house_for_planet(sid, cusps)
@@ -424,7 +533,32 @@ def compute_natal_object(chart: Dict[str, Any], object_name: str) -> Dict[str, A
             "message": f"{canon} couldn't be computed from the current chart data.",
         }
 
-    # 3) Fall through — recognised name but no path
+    # 4) Vertex / Anti-Vertex compute-on-demand fallback.
+    # astrology-chat-v5-advanced-object-reconnect — many existing charts
+    # were built before the relationship-field amplifier layer that began
+    # storing `angles.vertex` / `angles.anti_vertex`. For those charts the
+    # stored read in step (1) returns None, but we can still compute the
+    # axis directly from the stored birth metadata (jd + lat/lon).
+    if canon in ("Vertex", "Anti-Vertex"):
+        placement = _compute_natal_vertex(chart, anti=(canon == "Anti-Vertex"))
+        if placement:
+            return {
+                "success": True,
+                "object": canon,
+                "source": "swisseph_houses_ex_on_demand",
+                "build_marker": BUILD_MARKER,
+                "placement": placement,
+            }
+        return {
+            "success": False,
+            "object": canon,
+            "reason": "vertex_inputs_missing",
+            "build_marker": BUILD_MARKER,
+            "message": f"{canon} couldn't be computed — birth coordinates "
+                       f"or Julian Day are missing from this chart.",
+        }
+
+    # 5) Fall through — recognised name but no path
     return {
         "success": False,
         "object": canon,
@@ -495,3 +629,88 @@ def build_natal_object_proof_block(envelope: Dict[str, Any]) -> str:
         "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━",
     ]
     return "\n".join(lines)
+
+
+
+# ---------------------------------------------------------------------------
+# Lazy hydration for surfaces that read directly from the stored chart shape.
+# ---------------------------------------------------------------------------
+# astrology-chat-v5-advanced-object-reconnect
+#
+# Engines such as `relationship_field.py`, `astrology_relationship_restory_v1.py`,
+# `pressure_topology_engine.py`, and `house_inventory_engine.py` read advanced
+# objects directly from `chart.astrology.planets.Juno` and
+# `chart.astrology.angles.vertex` / `.anti_vertex`. Charts built BEFORE the
+# relationship-field amplifier layer landed do not carry these fields, so
+# those surfaces silently dropped them.
+#
+# `ensure_advanced_objects` returns a *new* chart copy with Juno / Vertex /
+# Anti-Vertex populated when they can be computed from stored birth
+# metadata. Side-effect free; safe to call on any chart shape; falls
+# through transparently when inputs are missing.
+def ensure_advanced_objects(chart: Optional[Dict[str, Any]]) -> Optional[Dict[str, Any]]:
+    """Return a chart copy with Juno, Vertex, and Anti-Vertex hydrated when
+    the stored chart doesn't carry them.
+
+    Use this from any surface (relationship_field, restory, pressure_topology,
+    house_inventory, etc.) that reads `astrology.planets.Juno` or
+    `astrology.angles.vertex` directly. The hydration is best-effort: if the
+    inputs aren't available, the chart is returned unmodified.
+    """
+    if not chart or not isinstance(chart, dict):
+        return chart
+    astro = chart.get("astrology")
+    if not isinstance(astro, dict):
+        return chart
+
+    planets = astro.get("planets") or {}
+    angles = astro.get("angles") or {}
+
+    needs_juno = "Juno" not in planets and "juno" not in planets
+    vx = angles.get("vertex") or {}
+    needs_vertex = not (isinstance(vx, dict) and vx.get("sign"))
+    avx = angles.get("anti_vertex") or {}
+    needs_anti_vertex = not (isinstance(avx, dict) and avx.get("sign"))
+
+    if not (needs_juno or needs_vertex or needs_anti_vertex):
+        return chart  # already hydrated; nothing to do
+
+    # Shallow-copy the chart and the astrology block so we don't mutate the
+    # caller's dict. Planets and angles get fresh dicts only when written to.
+    new_chart = dict(chart)
+    new_astro = dict(astro)
+    new_chart["astrology"] = new_astro
+
+    if needs_juno:
+        try:
+            env = compute_natal_object(chart, "Juno")
+            if env.get("success"):
+                new_planets = dict(planets)
+                new_planets["Juno"] = {**env["placement"], "amplifier": True}
+                new_astro["planets"] = new_planets
+        except Exception as e:
+            logger.debug(f"[ensure_advanced_objects] Juno hydration skipped: {e}")
+
+    if needs_vertex or needs_anti_vertex:
+        new_angles_written = False
+        new_angles = dict(angles)
+        if needs_vertex:
+            try:
+                env = compute_natal_object(chart, "Vertex")
+                if env.get("success"):
+                    new_angles["vertex"] = {**env["placement"], "amplifier": True}
+                    new_angles_written = True
+            except Exception as e:
+                logger.debug(f"[ensure_advanced_objects] Vertex hydration skipped: {e}")
+        if needs_anti_vertex:
+            try:
+                env = compute_natal_object(chart, "Anti-Vertex")
+                if env.get("success"):
+                    new_angles["anti_vertex"] = {**env["placement"], "amplifier": True}
+                    new_angles_written = True
+            except Exception as e:
+                logger.debug(f"[ensure_advanced_objects] Anti-Vertex hydration skipped: {e}")
+        if new_angles_written:
+            new_astro["angles"] = new_angles
+
+    return new_chart

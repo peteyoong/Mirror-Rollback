@@ -276,6 +276,14 @@ def _detect_contradiction_pairs(items, reps) -> List[Dict[str, Any]]:
 def build_pressure_topology(chart: Dict[str, Any]) -> Dict[str, Any]:
     """Build the deterministic pressure topology envelope for a user's
     natal chart. Pure read — no DB writes."""
+    # astrology-chat-v5-advanced-object-reconnect — hydrate Juno on legacy
+    # charts so it contributes to the body-weight pressure map.
+    try:
+        from services.natal_object_engine import ensure_advanced_objects
+        chart = ensure_advanced_objects(chart)
+    except Exception:
+        pass
+
     items = _planet_sign_house_list(chart)
     if not items:
         return {

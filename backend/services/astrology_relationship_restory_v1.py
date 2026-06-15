@@ -72,6 +72,15 @@ def maybe_compute_restory(
     if not chart_a or not chart_b:
         return None
     try:
+        # astrology-chat-v5-advanced-object-reconnect — lazily hydrate Juno /
+        # Vertex / Anti-Vertex on legacy charts so the "Why this person
+        # matters" evidence tray never silently drops these objects.
+        try:
+            from services.natal_object_engine import ensure_advanced_objects
+            chart_a = ensure_advanced_objects(chart_a)
+            chart_b = ensure_advanced_objects(chart_b)
+        except Exception:
+            pass
         out = compute_relationship_restory_v1(
             chart_a=chart_a,
             chart_b=chart_b,
