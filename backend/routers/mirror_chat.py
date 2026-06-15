@@ -2233,6 +2233,20 @@ NOT: "I opened a generic chat"
                                 f"[TransitRouter] intent={mode_label} "
                                 f"object={obj_name} user={request.user_id[:8]}..."
                             )
+                            # ── ASK-MIRROR-PARITY-AUDIT-v1 ──────────────
+                            # Diagnostic-only.  Surfaces the route used
+                            # to resolve advanced-object queries so
+                            # parity with the relationship system can be
+                            # asserted from logs.  No behaviour change.
+                            if mode_label == "natal_object":
+                                logger.info(
+                                    "[ObjectIntent] "
+                                    f"query={request.message!r} "
+                                    f"resolved_object={grounded_intent.get('object')!r} "
+                                    f"objects={grounded_intent.get('objects')!r} "
+                                    f"axis={grounded_intent.get('axis')!r} "
+                                    f"multi={grounded_intent.get('multi')}"
+                                )
 
                             # ── ophiuchus_inventory branch ─────────────────────
                             # ophiuchus-inventory-engine-v1
@@ -2633,11 +2647,44 @@ NOT: "I opened a generic chat"
                                     )
 
                                 system_prompt += "\n\n" + proof_block
+                                # ── ASK-MIRROR-PARITY-AUDIT-v1 ──────────
+                                # Diagnostic-only.  Surfaces the proof
+                                # block actually injected into the LLM
+                                # context (the deterministic Mirror
+                                # block) and whether the fallback path
+                                # was triggered.
+                                try:
+                                    _pl = (primary_env.get("placement") or {})
+                                    _has_mirror = (
+                                        "MIRROR INTERPRETATION" in proof_block
+                                    )
+                                    logger.info(
+                                        "[ObjectInterpreter] "
+                                        f"object_received={primary_env.get('object')!r} "
+                                        f"success={primary_env.get('success')} "
+                                        f"sign={_pl.get('sign')!r} "
+                                        f"house={_pl.get('house')} "
+                                        f"mirror_block_injected={_has_mirror} "
+                                        f"proof_block_chars={len(proof_block)}"
+                                    )
+                                except Exception:
+                                    pass
                                 if not any(
                                     e.get("success") for e in envelopes_list
                                 ):
                                     astro_chat_debug["fallback_triggered"] = True
                                     response_text = primary_env.get("message")
+                                    logger.warning(
+                                        "[Fallback] triggered=True "
+                                        f"reason={primary_env.get('reason')!r} "
+                                        f"message={primary_env.get('message')!r}"
+                                    )
+                                else:
+                                    logger.info(
+                                        "[Fallback] triggered=False "
+                                        f"(natal_object proof block "
+                                        f"injected for {primary_env.get('object')!r})"
+                                    )
 
                             # ── pressure_topology branch (V6) ──────────────────
                             # astrology-pressure-topology-v6
