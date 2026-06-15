@@ -183,6 +183,11 @@ class ForumChatResponse(BaseModel):
     # this payload as system prompt input in this slice (no prompt redesign
     # per scope).
     astrology_restory_v1: Optional[Dict[str, Any]] = None
+    # Relationship Curriculum Engine V1 — "Why This Person Matters" meaning
+    # layer.  Same conditions as astrology_restory_v1 PLUS the
+    # `RELATIONSHIP_CURRICULUM_ENGINE` flag must be on.  Metadata only —
+    # the LLM is NOT given this payload (no prompt redesign).
+    relationship_curriculum: Optional[Dict[str, Any]] = None
 
 
 # ---------------------------------------------------------------------------
@@ -837,6 +842,43 @@ def register(
                         f"{type(_rsv1_err).__name__}: {_rsv1_err!r}"
                     )
 
+            # ── Relationship Curriculum Engine V1 attachment ─────────
+            # Same conditions as the Re-Story V1 path, plus the curriculum
+            # flag must be on.  Metadata only — LLM prompt unchanged.
+            relationship_curriculum_payload: Optional[Dict[str, Any]] = None
+            if auto_ctx_enabled and resolved_field is not None and resolved_context_block is not None:
+                try:
+                    from services.relationship_curriculum_engine import (
+                        maybe_generate as _maybe_curriculum,
+                    )
+                    if resolved_field.active_frame in ("MEMBER",):
+                        _ct_target_id = resolved_field.target_user_id
+                        if _ct_target_id and _ct_target_id != request.user_id:
+                            _ct_asker_chart  = await db.charts.find_one({"user_id": request.user_id})
+                            _ct_target_chart = await db.charts.find_one({"user_id": _ct_target_id})
+                            _ct_asker_user   = await db.users.find_one({"_id": ObjectId(request.user_id)}) \
+                                if ObjectId.is_valid(request.user_id) else \
+                                await db.users.find_one({"_id": request.user_id})
+                            _ct_asker_name   = (_ct_asker_user or {}).get("name") or "You"
+                            _ct_target_name  = resolved_field.target_name or "Member"
+                            relationship_curriculum_payload = _maybe_curriculum(
+                                person_a={"chart": _ct_asker_chart,  "name": _ct_asker_name},
+                                person_b={"chart": _ct_target_chart, "name": _ct_target_name},
+                                relationship_context={
+                                    "role": resolved_field.relationship_role or "forum_member",
+                                },
+                            )
+                            if relationship_curriculum_payload:
+                                logger.info(
+                                    f"[ForumChat][Curriculum] attached payload for "
+                                    f"target={_ct_target_name!r}"
+                                )
+                except Exception as _curr_err:    # pragma: no cover
+                    logger.debug(
+                        f"[ForumChat][Curriculum] surface attach skipped: "
+                        f"{type(_curr_err).__name__}: {_curr_err!r}"
+                    )
+
             return ForumChatResponse(
                 success=True,
                 message_id=message_id,
@@ -844,6 +886,7 @@ def register(
                 timestamp=now.isoformat(),
                 resolved_context=resolved_context_block,
                 astrology_restory_v1=astrology_restory_payload,
+                relationship_curriculum=relationship_curriculum_payload,
             )
 
         except HTTPException:

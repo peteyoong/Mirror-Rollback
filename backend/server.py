@@ -14577,6 +14577,27 @@ async def get_relationship_insight_v2_endpoint(
                             f"[RelV2][ReStoryV1] compute skipped: "
                             f"{type(_rsv1_err).__name__}: {_rsv1_err!r}"
                         )
+
+                    # ── Relationship Curriculum Engine V1 surface wiring ──
+                    # Adds top-level `signals.relationship_curriculum` when
+                    # the `RELATIONSHIP_CURRICULUM_ENGINE` flag is on.
+                    # Returns None (legacy preserved) when flag is unset.
+                    try:
+                        from services.relationship_curriculum_engine import (
+                            maybe_generate as _maybe_curriculum,
+                        )
+                        _curr_role = (relationship_type or "").lower().strip() or "forum_member"
+                        _curriculum_payload = _maybe_curriculum(
+                            person_a={"chart": user_chart,  "name": u_name},
+                            person_b={"chart": other_chart, "name": o_name},
+                            relationship_context={"role": _curr_role},
+                        )
+                    except Exception as _curr_err:    # pragma: no cover
+                        logger.debug(
+                            f"[RelV2][Curriculum] compute skipped: "
+                            f"{type(_curr_err).__name__}: {_curr_err!r}"
+                        )
+                        _curriculum_payload = None
                 # BaZi: forum={support, tension?, growth} → V2={strengthens, drains, activates_growth}
                 if isinstance(_bazi, dict):
                     bazi_signals = {
@@ -14656,6 +14677,17 @@ async def get_relationship_insight_v2_endpoint(
             result["you_name"] = (user.get("name") if user else None) or "You"
         except Exception:
             result["you_name"] = "You"
+
+        # ── Relationship Curriculum Engine V1 — top-level signal attach ──
+        # Mounted next to signals.{human_design, astrology, bazi, ...} so
+        # the FE can render the "Why This Person Matters" section.  Only
+        # present when the `RELATIONSHIP_CURRICULUM_ENGINE` flag is on.
+        if _curriculum_payload is not None:
+            try:
+                _sig = result.setdefault("signals", {})
+                _sig["relationship_curriculum"] = _curriculum_payload
+            except Exception:    # pragma: no cover
+                pass
         
         logger.info(f"[RelV2] Generated 3-layer for {user_id[:8]} + {other_name}: {user_type} x {other_type}")
         

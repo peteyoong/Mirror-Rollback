@@ -1968,6 +1968,30 @@ async def get_forum_member_mappings(
                         )
                         _restory_v1 = None
 
+                    # ── Surface wiring v1: Relationship Curriculum Engine ──
+                    # Meaning-layer synthesis ("Why This Person Matters").
+                    # Returns None when `RELATIONSHIP_CURRICULUM_ENGINE` is
+                    # unset (default) — legacy payload preserved.
+                    try:
+                        from services.relationship_curriculum_engine import (
+                            maybe_generate as _maybe_curriculum,
+                        )
+                        _curriculum = _maybe_curriculum(
+                            person_a={"chart": current_chart, "name": current_user_name},
+                            person_b={"chart": member_chart,  "name": member_name},
+                            relationship_context={
+                                "role":             _role,
+                                "closeness":        _rel_ctx.get("closeness"),
+                                "emotional_weight": _rel_ctx.get("emotional_weight"),
+                            },
+                        )
+                    except Exception as _curr_err:    # pragma: no cover
+                        logger.debug(
+                            f"[RelMappingV2][Curriculum] compute skipped: "
+                            f"{type(_curr_err).__name__}: {_curr_err!r}"
+                        )
+                        _curriculum = None
+
                     if _deep.get("success"):
                         # Promote the deep astrology card into the
                         # signals.astrology surface so the UI picks it up.
@@ -1993,6 +2017,12 @@ async def get_forum_member_mappings(
                             # flag is on AND both charts are available.
                             if _restory_v1 is not None:
                                 astro_existing["restory_v1"] = _restory_v1
+                            # ── Relationship Curriculum Engine V1 surface wiring ──
+                            # Top-level `signals.relationship_curriculum` (NOT
+                            # nested under astrology) because the engine
+                            # spans astrology + HD + enneagram + bazi.
+                            if _curriculum is not None:
+                                signals["relationship_curriculum"] = _curriculum
                             # relationship-v2-final-cleanup: suppress
                             # legacy bullets (attraction/tension/growth)
                             # when V2 deep card is present so the

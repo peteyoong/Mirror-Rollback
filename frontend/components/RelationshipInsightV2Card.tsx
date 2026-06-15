@@ -46,6 +46,30 @@ interface ReStorySection {
   hidden_evidence: string[];
 }
 
+// ── Relationship Curriculum Engine V1 — "Why This Person Matters" ──
+// Top-level payload mounted under `data.signals.relationship_curriculum`
+// when the backend `RELATIONSHIP_CURRICULUM_ENGINE` flag is on.
+// Strings are guaranteed Mirror-voice (no destiny/soulmate/karmic
+// language) by the producer's acceptance tests.
+interface RelationshipCurriculum {
+  success:      boolean;
+  build_marker: string;
+  relationship_curriculum: {
+    gift:        string;
+    challenge:   string;
+    growth_edge: string;
+    curriculum:  string;
+    confidence:  'low' | 'medium' | 'high';
+    proof: {
+      astrology:    string[];
+      human_design: string[];
+      enneagram:    string[];
+      bazi:         string[];
+      numerology:   string[];
+    };
+  };
+}
+
 interface BaziDiagnostics {
   element_a?: string;
   element_b?: string;
@@ -96,6 +120,11 @@ interface RelInsightV2Data {
         };
       };
     };
+    // ── Relationship Curriculum Engine V1 — "Why This Person Matters" ──
+    // Top-level under signals (not nested under astrology) because the
+    // engine spans astrology + HD + enneagram + bazi.  Mounted by the
+    // backend only when `RELATIONSHIP_CURRICULUM_ENGINE=true`.
+    relationship_curriculum?: RelationshipCurriculum;
     bazi: {
       strengthens: string[];
       drains: string[];
@@ -294,6 +323,77 @@ const RelationshipInsightV2Card: React.FC<Props> = ({
       </View>
 
       <SectionDivider theme={theme} />
+
+      {/* ============================================================ */}
+      {/* WHY THIS PERSON MATTERS — Relationship Curriculum Engine V1  */}
+      {/* (between Layer 2 Patterns and Layer 3 Signals)                */}
+      {/* MARKER: relationship-curriculum-engine-v1                     */}
+      {/* ============================================================ */}
+      {data.signals?.relationship_curriculum?.success &&
+       data.signals.relationship_curriculum.relationship_curriculum && (() => {
+        const rc = data.signals.relationship_curriculum!.relationship_curriculum;
+        const sections: Array<{ label: string; body: string }> = [
+          { label: 'THE GIFT',             body: rc.gift },
+          { label: 'THE CHALLENGE',        body: rc.challenge },
+          { label: 'WHAT WANTS TO GROW',   body: rc.growth_edge },
+          { label: 'THE CURRICULUM',       body: rc.curriculum },
+        ];
+        const confidenceLabel =
+          rc.confidence === 'high'   ? 'Strong signal' :
+          rc.confidence === 'medium' ? 'Moderate signal' :
+                                       'Light signal';
+        return (
+          <View style={[styles.signalGroup, { borderColor: theme.border, marginTop: 16, paddingTop: 12, borderTopWidth: StyleSheet.hairlineWidth }]}>
+            <Text style={[styles.signalGroupLabel, { color: theme.text, fontSize: 13, letterSpacing: 1.2, marginBottom: 4 }]}>
+              WHY THIS PERSON MATTERS
+            </Text>
+            <Text
+              style={[
+                styles.signalTranslation,
+                { color: theme.textTertiary, fontStyle: 'italic', marginBottom: 12 },
+              ]}
+            >
+              A meaning layer — not a destiny claim.
+            </Text>
+            {sections.map((sec, i) =>
+              sec.body ? (
+                <View
+                  key={`rce-${i}`}
+                  style={[
+                    styles.signalItem,
+                    { borderColor: theme.border, marginBottom: 12 },
+                  ]}
+                >
+                  <Text
+                    style={[
+                      styles.signalGroupLabel,
+                      { color: theme.textTertiary, marginBottom: 6 },
+                    ]}
+                  >
+                    {sec.label}
+                  </Text>
+                  <Text
+                    style={[
+                      styles.signalTranslation,
+                      { color: theme.textSecondary, lineHeight: 20 },
+                    ]}
+                  >
+                    {sec.body}
+                  </Text>
+                </View>
+              ) : null,
+            )}
+            <Text
+              style={[
+                styles.signalGroupLabel,
+                { color: theme.textTertiary, marginTop: 4 },
+              ]}
+            >
+              {confidenceLabel}
+            </Text>
+          </View>
+        );
+      })()}
 
       {/* ============================================================ */}
       {/* LAYER 3: SIGNALS (Expandable)                                */}
