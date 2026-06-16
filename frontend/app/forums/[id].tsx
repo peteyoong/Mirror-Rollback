@@ -1258,6 +1258,54 @@ export default function ForumHomeScreen() {
                           </Text>
                         </View>
                       ) : null}
+                      {/* ============================================
+                          TEMPORARY DIAGNOSTIC FOOTER — mel-rising-fix
+                          --------------------------------------------
+                          Surfaces the actual values used to render this
+                          card so we can read the truth directly off the
+                          live deployment (iPhone Safari) without admin
+                          DB access. REMOVE this block after the Mel
+                          Ascendant regression is confirmed resolved
+                          on every production surface.
+
+                          Build marker: mel-rising-fix-diagnostic-v1
+                          ============================================ */}
+                      <View
+                        style={{
+                          marginTop: 12,
+                          paddingTop: 10,
+                          borderTopWidth: 1,
+                          borderTopColor: theme.border,
+                          opacity: 0.85,
+                        }}
+                      >
+                        <Text style={{
+                          color: theme.textTertiary,
+                          fontSize: 10,
+                          letterSpacing: 0.5,
+                          marginBottom: 4,
+                        }}>
+                          DIAG · mel-rising-fix-diagnostic-v1
+                        </Text>
+                        <Text style={{ color: theme.textTertiary, fontSize: 11, lineHeight: 16 }}>
+                          {`astrology:    ${JSON.stringify(s.astrology)}`}
+                        </Text>
+                        <Text style={{ color: theme.textTertiary, fontSize: 11, lineHeight: 16 }}>
+                          {`chart_version:${s.chart_version ? '\n  ' + s.chart_version : ' <absent — backend lacks fix>'}`}
+                        </Text>
+                        <Text style={{ color: theme.textTertiary, fontSize: 11, lineHeight: 16 }}>
+                          {`route:        /api/forums/${forumId}/member-summary/${selectedMemberId}`}
+                        </Text>
+                        <Text style={{ color: theme.textTertiary, fontSize: 11, lineHeight: 16 }}>
+                          {`requester:    ${user?.id ?? '<none>'}`}
+                        </Text>
+                        <Text style={{ color: theme.textTertiary, fontSize: 11, lineHeight: 16 }}>
+                          {`bundle_host:  ${(typeof window !== 'undefined' && window.location) ? window.location.host : '<n/a>'}`}
+                        </Text>
+                        <Text style={{ color: theme.textTertiary, fontSize: 11, lineHeight: 16 }}>
+                          {`storage_ver:  2026.06.16.mel-rising-member-summary-cache-v1`}
+                        </Text>
+                      </View>
                     </View>
                   );
                 })()
