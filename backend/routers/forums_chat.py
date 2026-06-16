@@ -711,12 +711,66 @@ def register(
                 )
                 _target_chart = None
                 _target_name_for_resolver = None
-                if effective_target_id and effective_target_id != request.user_id:
+
+                # ── ADV-OBJ-13 — Bridge orchestrator-resolved target ─────
+                # `forum_mirror_orchestrator` runs ~60 lines earlier in
+                # this same handler and already does forum-member-name
+                # extraction / alias resolution / spouse auto-promote on
+                # the message text.  When the user is on the Forum tab
+                # (effective_target_id stays None because the UI sends no
+                # explicit target) and asks "How do Mel's Juno and my Juno
+                # interact?", the orchestrator successfully resolves
+                # "Mel" → target_user_id, but that result lived only in
+                # `orchestrator_payload` and never reached the resolver.
+                # Lift it here so cross-chart pairwise can actually fire.
+                # Privacy: orchestrator's name-extraction already gates
+                # on forum_members.status=='active', same trust boundary
+                # as Slice B's `target_in_forum` check at line 440.
+                _orch_resolved = (orchestrator_payload or {}).get("resolved_target") or {}
+                _orch_target_uid = _orch_resolved.get("target_user_id")
+                _effective_target_for_resolver: Optional[str] = effective_target_id
+                if (
+                    not _effective_target_for_resolver
+                    and _orch_target_uid
+                    and _orch_target_uid != request.user_id
+                ):
+                    _effective_target_for_resolver = _orch_target_uid
+
+                if _effective_target_for_resolver:
                     _target_chart = await db.charts.find_one(
-                        {"user_id": effective_target_id},
+                        {"user_id": _effective_target_for_resolver},
                         sort=[("created_at", -1)],
                     )
-                    _target_name_for_resolver = target_member_name
+                    _target_name_for_resolver = (
+                        target_member_name
+                        or _orch_resolved.get("target_name")
+                    )
+
+                # ── ADV-OBJ-13 — Escalate FORUM/SELF → PAIRWISE when both
+                #    a target was resolved AND the message uses a real
+                #    self-reference token.  We deliberately EXCLUDE bare
+                #    " me " because it also matches imperatives like
+                #    "tell me", "show me", "give me", "let me", "help
+                #    me" — none of which mean the user is one of the
+                #    two charts.  Possessive "my"/"mine" and the
+                #    subject pronoun "i" / "i'm" / "i've" / "i'll" are
+                #    unambiguous self-references.
+                if (
+                    _effective_target_for_resolver
+                    and _resolver_frame in (FRAME_SELF, FRAME_FORUM)
+                ):
+                    _q_lower = (request.message or "").lower()
+                    _padded = f" {_q_lower} "
+                    _self_pronoun_hit = (
+                        " my "    in _padded
+                        or " mine " in _padded
+                        or " i "    in _padded
+                        or " i'm "  in _padded
+                        or " i've " in _padded
+                        or " i'll " in _padded
+                    )
+                    if _self_pronoun_hit:
+                        _resolver_frame = FRAME_PAIRWISE
 
                 _self_name_for_resolver = (
                     (resolved_field.self_name
