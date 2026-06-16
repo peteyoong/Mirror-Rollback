@@ -718,25 +718,45 @@ export default function MirrorChat({
       // Check for structured error response
       const errorData = error?.response?.data?.detail;
       const errorCode = typeof errorData === 'object' ? errorData?.error_code : null;
-      
-      // Determine error message based on status and error_code
-      let errorContent = "Mirror couldn't reach its reflection service. Please try again.";
-      
-      // Handle structured error codes
-      if (errorCode === 'mirror_interpret_failed') {
-        errorContent = "Mirror lost the thread while preparing that reflection. Please try again.";
-      } else if (error?.response?.status === 429) {
+      const httpStatus = error?.response?.status;
+
+      // Option B — Determine error message.  Branch on the typed
+      // backend `error_code` first; only fall back to status-based
+      // generic copy when we don't have a typed code, and only fall
+      // back to the network-failure copy for true no-response cases.
+      let errorContent: string;
+
+      if (errorCode === 'chart_missing') {
+        // HTTP 409 from Option A pre-flight chart check.
+        errorContent =
+          "We can't find a completed chart for this account yet. " +
+          "Please finish onboarding or re-enter your birth details.";
+      } else if (errorCode === 'mirror_interpret_failed') {
+        // HTTP 500 catch-all from the chat pipeline.
+        errorContent =
+          "Mirror hit a snag preparing the reading. Please try again in a moment.";
+      } else if (httpStatus === 429) {
         errorContent = "Mirror needs a pause. Try again in a little while.";
-      } else if (error?.response?.status === 404) {
+      } else if (httpStatus === 404) {
         errorContent = "Your profile wasn't found. Please try logging in again.";
-      } else if (error?.response?.status === 500) {
-        // Use structured message if available, otherwise generic
+      } else if (httpStatus === 409) {
+        // 409 without a recognised error_code — still chart/state issue.
+        const detail = typeof errorData === 'object' ? errorData?.message : errorData;
+        errorContent =
+          detail ||
+          "We can't find a completed chart for this account yet. " +
+          "Please finish onboarding or re-enter your birth details.";
+      } else if (httpStatus === 500) {
         const detail = typeof errorData === 'object' ? errorData?.message : errorData;
         errorContent = detail || "Mirror encountered an issue. Please try again.";
       } else if (error?.code === 'ECONNABORTED') {
         errorContent = "The reflection took too long. Please try a shorter message.";
       } else if (!error?.response) {
-        errorContent = "Unable to connect to Mirror. Please check your connection.";
+        // True network failure — no HTTP response received at all.
+        errorContent = "Mirror couldn't reach its reflection service. Please try again.";
+      } else {
+        // Any other non-2xx without a typed code — be honest.
+        errorContent = "Mirror encountered an issue. Please try again.";
       }
       
       const errorMessage: Message = {

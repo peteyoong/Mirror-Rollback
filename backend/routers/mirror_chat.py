@@ -55,6 +55,7 @@ from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 
 from bson import ObjectId
+from bson.errors import InvalidId
 from fastapi import APIRouter, HTTPException
 
 from emergentintegrations.llm.chat import LlmChat, UserMessage
@@ -300,12 +301,55 @@ def register(
 
             # Get user's chart data for context
             logger.info("[MIRROR_CHAT] Fetching user and chart data...")
-            user = await db.users.find_one({"_id": ObjectId(request.user_id)})
+
+            # ── Option A — Pre-flight guard: invalid user_id shape ─────
+            # ObjectId(request.user_id) would otherwise raise InvalidId
+            # and get swallowed by the generic 500 catch-all at the
+            # bottom of this handler.  Convert it to a typed 404 so the
+            # frontend can render a clear message instead of the network
+            # fallback.
+            try:
+                _user_oid = ObjectId(request.user_id)
+            except (InvalidId, TypeError):
+                logger.error(f"[MIRROR_CHAT] Invalid user_id shape: {request.user_id!r}")
+                raise HTTPException(status_code=404, detail="User not found")
+
+            user = await db.users.find_one({"_id": _user_oid})
             chart = await db.charts.find_one({"user_id": request.user_id})
 
             if not user:
                 logger.error(f"[MIRROR_CHAT] User not found: {request.user_id}")
                 raise HTTPException(status_code=404, detail="User not found")
+
+            # ── Option A — Pre-flight chart-completeness guard ─────────
+            # If the user exists but has no chart, OR the chart record
+            # exists but is missing the birth data required to compute
+            # any astrology, return a typed 409 instead of letting the
+            # request fall into the resolver / proof-block / LLM and
+            # bubble an opaque 500.  The frontend renders a clear,
+            # actionable "finish onboarding" message for this code.
+            _birth = (chart or {}).get("birth_data") or {}
+            _has_birth_date = bool(
+                _birth.get("birth_date")
+                or _birth.get("date")
+                or user.get("birth_date")
+            )
+            if (chart is None) or (not _has_birth_date):
+                logger.warning(
+                    f"[MIRROR_CHAT] chart_missing for user_id={request.user_id} "
+                    f"chart_present={chart is not None} "
+                    f"birth_data_keys={list(_birth.keys()) if _birth else []}"
+                )
+                raise HTTPException(
+                    status_code=409,
+                    detail={
+                        "success":    False,
+                        "error_code": "chart_missing",
+                        "message":    "We don't have a finished chart for this "
+                                      "account yet. Re-onboard or finish your "
+                                      "birth data to start the conversation.",
+                    },
+                )
 
             logger.info(f"[MIRROR_CHAT] User found: {user.get('name', 'Unknown')}, chart exists: {chart is not None}")
 
