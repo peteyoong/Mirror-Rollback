@@ -395,7 +395,16 @@ export default function ForumHomeScreen() {
   // What Each Person Brings — compact contribution cards
   const [contributions, setContributions] = useState<ForumContribution[] | null>(null);
 
-  // Interactive member summary card — shown inline below the members row
+  // Interactive member summary card — shown inline below the members row.
+  //
+  // mel-rising-fix-member-summary-v1 (2026-06-16): the cache key now
+  // includes `chart_version` returned by the backend. When a member's
+  // chart is recomputed (e.g. via /api/admin/fix_mel_live), the new
+  // chart_version forces a refetch so a corrected Ascendant ("Cancer
+  // Rising") cannot be masked by a previously-rendered stale payload
+  // ("Gemini Rising"). The Record is still keyed by member_id for
+  // O(1) lookup; the chart_version stamp lives inside the value and
+  // is compared on every selection.
   const [selectedMemberId, setSelectedMemberId] = useState<string | null>(null);
   const [memberSummaries, setMemberSummaries] = useState<Record<string, ForumMemberSummary>>({});
   const [memberSummaryLoading, setMemberSummaryLoading] = useState<string | null>(null);
@@ -680,8 +689,16 @@ export default function ForumHomeScreen() {
   };
 
   // Interactive Member Summary — tap a member to view a compact multi-lens
-  // summary card inline, right below the members row. Summaries are cached
-  // client-side so repeat taps are instant.
+  // summary card inline, right below the members row.
+  //
+  // mel-rising-fix-member-summary-v1 (2026-06-16): the cache now uses a
+  // stale-while-revalidate strategy keyed on the backend's `chart_version`
+  // stamp. We render the cached summary instantly (if any) but ALWAYS
+  // re-issue the request in the background so a recomputed chart
+  // (e.g. via /api/admin/fix_mel_live) can never be masked by a
+  // previously-rendered stale payload like "Gemini Rising" when the
+  // canonical chart now reads "Cancer Rising". If the freshly-fetched
+  // chart_version differs from the cached one, the entry is replaced.
   const handleSelectMember = useCallback(async (memberId: string) => {
     if (!user?.id || !forumId) return;
     // Toggle off when re-tapping the same member
@@ -690,12 +707,31 @@ export default function ForumHomeScreen() {
       return;
     }
     setSelectedMemberId(memberId);
-    if (memberSummaries[memberId]) return; // already cached
-    setMemberSummaryLoading(memberId);
+
+    const cached = memberSummaries[memberId];
+    // Only show the spinner when we have nothing at all to render. If a
+    // cached payload exists we render it immediately and revalidate in
+    // the background, so the user never sees a UI flicker.
+    if (!cached) setMemberSummaryLoading(memberId);
     try {
       const resp = await getForumMemberSummary(forumId, memberId, user.id);
       if (resp?.success && resp.summary) {
-        setMemberSummaries((prev) => ({ ...prev, [memberId]: resp.summary! }));
+        const incoming = resp.summary;
+        setMemberSummaries((prev) => {
+          const prevEntry = prev[memberId];
+          // Replace whenever there was no entry, or when chart_version
+          // changed (the chart was recomputed/rewritten on the server),
+          // or when either side lacks a chart_version (back-compat).
+          if (
+            !prevEntry ||
+            !prevEntry.chart_version ||
+            !incoming.chart_version ||
+            prevEntry.chart_version !== incoming.chart_version
+          ) {
+            return { ...prev, [memberId]: incoming };
+          }
+          return prev;
+        });
       }
     } catch (err) {
       console.error('[Forum] member summary error:', err);

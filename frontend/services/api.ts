@@ -1410,6 +1410,11 @@ export interface ForumMemberSummary {
   enneagram: string | null;
   numerology: string | null;
   how_they_read: string | null;
+  // mel-rising-fix-member-summary-v1: opaque cache-busting token from the
+  // backend. Changes whenever the underlying chart is recomputed/rewritten.
+  // The client uses this as part of its in-memory cache key so a corrected
+  // chart cannot be masked by a previously-rendered stale summary.
+  chart_version?: string;
 }
 
 export interface ForumMemberSummaryResponse {

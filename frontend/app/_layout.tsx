@@ -19,7 +19,7 @@ const BUILD_ID = process.env.EXPO_PUBLIC_BUILD_ID || 'unknown';
 // we compare it against the value stored in localStorage; on
 // mismatch we wipe forum-scoped storage so the new bundle isn't
 // reading old JSON shapes from an earlier deploy.
-const APP_STORAGE_VERSION = '2026.05.13.safari-forum-recovery';
+const APP_STORAGE_VERSION = '2026.06.16.mel-rising-member-summary-cache-v1';
 
 // Web-only: purge stale forum state when the app storage version
 // changes. Safe to call on every boot — it's idempotent and only
