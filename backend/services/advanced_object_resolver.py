@@ -187,6 +187,15 @@ def resolve_advanced_object(
     #                    else if query only references target → MEMBER
     #                    else → SELF
     #   FRAME_FORUM    → SELF behaviour for now
+    #   FRAME_FORUM    → if query references the target by name and NOT
+    #                      the self, route as target-only (same shape as
+    #                      MEMBER); otherwise fall through to SELF.  This
+    #                      handles Forum-tab queries like "Tell me about
+    #                      Mel's Juno" where ADV-OBJ-13's bridge has
+    #                      already hydrated `target_chart` from the
+    #                      orchestrator's resolved target but the message
+    #                      contains no self-pronoun (so no PAIRWISE
+    #                      escalation was warranted).  ADV-OBJ-14.
     cross_chart = False
     use_target_only = False
 
@@ -200,7 +209,14 @@ def resolve_advanced_object(
         elif refs_target and not refs_self:
             use_target_only = True
         # else: default to SELF
-    # FRAME_SELF / FRAME_FORUM / FRAME_NONE default behaviour: self chart.
+    elif frame == FRAME_FORUM and target_chart is not None:
+        # ADV-OBJ-14 — Target-only Forum-frame path.
+        refs_target = _query_references_target(query, target_name)
+        refs_self   = _query_references_self(query)
+        if refs_target and not refs_self:
+            use_target_only = True
+        # else: default to SELF
+    # FRAME_SELF / FRAME_FORUM (no target_chart) / FRAME_NONE default: self chart.
 
     envelopes: List[Dict[str, Any]] = []
     target_envelopes: List[Dict[str, Any]] = []
