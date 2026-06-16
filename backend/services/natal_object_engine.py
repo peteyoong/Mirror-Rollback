@@ -22,6 +22,7 @@ one.  (See Phase 5 of astrology-chat-master-interpreter-v3 — the
 from __future__ import annotations
 
 import logging
+import re
 from datetime import datetime, timezone as _tz
 from typing import Any, Dict, Optional
 
@@ -571,7 +572,10 @@ def compute_natal_object(chart: Dict[str, Any], object_name: str) -> Dict[str, A
 # ---------------------------------------------------------------------------
 # Proof block for chat
 # ---------------------------------------------------------------------------
-def build_natal_object_proof_block(envelope: Dict[str, Any]) -> str:
+def build_natal_object_proof_block(
+    envelope: Dict[str, Any],
+    chart_owner_name: Optional[str] = None,
+) -> str:
     """Build a deterministic system-prompt block from a natal-object
     envelope. Appended to the lens prompt before the LLM is called.
 
@@ -579,6 +583,14 @@ def build_natal_object_proof_block(envelope: Dict[str, Any]) -> str:
     (Vertex, Anti-Vertex, Juno, Chiron, Lilith, Part of Fortune,
     Part of Spirit, Pholus), this delegates to the Phase-2 interpreter
     so the chat answer feels Mirror-native rather than generic.
+
+    ADV-OBJ-15 — `chart_owner_name`:
+      Optional display name of the chart owner.  When the chart is NOT
+      the asker's own (Forum-tab target-only queries like "Tell me about
+      Mel's Juno"), pass the target name so the proof block's
+      instruction templates address the right person.  Forwarded to
+      `build_mirror_object_proof_block`; also applied to this builder's
+      own generic-fallback INSTRUCTION TO YOU lines.  No-op when None.
     """
     if not envelope:
         return ""
@@ -590,7 +602,10 @@ def build_natal_object_proof_block(envelope: Dict[str, Any]) -> str:
                 build_mirror_object_proof_block,
             )
             if has_mirror_interpretation(envelope.get("object") or ""):
-                mirror_block = build_mirror_object_proof_block(envelope)
+                mirror_block = build_mirror_object_proof_block(
+                    envelope,
+                    chart_owner_name=chart_owner_name,
+                )
                 if mirror_block:
                     return mirror_block
     except Exception as e:  # pragma: no cover — defensive
@@ -652,7 +667,20 @@ def build_natal_object_proof_block(envelope: Dict[str, Any]) -> str:
         "   the requested one.",
         "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━",
     ]
-    return "\n".join(lines)
+    block = "\n".join(lines)
+
+    # ── ADV-OBJ-15 — Target-only pronoun rewrite (generic fallback path) ─
+    # Same rewrite as build_mirror_object_proof_block.  Catches the
+    # "Your Lilith sits at 12° Sagittarius in the 8th house" example
+    # sentence above when this generic block is used (objects without a
+    # dedicated Mirror block).  No-op when chart_owner_name is None.
+    if chart_owner_name:
+        block = re.sub(
+            r"\bYour ([A-Z][\w\- ]*?) sits at\b",
+            lambda m: f"{chart_owner_name}'s {m.group(1)} sits at",
+            block,
+        )
+    return block
 
 
 

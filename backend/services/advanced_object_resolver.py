@@ -292,7 +292,14 @@ def resolve_advanced_object(
         proof_block = build_pairwise_mirror_block(envelopes)
         mode = "pairwise"
     elif primary_env is not None:
-        proof_block = build_natal_object_proof_block(primary_env)
+        # ADV-OBJ-15 — When the proof block describes a target chart
+        # (Forum-tab target-only path from ADV-OBJ-14), pass the target
+        # name so the instruction templates address the right person
+        # instead of "you".  No-op in the self-chart case.
+        proof_block = build_natal_object_proof_block(
+            primary_env,
+            chart_owner_name=target_name if use_target_only else None,
+        )
         mode = "single"
 
     # ── 4. log canonical resolver trail ─────────────────────────────
@@ -342,10 +349,15 @@ def build_cross_chart_mirror_block(
     single-body reads.
     """
     # Defensive — if either side failed to compute, fall back to the
-    # single-block builder for whichever side succeeded.
+    # single-block builder for whichever side succeeded.  ADV-OBJ-15:
+    # when we fall back to the target side, pass target_name so the
+    # instruction block addresses the right person.
     if not self_env or not self_env.get("success"):
         from services.natal_object_engine import build_natal_object_proof_block
-        return build_natal_object_proof_block(target_env)
+        return build_natal_object_proof_block(
+            target_env,
+            chart_owner_name=target_name,
+        )
     if not target_env or not target_env.get("success"):
         from services.natal_object_engine import build_natal_object_proof_block
         return build_natal_object_proof_block(self_env)

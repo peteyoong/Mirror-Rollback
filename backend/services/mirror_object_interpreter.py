@@ -63,6 +63,7 @@ back to the generic builder in `natal_object_engine.py`.
 """
 from __future__ import annotations
 
+import re
 from typing import Any, Dict, Optional
 
 BUILD_MARKER = "mirror-interpretation-layer-v1"
@@ -635,7 +636,10 @@ def has_mirror_interpretation(canonical_name: str) -> bool:
     return isinstance(block, dict)
 
 
-def build_mirror_object_proof_block(envelope: Dict[str, Any]) -> str:
+def build_mirror_object_proof_block(
+    envelope: Dict[str, Any],
+    chart_owner_name: Optional[str] = None,
+) -> str:
     """Build the Mirror-native instruction block for the natal object in
     `envelope`.  Returns "" if we don't have a Mirror block for that
     object — the caller should then fall back to the generic builder
@@ -643,6 +647,16 @@ def build_mirror_object_proof_block(envelope: Dict[str, Any]) -> str:
 
     `envelope` is the dict returned by
     services.natal_object_engine.compute_natal_object.
+
+    ADV-OBJ-15 — `chart_owner_name`:
+      When the proof block describes a chart owned by someone OTHER than
+      the asker (e.g. Forum-tab target-only queries like "Tell me about
+      Mel's Juno"), pass the chart owner's display name here.  The
+      builder will swap every `'Your <Object> sits at'` instruction
+      template into `'<name>'s <Object> sits at'`, removing the
+      "you vs Mel" pronoun conflict that previously caused the LLM to
+      hallucinate placements.  When `None` (the common self-chart case),
+      behaviour is unchanged.
     """
     if not envelope or not envelope.get("success"):
         return ""
@@ -667,7 +681,7 @@ def build_mirror_object_proof_block(envelope: Dict[str, Any]) -> str:
         bans_str = "OBJECT-SPECIFIC BAN LIST (do not use any of these):\n"
         bans_str += "  " + ", ".join(sorted(set(object_bans)))
 
-    return (
+    block = (
         f"━━━━ NATAL OBJECT — MIRROR INTERPRETATION: {canon} ━━━━\n"
         f"Mirror question:  {question_line}\n"
         f"placement:        {formatted}\n"
@@ -682,6 +696,25 @@ def build_mirror_object_proof_block(envelope: Dict[str, Any]) -> str:
         f"{bans_str}\n"
         "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
     )
+
+    # ── ADV-OBJ-15 — Target-only pronoun rewrite ────────────────────────
+    # When the proof block describes a chart that is NOT the asker's own
+    # (Forum-tab "Tell me about Mel's Juno" path), the instruction
+    # template lines like "Your Juno sits at {SIGN} in the {N}th house"
+    # are addressed to the wrong person.  The LLM resolves that conflict
+    # by hallucinating a sign/degree that "sounds Mel-ish".  Rewriting
+    # to "Mel's Juno sits at …" eliminates the ambiguity.  Only the
+    # instruction-template sentences match this exact phrasing — the
+    # universal voice floor uses they/them/their/this person and is
+    # untouched.  No-op when chart_owner_name is None.
+    if chart_owner_name:
+        block = re.sub(
+            r"\bYour ([A-Z][\w\- ]*?) sits at\b",
+            lambda m: f"{chart_owner_name}'s {m.group(1)} sits at",
+            block,
+        )
+
+    return block
 
 
 # ---------------------------------------------------------------------------
