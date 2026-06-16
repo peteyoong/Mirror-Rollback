@@ -676,10 +676,37 @@ def build_mirror_object_proof_block(
     instructions = "\n".join(block.get("instructions", []))
     object_bans = block.get("object_bans") or []
 
+    # ── ADV-OBJ-16 — Pre-substitute placeholders ────────────────────────
+    # The instruction templates ship with literal `{SIGN_PLACEMENT}` and
+    # `{N}` tokens (e.g. "Your Juno sits at {SIGN_PLACEMENT} in the
+    # {N}th house").  When the LLM sees template variables it sometimes
+    # ignores them and pulls a "similar" placement from elsewhere in the
+    # prompt (FKR block, member summary).  Pre-substituting with the
+    # actual envelope values removes that interpretive freedom.
+    house_str = str(house) if house is not None else "?"
+    instructions = instructions.replace("{SIGN_PLACEMENT}", formatted)
+    instructions = instructions.replace("{N}", house_str)
+
     bans_str = ""
     if object_bans:
         bans_str = "OBJECT-SPECIFIC BAN LIST (do not use any of these):\n"
         bans_str += "  " + ", ".join(sorted(set(object_bans)))
+
+    # ── ADV-OBJ-16 — Authority footer ───────────────────────────────────
+    # Add an explicit anti-substitution instruction so the LLM does not
+    # swap the proof block's sign/degree/house for a different value
+    # pulled from upstream context blocks (FKR member-table, orchestrator
+    # addenda, etc.).  Pinned to the SPECIFIC object so the LLM cannot
+    # generalise "any Mel placement" into the slot.
+    authority_footer = (
+        "AUTHORITATIVE PLACEMENT (do not contradict, do not substitute):\n"
+        f"  {canon}: {formatted}, house {house_str}\n"
+        f"  Use exactly this sign, degree, and house when discussing {canon}.\n"
+        f"  Do not substitute another sign, degree, or house from any\n"
+        f"  other placement that may be visible elsewhere in this prompt\n"
+        f"  (e.g. FKR member tables, planet listings, prior turns).\n"
+        f"  If you discuss {canon}, you MUST use only the placement above."
+    )
 
     block = (
         f"━━━━ NATAL OBJECT — MIRROR INTERPRETATION: {canon} ━━━━\n"
@@ -688,6 +715,8 @@ def build_mirror_object_proof_block(
         f"{house_line}\n"
         f"build:            {BUILD_MARKER}\n"
         f"sign attribution: True Sidereal-M Midpoint (same as natal chart)\n"
+        "\n"
+        f"{authority_footer}\n"
         "\n"
         f"INSTRUCTION TO YOU:\n{instructions}\n"
         "\n"

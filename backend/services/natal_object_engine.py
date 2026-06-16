@@ -148,6 +148,19 @@ _NOT_WIRED = {
 _FORMULA_OBJECTS = {"Lot of Fortune", "Lot of Spirit"}
 
 
+def _ordinal_suffix(n: str) -> str:
+    """Return 'st'/'nd'/'rd'/'th' for the given house number string.
+    ADV-OBJ-16 helper for the generic-fallback proof block example."""
+    try:
+        i = int(n)
+    except (TypeError, ValueError):
+        return "th"
+    if 10 <= (i % 100) <= 20:
+        return "th"
+    return {1: "st", 2: "nd", 3: "rd"}.get(i % 10, "th")
+
+
+
 def resolve_natal_object_name(raw: str) -> Optional[str]:
     """Map a user-typed object name to its canonical form. Returns None
     if no match."""
@@ -645,6 +658,21 @@ def build_natal_object_proof_block(
     src = envelope.get("source", "?")
 
     house_line = f"House: {house}" if house is not None else "House: (not computed)"
+    house_str = str(house) if house is not None else "?"
+
+    # ── ADV-OBJ-16 — Authority footer (generic-fallback path) ──────────
+    # Same anti-substitution contract as the Mirror builder.  Prevents
+    # the LLM from pulling a sign/degree from upstream FKR / member
+    # tables when the user asked about this specific object.
+    authority_footer = (
+        "AUTHORITATIVE PLACEMENT (do not contradict, do not substitute):\n"
+        f"  {obj}: {formatted}, house {house_str}\n"
+        f"  Use exactly this sign, degree, and house when discussing {obj}.\n"
+        f"  Do not substitute another sign, degree, or house from any\n"
+        f"  other placement that may be visible elsewhere in this prompt\n"
+        f"  (e.g. FKR member tables, planet listings, prior turns).\n"
+        f"  If you discuss {obj}, you MUST use only the placement above."
+    )
 
     lines = [
         f"━━━━ NATAL OBJECT — ENGINE OUTPUT: {obj} ━━━━",
@@ -653,9 +681,11 @@ def build_natal_object_proof_block(
         f"source: {src}",
         "sign attribution: True Sidereal-M Midpoint (same as natal chart)",
         "",
+        authority_footer,
+        "",
         "INSTRUCTION TO YOU:",
         "1. Sentence 1: state the placement directly. "
-        "   Example: 'Your Lilith sits at 12° Sagittarius in the 8th house.'",
+        f"   Example: 'Your {obj} sits at {formatted} in the {house_str}{_ordinal_suffix(house_str)} house.'",
         "2. Then a 2–4 sentence master-astrologer reading. Behavioural, "
         "   not textbook. Speak to where this energy SHOWS UP in their life, "
         "   not what the sign 'represents'.",
