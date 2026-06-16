@@ -16,7 +16,7 @@ import hashlib
 import subprocess
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Dict, Any, Optional
+from typing import Dict, Any, List, Optional
 import logging
 import json
 
@@ -29,17 +29,75 @@ WEB_DIST_DIR = BACKEND_DIR / "web_dist"  # Where backend serves from
 FRONTEND_DIST_DIR = FRONTEND_DIR / "dist"  # Where expo exports to
 COMPONENTS_DIR = FRONTEND_DIR / "components"
 
-# Critical source files to track for staleness detection
+# ---------------------------------------------------------------------------
+# Source-file tracking for staleness detection
+# ---------------------------------------------------------------------------
+# Two complementary mechanisms are used to detect a stale `backend/web_dist/`:
+#
+#   1. `CRITICAL_SOURCE_FILES` — a curated, individually-tracked list. Each
+#      entry surfaces in `/api/health → build.source_files.tracked_files`
+#      so individual files can be inspected (hash, mtime). Keep this list
+#      focused on files whose individual identity matters operationally.
+#
+#   2. `SCANNED_FRONTEND_DIRS` — directories that are walked recursively;
+#      the newest mtime across the walk is folded into the staleness check.
+#      This is the safety net: ANY change anywhere under these dirs will
+#      force a rebuild requirement, so a new component / route / service
+#      that nobody remembered to add to the curated list still triggers
+#      the guard. This is what would have prevented the June 14 vs June 16
+#      `mel-rising-fix` slippage (the curated list had only 8 components,
+#      none of which were touched by the fix).
+#
+# Both mechanisms feed into the same final `validate_deployment()` check.
 CRITICAL_SOURCE_FILES = [
+    # Curated list — kept small for explicit per-file reporting.
+    # The dir scan below is the catch-all.
+    "app/_layout.tsx",
+    "app/index.tsx",
+    "app/(tabs)/index.tsx",
+    "app/(tabs)/lenses.tsx",
+    "app/(tabs)/patterns.tsx",
+    "app/(tabs)/reflect.tsx",
+    "app/forums/[id].tsx",
+    "services/api.ts",
+    "components/MirrorChat.tsx",
+    "components/ForumChatView.tsx",
     "components/NumerologySummaryV2.tsx",
     "components/NumerologyDeepDiveV2.tsx",
     "components/NumerologyLensView.tsx",
     "components/InsightCardFooter.tsx",
     "components/astrology/AstrologyTodayTab.tsx",
     "components/astrology/AstrologyDeepDiveTab.tsx",
-    "app/(tabs)/lenses.tsx",
-    "app/(tabs)/index.tsx",
+    "app.json",
+    "package.json",
 ]
+
+# Directory roots that ship into the web bundle. Walked recursively, with
+# the exclusion set below applied. Anything modified under these roots is
+# considered "newer than the bundle" if its mtime > index.html mtime.
+SCANNED_FRONTEND_DIRS = [
+    "app",
+    "components",
+    "services",
+    "hooks",
+    "utils",
+    "store",
+    "contexts",
+    "constants",
+    "types",
+]
+
+# File suffixes whose mtimes participate in staleness detection.
+# (Other files — fixtures, READMEs, sample data — are intentionally ignored
+# so editing a Markdown doc doesn't force a needless rebuild.)
+SCANNED_FILE_SUFFIXES = (".ts", ".tsx", ".js", ".jsx", ".json")
+
+# Directory / pattern fragments to skip during the walk. These NEVER ship
+# into the bundle so a change inside them must not flip is_current → False.
+SCAN_EXCLUDE_FRAGMENTS = (
+    "node_modules", "/.expo", "/dist", "/.git", "/__pycache__", "/.cache",
+    "/.next", "/.turbo", "/.vercel",
+)
 
 
 def get_file_mtime(filepath: Path) -> Optional[datetime]:
@@ -132,16 +190,30 @@ def get_deployed_bundle_info() -> Dict[str, Any]:
 
 
 def get_source_files_info() -> Dict[str, Any]:
-    """Get info about critical source files."""
-    info = {
+    """Get info about critical source files.
+
+    Returns the curated `CRITICAL_SOURCE_FILES` per-file detail PLUS the
+    newest mtime / file path discovered by walking `SCANNED_FRONTEND_DIRS`
+    (the safety net). The `newest_source_mtime` / `newest_source_file`
+    fields are the MAX across BOTH sources, so a brand-new component or
+    route that nobody remembered to add to the curated list still
+    participates in staleness detection."""
+    info: Dict[str, Any] = {
         "newest_source_mtime": None,
         "newest_source_file": None,
         "tracked_files": {},
+        "scanned_dirs": {
+            "roots":        list(SCANNED_FRONTEND_DIRS),
+            "file_count":   0,
+            "newest_mtime": None,
+            "newest_file":  None,
+        },
     }
-    
-    newest_mtime = None
-    newest_file = None
-    
+
+    newest_mtime: Optional[datetime] = None
+    newest_file: Optional[str] = None
+
+    # (1) Curated list — explicit per-file tracking.
     for rel_path in CRITICAL_SOURCE_FILES:
         full_path = FRONTEND_DIR / rel_path
         mtime = get_file_mtime(full_path)
@@ -153,10 +225,63 @@ def get_source_files_info() -> Dict[str, Any]:
             if newest_mtime is None or mtime > newest_mtime:
                 newest_mtime = mtime
                 newest_file = rel_path
-    
+
+    # (2) Directory walk — safety net. Walk SCANNED_FRONTEND_DIRS and find
+    # the newest .ts/.tsx/.js/.jsx/.json modification.
+    scan_newest: Optional[datetime] = None
+    scan_newest_path: Optional[str] = None
+    scan_count = 0
+    for root_name in SCANNED_FRONTEND_DIRS:
+        root = FRONTEND_DIR / root_name
+        if not root.exists():
+            continue
+        try:
+            for path in root.rglob("*"):
+                # Skip excluded fragments.
+                s = str(path)
+                if any(frag in s for frag in SCAN_EXCLUDE_FRAGMENTS):
+                    continue
+                if not path.is_file():
+                    continue
+                if path.suffix not in SCANNED_FILE_SUFFIXES:
+                    continue
+                scan_count += 1
+                try:
+                    mtime = datetime.fromtimestamp(path.stat().st_mtime, tz=timezone.utc)
+                except Exception:
+                    continue
+                if scan_newest is None or mtime > scan_newest:
+                    scan_newest = mtime
+                    scan_newest_path = str(path.relative_to(FRONTEND_DIR))
+        except Exception:  # pragma: no cover — defensive on filesystem oddities
+            continue
+
+    info["scanned_dirs"]["file_count"]   = scan_count
+    info["scanned_dirs"]["newest_mtime"] = scan_newest.isoformat() if scan_newest else None
+    info["scanned_dirs"]["newest_file"]  = scan_newest_path
+
+    # (3) Roll up the max across BOTH sources.
+    if scan_newest and (newest_mtime is None or scan_newest > newest_mtime):
+        newest_mtime = scan_newest
+        newest_file = scan_newest_path
+
+    # Also check top-level Expo config files that are NOT inside the
+    # SCANNED_FRONTEND_DIRS roots — these are bundled-relevant.
+    for top_level in ("app.json", "package.json", "metro.config.js"):
+        p = FRONTEND_DIR / top_level
+        if not p.exists():
+            continue
+        try:
+            mtime = datetime.fromtimestamp(p.stat().st_mtime, tz=timezone.utc)
+        except Exception:
+            continue
+        if newest_mtime is None or mtime > newest_mtime:
+            newest_mtime = mtime
+            newest_file = top_level
+
     info["newest_source_mtime"] = newest_mtime
     info["newest_source_file"] = newest_file
-    
+
     return info
 
 
@@ -190,15 +315,36 @@ def validate_deployment() -> Dict[str, Any]:
                 f"({source_info['newest_source_mtime'].strftime('%Y-%m-%d %H:%M:%S')}) "
                 f"is newer than deployed bundle ({bundle_info['index_html_mtime'].strftime('%Y-%m-%d %H:%M:%S')})"
             )
-            
-            # Find all stale files
+
+            # Curated-list stale files
+            seen: set = set()
             for rel_path, file_info in source_info["tracked_files"].items():
                 file_mtime = datetime.fromisoformat(file_info["mtime"])
                 if file_mtime > bundle_info["index_html_mtime"]:
                     result["stale_files"].append({
                         "file": rel_path,
                         "modified": file_info["mtime"],
+                        "source": "curated",
                     })
+                    seen.add(rel_path)
+
+            # Safety-net stale file from the dir scan — always attribute the
+            # newest_file even if it wasn't on the curated list. Without this,
+            # a newly-added component would silently trigger an error
+            # message but leave `stale_files` empty.
+            scan_newest = source_info.get("scanned_dirs", {}).get("newest_file")
+            scan_mtime  = source_info.get("scanned_dirs", {}).get("newest_mtime")
+            if scan_newest and scan_newest not in seen and scan_mtime:
+                try:
+                    scan_dt = datetime.fromisoformat(scan_mtime)
+                    if scan_dt > bundle_info["index_html_mtime"]:
+                        result["stale_files"].append({
+                            "file": scan_newest,
+                            "modified": scan_mtime,
+                            "source": "dir-scan",
+                        })
+                except Exception:
+                    pass
     
     # Check for uncommitted changes
     if get_git_dirty():
@@ -238,6 +384,9 @@ def get_build_info() -> Dict[str, Any]:
             "newest_modified": source_mtime_str,
             "newest_file": source_info["newest_source_file"],
             "tracked_count": len(source_info["tracked_files"]),
+            # Surface the dir-scan stats so `/api/health` consumers can see
+            # both detection mechanisms at a glance.
+            "scanned_dirs": source_info.get("scanned_dirs", {}),
         },
         "validation": {
             "is_current": validation["valid"],
@@ -247,6 +396,123 @@ def get_build_info() -> Dict[str, Any]:
         },
         "env_build_id": os.environ.get("EXPO_PUBLIC_BUILD_ID", "unknown"),
     }
+
+
+# =============================================================================
+# Prepublish CLI — exit 1 if the deployed bundle would be stale.
+# =============================================================================
+# Usage:
+#     python /app/backend/deployment_guard.py prepublish [--json] [--force]
+#
+# Behaviour:
+#   * Walks `SCANNED_FRONTEND_DIRS` + the curated `CRITICAL_SOURCE_FILES` and
+#     compares the newest mtime against `backend/web_dist/index.html`.
+#   * Exits 0 if `web_dist/` is at least as fresh as every relevant source.
+#   * Exits 1 (with a human-readable + JSON report) if any tracked source
+#     is newer than the deployed bundle. The reported `stale_files` list
+#     names every file the operator must commit-into-the-bundle before
+#     Publishing.
+#   * `--force` flag returns exit 0 even if stale (escape hatch for the
+#     rare case where the operator is intentionally publishing without
+#     a rebuild). It is logged loudly.
+#   * `--json` flag emits machine-readable JSON instead of the default
+#     coloured human report.
+#
+# Designed to be invoked from `/app/prepublish.sh` (the wrapper) before
+# the user clicks Publish in the Emergent dashboard.
+def prepublish_cli(argv: Optional[List[str]] = None) -> int:
+    """CLI entry. Returns the exit code (do not raise SystemExit here so
+    tests can call directly)."""
+    import argparse
+
+    parser = argparse.ArgumentParser(
+        prog="deployment_guard prepublish",
+        description=(
+            "Verify that /app/backend/web_dist/ is at least as fresh as "
+            "the relevant /app/frontend/ sources. Exits 1 if a rebuild "
+            "is required before Publish."
+        ),
+    )
+    parser.add_argument("subcommand", choices=["prepublish"],
+                        help="Reserved for future subcommands.")
+    parser.add_argument("--json", action="store_true",
+                        help="Emit JSON instead of a human-readable report.")
+    parser.add_argument("--force", action="store_true",
+                        help="Return exit 0 even if stale (logged loudly).")
+    args = parser.parse_args(argv)
+
+    bundle_info = get_deployed_bundle_info()
+    source_info = get_source_files_info()
+    validation = validate_deployment()
+
+    bundle_mtime = bundle_info["index_html_mtime"]
+    newest_mtime = source_info["newest_source_mtime"]
+
+    payload = {
+        "ok": validation["valid"],
+        "forced": bool(args.force),
+        "bundle": {
+            "present":    bundle_info["deployed"],
+            "name":       bundle_info["bundle_name"],
+            "hash":       bundle_info["bundle_hash"],
+            "size_kb":    bundle_info["bundle_size_kb"],
+            "mtime":      bundle_mtime.isoformat() if bundle_mtime else None,
+        },
+        "source": {
+            "newest_file":  source_info["newest_source_file"],
+            "newest_mtime": newest_mtime.isoformat() if newest_mtime else None,
+            "tracked_count": len(source_info["tracked_files"]),
+            "scanned_dirs":  source_info.get("scanned_dirs", {}),
+        },
+        "stale_files": validation["stale_files"],
+        "errors":      validation["errors"],
+        "warnings":    validation["warnings"],
+        "rebuild_command": "cd /app/frontend && yarn build:deploy",
+    }
+
+    if args.json:
+        print(json.dumps(payload, indent=2, default=str))
+    else:
+        # Human-readable, terminal-friendly report.
+        OK = "\033[32m"
+        FAIL = "\033[31m"
+        WARN = "\033[33m"
+        DIM = "\033[2m"
+        RST = "\033[0m"
+        verdict = f"{OK}PASS{RST}" if validation["valid"] else f"{FAIL}FAIL{RST}"
+        print("=== DeploymentGuard Prepublish Check ===")
+        print(f"  Verdict        : {verdict}")
+        print(f"  Bundle file    : {bundle_info['bundle_name']}")
+        print(f"  Bundle mtime   : {bundle_mtime}")
+        print(f"  Newest source  : {source_info['newest_source_file']}")
+        print(f"  Newest mtime   : {newest_mtime}")
+        sd = source_info.get("scanned_dirs", {})
+        print(f"  Dir-scan stats : {sd.get('file_count', 0)} files across "
+              f"{len(sd.get('roots', []))} roots; "
+              f"newest={sd.get('newest_file')} @ {sd.get('newest_mtime')}")
+        if validation["errors"]:
+            print(f"\n{FAIL}ERRORS:{RST}")
+            for e in validation["errors"]:
+                print(f"  ❌ {e}")
+        if validation["warnings"]:
+            print(f"\n{WARN}WARNINGS:{RST}")
+            for w in validation["warnings"]:
+                print(f"  ⚠️  {w}")
+        if validation["stale_files"]:
+            print(f"\n{WARN}STALE FILES (newer than bundle):{RST}")
+            for sf in validation["stale_files"][:25]:
+                print(f"  - {sf['file']}  ({sf['modified']})")
+            if len(validation["stale_files"]) > 25:
+                print(f"  ... and {len(validation['stale_files']) - 25} more")
+            print(f"\n{DIM}To rebuild:  cd /app/frontend && yarn build:deploy{RST}")
+
+    if validation["valid"]:
+        return 0
+    if args.force:
+        # Loudly logged force-override
+        logger.warning("[DeploymentGuard.prepublish] STALE bundle accepted via --force")
+        return 0
+    return 1
 
 
 def log_deployment_status():
@@ -307,7 +573,15 @@ def get_build_stamp() -> str:
 # Export for use in health endpoint
 __all__ = [
     'get_build_info',
-    'validate_deployment', 
+    'validate_deployment',
     'log_deployment_status',
     'get_build_stamp',
+    'prepublish_cli',
+    'CRITICAL_SOURCE_FILES',
+    'SCANNED_FRONTEND_DIRS',
 ]
+
+
+if __name__ == "__main__":
+    import sys as _sys
+    _sys.exit(prepublish_cli(_sys.argv[1:]))

@@ -10,7 +10,8 @@
     "web": "expo start --web",
     "lint": "expo lint",
     "build:web": "npx expo export --platform web",
-    "build:deploy": "npx expo export --platform web && rm -rf ../backend/web_dist/* && cp -r dist/* ../backend/web_dist/"
+    "build:deploy": "npx expo export --platform web && rm -rf ../backend/web_dist/* && cp -r dist/* ../backend/web_dist/ && python3 ../backend/deployment_guard.py prepublish",
+    "prepublish:check": "python3 ../backend/deployment_guard.py prepublish"
   },
   "dependencies": {
     "@babel/runtime": "^7.28.6",
