@@ -70,6 +70,31 @@ from scripts.migration_snapshot_variant_a import run_snapshot  # noqa: E402
 
 ROUTE_BUILD_MARKER = "variant-a-prod-migration-admin-v1"
 
+
+def _member_summary_marker() -> str:
+    """Import-time-safe extraction of the member_summary build marker
+    so deployment health checks can detect whether the mel-rising-fix
+    build (or any subsequent member_summary build) is the one running.
+
+    Returns the marker string, or an explicit absence sentinel if the
+    module is missing the marker (which means the deployed image was
+    built from a pre-fix code snapshot)."""
+    try:
+        import services.member_summary as _ms  # noqa: WPS433 (local import is intentional)
+        marker = getattr(_ms, "BUILD_MARKER", None)
+        if marker:
+            return str(marker)
+        # Fall back to scanning the module docstring for the marker token
+        # so the legacy fix (which only commented it) still reports.
+        doc = (_ms.__doc__ or "")
+        for token in ("mel-rising-fix-member-summary-v1",):
+            if token in doc:
+                return token
+        return "<member_summary_marker_absent>"
+    except Exception as exc:  # pragma: no cover — defensive
+        return f"<error:{type(exc).__name__}>"
+
+
 # Resolve the Mongo connection from the *running pod's* env. Inside the
 # preview container this resolves to mongodb://localhost:27017/test_database;
 # inside the deployed pod it resolves to the deployed Mongo. The route
@@ -319,8 +344,9 @@ async def build_info():
         return JSONResponse(
             content={
                 "build_markers": {
-                    "admin_module":   ROUTE_BUILD_MARKER,
-                    "startup_hook":   startup_hook_marker,
+                    "admin_module":     ROUTE_BUILD_MARKER,
+                    "startup_hook":     startup_hook_marker,
+                    "member_summary":   _member_summary_marker(),
                 },
                 "startup_hook_imported":          startup_hook_imported,
                 "env_flag_run_variant_a":         flag_state,
@@ -347,8 +373,9 @@ async def build_info():
     return JSONResponse(
         content={
             "build_markers": {
-                "admin_module":   ROUTE_BUILD_MARKER,
-                "startup_hook":   startup_hook_marker,
+                "admin_module":     ROUTE_BUILD_MARKER,
+                "startup_hook":     startup_hook_marker,
+                "member_summary":   _member_summary_marker(),
             },
             "startup_hook_imported":           startup_hook_imported,
             "env_flag_run_variant_a":          flag_state,

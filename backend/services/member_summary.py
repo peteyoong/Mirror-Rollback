@@ -37,6 +37,12 @@ from bson import ObjectId
 
 logger = logging.getLogger(__name__)
 
+# Build marker — surfaced by `/api/admin/build-info` so deployment-time
+# verification can detect whether THIS build (mel-rising-fix) is the
+# one running on a given pod. Bump this string whenever you change the
+# member-summary read path or its cache contract.
+BUILD_MARKER = "mel-rising-fix-member-summary-v1"
+
 
 _CHINESE_ZODIAC: List[str] = [
     "Rat", "Ox", "Tiger", "Rabbit", "Dragon", "Snake",
