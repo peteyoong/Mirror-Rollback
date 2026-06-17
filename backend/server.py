@@ -32619,6 +32619,13 @@ app.include_router(_gm_aligned_router)
 from routers import admin_variant_a_migration as _variant_a_admin
 app.include_router(_variant_a_admin.router)
 
+# Systemic historical-timezone cohort repair (fix-historical-tz-cohort-v1).
+# Scans every chart, finds ones whose stored UTC drifted from the historical
+# IANA-correct UTC, and atomically repairs them with V-A canonical markers.
+# Remove this file + these 2 lines once the cohort is repaired.
+from routers import admin_fix_historical_tz_cohort as _fix_htz_cohort
+app.include_router(_fix_htz_cohort.router)
+
 
 # =====================================================================
 # STATIC FILE SERVING FOR WEB BUILD
