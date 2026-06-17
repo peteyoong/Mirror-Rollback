@@ -374,6 +374,8 @@ def _compute_chart_version(chart: Dict[str, Any]) -> str:
       • the most recent of `chart.chart_updated_at` / `chart.astrology_updated_at`
         / `chart.updated_at` / `chart.created_at`
       • the chart `_id`
+      • **a content fingerprint of the user-visible astrology fields**
+        (asc + Sun + Moon longitudes — see CONTENT-HASH NOTE below)
 
     Falls back to a short SHA-1 of whatever string-coerced subset is available
     so that **a recompute → write to db.charts always produces a different
@@ -381,8 +383,21 @@ def _compute_chart_version(chart: Dict[str, Any]) -> str:
     `app/forums/[id].tsx` memberSummaries) so that a corrected chart is never
     masked by a previously-rendered stale summary.
 
-    Format: `v:<engine>|t:<ts>|c:<id8>` — opaque to the client; the only
-    contract is that the token CHANGES when the underlying chart changes.
+    CONTENT-HASH NOTE (mel-rising-fix-content-hash-v1):
+    Some admin write paths (notably `/api/admin/fix_mel_live`) update the
+    `astrology` subdocument via `$set` without bumping any of the top-level
+    timestamps on the chart envelope (`chart.updated_at`, etc.). Without a
+    content fingerprint, the resulting chart_version would be byte-identical
+    to the pre-fix token even though the displayed astrology has changed —
+    which would defeat the cache-bust mechanism the frontend relies on. To
+    make chart_version reliably content-aware, we additionally hash the
+    three numeric longitudes that drive the user-visible "Sun · Moon ·
+    Rising" line. Any change to those values flips the token immediately,
+    regardless of whether the chart envelope was timestamp-updated.
+
+    Format: `v:<engine>|t:<ts>|c:<id8>|h:<sha1_8>` — opaque to the client;
+    the only contract is that the token CHANGES when the underlying chart
+    changes.
     """
     if not chart:
         return "v:none"
@@ -412,11 +427,34 @@ def _compute_chart_version(chart: Dict[str, Any]) -> str:
             continue
     cid = chart.get("_id")
     cid_str = str(cid)[-8:] if cid is not None else ""
-    raw = f"v:{engine}|t:{ts_str}|c:{cid_str}"
-    # Keep the human-meaningful prefix but append a short hash for safety so
-    # cosmetic field reorders never produce identical tokens.
+
+    # Content fingerprint: the three numeric longitudes that drive the
+    # user-visible "Sun · Moon · Rising" line. Quantised to 4 decimal places
+    # so floating-point noise doesn't flip the hash, but real astrology
+    # changes (e.g. 81.99° → 89.10°, a 7° ASC shift) always do.
+    angles = astro.get("angles") or {}
+    asc = angles.get("asc") or angles.get("ascendant") or {}
+    planets = astro.get("planets") or {}
+    sun = planets.get("Sun") or planets.get("sun") or {}
+    moon = planets.get("Moon") or planets.get("moon") or {}
+
+    def _lon(node: Any) -> str:
+        if isinstance(node, dict):
+            v = node.get("longitude")
+            if isinstance(v, (int, float)):
+                return f"{v:.4f}"
+        return ""
+
+    content_parts = [
+        f"asc={_lon(asc)}",
+        f"sun={_lon(sun)}",
+        f"moon={_lon(moon)}",
+    ]
+    content_token = "|".join(content_parts)
+
+    raw = f"v:{engine}|t:{ts_str}|c:{cid_str}|{content_token}"
     digest = hashlib.sha1(raw.encode("utf-8")).hexdigest()[:8]
-    return f"{raw}|h:{digest}"
+    return f"v:{engine}|t:{ts_str}|c:{cid_str}|h:{digest}"
 
 
 async def get_member_summary(db, forum_id: str, member_id: str) -> Optional[Dict[str, Any]]:

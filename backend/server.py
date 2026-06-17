@@ -32602,11 +32602,6 @@ app.include_router(_gm_aligned_router)
 from routers import admin_variant_a_migration as _variant_a_admin
 app.include_router(_variant_a_admin.router)
 
-# TEMPORARY — Mel Ascendant read-only diagnostic (mel-rising-fix-diag-readonly-v1).
-# Remove this file + the next two lines after diagnosis is complete.
-from routers import admin_mel_chart_readonly_diag as _mel_chart_diag
-app.include_router(_mel_chart_diag.router)
-
 
 # =====================================================================
 # STATIC FILE SERVING FOR WEB BUILD

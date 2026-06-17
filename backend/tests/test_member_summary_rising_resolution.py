@@ -269,6 +269,50 @@ def test_chart_version_changes_when_chart_id_changes():
     assert v_old != v_new
 
 
+def test_chart_version_changes_when_asc_longitude_changes():
+    """mel-rising-fix-content-hash-v1 contract: chart_version MUST change
+    when the user-visible astrology content changes — even if no chart
+    envelope timestamp was bumped. This is the exact regression seen
+    after `/api/admin/fix_mel_live` $set the astrology subtree without
+    touching `chart.updated_at`."""
+    base = _mel_chart_full()
+    v_old = _compute_chart_version(base)
+
+    bumped = _mel_chart_full()
+    # Simulate the fix_mel_live $set: only astrology.angles.asc changed,
+    # NO timestamp / NO engine version / NO _id change.
+    bumped["astrology"]["angles"]["asc"] = {
+        "sign": "Gemini",
+        "degree": 25.41,
+        "longitude": 81.99527,
+        "formatted": "25°Gemini",
+    }
+    v_new = _compute_chart_version(bumped)
+
+    assert v_old != v_new, (
+        "chart_version must flip when astrology content changes even if "
+        "the chart envelope's updated_at field is untouched. "
+        f"old={v_old!r} new={v_new!r}"
+    )
+
+
+def test_chart_version_changes_when_sun_or_moon_longitude_changes():
+    """Defence-in-depth — same contract for Sun/Moon longitudes (in case
+    of any future planetary-only chart update)."""
+    base = _mel_chart_full()
+    v_old = _compute_chart_version(base)
+
+    bumped = _mel_chart_full()
+    bumped["astrology"]["planets"]["Sun"]["longitude"] = 100.0
+    v_new = _compute_chart_version(bumped)
+    assert v_old != v_new
+
+    bumped2 = _mel_chart_full()
+    bumped2["astrology"]["planets"]["Moon"]["longitude"] = 250.0
+    v_new2 = _compute_chart_version(bumped2)
+    assert v_old != v_new2
+
+
 def test_chart_version_is_deterministic_string():
     """The token must be a non-empty string (no None, no objects) so the
     frontend can safely compare with `!==`."""
