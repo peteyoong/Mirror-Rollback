@@ -602,18 +602,56 @@ def register(
                 from services.forum_chat_knowledge_retrieval import (
                     build_fkr_evidence_block,
                 )
+                # PFS-2.4 — compute the orchestration plan and feed
+                # `framing_hint` + `domain_bias` + `rule_bucket` into
+                # the FKR enforcement footer so the LLM gets a single
+                # deterministic instruction line (e.g. "sibling_pair:
+                # read the field BETWEEN them, anchor in shared
+                # origin") instead of having to infer the bucket from
+                # the prose context.  Plan computation is defensive —
+                # any failure simply falls back to the legacy FKR
+                # footer.
+                _fkr_orch_plan = None
+                try:
+                    from services.relationship_orchestration_v1 import (
+                        plan_lens_priority,
+                    )
+                    _orch_topology = (
+                        orchestrator_payload.get("forum_topology")
+                        if isinstance(orchestrator_payload, dict) else None
+                    )
+                    _fkr_orch_plan = plan_lens_priority(
+                        intent_envelope={
+                            "primary_domain": (orchestrator_payload or {}).get("life_domain"),
+                            "lens_priority":  (orchestrator_payload or {}).get("lens_priority") or [],
+                        },
+                        relationship_role=(orchestrator_payload or {}).get("relationship_role"),
+                        target_resolved=((orchestrator_payload or {}).get("resolved_target") or {}).get("target_name"),
+                        forum_topology=_orch_topology,
+                        context_mode="forum_chat",
+                    )
+                except Exception as _plan_err:  # noqa: BLE001
+                    logger.warning(
+                        f"[ForumChat][FKR-v1] orchestration plan skipped: "
+                        f"{type(_plan_err).__name__}: {_plan_err!r}"
+                    )
+                    _fkr_orch_plan = None
+
                 _fkr_block, _fkr_debug = await build_fkr_evidence_block(
                     db=db,
                     user_id=request.user_id,
                     message=request.message,
                     forum_id=forum_id,
+                    orchestration_plan=_fkr_orch_plan,
                 )
                 if _fkr_block:
                     system_prompt += "\n\n" + _fkr_block
                     logger.info(
                         f"[ForumChat][FKR-v1] block_emitted=True "
                         f"modes={_fkr_debug.get('modes')} "
-                        f"targets={[t['name'] for t in _fkr_debug.get('targets', [])]}"
+                        f"targets={[t['name'] for t in _fkr_debug.get('targets', [])]} "
+                        f"bucket={_fkr_debug.get('rule_bucket')!r} "
+                        f"framing={_fkr_debug.get('framing_hint')!r}"
                     )
             except Exception as _fkr_err:
                 logger.warning(

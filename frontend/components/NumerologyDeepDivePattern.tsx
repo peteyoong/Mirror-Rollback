@@ -730,12 +730,6 @@ const styles = StyleSheet.create({
   costRow: {
     gap: 4,
   },
-  costLabel: {
-    fontSize: 14,
-    fontWeight: '600',
-    letterSpacing: 0.3,
-    textTransform: 'uppercase',
-  },
   costValue: {
     fontSize: 16,
     lineHeight: 32,

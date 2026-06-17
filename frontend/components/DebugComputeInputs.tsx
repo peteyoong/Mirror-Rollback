@@ -87,15 +87,19 @@ export default function DebugComputeInputs({ userId }: Props) {
   const [error, setError] = useState<string | null>(null);
   const [stableId, setStableId] = useState<string | null>(null);
 
-  // Don't render anything if debug mode is off
-  if (!DEBUG_MIRROR) {
-    return null;
-  }
-
-  // Fetch stable user ID on mount
+  // Fetch stable user ID on mount.
+  // NOTE: useEffect MUST be called unconditionally on every render
+  // (rules-of-hooks).  The DEBUG_MIRROR gate is applied AFTER all
+  // hooks, by returning null from the render output.
   useEffect(() => {
     getStableUserId().then(setStableId);
   }, []);
+
+  // Don't render anything if debug mode is off.  Early-return AFTER
+  // all hooks so the hook call order stays stable across renders.
+  if (!DEBUG_MIRROR) {
+    return null;
+  }
 
   const fetchComputeInputs = async () => {
     setIsLoading(true);

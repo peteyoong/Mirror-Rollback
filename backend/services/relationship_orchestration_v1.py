@@ -67,7 +67,7 @@ from __future__ import annotations
 
 from typing import Any, Dict, List, Optional, Tuple
 
-VERSION = "relationship_orchestration_v1.1.0"
+VERSION = "relationship_orchestration_v1.2.0"
 
 # Role lexicon — first match wins in `_resolve_role_bucket`.
 # Keys are role-noun tokens (lower-cased, substring-friendly).
@@ -91,6 +91,10 @@ _CHILD_ROLES          = {"child", "son", "daughter", "kid", "teen",
 _PARENT_ROLES         = {"parent", "mom", "mother", "dad", "father",
                          "mama", "papa", "mum"}
 _SIBLING_ROLES        = {"sibling", "brother", "sister", "twin"}
+_SIBLING_PAIR_ROLES   = {"sibling_pair", "siblings", "sibling-sibling",
+                         "sibling_sibling", "brother_brother",
+                         "sister_sister", "brother_sister",
+                         "sister_brother", "twin_pair"}
 _COFOUNDER_ROLES      = {"cofounder", "co-founder", "co_founder",
                          "business_partner", "biz_partner"}
 _ADVISOR_ROLES        = {"advisor", "adviser"}
@@ -146,6 +150,21 @@ LENS_MODULATIONS: Dict[str, Dict[str, float]] = {
         "human_design": 0.20,
         "relationship": 0.30,
         "enneagram":    0.15,
+        "timeline":     0.05,
+    },
+    # sibling_pair — when the SUBJECTS of the read are two siblings to
+    # each other (e.g. user asks about the dynamic between their two
+    # children, or two of their forum members who are siblings).  This
+    # is NOT the same as `sibling` (which is user↔sibling).  Reads of
+    # this kind want a relationship-led frame anchored in shared origin,
+    # with human-design + enneagram as the strong corroborating lenses
+    # (because birth-order, type, and tri-fix differentiation often
+    # explain the dynamic better than mid-strength astrology).
+    "sibling_pair": {
+        "relationship": 0.40,
+        "human_design": 0.25,
+        "enneagram":    0.20,
+        "astrology":    0.15,
         "timeline":     0.05,
     },
     # ── Work / founder family ──────────────────────────────────────
@@ -253,6 +272,7 @@ FRAMING_HINT: Dict[str, str] = {
     "child":            "parenting",
     "parent":           "lineage",
     "sibling":          "family_dynamic",
+    "sibling_pair":     "siblings_among_themselves",
     "cofounder":        "cofounder_strategic",
     "advisor":          "guidance",
     "investor":         "influence",
@@ -278,6 +298,7 @@ DOMAIN_BIAS: Dict[str, str] = {
     "child":            "relationship",
     "parent":           "relationship",
     "sibling":          "relationship",
+    "sibling_pair":     "relationship",
     "cofounder":        "work",
     "advisor":          "work",
     "investor":         "work",
@@ -299,6 +320,62 @@ def _normalize_role(role: Optional[str]) -> str:
     if not role:
         return ""
     return str(role).strip().lower().replace("-", "_").replace(" ", "_")
+
+
+def _looks_like_sibling_pair(forum_topology: Optional[Dict[str, Any]]) -> bool:
+    """Topology-based detection for the `sibling_pair` bucket.
+
+    Fires when the topology indicates the read concerns TWO people who
+    are siblings to each other (not just the user's sibling).  Three
+    signals, any one of which is sufficient:
+
+      1) `forum_topology['pair_relationship']` == 'sibling' or
+         'sibling_pair' — explicit pair label from the resolver.
+      2) `forum_topology['pair_members']` is a 2-list and both members
+         share the same parent in the topology (siblings of each other).
+      3) `forum_topology['active_pair']['role_between']` is a sibling-
+         family token ('sibling', 'brother', 'sister', 'twin',
+         'sibling_pair', 'siblings').
+
+    Conservative: returns False on any malformed shape so misshapen
+    topology never accidentally re-buckets a non-sibling-pair read.
+    """
+    if not isinstance(forum_topology, dict):
+        return False
+
+    # Signal 1 — explicit pair label
+    pair_rel = _normalize_role(forum_topology.get("pair_relationship"))
+    if pair_rel in {"sibling", "sibling_pair", "siblings", "brother",
+                    "sister", "twin", "twin_pair"}:
+        return True
+
+    # Signal 3 — active_pair carries an explicit role_between
+    active_pair = forum_topology.get("active_pair")
+    if isinstance(active_pair, dict):
+        role_between = _normalize_role(active_pair.get("role_between"))
+        if role_between in {"sibling", "sibling_pair", "siblings",
+                            "brother", "sister", "twin"}:
+            return True
+
+    # Signal 2 — pair_members share a common parent
+    pair_members = forum_topology.get("pair_members")
+    if isinstance(pair_members, (list, tuple)) and len(pair_members) == 2:
+        try:
+            parents_a = {
+                str(p) for p in (pair_members[0] or {}).get("parent_ids", [])
+                if p
+            }
+            parents_b = {
+                str(p) for p in (pair_members[1] or {}).get("parent_ids", [])
+                if p
+            }
+        except Exception:
+            return False
+        # At least one shared, non-empty parent → siblings of each other.
+        if parents_a and parents_b and (parents_a & parents_b):
+            return True
+
+    return False
 
 
 def _resolve_role_bucket(
@@ -360,14 +437,30 @@ def _resolve_role_bucket(
             rules.append("target_bound")
         return "parent", rules
 
-    # 1e. sibling — relationship-family, family_dynamic framing
+    # 1e. sibling_pair — both parties are siblings to each other (e.g.
+    # two of the user's children, or two forum members linked by a
+    # sibling edge).  This is distinct from `sibling` (user↔sibling)
+    # and prefers a relationship-led frame anchored in shared origin.
+    # Resolution order: explicit role token first, then topology check.
+    if role in _SIBLING_PAIR_ROLES:
+        rules.append(f"role_match:sibling_pair:{role}")
+        if target_resolved:
+            rules.append("target_bound")
+        return "sibling_pair", rules
+    if _looks_like_sibling_pair(forum_topology):
+        rules.append("topology_match:sibling_pair")
+        if target_resolved:
+            rules.append("target_bound")
+        return "sibling_pair", rules
+
+    # 1f. sibling — relationship-family, family_dynamic framing
     if role in _SIBLING_ROLES:
         rules.append(f"role_match:sibling:{role}")
         if target_resolved:
             rules.append("target_bound")
         return "sibling", rules
 
-    # 1f. close_friend — relationship-family, closeness framing
+    # 1g. close_friend — relationship-family, closeness framing
     if role in _CLOSE_FRIEND_ROLES:
         rules.append(f"role_match:close_friend:{role}")
         if target_resolved:

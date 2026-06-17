@@ -154,12 +154,18 @@ def classify_query(message: str) -> List[str]:
     modes: List[str] = []
     def _match(patterns: List[str]) -> bool:
         return any(re.search(p, msg, flags=re.I) for p in patterns)
-    if _match(_FACT_LOOKUP_PATTERNS):     modes.append("FACT_LOOKUP")
-    if _match(_INTERPRET_PATTERNS):       modes.append("INTERPRETATION")
-    if _match(_RELATIONSHIP_PATTERNS):    modes.append("RELATIONSHIP")
-    if _match(_TIMELINE_PATTERNS):        modes.append("TIMELINE")
-    if _match(_COMPARISON_PATTERNS):      modes.append("COMPARISON")
-    if _match(_FORUM_DYNAMICS_PATTERNS):  modes.append("FORUM_DYNAMICS")
+    if _match(_FACT_LOOKUP_PATTERNS):
+        modes.append("FACT_LOOKUP")
+    if _match(_INTERPRET_PATTERNS):
+        modes.append("INTERPRETATION")
+    if _match(_RELATIONSHIP_PATTERNS):
+        modes.append("RELATIONSHIP")
+    if _match(_TIMELINE_PATTERNS):
+        modes.append("TIMELINE")
+    if _match(_COMPARISON_PATTERNS):
+        modes.append("COMPARISON")
+    if _match(_FORUM_DYNAMICS_PATTERNS):
+        modes.append("FORUM_DYNAMICS")
     if not modes:
         # Default: any question with a possessive ("X's MC", "X's profile")
         # implies fact lookup; otherwise leave empty (the spec only requires
@@ -326,7 +332,8 @@ async def resolve_targets(*, db, user_id: str, message: str,
                 fid  = e.get("forum_id")
                 for p in people:
                     if p["user_id"] == tu:
-                        name = p["name"]; fid = fid or p.get("forum_id")
+                        name = p["name"]
+                        fid = fid or p.get("forum_id")
                         break
                 if not name:
                     try:
@@ -390,7 +397,8 @@ async def resolve_targets(*, db, user_id: str, message: str,
                 name = None
                 for p in people:
                     if p["user_id"] == tu:
-                        name = p["name"]; break
+                        name = p["name"]
+                        break
                 if not name:
                     try:
                         uobj = ObjectId(tu) if _looks_objectid(tu) else tu
@@ -653,10 +661,42 @@ def _hd_lines(hd: Optional[Dict[str, Any]]) -> List[str]:
     return lines or ["  Human Design: stored but no resolvable fields"]
 
 
+# ────────────────────────────────────────────────────────────
+# PFS-2.4 — Per-bucket micro-directives for FKR footer
+# ────────────────────────────────────────────────────────────
+# Maps the `rule_bucket` from relationship_orchestration_v1 → a single
+# short instruction line that tells the LLM HOW to shape the answer
+# under that bucket.  Kept short so it never crowds out the evidence.
+# Buckets not in this map fall back to the generic corroboration line.
+_FRAMING_HINT_INSTRUCTIONS: Dict[str, str] = {
+    "spouse":        "Lead with the field between you two; treat astrology+relationship lenses as primary.",
+    "former_partner":"Lead with closure dynamics; honour what is finished without re-litigating.",
+    "child":         "User is the PARENT.  Lead with how the user shows up FOR the child; lenses serve parenting.",
+    "parent":        "User is the CHILD.  Lead with lineage / inherited patterns; respect the parent's design without merging it with the user's.",
+    "sibling":       "User↔sibling: family-of-origin dynamic.  Differentiate the user's design from the sibling's instead of collapsing them.",
+    "sibling_pair":  "Both subjects are SIBLINGS to each other (not user↔sibling).  Read the field BETWEEN them; user is observer/parent context.  Anchor in shared origin then differentiate via HD type and tri-fix.",
+    "cofounder":     "Strategic / work-family frame.  Lead with HD aura + decision-style; treat astrology as corroborating.",
+    "advisor":       "Guidance flow.  Map how the advisor reads the user's chart, not the other way around.",
+    "investor":      "Influence dynamic; signal scarcity vs trust calibration.",
+    "manager":       "Authority flow downward; lead with HD decision-style + Enneagram triad differences.",
+    "employee":      "Responsibility flow upward; centre the user's own authority + capacity to push back.",
+    "mentor":        "Development-giving.  Centre what the user models; corroborate with HD aura.",
+    "mentee":        "Development-receiving.  Centre what the user is learning; corroborate with HD strategy.",
+    "coach":         "Growth-giving (transactional).  Centre method + boundary, not personal merge.",
+    "coachee":       "Growth-receiving (transactional).  Centre what's being requested, not biography.",
+    "authority_figure": "Power dynamic.  Name the asymmetry without flattening it.",
+    "collaborator":  "Partnership; symmetric give/receive; treat HD channels as the corroborator.",
+    "close_friend":  "Closeness frame; lead with relational tone, corroborate with chart contacts.",
+    "forum_member":  "Forum dynamic; treat the relationship lens as primary, others as corroboration.",
+}
+
+
 def build_evidence_block(modes: List[str],
                          targets: List[Dict[str, Any]],
                          evidence: List[Dict[str, Any]],
-                         forum: Optional[Dict[str, Any]]) -> str:
+                         forum: Optional[Dict[str, Any]],
+                         orchestration_plan: Optional[Dict[str, Any]] = None
+                         ) -> str:
     lines: List[str] = []
     lines.append("=" * 60)
     lines.append("FKR v1 — KNOWLEDGE RETRIEVAL EVIDENCE")
@@ -724,6 +764,46 @@ def build_evidence_block(modes: List[str],
                               for m in forum["members"][:8])
             lines.append(f"  Members ({len(forum['members'])}): {names}")
 
+    # ── PFS-2.4 — Framing hint propagation ──────────────────────────
+    # When the orchestration plan resolved a non-default framing_hint
+    # or domain_bias, surface them here so the LLM gets a deterministic
+    # framing instruction inside the FKR enforcement block (instead of
+    # having to infer the bucket from prose).  Only emits when the
+    # plan is present, computed, and non-default — keeps the footer
+    # unchanged for legacy callers.
+    if isinstance(orchestration_plan, dict) and orchestration_plan.get("computed"):
+        framing = (orchestration_plan.get("framing_hint") or "").strip()
+        domain  = (orchestration_plan.get("domain_bias")  or "").strip()
+        bucket  = (orchestration_plan.get("rule_bucket")  or "").strip()
+        # Only surface when at least one signal is meaningful and not
+        # the no-op defaults ('self_inquiry' / 'self').
+        meaningful = (
+            (framing and framing != "self_inquiry") or
+            (domain  and domain  != "self") or
+            (bucket  and bucket  not in ("self", ""))
+        )
+        if meaningful:
+            lines.append("")
+            lines.append("=" * 60)
+            lines.append("FRAMING HINT (from relationship orchestration):")
+            if bucket:
+                lines.append(f"  • role_bucket:  {bucket}")
+            if framing:
+                lines.append(f"  • framing_hint: {framing}")
+            if domain:
+                lines.append(f"  • domain_bias:  {domain}")
+            # Bucket-specific micro-instruction so the LLM doesn't have
+            # to translate the framing token itself.
+            micro = _FRAMING_HINT_INSTRUCTIONS.get(bucket)
+            if micro:
+                lines.append(f"  • directive:    {micro}")
+            lines.append(
+                "  • This framing CORROBORATES the read.  It does NOT "
+                "override evidence above; use it to choose the SHAPE of "
+                "your answer (which lens leads, which corroborates), not "
+                "the FACTS."
+            )
+
     # Phase-3 style enforcement footer.
     lines.append("")
     lines.append("=" * 60)
@@ -757,8 +837,18 @@ def build_evidence_block(modes: List[str],
 async def build_fkr_evidence_block(
     *, db, user_id: str, message: str,
     forum_id: Optional[str] = None,
+    orchestration_plan: Optional[Dict[str, Any]] = None,
 ) -> Tuple[Optional[str], Dict[str, Any]]:
-    """Returns (evidence_block_string_or_None, debug_payload)."""
+    """Returns (evidence_block_string_or_None, debug_payload).
+
+    `orchestration_plan` is the optional payload returned by
+    `relationship_orchestration_v1.plan_lens_priority`.  When provided,
+    its `framing_hint`, `domain_bias`, and `rule_bucket` are surfaced
+    inside the FKR enforcement footer so the LLM gets a deterministic
+    framing instruction instead of having to infer the role bucket
+    from the prose context.  Backwards-compatible: callers that don't
+    pass a plan get exactly the legacy footer shape.
+    """
     debug: Dict[str, Any] = {"emitted": False, "modes": [],
                              "targets": [], "errors": []}
     try:
@@ -784,9 +874,19 @@ async def build_fkr_evidence_block(
         forum_ev = None
         if forum_id:
             forum_ev = await retrieve_forum_evidence(db, forum_id)
-        block = build_evidence_block(modes, targets, evidence, forum_ev)
+        block = build_evidence_block(
+            modes, targets, evidence, forum_ev,
+            orchestration_plan=orchestration_plan,
+        )
         debug["emitted"] = True
         debug["block_chars"] = len(block)
+        # Mirror the framing-hint propagation into the debug payload so
+        # observability dashboards can split FKR emissions by bucket.
+        if isinstance(orchestration_plan, dict) and \
+           orchestration_plan.get("computed"):
+            debug["framing_hint"]   = orchestration_plan.get("framing_hint")
+            debug["domain_bias"]    = orchestration_plan.get("domain_bias")
+            debug["rule_bucket"]    = orchestration_plan.get("rule_bucket")
         return block, debug
     except Exception as e:
         log.warning(f"[fkr] build failed: {type(e).__name__}: {e!r}")
