@@ -163,6 +163,12 @@ def _safe_recompute(label: str, lat: float, lon: float) -> Dict[str, Any]:
 async def mel_chart_readonly(
     request: Request,
     confirm: str = Query(..., description="Must equal MEL_DIAG_2026_06_17"),
+    include_census: bool = Query(
+        False,
+        description="If true, also returns a count of Malaysia-born users with "
+                    "birth_date < 1982-01-01 — when Malaysia's UTC offset "
+                    "changed from +7:30 to +8:00. Read-only; no mutations.",
+    ),
 ):
     """Read-only diagnostic dump for the Mel Ascendant regression.
 
@@ -349,6 +355,36 @@ async def mel_chart_readonly(
 
         "classification": classification,
     }
+
+    # --- Optional Malaysia pre-1982 census ---
+    # Run only when explicitly requested. Pure read; counts users whose
+    # birth_location.country / birth_country matches Malaysia AND
+    # birth_date < 1982-01-01 (when Malaysia's UTC offset changed from
+    # +7:30 to +8:00). Reports a count plus, for context, the count of
+    # all Malaysia-born users.
+    if include_census:
+        try:
+            country_match = {"$or": [
+                {"birth_location.country": {"$regex": "malays", "$options": "i"}},
+                {"birth_country":         {"$regex": "malays", "$options": "i"}},
+            ]}
+            pre_1982 = await _db.users.count_documents({
+                "$and": [
+                    country_match,
+                    {"birth_date": {"$lt": "1982-01-01"}},
+                ],
+            })
+            total_my = await _db.users.count_documents(country_match)
+            payload["malaysia_census"] = {
+                "pre_1982_count":       pre_1982,
+                "all_malaysia_count":   total_my,
+                "cutoff_date":          "1982-01-01",
+                "offset_before_cutoff": "UTC+07:30",
+                "offset_after_cutoff":  "UTC+08:00",
+                "note":                 "users with birth_date < 1982-01-01 may have charts computed under the wrong UTC offset",
+            }
+        except Exception as exc:
+            payload["malaysia_census"] = {"error": f"{type(exc).__name__}: {exc}"}
 
     return JSONResponse(content=payload, headers={"Cache-Control": "no-store"})
 
