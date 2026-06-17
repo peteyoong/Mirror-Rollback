@@ -32526,11 +32526,28 @@ async def admin_fix_mel_live(
             logger.warning(f"[admin/fix_mel_live] hd recompute failed: {e}")
         
         # Build update dict
+        # mel-rising-historical-tz-lock-v1 (2026-06-17):
+        # Set the Variant A canonical markers at the SAME time as writing the
+        # corrected astrology. Without these top-level markers, any subsequent
+        # auto-migration path (check_and_migrate_astrology_chart in server.py,
+        # _migrate_true_sidereal_midpoint, or any client hitting /pulse →
+        # forum_lens_helpers.get_member_lens_data) will see Mel's chart as
+        # "needs migration", recompute it WITHOUT honouring the historical
+        # Malaysia UTC+7:30 offset, and silently overwrite Cancer → Gemini.
+        # By stamping the V-A engine_version + migration_marker here, we
+        # make _is_variant_a_migrated(chart) return True and every existing
+        # auto-migrator will respect this chart as canonical.
+        _now_utc = _dt.utcnow()
         update_fields = {
+            "astrology_engine_version": VARIANT_A_ENGINE_VERSION,
+            "migration_marker":         VARIANT_A_MIGRATION_MARKER,
+            "chart_updated_at":         _now_utc,
+            "updated_at":               _now_utc,
             "debug_stamp": {
                 "sidereal_settings_used": {"svp_degrees": 31.2836, "reference_year": 2000, "yearly_increment": 0.0},
-                "computed_at_iso": _dt.utcnow().isoformat(),
-                "migration": "admin_fix_mel_live_v1",
+                "computed_at_iso": _now_utc.isoformat(),
+                "migration":       "admin_fix_mel_live_v1",
+                "historical_tz_lock_marker": "mel-rising-historical-tz-lock-v1",
             }
         }
         if astro_chart:
