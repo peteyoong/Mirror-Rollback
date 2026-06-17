@@ -34,6 +34,11 @@ from services.natal_object_engine import build_natal_object_proof_block
     ("Vesta", True),
     ("North Node", True),
     ("South Node", True),
+    # T2 corroboration bodies — mirror-interpretation-layer-v1.2-t2
+    ("Eros", True),
+    ("Psyche", True),
+    ("Astraea", True),
+    ("Hygiea", True),
     # Not Mirror-wrapped — fall back to generic block
     ("Sun", False),
     ("", False),
@@ -65,6 +70,8 @@ def _make_envelope(object_name, sign="Virgo", house=9, lon=142.12):
 @pytest.mark.parametrize("object_name", [
     "Vertex", "Anti-Vertex", "Juno", "Chiron",
     "Black Moon Lilith", "Lot of Fortune", "Lot of Spirit", "Pholus",
+    # T2 corroboration bodies — must obey the same block-shape contract
+    "Eros", "Psyche", "Astraea", "Hygiea",
 ])
 def test_mirror_block_contains_placement_and_voice_floor(object_name):
     env = _make_envelope(object_name)
@@ -157,15 +164,142 @@ def test_natal_object_engine_uses_mirror_block_for_juno():
 
 
 def test_natal_object_engine_falls_back_to_generic_for_non_mirror_object():
-    # Eros is a valid engine object but is NOT in the Mirror interpretation
-    # layer — used here to prove the generic fallback path still fires for
-    # bodies outside the Mirror catalogue.  (Ceres was the original example
-    # here but Ceres is now T2-extended into the Mirror layer.)
-    env = _make_envelope("Eros")
+    # T2 bodies (Eros / Psyche / Astraea / Hygiea) are NOW Mirror-wrapped,
+    # so they no longer demonstrate the generic-fallback path.  We use the
+    # Sun as the stand-in: the Sun is a valid envelope object but is NOT
+    # in the Mirror interpretation catalogue, so it must still route
+    # through the generic ENGINE OUTPUT block.
+    env = _make_envelope("Sun")
     block = build_natal_object_proof_block(env)
     # Not Mirror-wrapped → generic block (no MIRROR INTERPRETATION header)
     assert "ENGINE OUTPUT" in block
     assert "MIRROR INTERPRETATION" not in block
+
+
+# ----------------------------------------------------------------------
+# T2 corroboration bodies — object-specific ban lists & framings
+# mirror-interpretation-layer-v1.2-t2
+# ----------------------------------------------------------------------
+def test_eros_block_bans_lust_and_seducer_language():
+    block = build_mirror_object_proof_block(_make_envelope("Eros"))
+    for forbidden in (
+        "your sexual nature", "seducer", "twin flame", "soulmate",
+        "lust", "sex magic",
+    ):
+        assert forbidden in block.lower(), (
+            f"Eros block missing T2 ban for {forbidden!r}"
+        )
+    # Eros Mirror question must surface (shape of desire, not conquest)
+    assert "kindles desire" in block.lower()
+
+
+def test_psyche_block_bans_soul_love_language():
+    block = build_mirror_object_proof_block(_make_envelope("Psyche"))
+    for forbidden in (
+        "soul love", "soulmate", "twin flame", "destined love",
+        "past life connection", "completes you",
+    ):
+        assert forbidden in block.lower(), (
+            f"Psyche block missing T2 ban for {forbidden!r}"
+        )
+    # Psyche Mirror question must surface (intimacy → transformation)
+    assert "intimacy deepen" in block.lower()
+
+
+def test_astraea_block_bans_justice_warrior_language():
+    block = build_mirror_object_proof_block(_make_envelope("Astraea"))
+    for forbidden in (
+        "justice warrior", "righteous", "karmic vengeance",
+        "moral crusade", "they'll get what's coming",
+    ):
+        assert forbidden in block.lower(), (
+            f"Astraea block missing T2 ban for {forbidden!r}"
+        )
+    # Astraea Mirror question must surface (fairness as reflex)
+    assert "fairness" in block.lower()
+
+
+def test_hygiea_block_bans_purity_culture_language():
+    block = build_mirror_object_proof_block(_make_envelope("Hygiea"))
+    for forbidden in (
+        "germaphobe", "purity culture", "hypochondriac",
+        "obsessive cleanliness", "perfectionism as virtue",
+    ):
+        assert forbidden in block.lower(), (
+            f"Hygiea block missing T2 ban for {forbidden!r}"
+        )
+    # Hygiea Mirror question must surface (pruning / system upkeep)
+    assert "prune" in block.lower() or "tend" in block.lower()
+
+
+def test_t2_bodies_route_through_engine_to_mirror_block():
+    """The natal_object_engine must route each T2 corroboration body to
+    its Mirror block (not the generic ENGINE OUTPUT block) when the
+    envelope is a success envelope.  Failed envelopes still fall through
+    to ENGINE STATUS — see test_failed_envelope_does_not_invoke_mirror_block
+    for that contract."""
+    for name in ("Eros", "Psyche", "Astraea", "Hygiea"):
+        env = _make_envelope(name)
+        block = build_natal_object_proof_block(env)
+        assert "MIRROR INTERPRETATION" in block, (
+            f"T2 body {name} did not route through Mirror block"
+        )
+        assert name in block
+
+
+def test_t2_bodies_publish_v3_framework():
+    """T2 blocks must surface the BEHAVIOR-FIRST V3 framework markers and
+    the V3 voice-floor bans — exact same contract as the rest of the
+    catalogue."""
+    for name in ("Eros", "Psyche", "Astraea", "Hygiea"):
+        block = build_mirror_object_proof_block(_make_envelope(name))
+        # V3 framework primer
+        for marker in (
+            "BEHAVIOR-FIRST",
+            "SUCCESS TEST",
+            "THE PATTERN",
+            "THE TENSION",
+            "THE GIFT",
+            "OBSERVABLE SIGNAL",
+        ):
+            assert marker.lower() in block.lower(), (
+                f"T2 body {name} missing V3 framework marker {marker!r}"
+            )
+        # V3 voice-floor escalated bans (catalogue-wide)
+        for forbidden in (
+            "this placement suggests",
+            "often manifests as",
+            "speaks to how",
+            "represents",
+            "the archetype of",
+        ):
+            assert forbidden in block.lower(), (
+                f"T2 body {name} missing v3 voice-floor ban {forbidden!r}"
+            )
+
+
+def test_t2_bodies_can_combine_pairwise_with_existing_catalogue():
+    """T2 bodies must compose with the existing pairwise builder so a
+    query like 'Eros + Psyche' produces a single intersection read
+    rather than two stacked single-object reads."""
+    eros = _make_envelope("Eros", sign="Scorpio", house=8)
+    psyche = _make_envelope("Psyche", sign="Cancer", house=4)
+    block = build_pairwise_mirror_block([eros, psyche])
+    assert "Eros" in block
+    assert "Psyche" in block
+    assert "Scorpio" in block
+    assert "Cancer" in block
+    for marker in (
+        "SHARED PATTERN",
+        "SHARED TENSION",
+        "SHARED GIFT",
+        "HOW THEY INTERACT",
+        "OBSERVABLE SIGNAL",
+    ):
+        assert marker in block, f"T2 pairwise missing {marker}"
+    # Merged ban list must include both bodies' specific bans
+    assert "seducer" in block.lower() or "lust" in block.lower()
+    assert "soul love" in block.lower() or "completes you" in block.lower()
 
 
 # ----------------------------------------------------------------------

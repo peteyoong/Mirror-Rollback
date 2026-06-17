@@ -9,6 +9,20 @@ Mirror-native, object-aware interpretation blocks for the advanced
 objects recovered by the Phase 1 audit (Vertex, Anti-Vertex, Juno,
 Chiron, Lilith, Part of Fortune, Part of Spirit, plus Pholus).
 
+T2 extension — 2026-06-17  (mirror-interpretation-layer-v1.2-t2)
+----------------------------------------------------------------
+Extends the Mirror catalogue to the remaining T2 corroboration
+bodies:  Eros, Psyche, Astraea, Hygiea.  Same scaffolding, same
+V3 BEHAVIOR-FIRST framework, same voice floor.  These bodies
+ONLY corroborate the existing relationship story — they do NOT
+drive narrative selection elsewhere.  Calculator paths, birth
+data, timeline, HD, and astrology generation are untouched.
+Note: Eros / Psyche / Astraea / Hygiea currently surface as
+`ephemeris_file_missing` until the .se1 asteroid files are
+installed (separate backlog ticket).  When their envelopes are
+`success=False` the Mirror block is never invoked — these new
+blocks become live the moment the ephemerides are added.
+
 Design contract
 ---------------
 
@@ -616,6 +630,178 @@ _MIRROR_BLOCKS: Dict[str, Dict[str, Any]] = {
             "previous incarnation", "what you owe",
         ],
     },
+
+    # ─────────────────────────────────────────────────────────────────
+    # T2 corroboration bodies — mirror-interpretation-layer-v1.2-t2
+    # 2026-06-17.  These bodies extend the Mirror catalogue but do NOT
+    # drive the relationship story or timeline narrative; they only
+    # corroborate the existing read.  Calculator paths untouched.
+    # When the underlying envelope is success=False (Eros / Psyche /
+    # Astraea / Hygiea currently report `ephemeris_file_missing` until
+    # the .se1 files land) these blocks are never invoked — the
+    # generic engine-status block fires instead, exactly as before.
+    # ─────────────────────────────────────────────────────────────────
+
+    # ─────────────────────────────────────────────────────────────────
+    # Eros — what kindles desire (no lust / seducer framing)
+    # ─────────────────────────────────────────────────────────────────
+    "Eros": {
+        "question": "What kindles desire and pursuit in you?",
+        "headline_hint": "The shape your wanting takes — not who you'll want.",
+        "instructions": [
+            "Sentence 1: cite the sign+house of their Eros ONCE\n"
+            "('Your Eros sits at {SIGN_PLACEMENT} in the {N}th house.')\n"
+            "and immediately switch into behaviour.",
+            "Body-specific seeds for the 4-part structure:\n"
+            "  • PATTERN — what actually MAKES them lean in.  The\n"
+            "    specific quality or moment that flips them from\n"
+            "    polite interest into real pursuit.  A real scene:\n"
+            "    'You go from neutral to interested the moment\n"
+            "    someone shows you …'\n"
+            "  • TENSION — what happens when this exact kindling is\n"
+            "    not there: how they stall, drift, or politely\n"
+            "    perform interest.  OR — what happens when the\n"
+            "    kindling is too strong and they over-pursue or lose\n"
+            "    their footing.  Name the cost either way.\n"
+            "  • GIFT — what becomes available when they recognise\n"
+            "    their OWN ignition signature and stop trying to be\n"
+            "    moved by what's supposed to move them.  Concrete\n"
+            "    behavioural change in how they choose what to chase.\n"
+            "  • OBSERVABLE SIGNAL — one short line about what\n"
+            "    people they pursue actually FEEL when they're being\n"
+            "    pursued by someone with this Eros signature.\n"
+            "NEVER use seducer / sex-magic / sexual-power / hunter /\n"
+            "twin-flame / soulmate / 'sexual nature' language.  This\n"
+            "is the SHAPE of desire, not its conquest.",
+        ],
+        "object_bans": [
+            "your sexual nature", "sex magic", "sexual power",
+            "seducer", "hunter", "twin flame", "soulmate",
+            "carnal", "lust", "obsession", "addictive",
+            "sex appeal", "your sexuality is",
+        ],
+    },
+
+    # ─────────────────────────────────────────────────────────────────
+    # Psyche — where intimacy deepens into transformation
+    # ─────────────────────────────────────────────────────────────────
+    "Psyche": {
+        "question": "Where does intimacy deepen until it changes you?",
+        "headline_hint": "The part of you that grows by being deeply known.",
+        "instructions": [
+            "Sentence 1: cite the sign+house of their Psyche ONCE\n"
+            "('Your Psyche sits at {SIGN_PLACEMENT} in the {N}th house.')\n"
+            "and immediately switch into behaviour.",
+            "Body-specific seeds for the 4-part structure:\n"
+            "  • PATTERN — the recurring scene where being SEEN at\n"
+            "    depth changes them.  Not the meeting itself — the\n"
+            "    moment of recognition that lands so accurately it\n"
+            "    rearranges something inside them.  Show a real,\n"
+            "    observable beat: a sentence said back to them, a\n"
+            "    silence that read them correctly.\n"
+            "  • TENSION — what happens when they hide this layer\n"
+            "    from people who CAN actually hold it.  The cost of\n"
+            "    keeping the depth behind glass — how they leave\n"
+            "    relationships at a polite altitude when the\n"
+            "    invitation to land was real.\n"
+            "  • GIFT — what changes in their life once they let\n"
+            "    this layer be MET rather than only protected.  A\n"
+            "    concrete behavioural change in how they answer the\n"
+            "    rare question that lands at the right depth.\n"
+            "  • OBSERVABLE SIGNAL — one line about what shifts in\n"
+            "    a relationship after this layer has been seen and\n"
+            "    held by another person.\n"
+            "NEVER use soul-love / soulmate / twin-flame / destined\n"
+            "love / past-life-connection language.  This is the\n"
+            "MECHANICS of being known, not the romance of fate.",
+        ],
+        "object_bans": [
+            "soul love", "soulmate", "twin flame", "destined love",
+            "past life connection", "fated love", "karmic love",
+            "your other half", "completes you",
+        ],
+    },
+
+    # ─────────────────────────────────────────────────────────────────
+    # Astraea — where fairness becomes reflex
+    # ─────────────────────────────────────────────────────────────────
+    "Astraea": {
+        "question": "Where do you insist on fairness as a reflex?",
+        "headline_hint": "The exact terrain where you refuse to look away from imbalance.",
+        "instructions": [
+            "Sentence 1: cite the sign+house of their Astraea ONCE\n"
+            "('Your Astraea sits at {SIGN_PLACEMENT} in the {N}th house.')\n"
+            "and immediately switch into behaviour.",
+            "Body-specific seeds for the 4-part structure:\n"
+            "  • PATTERN — the recurring moment they NOTICE an\n"
+            "    imbalance that others walk past.  The specific kind\n"
+            "    of unfairness their attention catches first.  A real\n"
+            "    scene: 'You're the one in the room who tracks who\n"
+            "    got interrupted, who got credit, who got skipped.'\n"
+            "  • TENSION — what happens when this fairness reflex\n"
+            "    becomes a position they have to defend.  Where the\n"
+            "    instinct toward justice tips into adjudication, or\n"
+            "    into withdrawing from systems they've decided are\n"
+            "    beyond repair.  Name the cost.\n"
+            "  • GIFT — what becomes available when their fairness\n"
+            "    sense is offered as CLARITY rather than verdict.\n"
+            "    The way rooms recalibrate around someone who can\n"
+            "    name what's actually off without escalating it.\n"
+            "  • OBSERVABLE SIGNAL — one line about what people in\n"
+            "    their orbit eventually realise about being\n"
+            "    accountable to someone with this kind of attention.\n"
+            "NEVER use justice-warrior / saviour / vigilante /\n"
+            "righteous / karmic-vengeance / 'they'll get what's\n"
+            "coming' language.  This is calibrated discernment, not\n"
+            "moral crusade.",
+        ],
+        "object_bans": [
+            "justice warrior", "saviour", "savior", "vigilante",
+            "righteous", "karmic vengeance", "they'll get what's coming",
+            "moral crusade", "the universe will balance", "karma will",
+        ],
+    },
+
+    # ─────────────────────────────────────────────────────────────────
+    # Hygiea — what you tend to keep the system clean
+    # ─────────────────────────────────────────────────────────────────
+    "Hygiea": {
+        "question": "What do you prune to keep your whole system clean?",
+        "headline_hint": "The quiet upkeep that keeps everything else working.",
+        "instructions": [
+            "Sentence 1: cite the sign+house of their Hygiea ONCE\n"
+            "('Your Hygiea sits at {SIGN_PLACEMENT} in the {N}th house.')\n"
+            "and immediately switch into behaviour.",
+            "Body-specific seeds for the 4-part structure:\n"
+            "  • PATTERN — the routine maintenance they perform\n"
+            "    without being asked: the small, regular pruning\n"
+            "    that keeps their whole life from silting up.  Show\n"
+            "    a real scene of WHAT they clear — relationships,\n"
+            "    spaces, calendars, inputs, food, information — and\n"
+            "    HOW they do it.\n"
+            "  • TENSION — what happens when this upkeep collapses\n"
+            "    into over-cleansing: the moment good hygiene\n"
+            "    becomes avoidance, fastidiousness, or quiet\n"
+            "    control over their environment.  Where pruning\n"
+            "    stops being maintenance and becomes a fence.\n"
+            "  • GIFT — what becomes available when their pruning\n"
+            "    instinct is allowed to serve the whole system\n"
+            "    rather than purify any one part.  A concrete shift\n"
+            "    in what they keep, what they let through, and how\n"
+            "    they recover when something is overrun.\n"
+            "  • OBSERVABLE SIGNAL — one short line about what the\n"
+            "    people who share their environments actually feel\n"
+            "    inside a space they've been quietly tending.\n"
+            "NEVER use germaphobe / purity-culture / hypochondriac /\n"
+            "OCD / 'clean = good' moralising language.  This is\n"
+            "systemic upkeep, not virtue.",
+        ],
+        "object_bans": [
+            "germaphobe", "purity culture", "hypochondriac",
+            "obsessive cleanliness", "clean equals good",
+            "perfectionism as virtue", "purity", "contamination fear",
+        ],
+    },
 }
 
 
@@ -667,7 +853,6 @@ def build_mirror_object_proof_block(
         return ""
 
     placement = envelope.get("placement") or {}
-    sign = placement.get("sign", "?")
     formatted = _format_placement_display(placement)
     house = placement.get("house")
     house_line = f"House: {house}" if house is not None else "House: (not computed)"
