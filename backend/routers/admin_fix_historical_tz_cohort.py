@@ -126,6 +126,25 @@ async def fix_historical_tz_cohort(
         ge=1, le=10000,
         description="Maximum number of charts to process in this run. Default 500.",
     ),
+    tz_prefix: Optional[str] = Query(
+        None,
+        description=(
+            "Optional IANA-timezone prefix filter (case-sensitive, exact "
+            "prefix match against `users.timezone`).  Restricts the scan "
+            "to charts whose owning user has a timezone starting with this "
+            "string.  Use e.g. `Asia/` to limit the repair to the "
+            "Malaysia/Singapore cohort; `America/` for US DST cohort."
+        ),
+    ),
+    only_user_ids: Optional[str] = Query(
+        None,
+        description=(
+            "Optional comma-separated list of user_ids.  Restricts the "
+            "scan to charts whose `user_id` is in this list.  Most "
+            "surgical option — use after a `dry_run=true` pass to repair "
+            "exactly the cohort that was approved."
+        ),
+    ),
 ):
     """Scan every chart, identify ones whose stored UTC drifted from the
     historically-correct value, and (when dry_run=false) repair them with
@@ -133,6 +152,11 @@ async def fix_historical_tz_cohort(
 
     Safe defaults: dry_run=true, so you can preview what would change
     before authorising the write.
+
+    Surgical filters (cohort-isolation, 2026-06-17):
+      • `tz_prefix=Asia/`     → only Asia-zone users (MY/SG cohort).
+      • `only_user_ids=a,b,c` → only the explicitly listed user_ids.
+    Filters compose with logical AND.
     """
     if confirm != CONFIRM_TOKEN:
         raise HTTPException(status_code=403, detail={
@@ -158,11 +182,23 @@ async def fix_historical_tz_cohort(
             "message": f"Failed to load chart-compute libraries: {type(exc).__name__}: {exc}",
         })
 
+    # Parse and validate filters.
+    only_uids_set: Optional[set] = None
+    if only_user_ids:
+        only_uids_set = {
+            u.strip() for u in only_user_ids.split(",") if u.strip()
+        }
+        if not only_uids_set:
+            only_uids_set = None
+    tz_prefix_clean = (tz_prefix or "").strip() or None
+
     caller_ip = _client_ip(request)
     started_at = datetime.now(timezone.utc)
     logger.warning(
-        "[%s] start dry_run=%s limit=%d ip=%s db=%s",
+        "[%s] start dry_run=%s limit=%d ip=%s db=%s tz_prefix=%r only_user_ids=%s",
         ROUTE_BUILD_MARKER, dry_run, limit, caller_ip, _DB_NAME,
+        tz_prefix_clean,
+        (len(only_uids_set) if only_uids_set else None),
     )
 
     scanned = 0
@@ -189,6 +225,11 @@ async def fix_historical_tz_cohort(
         user_id  = chart_proj.get("user_id")
         if not user_id:
             continue
+        # Surgical filter — only_user_ids takes priority. We check the
+        # user_id BEFORE the expensive user lookup to keep the scan
+        # cheap when the cohort is small.
+        if only_uids_set is not None and str(user_id) not in only_uids_set:
+            continue
 
         try:
             # Load the user doc for the canonical inputs we need.
@@ -212,6 +253,12 @@ async def fix_historical_tz_cohort(
 
             if not birth_date or not birth_time or not tz_string or lat is None or lon is None:
                 skipped_no_inputs += 1
+                continue
+
+            # tz_prefix filter — case-sensitive prefix match against the
+            # user's IANA timezone string.  Applied AFTER user-load so
+            # the filter sees the canonical tz (not the chart's tz).
+            if tz_prefix_clean and not str(tz_string).startswith(tz_prefix_clean):
                 continue
 
             # Normalise birth_date to YYYY-MM-DD string (the resolver expects str).
@@ -355,6 +402,10 @@ async def fix_historical_tz_cohort(
         "skipped_no_inputs":   skipped_no_inputs,
         "skipped_no_chart_utc": skipped_no_chart_utc,
         "errors_count": len(errors),
+        "filters": {
+            "tz_prefix":     tz_prefix_clean,
+            "only_user_ids": sorted(only_uids_set) if only_uids_set else None,
+        },
         "drifted":  drifted,
         "repaired": repaired,
         "errors":   errors[:50],
