@@ -32626,6 +32626,15 @@ app.include_router(_variant_a_admin.router)
 from routers import admin_fix_historical_tz_cohort as _fix_htz_cohort
 app.include_router(_fix_htz_cohort.router)
 
+# Forensic audit endpoint (audit-chart-provenance-v1).
+# READ-ONLY diagnostic — dumps a single chart document with full V-A
+# / debug_stamp / migration_info provenance + derived write timeline.
+# Built specifically for the Mel Gemini-Rising regression investigation.
+# Refuses to operate against loopback Mongo.  Remove once root cause
+# is permanently resolved.
+from routers import admin_audit_chart as _audit_chart
+app.include_router(_audit_chart.router)
+
 
 # =====================================================================
 # STATIC FILE SERVING FOR WEB BUILD
