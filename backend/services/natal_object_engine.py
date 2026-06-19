@@ -76,6 +76,26 @@ _COMPUTE_ON_DEMAND = {
 
 # Aliases — the surface the user is likely to use → canonical name.
 _ALIAS = {
+    # ── Classical 10 (Sun → Pluto) ─────────────────────────────────
+    # ASTRO-CHAT-PLANET-RESTORE-V1 (2026-06-17): the Advanced-Object
+    # reconnect work forked this engine from transit_object_engine
+    # but dropped the standard-planet aliases.  The downstream read
+    # path (`_read_stored_natal_object`) was always able to serve
+    # these from the stored chart — the engine simply had no entries
+    # to recognise the names.  Restored here.  Sun/Moon/etc. resolve
+    # to themselves; well-known nicknames (Luna, Jove) fold in.
+    "sun":                 "Sun",
+    "moon":                "Moon",
+    "luna":                "Moon",
+    "mercury":             "Mercury",
+    "venus":               "Venus",
+    "mars":                "Mars",
+    "jupiter":             "Jupiter",
+    "jove":                "Jupiter",
+    "saturn":              "Saturn",
+    "uranus":              "Uranus",
+    "neptune":             "Neptune",
+    "pluto":               "Pluto",
     # Lilith family
     "lilith":              "Black Moon Lilith",
     "black moon":          "Black Moon Lilith",

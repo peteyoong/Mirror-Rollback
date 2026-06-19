@@ -158,6 +158,15 @@ _SOLAR_RETURN_RE = re.compile(
 # we want a SPECIFIC named natal placement read.   astrology-chat-master-interpreter-v3
 _NATAL_OBJECT_BODIES_RE = re.compile(
     r"\b("
+    # Classical 10 (Sun → Pluto)
+    # ASTRO-CHAT-PLANET-RESTORE-V1 — paired with _ALIAS restore in
+    # natal_object_engine.py so questions like "tell me about my
+    # Venus" or "compare my Mercury and Mars" route through the
+    # natal_object branch rather than falling out unclassified.
+    r"sun|moon|luna|"
+    r"mercury|venus|mars|"
+    r"jupiter|jove|saturn|"
+    r"uranus|neptune|pluto|"
     # Lilith family
     r"lilith|black\s*moon|bml|mean\s*lilith|true\s*lilith|"
     # White Moon family (unsupported but must route here to refuse cleanly)
@@ -184,6 +193,27 @@ _NATAL_OBJECT_BODIES_RE = re.compile(
 # Multi-object dispatch resolves through these.
 # astrology-chat-multi-object-v1
 _NATAL_OBJECT_PATTERN_TO_CANON: list = [
+    # ── Classical 10 (Sun → Pluto) ──────────────────────────────────
+    # ASTRO-CHAT-PLANET-RESTORE-V1 (2026-06-17): paired with the
+    # _ALIAS restore in natal_object_engine.py.  Listed FIRST so a
+    # multi-object query like "compare my Mercury and Mars" sees
+    # both planets and dispatches through the pairwise builder
+    # instead of the single-object branch that takes obj_raw[0].
+    # Note: lookahead on "moon" suppresses the bare 'moon' match when
+    # it is the head of a Lilith bigram ("Black Moon Lilith",
+    # "Mean Lilith Moon", etc.) so the Lilith pattern below still
+    # wins via the longest-span tiebreak.
+    (re.compile(r"\bsun\b",                     re.IGNORECASE),       "Sun"),
+    (re.compile(r"\bmoon\b|\bluna\b",           re.IGNORECASE),       "Moon"),
+    (re.compile(r"\bmercury\b",                 re.IGNORECASE),       "Mercury"),
+    (re.compile(r"\bvenus\b",                   re.IGNORECASE),       "Venus"),
+    (re.compile(r"\bmars\b",                    re.IGNORECASE),       "Mars"),
+    (re.compile(r"\bjupiter\b|\bjove\b",        re.IGNORECASE),       "Jupiter"),
+    (re.compile(r"\bsaturn\b",                  re.IGNORECASE),       "Saturn"),
+    (re.compile(r"\buranus\b",                  re.IGNORECASE),       "Uranus"),
+    (re.compile(r"\bneptune\b",                 re.IGNORECASE),       "Neptune"),
+    (re.compile(r"\bpluto\b",                   re.IGNORECASE),       "Pluto"),
+    # ── Advanced objects ────────────────────────────────────────────
     (re.compile(r"\bnorth\s*node\b|\brahu\b", re.IGNORECASE),           "North Node"),
     (re.compile(r"\bsouth\s*node\b|\bketu\b", re.IGNORECASE),           "South Node"),
     (re.compile(r"\bnodes\b|\bnodal\s+axis\b", re.IGNORECASE),          "_NODES_PAIR_"),
