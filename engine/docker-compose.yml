@@ -1,0 +1,25 @@
+# Mirror Engine — local dev compose file
+# Run with:  docker compose up   (from inside engine/)
+# Then:      curl http://localhost:8000/health
+services:
+  mirror-engine:
+    build: .
+    image: mirror-engine:v1
+    container_name: mirror-engine
+    ports:
+      - "8000:8000"
+    environment:
+      EPHE_PATH: /app/ephe
+      # Optional: pin log level / worker count via env if needed.
+      # UVICORN_LOG_LEVEL: info
+    volumes:
+      # Mount the ephemeris dir read-only so .se1 files can be swapped in
+      # without rebuilding the image (e.g. when adding new asteroid files).
+      - ./ephe:/app/ephe:ro
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=3).read()"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
