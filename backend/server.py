@@ -32635,6 +32635,13 @@ app.include_router(_fix_htz_cohort.router)
 from routers import admin_audit_chart as _audit_chart
 app.include_router(_audit_chart.router)
 
+# Temporary screenshot-package download endpoint (download-screenshots-v1).
+# Serves /app/memory/screenshots.zip as a file download for browser
+# users with the SCREENSHOTS_DOWNLOAD_V1 confirm token.  Read-only;
+# safe to leave in place but can be removed once the user has the zip.
+from routers import admin_download_screenshots as _dl_screenshots
+app.include_router(_dl_screenshots.router)
+
 
 # =====================================================================
 # STATIC FILE SERVING FOR WEB BUILD
