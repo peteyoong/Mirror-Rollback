@@ -32642,6 +32642,13 @@ app.include_router(_audit_chart.router)
 from routers import admin_download_screenshots as _dl_screenshots
 app.include_router(_dl_screenshots.router)
 
+# Public deterministic compute aggregator (public-compute-v1).
+# POST /api/v1/profile/full — stateless, unauthenticated, returns the
+# canonical Variant A astrology / HD / numerology / BaZi payloads in a
+# single round-trip for external consumer frontends.  No DB writes.
+from routers import public_compute as _public_compute
+app.include_router(_public_compute.router)
+
 
 # =====================================================================
 # STATIC FILE SERVING FOR WEB BUILD
