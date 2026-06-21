@@ -1042,6 +1042,10 @@ HD_CHANNELS = [
     (46, 29, 'G Center', 'Sacral'),
     # G Center to Spleen
     (10, 57, 'G Center', 'Spleen'),
+    # G Center to Throat (10-20 Awakening)
+    (10, 20, 'G Center', 'Throat'),
+    # G Center to Sacral (10-34 Exploration)
+    (10, 34, 'G Center', 'Sacral'),
     # G Center to Ego
     (25, 51, 'G Center', 'Ego'),
     # Sacral to Spleen
@@ -1086,6 +1090,13 @@ HD_CHANNELS_CLEAN = [
     (46, 29, 'G Center', 'Sacral'),
     # G Center to Spleen (1 channel)
     (10, 57, 'G Center', 'Spleen'),
+    # G Center to Throat (1 channel — Channel of Awakening, 10-20)
+    (10, 20, 'G Center', 'Throat'),
+    # G Center to Sacral (1 channel — Channel of Exploration, 10-34)
+    # NB: This is a *motor-to-G* channel, NOT a motor-to-throat one;
+    # it does not, on its own, satisfy the manifesting-generator
+    # motor↔Throat criterion.  See has_motor_to_throat() BFS.
+    (10, 34, 'G Center', 'Sacral'),
     # G Center to Ego (1 channel)
     (25, 51, 'G Center', 'Ego'),
     # Sacral to Throat (1 channel - Motor to Throat)
