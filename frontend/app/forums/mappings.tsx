@@ -405,19 +405,49 @@ export default function ForumMappingsScreen() {
                       <Text style={[styles.patternLabel, { color: theme.textTertiary, marginBottom: 6 }]}>
                         WHY MIRROR SEES THIS · evidence ladder
                       </Text>
-                      {ladder.slice(0, 6).map((entry: any, i: number) => (
-                        <View key={`evl-${i}`} style={{ marginBottom: 8 }}>
-                          <Text style={[styles.activationText, { color: theme.text, fontWeight: '600' }]}>
-                            · {String(entry.claim || entry.claim_label || '')}
-                          </Text>
-                          {entry.lens_contributions && typeof entry.lens_contributions === 'object' && (
-                            <Text style={[styles.patternLabel, { color: theme.textTertiary, marginLeft: 12 }]}>
-                              from {Object.keys(entry.lens_contributions).join(' + ')}
-                              {entry.provenance_status ? `  ·  ${entry.provenance_status}` : ''}
+                      {ladder.slice(0, 6).map((entry: any, i: number) => {
+                        // v1.5.3 — humanize lens provenance label for user-
+                        // facing copy. Map "human_design", "numerology",
+                        // "enneagram", "bazi", "astrology" to plain English
+                        // and the provenance_status value to a friendly tag.
+                        const LENS_LABELS: Record<string, string> = {
+                          human_design: 'Human Design',
+                          numerology:   'Numerology',
+                          enneagram:    'Enneagram',
+                          bazi:         'BaZi',
+                          astrology:    'Astrology',
+                        };
+                        const PROV_LABELS: Record<string, string> = {
+                          verified: 'verified',
+                          suspect:  'review needed',
+                          stale:    'review needed',
+                          missing:  'review needed',
+                          mixed:    'cross-checked',
+                          unknown:  '',
+                        };
+                        const rawLenses = entry?.lens_contributions && typeof entry.lens_contributions === 'object'
+                          ? Object.keys(entry.lens_contributions)
+                          : [];
+                        const lensText = rawLenses
+                          .map((l) => LENS_LABELS[l] || l.replace(/_/g, ' '))
+                          .join(' + ');
+                        const provRaw = typeof entry?.provenance_status === 'string'
+                          ? entry.provenance_status.toLowerCase()
+                          : '';
+                        const provText = PROV_LABELS[provRaw] || '';
+                        return (
+                          <View key={`evl-${i}`} style={{ marginBottom: 8 }}>
+                            <Text style={[styles.activationText, { color: theme.text, fontWeight: '600' }]}>
+                              · {String(entry.claim || entry.claim_label || '')}
                             </Text>
-                          )}
-                        </View>
-                      ))}
+                            {!!lensText && (
+                              <Text style={[styles.patternLabel, { color: theme.textTertiary, marginLeft: 12 }]}>
+                                from {lensText}{provText ? `  ·  ${provText}` : ''}
+                              </Text>
+                            )}
+                          </View>
+                        );
+                      })}
                     </View>
                   )}
                 </View>

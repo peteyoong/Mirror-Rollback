@@ -87,6 +87,90 @@ def test_no_tech_terms_in_top_story():
         assert term.lower() not in story_text.lower(), f"top story leaked '{term}': {story_text!r}"
 
 
+# ─────────────────────────────────────────────────────────────────────
+# Regression tests for the EXACT broken phrases reported in production
+# ─────────────────────────────────────────────────────────────────────
+PRODUCTION_LEAKS = [
+    "Pete's one of you",                    # malformed possessive + replacement
+    "Mel's one of you",
+    "open-the field between you",           # compound residue
+    "defined-the field between you",
+    "open-Solar-Plexus side",               # hyphenated form
+    "defined-Ajna side",
+    "lunar-authority side",                 # technical term
+    "splenic signals don't",
+    "Ajna",                                  # raw center
+    "Solar Plexus",
+    "Sacral",
+]
+
+
+def test_regression_no_production_broken_phrases_in_top_story():
+    """Reproduces the strings the user saw on live iOS Safari."""
+    syn = _run(_pete_mel_signals())
+    story_text = " ".join([
+        syn["story"].get("headline", ""),
+        syn["story"].get("summary", ""),
+        syn["story"].get("current_movement", ""),
+        syn["story"].get("growth_edge", ""),
+        syn["story"].get("shadow_pattern", ""),
+    ] + (syn["story"].get("repair_pathway") or []) + [syn["story"].get("question_to_ask", "")])
+    text_l = story_text.lower()
+    for bad in PRODUCTION_LEAKS:
+        assert bad.lower() not in text_l, f"top story still leaks '{bad}': {story_text!r}"
+
+
+def test_humanize_strips_possessive_prefix_for_ajna_certainty():
+    """Pete's defined Ajna amplifies certainty → clean sentence."""
+    from services.mirror_reflection_orchestrator import _humanize as h
+    out = h("Pete's defined Ajna amplifies certainty in conversation.")
+    assert "Pete's" not in out or "one of you" not in out.lower().replace("pete's one of you", "")
+    # Strong: result must NOT start with "Pete's one of you"
+    assert not out.lower().startswith("pete's one of you")
+    assert "Ajna" not in out
+
+
+def test_humanize_handles_hyphenated_open_solar_plexus():
+    from services.mirror_reflection_orchestrator import _humanize as h
+    out = h("open-Solar-Plexus side stays in situations longer.")
+    assert "open-Solar-Plexus" not in out
+    assert "Solar Plexus" not in out
+    assert "open-the field between you" not in out
+
+
+def test_humanize_replaces_lunar_authority():
+    from services.mirror_reflection_orchestrator import _humanize as h
+    out = h("Asking the lunar-authority side to respond in real time.")
+    assert "lunar-authority" not in out.lower()
+    assert "lunar authority" not in out.lower()
+
+
+def test_humanize_no_compound_open_defined_the_field():
+    from services.mirror_reflection_orchestrator import _humanize as h
+    inputs = [
+        "Mel's defined-Solar-Plexus side's conclusions.",
+        "defined-Ajna side's conclusions felt heavy.",
+        "open-Ajna side is leading the room.",
+    ]
+    for i in inputs:
+        out = h(i)
+        assert "open-the field" not in out.lower(), out
+        assert "defined-the field" not in out.lower(), out
+        # Must not contain raw HD terms either
+        assert "Ajna" not in out and "Solar Plexus" not in out
+
+
+def test_humanize_sentence_level_atomicity():
+    """If only some sentences are broken, clean sentences must survive."""
+    from services.mirror_reflection_orchestrator import _humanize as h
+    out = h("Initiator meets Seeker. Pete's defined Ajna amplifies certainty. Build slowly.")
+    # The clean sentences must persist
+    assert "Initiator meets Seeker" in out
+    assert "Build slowly" in out
+    # The broken one must be rewritten cleanly, NOT dropped entirely
+    assert "one of you" in out.lower() or "certain" in out.lower()
+
+
 def test_evidence_ladder_keeps_technical_refs():
     syn = _run(_pete_mel_signals())
     ladder = syn.get("evidence_ladder", [])

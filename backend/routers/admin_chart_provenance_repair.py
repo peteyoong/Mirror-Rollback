@@ -40,6 +40,82 @@ logger = logging.getLogger(__name__)
 
 REPAIR_CONFIRM_TOKEN = "REPAIR_CHART_FOR_USER_2026_06_26"
 SCAN_CONFIRM_TOKEN   = "SCAN_TIMEZONE_FALLBACK_COHORT_2026_06_26"
+PEEK_CONFIRM_TOKEN   = "PEEK_CHART_ANGLES_2026_06_26"
+
+
+# =====================================================================
+# READ-ONLY DIAGNOSTIC — quick check of a user's stored ASC/MC/Sun/Moon
+# Useful in production to verify whether a chart still shows stale
+# placements (e.g., a wrong Rising sign) before/after a repair.
+# =====================================================================
+@router.get("/peek_chart_angles")
+async def peek_chart_angles(
+    user_id: str = Query(..., description="Mongo _id of the user (24-hex)."),
+    confirm: str = Query("", description="Required confirm token."),
+):
+    """Return stored ASC / MC / Sun / Moon for a single user — read-only."""
+    if confirm != PEEK_CONFIRM_TOKEN:
+        raise HTTPException(status_code=403, detail="confirm token required (peek endpoint)")
+
+    from server import db
+    from bson import ObjectId
+    try:
+        oid = ObjectId(user_id)
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"invalid user_id: {e!s}")
+    user = await db.users.find_one({"_id": oid}, {
+        "_id": 1, "name": 1, "email": 1, "timezone": 1,
+        "birth_date": 1, "birth_time": 1, "birth_location": 1,
+    })
+    if not user:
+        raise HTTPException(status_code=404, detail=f"user_id {user_id} not found")
+    chart = await db.charts.find_one({"user_id": user_id}) or {}
+    astro = chart.get("astrology") or {}
+    angles = astro.get("angles") or {}
+    planets = astro.get("planets") or []
+
+    def _pick(p_name: str) -> Dict[str, Any]:
+        for p in planets:
+            if not isinstance(p, dict): continue
+            if (p.get("planet") == p_name) or (p.get("name") == p_name):
+                return {"sign": p.get("sign"), "degree": _round(p.get("degree")),
+                        "longitude": _round(p.get("longitude"))}
+        return {}
+
+    asc_node = angles.get("asc") or angles.get("ascendant") or {}
+    mc_node  = angles.get("mc")  or angles.get("midheaven") or {}
+    payload = {
+        "ok": True,
+        "build_marker": "peek-chart-angles-v1",
+        "user": {
+            "id": str(user.get("_id")),
+            "name": user.get("name"),
+            "email": user.get("email"),
+            "timezone": user.get("timezone"),
+            "birth_date": _safe_iso(user.get("birth_date")),
+            "birth_time": user.get("birth_time"),
+            "birth_location": user.get("birth_location"),
+        },
+        "stored": {
+            "ASC": {
+                "sign": asc_node.get("sign") if isinstance(asc_node, dict) else None,
+                "degree": _round(asc_node.get("degree")) if isinstance(asc_node, dict) else None,
+                "longitude": _round(asc_node.get("longitude")) if isinstance(asc_node, dict) else None,
+            },
+            "MC": {
+                "sign": mc_node.get("sign") if isinstance(mc_node, dict) else None,
+                "degree": _round(mc_node.get("degree")) if isinstance(mc_node, dict) else None,
+                "longitude": _round(mc_node.get("longitude")) if isinstance(mc_node, dict) else None,
+            },
+            "Sun":  _pick("Sun"),
+            "Moon": _pick("Moon"),
+        },
+        "migration_info":   chart.get("migration_info"),
+        "astrology_metadata_keys": list((astro.get("metadata") or {}).keys()),
+        "provenance_hash":  (chart.get("debug_stamp") or {}).get("provenance_hash"),
+        "checked_at":       _now_iso(),
+    }
+    return JSONResponse(payload, headers={"Cache-Control": "no-store"})
 
 
 def _now_iso() -> str:

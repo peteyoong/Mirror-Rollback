@@ -32,73 +32,150 @@ _TECH_TERMS_PATTERN = _re.compile(
     r"defined\s+Root|open\s+Root|Root\s+Center|"
     r"defined\s+Head|open\s+Head|Head\s+Center|"
     r"defined\s+center|open\s+center|defined\s+centers|open\s+centers|"
+    r"defined-?\s*(?:Ajna|Sacral|Solar\s+Plexus|Spleen|Throat|Root|Head|G[\s-]?Center|Heart|Ego)\b|"
+    r"open-?\s*(?:Ajna|Sacral|Solar\s+Plexus|Spleen|Throat|Root|Head|G[\s-]?Center|Heart|Ego)\b|"
     r"Gate\s+\d{1,2}(?:\.\d)?|Channel\s+\d{1,2}-\d{1,2}|"
-    r"Ten\s+God|"
+    r"Ten\s+God|lunar-?authority|splenic\s+authority|"
     r"\b\d{1,2}-\d{1,2}\b"
     r")\b",
     _re.IGNORECASE,
 )
 
-# Phrase-level humanization mappings (deterministic, prepend before regex strip).
-_HUMANIZE_PHRASES = [
-    (_re.compile(r"defined\s+Ajna\s+amplifies\s+certainty", _re.IGNORECASE),
-     "one of you can become certain so fast the room starts reacting to it"),
-    (_re.compile(r"defined\s+Solar\s+Plexus\b.*?(?=\.|$)", _re.IGNORECASE),
-     "one of you carries the emotional weather for both"),
-    (_re.compile(r"open\s+Solar\s+Plexus\b.*?(?=\.|$)", _re.IGNORECASE),
-     "one of you may absorb the other's emotional weather before knowing what is theirs"),
-    (_re.compile(r"defined\s+Sacral\b.*?(?=\.|$)", _re.IGNORECASE),
-     "one of you brings a steady body-yes that the other can lean into"),
-    (_re.compile(r"open\s+Sacral\b.*?(?=\.|$)", _re.IGNORECASE),
-     "one of you may take on the other's energy and over-give before noticing"),
-    (_re.compile(r"Manifestor\s*[x×]\s*Reflector", _re.IGNORECASE),
-     "one of you initiates, the other samples and reflects the field over time"),
-    (_re.compile(r"Generator\s*[x×]\s*Projector", _re.IGNORECASE),
-     "one of you responds with steady body-knowing, the other reads and guides"),
-    (_re.compile(r"defined\s+(?:throat|G[\s-]?Center)\s+pulls", _re.IGNORECASE),
-     "one of you tends to set the direction the room moves toward"),
-    (_re.compile(r"centre\s+conditioning|center\s+conditioning", _re.IGNORECASE),
-     "the way you each shape the atmosphere around the other"),
-    # SENTENCE-LEVEL CATCH-ALLS — when a sentence is dominated by HD jargon
-    # that the regex would otherwise leave grammatically broken, drop the
-    # whole sentence and substitute a clean one. These run AFTER the phrase
-    # replacements above.
-    (_re.compile(r"[A-Z][a-z]+'s\s+defined\s+\w+(?:\s+\w+)?\s+amplifies[^.]*\.",
-                 _re.IGNORECASE),
-     "One of you can amplify a state until both of you are inside it."),
-    (_re.compile(r"[A-Z][a-z]+\s+will\s+leave\s+the\s+field\s+carrying[^.]*\.",
-                 _re.IGNORECASE),
-     "The other tends to leave the room carrying what was shared between you."),
-    (_re.compile(r"open-?\s*(?:[A-Z][a-z]+(?:\s+Center)?|center)\s+side\s+stays[^.]*\.",
-                 _re.IGNORECASE),
-     "The more receptive side can stay longer than is healthy."),
-    (_re.compile(r"\bsplenic\s+signals\s+don'?t\s+repeat[^.]*\.", _re.IGNORECASE),
+# Sentence-level rewrites — when the WHOLE sentence matches one of these
+# patterns, the sentence is REPLACED by the clean text. The pattern
+# matches optional possessive prefix (e.g. "Pete's") and end punctuation.
+# Each tuple is (full_sentence_regex, clean_replacement).
+_SENTENCE_REWRITES = [
+    (_re.compile(
+        r"^\s*(?P<who>[A-Z][\w'’]*?)?'?s?\s*defined\s+Ajna\s+amplifies\s+certainty[^.?!]*[.?!]?\s*$",
+        _re.IGNORECASE),
+     "One of you can become certain fast — that certainty starts pulling the room into shape before the other has decided anything."),
+    (_re.compile(
+        r"^\s*(?P<who>[A-Z][\w'’]*?)?'?s?\s*defined\s+Solar\s+Plexus[^.?!]*[.?!]?\s*$",
+        _re.IGNORECASE),
+     "One of you carries the emotional weather for both."),
+    (_re.compile(
+        r"^\s*(?P<who>[A-Z][\w'’]*?)?'?s?\s*open\s+Solar\s+Plexus[^.?!]*[.?!]?\s*$",
+        _re.IGNORECASE),
+     "One of you may absorb the other's emotional weather before knowing what's theirs."),
+    (_re.compile(
+        r"^\s*(?P<who>[A-Z][\w'’]*?)?'?s?\s*defined\s+Sacral[^.?!]*[.?!]?\s*$",
+        _re.IGNORECASE),
+     "One of you brings a steady body-yes the other can lean into."),
+    (_re.compile(
+        r"^\s*(?P<who>[A-Z][\w'’]*?)?'?s?\s*open\s+Sacral[^.?!]*[.?!]?\s*$",
+        _re.IGNORECASE),
+     "One of you may take on the other's energy and over-give before noticing."),
+    (_re.compile(
+        r"^\s*(?P<who>[A-Z][\w'’]*?)?'?s?\s*defined\s+(?:throat|G[\s-]?Center)[^.?!]*[.?!]?\s*$",
+        _re.IGNORECASE),
+     "One of you tends to set the direction the room moves toward."),
+    (_re.compile(
+        r".*\blunar-?authority\b[^.?!]*[.?!]?\s*",
+        _re.IGNORECASE),
+     "Give the side that needs time before deciding the time it actually needs."),
+    (_re.compile(
+        r".*\bsplenic\s+(authority|signals?)[^.?!]*[.?!]?\s*",
+        _re.IGNORECASE),
      "Quiet, in-the-moment knowing doesn't repeat itself — listen the first time."),
-    (_re.compile(r"Inform\s+before\s+acting\s+next\s+time\.", _re.IGNORECASE),
-     "Inform before acting next time."),
+    (_re.compile(
+        r"^\s*Manifestor\s*[x×]\s*Reflector\s*[^.?!]*[.?!]?\s*$",
+        _re.IGNORECASE),
+     "One of you initiates; the other samples and reflects the field over time."),
+    (_re.compile(
+        r"^\s*Generator\s*[x×]\s*Projector\s*[^.?!]*[.?!]?\s*$",
+        _re.IGNORECASE),
+     "One of you responds with steady body-knowing; the other reads and guides."),
+    # Catch any sentence that still has hyphenated "defined-Xxx" or
+    # "open-Xxx" residue followed by "side's conclusions" — drop it.
+    (_re.compile(
+        r"^\s*[^.?!]*\b(?:open|defined)-?\s*[A-Z][a-z]+\b[^.?!]*?\bside'?s?\b[^.?!]*[.?!]?\s*$",
+        _re.IGNORECASE),
+     "One side's conclusions may carry more weight than the other's; check whose read is leading."),
 ]
 
 
+# Phrase-level humanization mappings (run AFTER sentence rewrites for
+# residual cleanup). Each tuple is (regex, replacement).
+_HUMANIZE_PHRASES = [
+    (_re.compile(r"centre\s+conditioning|center\s+conditioning", _re.IGNORECASE),
+     "the way you each shape the atmosphere around the other"),
+    # Backward-compatibility tail-end catch for sentences that escaped
+    # the sentence-level rewrite (defensive only).
+    (_re.compile(r"\b(?:open|defined)-the\s+field\s+between\s+you\b", _re.IGNORECASE),
+     "the field between you"),
+    (_re.compile(r"\bone\s+of\s+you\s+can\s+become\s+certain\s+so\s+fast[^.]*",
+                 _re.IGNORECASE),
+     "one of you can become certain fast"),
+]
+
+
+def _split_sentences(text: str):
+    """Crude but safe sentence splitter that preserves trailing
+    punctuation. Splits on '.', '!', '?' followed by whitespace or EOS."""
+    parts = _re.split(r"(?<=[.!?])\s+", text.strip())
+    return [p for p in parts if p]
+
+
 def _humanize(text: str) -> str:
-    """Strip / soften raw HD jargon for top-story rendering. Idempotent."""
+    """Strip / soften raw HD jargon for top-story rendering. Idempotent.
+
+    Strategy:
+      1. Split into sentences.
+      2. For each sentence that matches a known broken pattern,
+         REPLACE the whole sentence with a clean rewrite.
+      3. For each remaining sentence, run residual phrase replacements.
+      4. As a last resort, drop sentences that STILL contain a
+         technical token (no replacement could rescue them).
+    """
     if not isinstance(text, str) or not text:
         return text
-    out = text
-    for pat, repl in _HUMANIZE_PHRASES:
-        out = pat.sub(repl, out)
-    # Remove residual standalone technical tokens
-    out = _TECH_TERMS_PATTERN.sub("the field between you", out)
-    # Collapse repeated phrase "the field between you"
+
+    out_sentences = []
+    for sent in _split_sentences(text):
+        rewritten = None
+        # Try full-sentence rewrites first
+        for pat, repl in _SENTENCE_REWRITES:
+            if pat.search(sent):
+                rewritten = repl
+                break
+        if rewritten is None:
+            tmp = sent
+            for pat, repl in _HUMANIZE_PHRASES:
+                tmp = pat.sub(repl, tmp)
+            # If technical token STILL leaks in this sentence, drop it.
+            if _TECH_TERMS_PATTERN.search(tmp):
+                # As a final resort, try a softer in-place strip — but
+                # only when the resulting sentence still reads cleanly
+                # (no compound residue like "defined-the field").
+                tmp2 = _TECH_TERMS_PATTERN.sub("the field between you", tmp)
+                tmp2 = _re.sub(r"(open|defined)-?\s*the\s+field\s+between\s+you",
+                                "the field between you", tmp2, flags=_re.IGNORECASE)
+                tmp2 = _re.sub(r"\b(\w+)'s\s+the\s+field\s+between\s+you",
+                                r"the field between \1", tmp2, flags=_re.IGNORECASE)
+                if _TECH_TERMS_PATTERN.search(tmp2):
+                    # Still leaking — drop entirely.
+                    continue
+                rewritten = tmp2
+            else:
+                rewritten = tmp
+        # Strip leading "<Name>'s " possessive that now precedes a clean
+        # rewrite starting with "One of you..." or similar; turns
+        # "Pete's One of you..." into "One of you...".
+        rewritten = _re.sub(r"^[A-Z][\w'’]+'s\s+(?=One\s+of\s+you|The\s+other|Both\s+of\s+you|Give\s+|Quiet,)",
+                            "", rewritten)
+        out_sentences.append(rewritten.strip())
+
+    # Reassemble with single spaces and tidy.
+    out = " ".join(s for s in out_sentences if s).strip()
+    out = _re.sub(r"\s+", " ", out)
+    out = _re.sub(r"\s+([.;,!?])", r"\1", out)
+    # Collapse repeated "the field between you" / duplicate phrases.
     out = _re.sub(r"(the field between you)(\s+\1)+", r"\1", out)
-    # Collapse the "the the field between you" artefact (double article)
-    out = _re.sub(r"\bthe\s+(the field between you)", r"\1", out, flags=_re.IGNORECASE)
     # Also strip residual "Type pair: X × Y" diagnostic-only summaries
     out = _re.sub(r"^\s*Type\s+pair\s*:\s*[^.]+\.?\s*$",
                   "Two different mechanics meeting — the rhythm between you is its own thing.",
                   out, flags=_re.IGNORECASE)
-    # Tidy spaces & punctuation
-    out = _re.sub(r"\s+", " ", out).strip()
-    out = _re.sub(r"\s+([.;,])", r"\1", out)
     return out
 
 
