@@ -1774,6 +1774,33 @@ def generate_mapping_interpretation(
         logger.warning(f"[ChannelSanitizer] skipped: {_shadow_err}")
 
     # =========================================================================
+    # HD FIELD ENGINE V3 — relationship-hd-field-v3 (Phase 3 lens parity).
+    # ---------------------------------------------------------------------
+    # Computes a deterministic energy-field interpretation between the two
+    # charts and exposes it as a NEW sibling key on the mapping:
+    #     mapping["signals"]["human_design_field"] = {field_v3, diagnostics}
+    # The existing `signals.human_design` array (channel cards) remains
+    # byte-identical — frontend consumers of the list are unaffected.
+    # =========================================================================
+    hd_field_v3 = None
+    try:
+        from services.relationship_hd_field_engine import (
+            compute_hd_relationship_field as _compute_hd_field,
+        )
+        hd_field_v3 = _compute_hd_field(
+            chart_a, chart_b, current_user_name, member_name,
+        )
+        if hd_field_v3:
+            logger.info(
+                f"[HDFieldV3] pair={current_user_name}<->{member_name} "
+                f"sig={hd_field_v3['field_v3']['energy_signature']!r} "
+                f"em={hd_field_v3['diagnostics']['electromagnetic_count']} "
+                f"dom={hd_field_v3['diagnostics']['dominance_count']}"
+            )
+    except Exception as _hd_v3_err:
+        logger.warning(f"[HDFieldV3] error: {_hd_v3_err}")
+
+    # =========================================================================
     # RELATIONSHIP FIELD ARCHITECTURE v1 — additive synthesis layer.
     # ---------------------------------------------------------------------
     # Reads all the per-lens outputs already computed above and synthesizes
@@ -1819,6 +1846,7 @@ def generate_mapping_interpretation(
         },
         "signals": {
             "human_design": hd_signals,
+            "human_design_field": hd_field_v3,
             "astrology": astrology_signals,
             "bazi": bazi_signals,
             "enneagram": enneagram_signals,
@@ -2162,6 +2190,38 @@ async def get_forum_member_mappings(
                             _bsigs["v2_card"] = _bazi_out["bazi_card"]
                             _bsigs["build_marker"] = _BAZI_MARKER
                             _bsigs["diagnostics"] = _bazi_out.get("diagnostics") or {}
+                            # ── Phase 3 V2 enrichment (additive) ─────────
+                            # relationship-bazi-engine-v2 — lens-parity
+                            # dimensions: natural_strength, repair_pathway,
+                            # current_movement, how_they_help_each_other,
+                            # how_they_challenge_each_other,
+                            # current_relationship_season.  Merged INTO
+                            # the existing v2_card without removing any
+                            # wisdom-v3 keys.
+                            try:
+                                from services.relationship_bazi_engine_v2 import (
+                                    enrich_bazi_relationship as _enrich_bazi,
+                                    ENGINE_VERSION as _BAZI_V2_VERSION,
+                                )
+                                _v2_enriched = _enrich_bazi(
+                                    chart_a=current_chart,
+                                    chart_b=member_chart,
+                                    name_a=current_user_name,
+                                    name_b=member_name,
+                                )
+                                if isinstance(_v2_enriched, dict):
+                                    # Merge new v2_card keys (don't overwrite v3 keys)
+                                    for _k, _v in (_v2_enriched.get("v2_card") or {}).items():
+                                        if _k not in _bsigs["v2_card"]:
+                                            _bsigs["v2_card"][_k] = _v
+                                    # Merge diagnostics
+                                    for _k, _v in (_v2_enriched.get("diagnostics") or {}).items():
+                                        _bsigs["diagnostics"][_k] = _v
+                                    _bsigs["v2_engine_version"] = _BAZI_V2_VERSION
+                            except Exception as _v2_err:  # pragma: no cover
+                                logger.warning(
+                                    f"[BaziV2Enrich] error for {member_name}: {_v2_err}"
+                                )
                             _sigs_now["bazi"] = _bsigs
                             mapping["signals"] = _sigs_now
                         logger.info(
