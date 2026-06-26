@@ -1183,6 +1183,30 @@ def compute_numerology_signals(
         22: "large-scale vision and practical idealism — together you think bigger than most couples allow themselves to",
         33: "deep compassion and selfless service — what you build together serves more than just the two of you",
     }
+
+    # Short single-word descriptors used for the "different operating
+    # systems" fallback so it stays a single readable sentence.
+    NUM_SHORT = {
+        1: "initiative",        2: "partnership",     3: "expression",
+        4: "structure",         5: "freedom",         6: "responsibility",
+        7: "depth",             8: "authority",       9: "release",
+        11: "intuitive insight", 22: "master-builder vision", 33: "selfless service",
+    }
+
+    # Canonical numerology complement pairs — the classical "natural
+    # counterweight" pairings drawn from Pythagorean tradition.  Order-
+    # insensitive; covers both single-digit and master-amplified pairings.
+    COMPLEMENT_PAIRS = {
+        frozenset({1, 2}): "Your initiating energy gives shape to {name_b}'s relational instincts; their listening softens your forward push.",
+        frozenset({3, 6}): "Your expression flows into {name_b}'s caregiving form — words become commitments, talk becomes shelter.",
+        frozenset({4, 8}): "Your steadiness anchors {name_b}'s ambition; their drive scales the structures you build.",
+        frozenset({5, 7}): "Your appetite for change keeps {name_b}'s inward depth from becoming isolation; their reflection slows your motion just enough.",
+        frozenset({6, 9}): "Your devotion to specific people meets {name_b}'s wider compassion — the personal and the universal balance each other.",
+        frozenset({1, 7}): "Your action sharpens against {name_b}'s introspection — together you learn when to move and when to wait.",
+        frozenset({2, 8}): "Your sensitivity tempers {name_b}'s authority; their decisiveness covers the ground your care alone can't.",
+        frozenset({3, 9}): "Your expression becomes their release — speaking what was held, finishing what was started.",
+        frozenset({4, 5}): "Your stability gives {name_b}'s freedom somewhere to return to; their disruption keeps your structure alive.",
+    }
     
     # Shared core numbers (strongest signal)
     all_a = set(filter(None, [lp_a, exp_a, soul_a]))
@@ -1198,13 +1222,44 @@ def compute_numerology_signals(
     master_a = [n for n in all_a if n in (11, 22, 33)]
     master_b = [n for n in all_b if n in (11, 22, 33)]
     if master_a and master_b:
-        themes.append(f"Both of you carry master numbers ({', '.join(str(n) for n in master_a)} and {', '.join(str(n) for n in master_b)}) — this connection operates at an intensity most relationships don't reach")
-    
-    # STRICT quality gate: need 2+ genuinely strong themes
-    if len(themes) < 2:
-        return None
-    
-    return {"themes": themes[:2]}
+        themes.append(
+            f"Both of you carry master numbers ({', '.join(str(n) for n in master_a)} and "
+            f"{', '.join(str(n) for n in master_b)}) — this connection operates at an "
+            f"intensity most relationships don't reach"
+        )
+
+    # ── PARITY V1 FALLBACK (relationship-parity-numerology-v1) ────────
+    # If the shared/master detectors didn't find anything, fall back to
+    # a Life-Path-based baseline so the lens is never silently dropped.
+    # This mirrors the BaZi engine's `el_a / el_b` fallback at L#1120.
+    if not themes:
+        # 1. Canonical complementary Life-Path pair?
+        pair_key = frozenset({lp_a, lp_b})
+        complement = COMPLEMENT_PAIRS.get(pair_key)
+        if complement and lp_a != lp_b:
+            themes.append(
+                complement.format(name_a=name_a, name_b=name_b)
+            )
+        else:
+            # 2. Baseline: "different operating systems" narrative —
+            #    always produces a readable line whenever both have a
+            #    usable life-path number.
+            short_a = NUM_SHORT.get(lp_a, f"a {lp_a}-path")
+            short_b = NUM_SHORT.get(lp_b, f"a {lp_b}-path")
+            if lp_a == lp_b:
+                themes.append(
+                    f"You both move through life on the same {lp_a}-path — {NUM_LIVED.get(lp_a, short_a)} — "
+                    f"which can feel like deep recognition or like looking in a mirror you can't always escape"
+                )
+            else:
+                themes.append(
+                    f"You operate from {short_a}; {name_b} operates from {short_b}. "
+                    f"Different rhythms reaching for the same destination — translation between the two is the work"
+                )
+
+    # Cap output to keep the lens scannable.  Forum FE renders all
+    # entries verbatim; >3 reads as noise.
+    return {"themes": themes[:3]}
 
 
 
