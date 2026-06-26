@@ -117,7 +117,11 @@ NUM_FIXTURE = {
 # 1–3. Normalizer per-lens shape compliance
 # ─────────────────────────────────────────────────────────────────────
 def _assert_signal_shape(sig: Dict[str, Any], lens: str):
-    assert set(sig.keys()) == SIGNAL_KEYS, f"{lens}: bad keys: {set(sig.keys()) ^ SIGNAL_KEYS}"
+    # V1.5 is additive: V1 keys must all be present; new V1.5 keys
+    # (layer/mechanic/evidence_type/drilldown_level/provenance) are
+    # allowed but not required by this contract test.
+    missing = SIGNAL_KEYS - set(sig.keys())
+    assert not missing, f"{lens}: missing V1 keys: {missing}"
     assert sig["lens"] == lens
     assert 0.0 <= sig["strength"] <= 1.0
     assert 0.0 <= sig["confidence"] <= 1.0
@@ -365,9 +369,9 @@ def test_snapshot_pete_thaddeus():
 # Bonus: engine_version markers are correct
 # ─────────────────────────────────────────────────────────────────────
 def test_build_markers_correct():
-    assert NORMALIZER_VERSION    == "mirror-signal-normalizer-v1"
-    assert GRAPH_VERSION         == "mirror-knowledge-graph-v1"
-    assert ORCHESTRATOR_VERSION  == "mirror-reflection-orchestrator-v1"
+    assert NORMALIZER_VERSION    in ("mirror-signal-normalizer-v1", "mirror-signal-normalizer-v1.5")
+    assert GRAPH_VERSION         in ("mirror-knowledge-graph-v1", "mirror-knowledge-graph-v1.5")
+    assert ORCHESTRATOR_VERSION  in ("mirror-reflection-orchestrator-v1", "mirror-reflection-orchestrator-v1.5")
 
 
 if __name__ == "__main__":

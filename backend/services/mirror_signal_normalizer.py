@@ -15,7 +15,82 @@ import hashlib
 import re
 from typing import Any, Dict, List, Optional
 
-NORMALIZER_VERSION = "mirror-signal-normalizer-v1"
+NORMALIZER_VERSION = "mirror-signal-normalizer-v1.5"
+
+# ─────────────────────────────────────────────────────────────────────
+# V1.5 — Evidence Ontology defaults
+# ─────────────────────────────────────────────────────────────────────
+# Per-lens defaults. Section overrides applied below.
+_LENS_DEFAULT_ONTOLOGY: Dict[str, Dict[str, str]] = {
+    "human_design": {"layer": "foundation", "mechanic": "conditioning", "evidence_type": "center", "drilldown_level": "lens"},
+    "bazi":         {"layer": "season",     "mechanic": "timing",       "evidence_type": "bridge_element", "drilldown_level": "lens"},
+    "numerology":   {"layer": "foundation", "mechanic": "identity",     "evidence_type": "life_path", "drilldown_level": "lens"},
+    "astrology":    {"layer": "weather",    "mechanic": "timing",       "evidence_type": "natal", "drilldown_level": "lens"},
+    "enneagram":    {"layer": "foundation", "mechanic": "conditioning", "evidence_type": "enneagram_type", "drilldown_level": "lens"},
+}
+
+# Section/keyword overrides — refine ontology based on signal content.
+_MECHANIC_OVERRIDES: List[tuple] = [
+    ("repair",       "repair"),
+    ("communicat",   "communication"),
+    ("listen",       "communication"),
+    ("speak",        "communication"),
+    ("control",      "control"),
+    ("project",      "projection"),
+    ("conditioning", "conditioning"),
+    ("friction",     "friction"),
+    ("amplif",       "amplification"),
+    ("flow",         "flow"),
+    ("rhythm",       "timing"),
+    ("season",       "timing"),
+    ("pace",         "timing"),
+    ("identity",     "identity"),
+]
+
+_LAYER_OVERRIDES: List[tuple] = [
+    ("season",        "season"),
+    ("weather",       "weather"),
+    ("today",         "weather"),
+    ("current",       "weather"),
+    ("opportunity",   "opportunity"),
+    ("repair_pathway","opportunity"),
+    ("memory",        "memory"),
+    ("history",       "memory"),
+]
+
+
+def _infer_evidence_ontology(lens: str, section: str, summary: str) -> Dict[str, str]:
+    """Deterministic ontology classifier. Backward-compatible: defaults
+    fall back to per-lens defaults when no keyword match."""
+    base = dict(_LENS_DEFAULT_ONTOLOGY.get(lens, {
+        "layer": "foundation", "mechanic": "identity",
+        "evidence_type": "natal", "drilldown_level": "lens",
+    }))
+    haystack = f"{section} {summary}".lower()
+    for needle, mech in _MECHANIC_OVERRIDES:
+        if needle in haystack:
+            base["mechanic"] = mech
+            break
+    for needle, layer in _LAYER_OVERRIDES:
+        if needle in haystack:
+            base["layer"] = layer
+            break
+    return base
+
+
+def _provenance_default(status: str = "unknown",
+                        engine_version: Optional[str] = None,
+                        source_input_status: str = "unknown") -> Dict[str, Any]:
+    """V1.5 provenance carrier. NOT yet enforced; orchestrator + KG
+    consume it to compute confidence penalties only."""
+    return {
+        "status":              status,
+        "hash":                None,
+        "engine_version":      engine_version,
+        "computed_at":         None,
+        "source_input_status": source_input_status,
+        "confidence_penalty":  0.0,
+    }
 
 # Canonical theme vocabulary — every normalized signal must map to one.
 CANONICAL_THEMES = (
@@ -88,9 +163,15 @@ def _signal(*, lens: str, section: str, summary: str,
             confidence: float = 0.7, time_scope: str = "lifelong",
             domain: str = "relationship", subject_id: str = "a",
             object_id: Optional[str] = "b",
-            technical: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+            technical: Optional[Dict[str, Any]] = None,
+            provenance: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
     summary = _clip(summary)
     th = theme or _classify_theme(summary)
+    ont = _infer_evidence_ontology(lens, section, summary)
+    prov = provenance or _provenance_default(
+        status="unknown", engine_version=NORMALIZER_VERSION,
+        source_input_status="unknown",
+    )
     return {
         "id":           _sid(lens, section, summary),
         "lens":         lens,
@@ -105,6 +186,12 @@ def _signal(*, lens: str, section: str, summary: str,
         "source_path":  f"signals.{lens}.{section}",
         "summary":      summary,
         "technical":    technical or {},
+        # ── V1.5 additive fields ──
+        "layer":            ont["layer"],
+        "mechanic":         ont["mechanic"],
+        "evidence_type":    ont["evidence_type"],
+        "drilldown_level":  ont["drilldown_level"],
+        "provenance":       prov,
     }
 
 
@@ -290,4 +377,37 @@ def normalize_signals(signals: Dict[str, Any]) -> List[Dict[str, Any]]:
     out.extend(normalize_numerology(signals.get("numerology") or {}))
     out.extend(normalize_astrology(signals.get("astrology") or {}))
     out.extend(normalize_enneagram(signals.get("enneagram") or {}))
+    return out
+
+
+def normalize_signals_v15(signals: Dict[str, Any],
+                          provenance_by_lens: Optional[Dict[str, Dict[str, Any]]] = None
+                          ) -> List[Dict[str, Any]]:
+    """V1.5 wrapper. Calls `normalize_signals` and overlays per-lens
+    provenance metadata onto each emitted signal. Backward-compatible:
+    if `provenance_by_lens` is None, signals carry default provenance
+    (status='unknown') already populated by `_signal`.
+
+    `provenance_by_lens` shape:
+        {
+          "astrology":   { "status": "verified", "hash": "...", "engine_version": "...",
+                           "computed_at": "...", "source_input_status": "valid",
+                           "confidence_penalty": 0.0 },
+          "human_design": {...},
+          ...
+        }
+    """
+    out = normalize_signals(signals)
+    if not provenance_by_lens:
+        return out
+    for s in out:
+        p = provenance_by_lens.get(s.get("lens"))
+        if not p:
+            continue
+        s["provenance"] = {**(s.get("provenance") or {}), **p}
+        # Optional confidence penalty applied here (carry-through; KG
+        # also independently penalizes).
+        pen = float(p.get("confidence_penalty") or 0.0)
+        if pen > 0:
+            s["confidence"] = round(max(0.0, s["confidence"] - pen), 3)
     return out

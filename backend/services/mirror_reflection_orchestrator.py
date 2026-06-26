@@ -11,7 +11,7 @@ the lens engine output).
 from __future__ import annotations
 from typing import Any, Dict, List, Optional
 
-ORCHESTRATOR_VERSION = "mirror-reflection-orchestrator-v1"
+ORCHESTRATOR_VERSION = "mirror-reflection-orchestrator-v1.5"
 
 FORBIDDEN = ("destiny", "destined", "soulmate", "meant to be",
              "karmic partner", "guaranteed compatibility",
@@ -118,6 +118,87 @@ def _question(top_cluster: Optional[Dict[str, Any]]) -> str:
     return Q.get(theme, "What does this connection make possible that nothing else does?")
 
 
+ORCHESTRATOR_VERSION_OLD = "mirror-reflection-orchestrator-v1"
+ORCHESTRATOR_VERSION_V15 = "mirror-reflection-orchestrator-v1.5"
+
+
+def _build_evidence_ladder(story, clusters):
+    """V1.5 — every story claim traces back to supporting signals,
+    lens contributions, technical refs, and a provenance status rollup.
+    No claim is invented; each line maps to an existing cluster's
+    polarity-targeted pick or top signals.
+    """
+    ladder = []
+
+    def _entry(claim_label, claim_text, cluster):
+        if not cluster or not claim_text:
+            return None
+        sigs = cluster.get("signals") or []
+        supporting = [{"signal_id": s.get("id"),
+                        "lens": s.get("lens"),
+                        "summary": s.get("summary"),
+                        "polarity": s.get("polarity"),
+                        "strength": s.get("strength"),
+                        "confidence": s.get("confidence"),
+                        "layer": s.get("layer"),
+                        "mechanic": s.get("mechanic"),
+                        "evidence_type": s.get("evidence_type"),
+                        "provenance_status": (s.get("provenance") or {}).get("status")}
+                      for s in sigs[:6]]
+        lens_contrib = {}
+        for s in sigs:
+            lens_contrib[s.get("lens", "unknown")] = lens_contrib.get(s.get("lens", "unknown"), 0) + 1
+        tech_refs = [{"signal_id": s.get("id"),
+                      "lens": s.get("lens"),
+                      "source_path": s.get("source_path"),
+                      "data": s.get("technical")}
+                     for s in sigs if s.get("technical")][:6]
+        prov_rollup = cluster.get("provenance_status") or "unknown"
+        return {
+            "claim_label":         claim_label,
+            "claim":               claim_text,
+            "cluster_theme":       cluster.get("theme"),
+            "supporting_signals":  supporting,
+            "lens_contributions":  lens_contrib,
+            "technical_refs":      tech_refs,
+            "provenance_status":   ("verified" if prov_rollup == "verified"
+                                    else ("suspect" if prov_rollup in ("suspect","stale","missing")
+                                          else "mixed")),
+            "agreement_score":     cluster.get("agreement_score"),
+            "confidence_score":    cluster.get("confidence_score"),
+            "drilldown_level":     "technical",
+        }
+
+    # Map each story slot to its origin cluster (re-derive cheaply).
+    top              = clusters[0] if clusters else None
+    movement_cluster = _pick_cluster_by_polarity(clusters, "movement") or top
+    growth_cluster   = _pick_cluster_by_polarity(clusters, "growth") or top
+    shadow_cluster   = (_pick_cluster_by_polarity(clusters, "shadow")
+                        or _pick_cluster_by_polarity(clusters, "friction"))
+
+    for label, claim, c in (
+        ("headline",         story.get("headline"),         top),
+        ("summary",          story.get("summary"),          top),
+        ("current_movement", story.get("current_movement"), movement_cluster),
+        ("growth_edge",      story.get("growth_edge"),      growth_cluster),
+        ("shadow_pattern",   story.get("shadow_pattern"),   shadow_cluster),
+        ("question_to_ask",  story.get("question_to_ask"),  top),
+    ):
+        entry = _entry(label, claim, c)
+        if entry:
+            ladder.append(entry)
+
+    # Repair pathway entries (each line traces to its source cluster)
+    for line in (story.get("repair_pathway") or []):
+        # Find best cluster matching this line's text (deterministic).
+        match = next((c for c in clusters
+                      if any((s.get("summary") or "") == line
+                             for s in c.get("signals") or [])), None) or top
+        e = _entry("repair_pathway", line, match)
+        if e: ladder.append(e)
+    return ladder
+
+
 def synthesize_relationship(
     signals: List[Dict[str, Any]],
     graph:   Dict[str, Any],
@@ -185,6 +266,9 @@ def synthesize_relationship(
 
     confidence = _confidence_score(clusters)
 
+    # V1.5 — every story claim traces to supporting signals.
+    evidence_ladder = _build_evidence_ladder(story, clusters)
+
     return {
         "story":      story,
         "evidence": {
@@ -192,6 +276,7 @@ def synthesize_relationship(
             "lens_contributions":   lens_contributions,
             "technical_refs":       technical_refs,
         },
+        "evidence_ladder": evidence_ladder,
         "confidence": confidence,
         "diagnostics": {
             "strongest_cluster": (top or {}).get("theme"),
@@ -200,5 +285,9 @@ def synthesize_relationship(
             "lenses_present":    (graph.get("diagnostics") or {}).get("lenses_present", []),
             "forbidden_flagged": flagged,
             "engine_version":    ORCHESTRATOR_VERSION,
+            "provenance_rollup": [{"theme": c.get("theme"),
+                                   "status": c.get("provenance_status"),
+                                   "penalty": c.get("provenance_penalty")}
+                                  for c in clusters[:8]],
         },
     }
