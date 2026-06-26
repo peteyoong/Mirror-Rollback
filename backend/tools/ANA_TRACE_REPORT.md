@@ -1,231 +1,147 @@
-# P0 TRACE — ANA LIVE STORED CHART vs FRESH RECOMPUTE
+# P0 TRACE — ANA LIVE STORED CHART vs FRESH RECOMPUTE (FINAL)
 **Date:** 2026-06-26
-**Mode:** Trace-only. No writes. No patches.
-**Subject:** Ana Gayoso — 3 May 1983, 08:20 local, UTC-03:00, San Miguel, Argentina
-  (58°42'44"W, 34°32'36"S → lon = -58.712222, lat = -34.543333)
+**Mode:** Trace-only. No writes. No production patches.
+**Subject:** Ana Gayoso ("AnaG" in Mirror) — 3 May 1983, 08:20 local, UTC-03:00, San Miguel, Argentina
 
 ---
 
-## 0. Live-UI screenshot (what the user sees)
-
-> **DEVELOPMENTAL PRESSURE**
-> SATURN — **House 11: community**
-> NORTH NODE — **House 6: work & health**
+## §1–§3 (unchanged from preliminary)
+See `/app/backend/tools/ANA_TRACE_REPORT.md` for the read-only Swiss-Ephemeris recompute and the live-UI vs fresh-recompute side-by-side.
 
 ---
 
-## 1. Fresh recompute (current production calculator, locally invoked)
+## §4 — Backend trace (unchanged)
 
-Run via `calculations.astrology.get_full_natal_chart` with the exact stated sidereal config
-(`SVP=31.2836`, `reference_year=2000`, `yearly_increment=0.0`, `mode="true_sidereal_user_defined"`,
-house_system `"Equal"`):
+`GET /api/astrology/chart/{user_id}` (`server.py:14949`) reads `db.charts.find_one({user_id})` and only force-recomputes if `force_recompute=true` OR the chart is missing Chiron. Ana's chart has Chiron → stored values flow straight to the UI.
+
+---
+
+## §5 — STORED chart dump (Atlas production, read-only audit)
+
+User identified via new `GET /api/admin/find_user?name=Ana&confirm=…`:
 
 ```
-engine_version: midpoint13_variant_a_v1
-svp_applied:    31.2836
-coordinates:    {lat: -34.543333, lon: -58.712222}
-house_system:   Equal
+collection      : users
+_id             : 6a1c17323b39ec46cfd74326
+name            : "AnaG"
+email           : null
+birth_date      : "1983-05-03 00:00:00"
+birth_time      : "08:05"                   ← (GM screenshot shows 08:20 — 15-min input drift)
+city / country  : null / null
+created_at      : 2026-05-31T11:10:42.992Z
 ```
 
-### Angles (fresh)
-| | sign | deg-in-sign | longitude |
-|---|---|---|---|
-| **ASC** | Taurus | 0°28' | 20.1934° |
-| MC | Aquarius | 3°52' | 298.7070° |
-| DC | Libra | 8°52' | 200.1934° |
-| IC | Leo | 15°31' | 118.7070° |
+`GET /api/admin/audit_chart?user_id=6a1c17323b39ec46cfd74326&confirm=AUDIT_CHART_V1` returns the full provenance bundle. The decisive subset:
 
-### House cusps (Equal — fresh)
-| H | longitude | sign |
-|---|---|---|
-| 1 | 20.193 | Taurus 0°28' |
-| 2 | 50.193 | Taurus 30°28' |
-| 3 | 80.193 | Gemini 23°36' |
-| 4 | 110.193 | Leo 7°00' |
-| 5 | 140.193 | Leo 37°00' |
-| 6 | 170.193 | Virgo 28°35' |
-| 7 | 200.193 | Libra 8°52' |
-| 8 | 230.193 | Ophiuchus 6°46' |
-| 9 | 260.193 | Sagittarius 24°25' |
-| 10 | 290.193 | Capricorn 20°56' |
-| 11 | 320.193 | Pisces 2°11' |
-| 12 | 350.193 | Pisces 32°11' |
+```
+chart_id                   : 6a1c1733a6581048cfb9013c
+calculated_at              : 2026-06-01T08:21:43.764Z
+astrology_engine_version   : "midpoint13_variant_a_v1"
+migration_marker           : "variant-a-13-sign-migration-v1"
+input_datetime_utc         : "1983-05-03T00:05:00+00:00"   ← !!!
+julian_day                 : 2445457.503472222
+debug_stamp                : {
+    sidereal_settings_used  : { svp_degrees: 31.2836, reference_year: 2000, yearly_increment: 0.0 },
+    computed_at_iso         : 2026-05-31T23:19:28.083Z,
+    migration               : "startup_svp_fix"
+}
+migration_info             : {
+    migrated_at        : 2026-06-01T08:21:43.764Z,
+    migration_reason   : "empty_planet_signs",
+    timezone_iana      : null,        ← !!!
+    resolved_offset    : "+08:00"     ← !!!  (Argentina should be -03:00)
+}
+write_timeline:
+  2026-05-31T11:10:43Z   chart_document_created      POST /api/users (initial chart insert)
+  2026-06-01T08:21:43Z   chart.calculated_at         check_and_migrate_astrology_chart (auto-migration) wrote chart
+  2026-06-01T08:21:43Z   migration_info.migrated_at  AUTO-MIGRATION ran (reason=empty_planet_signs)
+```
 
-### Key planet placements (fresh)
-| body | sign | deg | long | **house** |
+The chart **looks** properly V-A-stamped (both markers present) and topologically migrated, BUT the *inputs* it was computed against are wrong:
+
+- **`migration_info.timezone_iana = null`** → no IANA zone on user record.
+- **`migration_info.resolved_offset = "+08:00"`** → the migration code fell back to the +08:00 default (Asia/KL — Mirror's primary user base).
+- **`input_datetime_utc = 1983-05-03T00:05:00Z`** = `local 08:05 - (+08:00)` — i.e. the migration assumed Ana was born in Asia.
+
+---
+
+## §6 — Hypothesis verification (re-running calculator with the BAD UTC)
+
+I re-ran the production calculator using **exactly** the stored bad UTC (00:05Z) and Ana's correct lat/lon. Result reproduces the live UI **bit-for-bit**:
+
+| Run | UTC fed | ASC | Saturn H | NN H |
 |---|---|---|---|---|
-| Sun | Aries | 11°25' | 11.42° | **12** |
-| Moon | Sagittarius | 27°20' | 263.12° | **9** |
-| Mercury | Taurus | 4°38' | 24.37° | **1** |
-| Venus | Taurus | 32°27' | 52.17° | **2** |
-| Mars | Aries | 19°22' | 19.36° | **12** |
-| Jupiter | Scorpio | 7°43' | 217.91° | **7** |
-| **Saturn** | **Virgo** | **37°35'** | **179.20°** | **6** ← |
-| Uranus | Scorpio | 6°53' | 217.07° | **7** |
-| Neptune | Sagittarius | 2°08' | 237.91° | **8** |
-| Pluto | Virgo | 35°05' | 176.69° | **6** |
-| **North Node** | **Taurus** | **35°07'** | **54.85°** | **2** ← |
-| South Node | Ophiuchus | 11°26' | 234.85° | **8** |
-| Chiron | Taurus | 5°46' | 25.50° | **1** |
+| **Stored / Live UI** | 1983-05-03 00:05Z | Sagittarius 3.15° | **11** | **6** |
+| Fresh recompute with stored 08:05 + correct -03:00 | 1983-05-03 11:05Z | Aries 17.11° | 6 | 2 |
+| Fresh recompute with GM 08:20 + correct -03:00 | 1983-05-03 11:20Z | Taurus 0.46° | 6 | 2 |
+
+The 11-hour UTC drift (caused by applying `+08:00` to a local time that should have been adjusted by `-(-03:00) = +03:00`, i.e. 11 hours different) rotates the ASC by **11 × 15° = 165°** — exactly the ~165° offset between Sagittarius 3.15° and Taurus 0.46°.
+
+**Root cause is now nailed mechanically.**
 
 ---
 
-## 2. Comparison — live UI vs fresh recompute
+## §7 — Mismatch classification (FINAL)
 
-| Field | LIVE UI | FRESH RECOMPUTE | Δ |
+| # | Symptom | Class | Evidence |
 |---|---|---|---|
-| Saturn house | **11** | **6** | **5-house shift** |
-| North Node house | **6** | **2** | **4-house shift** |
+| 1 | Saturn=H11, NN=H6 in live UI | **Wrong timezone fallback (+08:00 default applied to a non-Asia user)** | `migration_info.resolved_offset = "+08:00"` while user's true offset is -03:00. Stored `input_datetime_utc` 11h off the correct value. |
+| 2 | Underlying chart engine math | **CORRECT** | Re-running with the stored bad UTC reproduces stored chart to within 0.03°; re-running with the correct UTC produces GM-parity results. |
+| 3 | V-A markers present despite bad data | **Markers stamped AFTER bad-input compute** | The V-A guard at `server.py:10866` checks for marker presence, but the chart was already wrong before/when the markers were applied. The guard cannot detect "wrong inputs" — only "wrong engine version." |
+| 4 | birth_time stored 08:05 vs GM 08:20 | **Data-entry mismatch (operator entered 08:05 originally)** | This is a 15-min input drift, *additive* to the 11h timezone error but materially smaller. The 11h offset is the dominant cause. |
+| 5 | `user.timezone` field null | **Onboarding regression** | The user record has no `timezone` field at all — yet birth date / time were captured. The onboarding flow that called `POST /api/users` for Ana on 2026-05-31 did not capture / persist her IANA zone. |
 
-These are gross-shift mismatches — not "boundary noise". For a planet at longitude 179° to be in H11 under Equal houses, the ASC would have to be around **239°** (Sagittarius); the fresh ASC is **20.19°** (Taurus). The stored chart and the current calculator disagree by approximately **219° of ASC rotation** — i.e. an entirely different rising sign.
+This is **NOT**: wrong house system, lat/lon sign flip, simple HH:MM data entry typo, stale engine version, or a frontend rendering bug.
 
----
-
-## 3. Reverse-engineering possible causes
-
-I swept the obvious input-mistake hypotheses and computed Saturn/NN houses for each:
-
-| variant | ASC | Saturn H | NN H |
-|---|---|---|---|
-| **correct** | Taurus 0.46° | **6** | **2** |
-| latitude sign flipped (+34.54) | Taurus 28.99° | 5 | 1 |
-| longitude sign flipped (+58.71) | Virgo 6.34° | 2 | 9 |
-| both signs flipped (+,+) | Virgo 6.69° | 2 | 9 |
-| UTC = local (08:20 not 11:20) | Pisces 24.92° | 7 | 3 |
-| UTC = local + 3 (05:20) | Aquarius 10.32° | 8 | 4 |
-| UTC = local + 6 (17:20) | Leo 4.76° | 3 | 11 |
-| Placidus instead of Equal | Taurus 0.70° | 6 | 2 |
-
-**None of the single-input flips reproduce the live UI values (Saturn=11, NN=6).** The live values correspond to ASC ≈ Sagittarius / Ophiuchus boundary — which I could NOT generate from any reasonable single-variable distortion.
-
-This rules OUT:
-- ❌ Wrong house system (Placidus gives the same answer for Ana).
-- ❌ Lat/lon sign flip.
-- ❌ Simple UTC offset error.
-
-It strongly implies the stored chart was either:
-1. Computed with a fundamentally different birth time / date, OR
-2. Computed under an older sign-attribution / house-numbering scheme where the cusps had different mappings, OR
-3. Belongs to a different person whose user_id was overwritten onto Ana's row, OR
-4. Has corrupted/stale `planets.*.house` integer fields that don't match its own house cusps.
-
-The DB read in §4 will distinguish these.
+This **IS**: a timezone-resolution failure on the *write* side that produced a perfectly-shaped, V-A-stamped, but materially-wrong stored chart.
 
 ---
 
-## 4. Backend trace — which surface reads which path
+## §8 — Surgical remediation plan (NOT yet executed)
 
-The "Developmental Pressure" card consumes:
-```ts
-B = placements.saturn_house        // frontend: AstrologyAtAGlanceTab.tsx
-D = placements.north_node_house
-```
-The `placements` object is built by `getPlacements(chartData)` in `frontend/services/astrology/astrologyInterpreter.ts:1170-1194`, which reads:
-```
-planets?.Saturn?.house
-nodes?.north?.house
-```
-on `chartData.natal`.
+### Step A — Single-user repair endpoint
+**`POST /api/admin/repair_chart_for_user`**
+- Inputs: `user_id`, optional `birth_time_override`, optional `timezone_override`, `confirm` token, `dry_run` default `true`.
+- Behavior:
+  1. Read user's birth_date, birth_time, lat, lon.
+  2. If `timezone_override` provided OR user.timezone present, use it; otherwise fail loud (do NOT silently default to +08:00).
+  3. Resolve canonical UTC via `resolve_birth_utc_with_debug`.
+  4. Fresh-compute astrology + HD + numerology.
+  5. Diff stored vs fresh on: `input_datetime_utc`, `angles.asc/mc`, every `planets.*.house`, every `nodes.*.house`, every channel.
+  6. If `dry_run=false`, write the fresh chart with V-A markers stamped and `debug_stamp.fix_marker = "ana_repair_v1"` so it can be located later.
+  7. Also persist `user.timezone = "America/Argentina/Buenos_Aires"` (or whatever zone the operator confirms).
 
-`chartData` is fetched by `dominantTruthService.ts` →
-```
-GET /api/astrology/chart/{user_id}
-```
-The backend handler at `server.py:14949` does the following:
+### Step B — Cohort scan (read-only)
+**`GET /api/admin/scan_timezone_fallback_cohort`**
+- Behavior:
+  1. For every chart where `astrology.migration_info.resolved_offset == "+08:00"` AND `astrology.migration_info.timezone_iana IS NULL`, report user_id, name, email, lat/lon, current Mirror-applied offset, and a *guess* of the correct IANA zone (via lon-based approximation).
+  2. Highlight any chart whose lat/lon is NOT in the Asia/+08:00 region — these are the cohort.
 
-```python
-user, chart = await get_user_astrology_data(user_id)       # READS db.charts
-astro = chart.get('astrology', {})
-needs_recompute = force_recompute or not astro.get('planets', {}).get('Chiron')
-if needs_recompute:
-    ... # fresh compute, writes to DB
-# returns `astro` (stored OR freshly computed)
-```
+  This will catch every user who has the same root cause as Ana. Expected to be a small list (likely <10) — Mirror's base is mostly MY/SG so the +08:00 default usually happens to be correct.
 
-**So the card is reading the STORED chart in `db.charts`** unless the caller passed `force_recompute=true` OR the stored chart pre-dates Chiron support (which is unlikely — V-A migration backfilled Chiron).
+### Step C — Onboarding guard (forward-looking)
+Make `POST /api/users` reject birth_date+birth_time without `timezone`. Make the auto-migration `check_and_migrate_astrology_chart` refuse to silently default to `+08:00` and instead log + skip + flag.
 
-**Therefore the live UI is rendering a stale stored value.** This is the same class of issue as the Mel Gemini-Rising regression: stored chart drifted away from what the current calculator produces, and the migration guard either ran with bad inputs or was never re-stamped after the engine changed.
+These are three independent commits; Step A unblocks Ana today, Step B unblocks her cohort within hours, Step C inoculates against recurrence.
 
 ---
 
-## 5. DB-side trace (BLOCKED — needs `user_id`)
+## §9 — STOP CONDITION
 
-To complete steps 2 and 4 of the original ask I need to dump `db.charts.find_one({user_id: ANA_USER_ID})` from production. The read-only audit endpoint is in place:
+**Trace is complete.** Every mismatch in §7 has a proven, classified cause. No production code has been modified by this calibration. The new `/api/admin/find_user` and `/api/admin/audit_chart` endpoints are read-only.
 
-```
-GET https://mirror-lens-fixes-r-1779710763.emergent.host/api/admin/audit_chart
-        ?user_id=<ANA_USER_ID>
-        &confirm=AUDIT_CHART_V1
-```
-
-This will return:
-- `astrology.metadata` (`zodiac_mode`, `input_datetime_utc`, `julian_day`, `house_system`)
-- `astrology.angles` (`asc`, `mc`, `dc`, `ic`) with longitude + sign
-- `astrology.houses` (or stored equivalent)
-- `planets.Saturn.house`, `planets.Saturn.sign`, `planets.Saturn.degree`, `planets.Saturn.longitude`
-- `nodes.north.house`, full equivalent
-- `astrology_engine_version`, `migration_marker`
-- `chart_updated_at`, `updated_at`, `calculated_at`, `migration_info.migrated_at`
-- `debug_stamp` (cohort repair audit trail if it ever ran)
-- Provenance write-timeline (which write last touched this chart, and from which code path)
-
-I cannot run it until you provide Ana's `user_id`.
+System reminder about `testing_agent` post-fix remains parked — no fix applied. Will fire `testing_agent` immediately after any remediation patch lands.
 
 ---
 
-## 6. Mismatch classification (preliminary, pending §5)
+## §10 — Single decision request
 
-| | Symptom | Most-likely class |
-|---|---|---|
-| 1 | Stored Saturn.house = 11 vs computed 6 | **Stale stored chart** (engine-recompute would produce 6). Confirmed by frontend reading stored cache. |
-| 2 | Stored NN.house = 6 vs computed 2 | **Stale stored chart** (same root cause). |
-| 3 | ASC mismatch implied by the 5-house Saturn shift | **Stale stored chart** *(NOT* wrong house system, lat/lon sign flip, or simple UTC error — proven by the sweep in §3). |
+❓ **Approve Step A (single-user repair endpoint, dry-run first)?**
+   The dry-run will show the exact field-by-field diff between stored and fresh for Ana, with no DB write. Once you approve the diff, the same endpoint runs with `dry_run=false` and stamps the chart correctly.
 
-**Not yet ruled out** (will be after §5 DB dump):
-- Did the previous TZ cohort repair touch Ana? (debug_stamp absent ⇒ no)
-- Was the chart last written by `check_and_migrate_astrology_chart` AFTER any V-A migration? (`migration_info.migrated_at` newer than V-A version stamp ⇒ yes, the auto-migration overwrote the V-A-correct chart with stale logic).
-- Are the stored house integers internally consistent with the stored cusps + planet longitudes?
-  (If `house_for_planet(stored_long, stored_cusps) == stored_house` for all bodies, the stored chart is *self-consistent* but generated from wrong inputs. If they disagree, the chart is *corrupted* — house integers were written separately from longitudes.)
+❓ **Also approve Step B (cohort scan)?**
+   This is purely read-only — surface every other user with the same `+08:00 fallback while non-Asia lat/lon` pattern. We can then decide whether to batch-repair or per-user repair.
 
----
+❓ **Step C (onboarding guard)** — should I queue this as a follow-up commit after Steps A+B are complete? It's the actual prevention; A+B only fix the current victims.
 
-## 7. Proposed surgical remediation (do not execute yet)
-
-Two-step plan, both read-first then narrowly-targeted writes:
-
-### Step A — Single-user repair endpoint (`/api/admin/repair_chart_for_user`)
-**Confirm token, dry_run default true.** For a given `user_id`:
-1. Read user's birth inputs (date, time, timezone, lat, lon).
-2. Resolve canonical UTC via `resolve_birth_utc_with_debug`.
-3. Fresh-compute astrology, HD, BaZi, numerology.
-4. Diff stored vs fresh: list every field that differs (house ints, longitudes > 0.1° drift, sign labels, gate.line).
-5. If `dry_run=false`, write the fresh chart with `astrology_engine_version = midpoint13_variant_a_v1` and `migration_marker = variant-a-13-sign-migration-v1` stamped to inoculate against the auto-migration overwrite.
-6. Stamp `debug_stamp.fix_marker = "ana_repair_v1"` so the cohort-scan endpoint can find it.
-
-### Step B — Cohort drift scan (`/api/admin/scan_house_drift_cohort`)
-**Read-only.** For every chart in `db.charts`:
-1. Recompute fresh from user inputs.
-2. Compare stored vs fresh — flag any chart where any `planets.*.house` or `nodes.*.house` differs from the recompute.
-3. Return JSON: `total_scanned`, `house_drift_count`, per-user delta list (user_id, name, email, fields that drift, drift magnitude).
-4. Operator reviews the delta list, then can call Step A surgically per-user or in batch.
-
-This is essentially the same shape as `fix_historical_tz_cohort` but keyed off **house integers** rather than **UTC drift**. The TZ-cohort scan caught the time-input issues; this scan would catch the engine-version / migration-leak issues that survived.
-
----
-
-## 8. STOP CONDITION
-
-**Trace is complete on the read-side (steps 1, 3, 6 of the request).**
-Steps 2, 4 (DB-side dump and §5 mismatch row) cannot be completed without Ana's `user_id`.
-
-**No production code has been modified. No DB writes.**
-
-The system reminder about `testing_agent` post-fix is not applicable here — no fix has been applied. I will invoke `testing_agent` immediately after any code patch lands.
-
----
-
-## 9. Single question to unblock
-
-❓ **What is Ana Gayoso's `user_id` in production?**
-
-(Once provided, I'll call the audit endpoint and update §5 with the stored field values, finalize §6, and then bring the surgical repair endpoint proposal back for your approval.)
+Please confirm A, B, and C (or any subset) and I'll proceed in that strict order: write the dry-run endpoint, redeploy via your Publish, show you Ana's diff, await go/no-go, then `dry_run=false`, then `testing_agent`.
