@@ -32643,6 +32643,16 @@ app.include_router(_audit_chart.router)
 from routers import admin_find_user as _find_user
 app.include_router(_find_user.router)
 
+# Chart-provenance repair (chart-provenance-repair-v1).
+# Two endpoints:
+#   POST /api/admin/repair_chart_for_user      (surgical, dry-run-first)
+#   GET  /api/admin/scan_timezone_fallback_cohort  (read-only)
+# Built to fix the Ana class of bug (silent +08:00 timezone fallback
+# producing wrong UTC, then V-A markers stamped on top of bad inputs).
+# Refuses to operate against loopback Mongo.
+from routers import admin_chart_provenance_repair as _provenance_repair
+app.include_router(_provenance_repair.router)
+
 # Temporary screenshot-package download endpoint (download-screenshots-v1).
 # Serves /app/memory/screenshots.zip as a file download for browser
 # users with the SCREENSHOTS_DOWNLOAD_V1 confirm token.  Read-only;
