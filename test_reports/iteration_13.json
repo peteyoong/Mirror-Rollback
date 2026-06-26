@@ -1,0 +1,43 @@
+{
+  "summary": "P0 verification of Ana stored-chart repair (user_id 6a1c17323b39ec46cfd74326) against PRODUCTION (https://mirror-lens-fixes-r-1779710763.emergent.host). 19/20 read-only assertions PASS. The actual user-visible chart is fully repaired: Saturn house 6, North Node house 2, ASC Aries 17.115°, input_datetime_utc 1983-05-03T11:05:00, V-A engine + migration markers stamped, debug_stamp.fix_marker=chart_provenance_repair_v1, provenance_hash matches the expected fefa59cfd83ceda126ef448101afa1fc3f0f34bf9196a12a9c708cf8f5608023, calculated_at recent (2026-06-26T15:59:18 UTC). HD output via /api/v1/profile/full: type=Manifesting Generator, profile=3/5, personality Sun 21.3, design Sun 38.5, defined_channels=[20-34, 44-26, 28-38] — ALL CORRECT. Jaan was NOT touched (calculated_at remains Feb/Mar 2026). The ONE failure is a real, narrow bug: the repair endpoint did not clear or rewrite the top-level chart.migration_info subdocument, so the cohort scanner (criterion A) still flags Ana because chart.migration_info.resolved_offset is still '+08:00' and chart.migration_info.timezone_iana is still null. The astrology subtree (the authoritative source for the live UI) is correct, but the cohort scan continues to incorrectly report Ana as in-cohort. No 5xx or rate-limiting encountered on admin endpoints. No unrelated charts appear to have been modified.",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {
+        "endpoint": "POST /api/admin/repair_chart_for_user (and the cohort scan it feeds)",
+        "issue": "Repair endpoint at /app/backend/routers/admin_chart_provenance_repair.py lines 402-413 sets {astrology, human_design, updated_at, calculated_at, debug_stamp} but does NOT clear or rewrite the top-level chart.migration_info document. As a result, cohort scan criterion A (chart.migration_info.resolved_offset=='+08:00' AND timezone_iana null AND lon outside Asia band) still flags Ana even though her astrology subtree is correctly recomputed (Saturn h6, NN h2, ASC Aries 17.11). Ana still appears in cohort_count=91 with criteria_hit=['A']. The user-facing chart is correct; only the provenance/scan metadata is stale."
+      }
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [],
+    "react_native_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_ana_chart_repair_verification.py",
+    "/app/test_reports/pytest/ana_repair_verification.xml"
+  ],
+  "action_items": [
+    "In /app/backend/routers/admin_chart_provenance_repair.py around line 402 (the LIVE WRITE block), also $set chart.migration_info to a fresh value reflecting the repair: { resolved_offset: tz_result.offset_string, timezone_iana: effective_tz, migrated_at: now, source: 'chart_provenance_repair_v1' } — OR $unset chart.migration_info entirely so the stale +08:00 fallback signature stops triggering cohort scan criterion A. Then re-run the repair on Ana (idempotently) to clear the stale provenance.",
+    "Optionally, expand admin_chart_provenance_repair.py to also stamp chart.astrology.metadata.timezone_iana / resolved_offset on the write, so the audit endpoint exposes the canonical resolved-tz directly under astrology.metadata (currently the audit response surfaces input_datetime_utc but not timezone_iana/resolved_offset from the astrology subtree).",
+    "Consider tightening cohort scan criterion A to additionally require absence of debug_stamp.fix_marker=='chart_provenance_repair_v1' OR engine_version!='midpoint13_variant_a_v1' — so repaired charts are not re-flagged even if migration_info is left stale on purpose."
+  ],
+  "critical_code_review_comments": [
+    "admin_chart_provenance_repair.py:402-413 — repair $set omits chart.migration_info, which is what the cohort scanner reads. This causes the cohort scan to keep reporting a 'fixed' user as in-cohort. Fix is a 3-line addition to the $set dict.",
+    "admin_chart_provenance_repair.py:488 — comment notes 'migration_info lives at the chart top level (chart.migration_info)'. This confirms the asymmetry: the scanner reads chart.migration_info, but the repair only touches chart.astrology subtree."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_ana_chart_repair_verification.py (new test file)"
+  ],
+  "success_rate": {
+    "backend": "95% (19/20 production assertions pass — only stale-provenance cohort flag failing)",
+    "frontend": "N/A (testing_type=backend only)"
+  },
+  "seed_data_creation": "None. Read-only verification against production Atlas via admin audit/find/scan endpoints and public /api/astrology/chart and /api/v1/profile/full endpoints.",
+  "retest_needed": true,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "Test file /app/backend/tests/test_ana_chart_repair_verification.py exercises the production host (PROD_URL constant) read-only. After the main agent extends the repair endpoint to also clear/rewrite chart.migration_info and re-runs the repair for Ana, re-run `pytest tests/test_ana_chart_repair_verification.py -v -s`; the single failing test (TestStepD_CohortScan::test_ana_not_in_cohort) should then pass. All other 19 assertions are already green and constitute regression coverage for the chart-provenance repair feature. Note: the /api/v1/profile/full endpoint takes {birth_date, birth_time, timezone_offset (int hours), lat, lon} — NOT 'timezone' string nor 'latitude'/'longitude'; use the existing fixture as the canonical example.",
+  "rca_of_issue": "RCA for the one remaining failure (Ana still in cohort): The repair endpoint POST /api/admin/repair_chart_for_user successfully recomputed Ana's chart with the correct UTC (1983-05-03T11:05:00) and stamped all V-A markers + debug_stamp on the astrology subtree. However, the cohort scanner GET /api/admin/scan_timezone_fallback_cohort reads chart.migration_info (a TOP-LEVEL chart field), not chart.astrology.metadata. Criterion A specifically checks `chart.migration_info.resolved_offset == '+08:00' AND chart.migration_info.timezone_iana null/empty AND lon outside Asia band`. The repair write block (lines 402-413) only $sets astrology/human_design/updated_at/calculated_at/debug_stamp — it never touches chart.migration_info. So the stale '+08:00' fallback metadata persists from BEFORE the repair, and the scanner keeps reporting Ana as in-cohort even though her chart is mathematically correct. Reproduction: GET /api/admin/scan_timezone_fallback_cohort?confirm=SCAN_TIMEZONE_FALLBACK_COHORT_2026_06_26&limit=500 — Ana appears in 'cohort' array with criteria_hit=['A']. Mitigation: extend the chart_update $set in admin_chart_provenance_repair.py to either $set chart.migration_info={resolved_offset, timezone_iana, migrated_at, source} or $unset migration_info. Severity: LOW for end users (live chart is correct), MEDIUM for operators (cohort scan gives false positive and could cause repeat-repair operator confusion)."
+}
