@@ -337,14 +337,23 @@ async def repair_chart_for_user(
             "hd_authority": fresh_hd.get("authority"),
             "hd_definition": fresh_hd.get("definition"),
             "hd_personality_sun_gate_line": (
-                f"{(fresh_hd.get('personality') or {}).get('sun', {}).get('gate')}."
-                f"{(fresh_hd.get('personality') or {}).get('sun', {}).get('line')}"
-            ),
+                ((fresh_hd.get("personality") or {}).get("Sun") or {}).get("gate") or {}
+            ).get("formatted"),
             "hd_design_sun_gate_line": (
-                f"{(fresh_hd.get('design') or {}).get('sun', {}).get('gate')}."
-                f"{(fresh_hd.get('design') or {}).get('sun', {}).get('line')}"
-            ),
+                ((fresh_hd.get("design") or {}).get("Sun") or {}).get("gate") or {}
+            ).get("formatted"),
+            "hd_personality_sun_full": (
+                ((fresh_hd.get("personality") or {}).get("Sun") or {}).get("gate") or {}
+            ).get("full_formatted"),
+            "hd_design_sun_full": (
+                ((fresh_hd.get("design") or {}).get("Sun") or {}).get("gate") or {}
+            ).get("full_formatted"),
             "hd_defined_channels": fresh_hd.get("defined_channels"),
+            "hd_incarnation_cross": (
+                (fresh_hd.get("incarnation_cross") or {}).get("name")
+                if isinstance(fresh_hd.get("incarnation_cross"), dict)
+                else fresh_hd.get("incarnation_cross")
+            ),
         },
         "diff_stored_vs_fresh": diff,
         "provenance_hash_preview": {
@@ -433,26 +442,34 @@ async def scan_timezone_fallback_cohort(
     limit: int = Query(2000, ge=1, le=20000),
     asia_lon_min: float = Query(60.0, description="Asia band low (deg longitude)."),
     asia_lon_max: float = Query(150.0, description="Asia band high (deg longitude)."),
+    offset_tolerance_h: float = Query(3.0, description="Hours of tolerance for criterion C."),
 ):
-    """READ-ONLY scan for charts that look like Ana's class.
+    """READ-ONLY scan for charts with provenance / timezone-fallback bugs.
 
-    A chart is flagged if ALL of the following hold:
-      (a) stored migration_info.resolved_offset == "+08:00"
-      (b) stored migration_info.timezone_iana is null / missing / empty
-      (c) the user's stored lat/lon is OUTSIDE the conventional
-          Asia/+08:00 longitude band (default 60-150 deg E)
+    A chart is in the **cohort** if ANY of three criteria holds:
 
-    The endpoint also reports near-miss cases:
-      * (a) AND (b) but lat/lon INSIDE Asia band: probably correct by luck
-      * (a) AND NOT (b): explicit zone set; rule out
-      * (a) AND coords missing: cannot classify yet
+      A) Classic +08:00 fallback signature:
+         chart.migration_info.resolved_offset == "+08:00" AND
+         chart.migration_info.timezone_iana is null/empty AND
+         user.birth_location.lon is OUTSIDE the [asia_lon_min, asia_lon_max] band.
 
-    No writes. No engine recompute (compute-light scan).
+      B) Raw-offset user.timezone field (not IANA):
+         user.timezone parses to a numeric offset (e.g. "+08:00", "GMT-3")
+         AND that offset is INCONSISTENT (more than `offset_tolerance_h`
+         hours) with the offset that would be naturally expected from
+         the user's longitude.
+
+      C) UTC ↔ longitude inconsistency:
+         An implied offset (local_dt - stored_utc) disagrees with the
+         lon-derived expected offset by more than `offset_tolerance_h`.
+
+    No writes. Light-touch compute only — no engine recompute.
     """
     if confirm != SCAN_CONFIRM_TOKEN:
         raise HTTPException(status_code=403, detail="confirm token required (read-only scan)")
     _refuse_loopback()
     from server import db
+    from bson import ObjectId  # type: ignore
 
     cohort: List[Dict[str, Any]] = []
     near_miss_asia_safe: List[Dict[str, Any]] = []
@@ -463,19 +480,76 @@ async def scan_timezone_fallback_cohort(
     async for c in cursor:
         scanned += 1
         astro = c.get("astrology") or {}
-        mig = astro.get("migration_info") or {}
+        # FIX: migration_info lives at the chart top level (chart.migration_info),
+        # NOT under astrology. The first version of this scan read the wrong path
+        # and returned zero hits even for Ana.
+        mig = c.get("migration_info") or astro.get("migration_info") or {}
         resolved_offset = (mig.get("resolved_offset") or "").strip()
         timezone_iana = (mig.get("timezone_iana") or "").strip()
-        if resolved_offset != "+08:00":
-            continue
+
         uid = c.get("user_id")
-        user = await db.users.find_one({"_id": __import__("bson").ObjectId(uid)}) if uid else None
+        if not uid:
+            continue
+        try:
+            user = await db.users.find_one({"_id": ObjectId(uid)})
+        except Exception:
+            user = None
         if not user:
             continue
         loc = user.get("birth_location") or {}
         lat = loc.get("lat") or loc.get("latitude") or user.get("lat")
         lon = loc.get("lon") or loc.get("lng") or loc.get("longitude") or user.get("lon")
-        coord_present = (lat is not None and lon is not None)
+        try:
+            lonf = float(lon) if lon is not None else None
+            latf = float(lat) if lat is not None else None
+        except Exception:
+            lonf = latf = None
+
+        stored_user_tz = (user.get("timezone") or "").strip() or None
+        stored_input_utc = (astro.get("metadata") or {}).get("input_datetime_utc")
+
+        # ---- Criterion C: stored UTC implies offset; compare to lon ----
+        implied_offset_h: Optional[float] = None
+        offset_disagree_h: Optional[float] = None
+        local_dt = _parse_local_dt(user.get("birth_date"), user.get("birth_time"))
+        stored_utc = _parse_utc_iso(stored_input_utc)
+        if local_dt and stored_utc:
+            try:
+                # Strip TZ for diff
+                stored_utc_naive = stored_utc.replace(tzinfo=None)
+                implied_offset_h = (local_dt - stored_utc_naive).total_seconds() / 3600.0
+            except Exception:
+                implied_offset_h = None
+        if implied_offset_h is not None and lonf is not None:
+            expected_h = lonf / 15.0
+            offset_disagree_h = round(implied_offset_h - expected_h, 2)
+
+        # ---- Criterion B: user.timezone raw offset vs lon ----
+        raw_offset_h = _parse_offset_to_hours(stored_user_tz)
+        user_tz_is_iana = bool(stored_user_tz and "/" in stored_user_tz)
+        offset_disagree_user_tz_h: Optional[float] = None
+        if raw_offset_h is not None and lonf is not None:
+            offset_disagree_user_tz_h = round(raw_offset_h - (lonf / 15.0), 2)
+
+        # ---- Criterion A: classic +08:00 silent fallback ----
+        crit_A = bool(
+            resolved_offset == "+08:00"
+            and not timezone_iana
+            and lonf is not None
+            and not (asia_lon_min <= lonf <= asia_lon_max)
+        )
+        crit_B = bool(
+            raw_offset_h is not None
+            and not user_tz_is_iana
+            and offset_disagree_user_tz_h is not None
+            and abs(offset_disagree_user_tz_h) > offset_tolerance_h
+        )
+        crit_C = bool(
+            offset_disagree_h is not None
+            and abs(offset_disagree_h) > offset_tolerance_h
+        )
+
+        any_crit = crit_A or crit_B or crit_C
         row = {
             "user_id": uid,
             "chart_id": str(c.get("_id")),
@@ -483,41 +557,59 @@ async def scan_timezone_fallback_cohort(
             "email": user.get("email"),
             "stored_birth_date": _safe_iso(user.get("birth_date")),
             "stored_birth_time": user.get("birth_time"),
-            "user_timezone_field": user.get("timezone"),
-            "stored_resolved_offset": resolved_offset,
-            "stored_timezone_iana": mig.get("timezone_iana"),
-            "stored_input_datetime_utc": (astro.get("metadata") or {}).get("input_datetime_utc"),
-            "lat": lat, "lon": lon,
+            "user_timezone_field": stored_user_tz,
+            "user_timezone_is_iana": user_tz_is_iana,
+            "stored_resolved_offset": resolved_offset or None,
+            "stored_timezone_iana": timezone_iana or None,
+            "stored_input_datetime_utc": stored_input_utc,
+            "lat": latf,
+            "lon": lonf,
+            "expected_offset_h_from_lon": (lonf / 15.0 if lonf is not None else None),
+            "implied_offset_h_from_stored_utc": implied_offset_h,
+            "offset_disagree_implied_vs_expected_h": offset_disagree_h,
+            "raw_user_tz_offset_h": raw_offset_h,
+            "offset_disagree_user_tz_vs_lon_h": offset_disagree_user_tz_h,
+            "criteria_hit": [k for k, v in (("A", crit_A), ("B", crit_B), ("C", crit_C)) if v],
             "engine_version": astro.get("astrology_engine_version"),
             "migration_marker": astro.get("migration_marker"),
             "calculated_at": _safe_iso(c.get("calculated_at")),
+            "likely_correct_iana_hint": (_lon_to_iana_hint(lonf, latf or 0.0) if lonf is not None else None),
         }
-        if not coord_present:
-            near_miss_no_coords.append(row)
-            continue
-        if timezone_iana:
-            near_miss_explicit_zone.append(row)
-            continue
-        try:
-            lonf = float(lon)
-        except Exception:
-            near_miss_no_coords.append(row)
-            continue
-        if asia_lon_min <= lonf <= asia_lon_max:
-            near_miss_asia_safe.append(row)
-        else:
-            row["likely_correct_iana_hint"] = _lon_to_iana_hint(lonf, float(lat) if lat is not None else 0.0)
+
+        if any_crit:
             cohort.append(row)
+            continue
+
+        # near-miss classification (no real bug, but interesting for context)
+        if not any_crit and resolved_offset == "+08:00" and not timezone_iana:
+            if lonf is not None and asia_lon_min <= lonf <= asia_lon_max:
+                near_miss_asia_safe.append(row)
+            elif lonf is None:
+                near_miss_no_coords.append(row)
+            else:
+                # Already covered by crit_A above; defensive
+                cohort.append(row)
+        elif not any_crit and timezone_iana:
+            near_miss_explicit_zone.append(row)
+        elif not any_crit and lonf is None:
+            near_miss_no_coords.append(row)
 
     return JSONResponse(
         content={
             "build_marker": "chart-provenance-repair-v1",
+            "scan_version": "v2",
             "served_at": _now_iso(),
             "scanned_charts": scanned,
-            "criteria": (
-                "resolved_offset='+08:00' AND timezone_iana IS NULL/empty "
-                f"AND lon NOT IN [{asia_lon_min},{asia_lon_max}]"
-            ),
+            "criteria_definitions": {
+                "A": "chart.migration_info.resolved_offset == '+08:00' AND timezone_iana null/empty AND lon outside Asia band",
+                "B": "user.timezone is raw offset (non-IANA) AND offset disagrees with lon-derived expectation by > tolerance",
+                "C": "stored UTC implies an offset that disagrees with lon-derived expectation by > tolerance",
+            },
+            "params": {
+                "asia_lon_min": asia_lon_min,
+                "asia_lon_max": asia_lon_max,
+                "offset_tolerance_h": offset_tolerance_h,
+            },
             "cohort_count": len(cohort),
             "near_miss_asia_safe_count": len(near_miss_asia_safe),
             "near_miss_explicit_zone_count": len(near_miss_explicit_zone),
@@ -566,3 +658,80 @@ def _lon_to_iana_hint(lon: float, lat: float) -> str:
     if lon < 150:
         return "Asia/Tokyo (+09 hint)"
     return "Pacific/Auckland (+12 hint)"
+
+
+# ---------------------------------------------------------------------
+# Helpers for cohort scan v2 (criteria B and C)
+# ---------------------------------------------------------------------
+_OFFSET_RE = __import__("re").compile(r"^([+-]?)(\d{1,2}):?(\d{2})?$")
+
+
+def _parse_offset_to_hours(s: Optional[str]) -> Optional[float]:
+    """Parse a raw offset string into hours. Returns None for IANA / unknown.
+
+    Accepts: '+08:00', '-03:00', '+0800', '-0300', '+8', '-3', 'GMT+8',
+             'UTC-3', 'Z', 'UTC', 'GMT'. Returns None when input is an
+             IANA zone (contains '/') or is unparseable.
+    """
+    if not s:
+        return None
+    raw = s.strip()
+    if "/" in raw:
+        return None  # IANA zone, e.g. America/Argentina/Buenos_Aires
+    up = raw.upper()
+    if up in ("UTC", "GMT", "Z"):
+        return 0.0
+    # Strip leading GMT/UTC
+    for pre in ("GMT", "UTC"):
+        if up.startswith(pre):
+            raw = raw[len(pre):]
+            break
+    raw = raw.strip()
+    m = _OFFSET_RE.match(raw)
+    if not m:
+        return None
+    sign = -1.0 if m.group(1) == "-" else 1.0
+    hours = float(m.group(2))
+    mins = float(m.group(3) or 0)
+    return sign * (hours + mins / 60.0)
+
+
+def _expected_offset_band_for_lon(lon: float) -> tuple:
+    """Return (low_h, high_h) plausible offset band for a given longitude.
+
+    Rule of thumb: 15° of longitude == 1 hour of offset. Allow ±2h
+    tolerance to absorb large-country zone variation (e.g. China runs a
+    single +08 even at lon~75; Argentina runs -03 not -04 etc.).
+    """
+    center = lon / 15.0
+    return (center - 2.5, center + 2.5)
+
+
+def _parse_utc_iso(s: Optional[str]) -> Optional[datetime]:
+    if not s:
+        return None
+    try:
+        # Accept both 'Z' suffix and explicit offsets
+        s2 = s.replace("Z", "+00:00")
+        return datetime.fromisoformat(s2)
+    except Exception:
+        return None
+
+
+def _parse_local_dt(date_field: Any, time_field: Optional[str]) -> Optional[datetime]:
+    """Combine user.birth_date + user.birth_time into a naive local datetime."""
+    if not date_field:
+        return None
+    if isinstance(date_field, datetime):
+        date_str = date_field.strftime("%Y-%m-%d")
+    else:
+        date_str = str(date_field).split()[0]
+    if not time_field:
+        time_field = "12:00"
+    try:
+        return datetime.fromisoformat(f"{date_str}T{time_field}:00")
+    except Exception:
+        try:
+            return datetime.strptime(f"{date_str} {time_field}", "%Y-%m-%d %H:%M")
+        except Exception:
+            return None
