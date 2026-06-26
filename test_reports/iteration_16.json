@@ -1,0 +1,38 @@
+{
+  "summary": "Backend-only validation of Mirror Relationship v1.5.2 restructure. 64/64 tests pass: 54 pre-existing unit tests (test_forum_mapping_payload_v152, test_hd_channel_narrative, test_hd_relationship_narrative, test_bazi_animal_narrative, test_mirror_kg_v151_humanizer, test_mirror_kg_v15) + 10 new HTTP-level integration tests against the live preview endpoint /api/forums/{forum_id}/member-mappings, verified against BOTH the Pete-Mel forum (1 mapping) and Yoong family forum (3 mappings). Every mapping carries the full v1.5.2 contract: (a) signals.human_design[i].narrative with non-empty gift/tension/practical_use on each of the 6-8 completed channels per pair; (b) signals.human_design_field.narrative_blocks with all 7 keys (type_pair_engagement, authority_rhythm, profile_interaction, definition_dynamics, centers_conditioning, channels, practical_guidance); (c) signals.bazi.animal_narrative with pair_dynamic + inner_dynamic + triad_signal on every pair that has bazi; (d) signals.numerology.v2_card present with at least one Mirror Language field populated; (e) relationship_synthesis.undertone_for_today is always a string (sometimes empty for low-signal slots — spec allows). Top-story slots (headline/summary/current_movement/growth_edge/shadow_pattern/repair_pathway/question_to_ask) scanned across 4 live mappings — ZERO occurrences of Ajna/Sacral/Solar Plexus/defined center/open center/G Center/Gate N/Channel N-N/Manifestor x Reflector/Ten God. No duplicate sentences across story slots (case+punctuation normalized). All legacy keys (headline, description, what_works, what_to_watch, why_this_happens, channel_count, strength_score, story, patterns, signals) preserved on every mapping. /between-you-today endpoint still returns its own transit-driven payload (nested under `today`) with hero/activated_today/distortion_risk/softens_field/proof_layer all present and clearly independent of KG synthesis (different language, transit-aware). Acceptance gate: PASS.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [],
+    "react_native_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_forum_mapping_http_v152.py",
+    "/app/backend/tests/test_forum_mapping_payload_v152.py",
+    "/app/backend/tests/test_hd_channel_narrative.py",
+    "/app/backend/tests/test_hd_relationship_narrative.py",
+    "/app/backend/tests/test_bazi_animal_narrative.py",
+    "/app/backend/tests/test_mirror_kg_v151_humanizer.py",
+    "/app/backend/tests/test_mirror_kg_v15.py",
+    "/app/test_reports/pytest/v152_unit_results.xml",
+    "/app/test_reports/pytest/v152_http_results.xml"
+  ],
+  "action_items": [
+    "Frontend testing was explicitly skipped per request — main agent should self-verify mappings.tsx rendering (BetweenYouTodayCard → MIRROR SEES synthesis → HD drill-down narrative_blocks → completed channels with per-channel narrative → numerology-v2-card-v152 → bazi-animal-narrative-v152) using the new testIDs.",
+    "Note: relationship_synthesis.undertone_for_today returns empty string for 3 of 4 live mappings (Mel, Isaac, Mel-via-Yoong) and a populated 80+ char string only for Thaddeus. Spec says undertone may be empty — but if product wants more coverage, the orchestrator's undertone-extraction heuristic could be loosened. Non-blocking, behavior matches contract."
+  ],
+  "critical_code_review_comments": [
+    "test_forum_mapping_http_v152.py reads EXPO_PUBLIC_BACKEND_URL with a fallback to scanning /app/frontend/.env — safe but slightly brittle if env var is unset; harmless for CI in this environment.",
+    "The test_between_you_today_endpoint_independent test treats `today` as a nest key — the live payload always nests under `today`, so we could tighten the assertion later if the contract is firmed up."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_forum_mapping_http_v152.py (NEW — HTTP-level v1.5.2 payload contract verification)"
+  ],
+  "success_rate": {"backend": "100% (64/64)", "frontend": "n/a — skipped per request"},
+  "seed_data_creation": "No DB seed. Used existing Pete (697f0c6abf35c0528ff06954), Mel (697ec826ad4b18f75bf42616), Pete-Mel forum (69dd05eaa333335fcbf3ad33), Yoong family forum (69dda348de9cb1c83c0780fa) per /app/memory/test_credentials.md.",
+  "retest_needed": false,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "v1.5.2 backend contract is green end-to-end against the live preview backend. /app/backend/tests/test_forum_mapping_http_v152.py is the reusable HTTP-level regression — set EXPO_PUBLIC_BACKEND_URL before running, or it auto-reads /app/frontend/.env. To re-run all v1.5.2 backend regression: `pytest tests/test_forum_mapping_http_v152.py tests/test_forum_mapping_payload_v152.py tests/test_hd_channel_narrative.py tests/test_hd_relationship_narrative.py tests/test_bazi_animal_narrative.py tests/test_mirror_kg_v151_humanizer.py tests/test_mirror_kg_v15.py -v`. For UI verification main agent should hit the modal in /forums/<id> as Pete and confirm the new ordering: BetweenYouTodayCard on top → MIRROR SEES synthesis → drill-down with hd-relationship-narrative-blocks, numerology-v2-card-v152, bazi-animal-narrative-v152 testIDs.",
+  "rca_of_issue": "All 6 reported P0 bugs were structurally addressed by the v1.5.2 backend changes and verified live: (1) super-repetition — dedupe inside humanizer + diversified slot selection, verified test_no_duplicate_sentences_across_story_slots passes on all live mappings; (2) raw HD jargon leaking — jargon-strip regex in humanizer, verified test_no_raw_hd_jargon_in_top_story passes on all 4 live mappings against 10 jargon patterns; (3) Between You Today hijack — confirmed /between-you-today returns its own transit-driven payload independent of KG synthesis; (4) HD drill-down — narrative_blocks (7 keys) + per-channel narrative (gift/tension/practical_use) now populated for every mapping; (5) BaZi too thin — animal_narrative.pair_dynamic + inner_dynamic + triad_signal populated on every pair with bazi; (6) Numerology V2 card not rendering — numerology.v2_card populated with Mirror Language fields on every live mapping. Frontend rendering of the new testIDs was not exercised per scope."
+}

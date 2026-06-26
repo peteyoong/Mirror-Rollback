@@ -286,13 +286,35 @@ export default function ForumMappingsScreen() {
             showsVerticalScrollIndicator={false}
           >
             {/* ============================================================
-                MIRROR KNOWLEDGE GRAPH V1.5 — SYNTHESIS FIRST
-                Renders the cross-lens deterministic synthesis on top
-                when `relationship_synthesis` is present in the payload.
+                BETWEEN YOU TODAY — Relationship Timing Layer v1
+                FIRST in the relationship page hierarchy (per product spec
+                v1.5.2): today/transits/relationship-weather drive this
+                block. KG synthesis may add an optional `undertone` line
+                as a subtle subtitle (never replaces the transit body).
+                surface marker: between-you-today-first-v1.5.2
+                ============================================================ */}
+            {user?.id && selectedMember?.member_id && forumId ? (
+              <BetweenYouTodayCard
+                forumId={forumId as string}
+                userId={user.id}
+                memberId={selectedMember.member_id}
+                memberName={selectedMember.member_name}
+                theme={theme}
+                undertone={
+                  (selectedMember as any)?.relationship_synthesis?.undertone_for_today
+                  || (selectedMember as any)?.mapping?.relationship_synthesis?.undertone_for_today
+                  || ''
+                }
+              />
+            ) : null}
+
+            {/* ============================================================
+                MIRROR KNOWLEDGE GRAPH V1.5 — SYNTHESIS SECOND
+                The eloquent holistic relationship story. Renders the
+                cross-lens deterministic synthesis below the Today card.
                 Falls back silently to the existing legacy lens sections
-                below when absent.  Additive only — does NOT remove or
-                rewrite any existing content.
-                surface marker: relationship-synthesis-first-v1.5
+                below when absent.  Additive only.
+                surface marker: relationship-synthesis-second-v1.5.2
                 ============================================================ */}
             {(() => {
               const rs: any = (selectedMember as any)?.relationship_synthesis
@@ -307,7 +329,7 @@ export default function ForumMappingsScreen() {
                 : story.repair_pathway ? [String(story.repair_pathway)] : [];
               return (
                 <View
-                  testID="relationship-synthesis-first-v15"
+                  testID="relationship-synthesis-second-v152"
                   style={[styles.themesSection, { backgroundColor: theme.surface,
                                                    borderColor: theme.border,
                                                    borderWidth: 1,
@@ -401,23 +423,6 @@ export default function ForumMappingsScreen() {
                 </View>
               );
             })()}
-
-            {/* ============================================================
-                BETWEEN YOU TODAY — Relationship Timing Layer v1
-                Modulation card sits ABOVE the Relationship Field
-                architecture. Today is modulation; the field below is
-                architecture. The card silently no-ops if today's
-                envelope can't be computed.
-                ============================================================ */}
-            {user?.id && selectedMember?.member_id && forumId ? (
-              <BetweenYouTodayCard
-                forumId={forumId as string}
-                userId={user.id}
-                memberId={selectedMember.member_id}
-                memberName={selectedMember.member_name}
-                theme={theme}
-              />
-            ) : null}
 
             {useFieldLayout ? (
               <>
@@ -729,11 +734,121 @@ export default function ForumMappingsScreen() {
 
                   {showWhyExpanded && (
                     <View style={styles.whyContent}>
+                      {/* HD RELATIONSHIP NARRATIVE BLOCKS (v1.5.2)
+                          Renders type/authority/profile/definition/centers/
+                          electromagnetic/compromise/practical above the
+                          channel cards so HD drill-down has real narrative,
+                          not just channel boxes.
+                          marker: hd-relationship-narrative-blocks-v1.5.2 */}
+                      {(() => {
+                        const hdField = (signals as any)?.human_design_field;
+                        const blocks = hdField?.narrative_blocks;
+                        if (!blocks || typeof blocks !== 'object') return null;
+                        const renderBlock = (label: string, head: string | undefined, body: string | undefined, watch?: string | undefined, details?: string[]) => {
+                          if (!head && !body) return null;
+                          return (
+                            <View key={label} style={{ marginBottom: 14 }}>
+                              <Text style={[styles.patternLabel, { color: theme.textTertiary, marginBottom: 4 }]}>
+                                {label}{head ? ` · ${head}` : ''}
+                              </Text>
+                              {!!body && (
+                                <Text style={[styles.activationText, { color: theme.text, lineHeight: 21 }]}>
+                                  {body}
+                                </Text>
+                              )}
+                              {!!watch && (
+                                <Text style={[styles.activationText, { color: theme.textSecondary, marginTop: 4, fontStyle: 'italic', lineHeight: 20 }]}>
+                                  Watch: {watch}
+                                </Text>
+                              )}
+                              {Array.isArray(details) && details.length > 0 && (
+                                <View style={{ marginTop: 6 }}>
+                                  {details.map((d, i) => (
+                                    <Text key={`d-${i}`} style={[styles.activationText, { color: theme.textSecondary, marginLeft: 8 }]}>
+                                      · {d}
+                                    </Text>
+                                  ))}
+                                </View>
+                              )}
+                            </View>
+                          );
+                        };
+                        const ch = blocks.channels || {};
+                        return (
+                          <View testID="hd-relationship-narrative-blocks" style={{ marginBottom: 12 }}>
+                            <Text style={[styles.signalsNote, { color: theme.textTertiary }]}>
+                              HUMAN DESIGN — RELATIONSHIP DYNAMICS
+                            </Text>
+                            {renderBlock('TYPE ENGAGEMENT', blocks.type_pair_engagement?.headline, blocks.type_pair_engagement?.summary)}
+                            {!!blocks.type_pair_engagement?.field_overview && (
+                              <Text style={[styles.activationText, { color: theme.textSecondary, marginTop: -8, marginBottom: 14, lineHeight: 20 }]}>
+                                {blocks.type_pair_engagement.field_overview}
+                              </Text>
+                            )}
+                            {renderBlock('AUTHORITY · DECISION RHYTHM', blocks.authority_rhythm?.headline, blocks.authority_rhythm?.summary)}
+                            {renderBlock('PROFILE INTERACTION', blocks.profile_interaction?.headline, blocks.profile_interaction?.summary, blocks.profile_interaction?.watch)}
+                            {renderBlock('DEFINITION DYNAMICS', blocks.definition_dynamics?.headline, blocks.definition_dynamics?.summary, blocks.definition_dynamics?.watch)}
+                            {renderBlock('CENTER CONDITIONING', undefined, blocks.centers_conditioning?.summary, blocks.centers_conditioning?.watch, blocks.centers_conditioning?.details)}
+                            {/* CHANNELS DYNAMICS — counts + narratives */}
+                            {!!(ch.electromagnetic?.summary || ch.compromise?.summary || ch.dominance?.summary || ch.companion?.summary) && (
+                              <View style={{ marginBottom: 14 }}>
+                                <Text style={[styles.patternLabel, { color: theme.textTertiary, marginBottom: 4 }]}>
+                                  CHANNEL DYNAMICS
+                                </Text>
+                                {!!ch.electromagnetic?.summary && (
+                                  <Text style={[styles.activationText, { color: theme.text, marginTop: 4, lineHeight: 21 }]}>
+                                    ⟡ {ch.electromagnetic.summary}
+                                  </Text>
+                                )}
+                                {!!ch.compromise?.summary && (
+                                  <Text style={[styles.activationText, { color: theme.text, marginTop: 4, lineHeight: 21 }]}>
+                                    ⊘ {ch.compromise.summary}
+                                  </Text>
+                                )}
+                                {!!ch.dominance?.summary && (
+                                  <Text style={[styles.activationText, { color: theme.text, marginTop: 4, lineHeight: 21 }]}>
+                                    ▣ {ch.dominance.summary}
+                                  </Text>
+                                )}
+                                {!!ch.companion?.summary && (
+                                  <Text style={[styles.activationText, { color: theme.text, marginTop: 4, lineHeight: 21 }]}>
+                                    = {ch.companion.summary}
+                                  </Text>
+                                )}
+                              </View>
+                            )}
+                            {/* PRACTICAL — how to engage them */}
+                            {(blocks.practical_guidance?.repair_first?.length || blocks.practical_guidance?.growth_edge) && (
+                              <View style={{ marginBottom: 8 }}>
+                                <Text style={[styles.patternLabel, { color: theme.textTertiary, marginBottom: 4 }]}>
+                                  HOW TO ENGAGE
+                                </Text>
+                                {!!blocks.practical_guidance?.summary && (
+                                  <Text style={[styles.activationText, { color: theme.textSecondary, marginBottom: 4, lineHeight: 20 }]}>
+                                    {blocks.practical_guidance.summary}
+                                  </Text>
+                                )}
+                                {Array.isArray(blocks.practical_guidance?.repair_first) && blocks.practical_guidance.repair_first.map((r: string, i: number) => (
+                                  <Text key={`pr-${i}`} style={[styles.activationText, { color: theme.text, marginTop: 2, lineHeight: 21 }]}>
+                                    • {r}
+                                  </Text>
+                                ))}
+                                {!!blocks.practical_guidance?.growth_edge && (
+                                  <Text style={[styles.activationText, { color: theme.textSecondary, marginTop: 6, fontStyle: 'italic', lineHeight: 20 }]}>
+                                    Growth edge: {blocks.practical_guidance.growth_edge}
+                                  </Text>
+                                )}
+                              </View>
+                            )}
+                          </View>
+                        );
+                      })()}
+
                       {/* HD CHANNELS — only when HD signals present */}
                       {hdSignals.length > 0 && (
                         <>
                           <Text style={[styles.signalsNote, { color: theme.textTertiary }]}>
-                            DESIGN CONNECTIONS
+                            COMPLETED CHANNELS
                           </Text>
                           {hdSignals.map((channel: any, index: number) => (
                             <View 
@@ -778,6 +893,36 @@ export default function ForumMappingsScreen() {
                                   {channel.theme}
                                 </Text>
                               </View>
+                              {/* PER-CHANNEL NARRATIVE (v1.5.2) — gift / tension / practical use.
+                                  Renders only when channel.narrative is present. */}
+                              {channel.narrative && (
+                                <View testID={`channel-narrative-${channel.channel}`} style={{ marginTop: 10, paddingTop: 10, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: theme.border }}>
+                                  {!!channel.narrative.gift && (
+                                    <View style={{ marginBottom: 6 }}>
+                                      <Text style={[styles.patternLabel, { color: '#81C784' }]}>GIFT</Text>
+                                      <Text style={[styles.activationText, { color: theme.text, lineHeight: 20 }]}>
+                                        {channel.narrative.gift}
+                                      </Text>
+                                    </View>
+                                  )}
+                                  {!!channel.narrative.tension && (
+                                    <View style={{ marginBottom: 6 }}>
+                                      <Text style={[styles.patternLabel, { color: '#CF6679' }]}>TENSION TO WATCH</Text>
+                                      <Text style={[styles.activationText, { color: theme.text, lineHeight: 20 }]}>
+                                        {channel.narrative.tension}
+                                      </Text>
+                                    </View>
+                                  )}
+                                  {!!channel.narrative.practical_use && (
+                                    <View>
+                                      <Text style={[styles.patternLabel, { color: '#90CAF9' }]}>PRACTICAL USE</Text>
+                                      <Text style={[styles.activationText, { color: theme.text, lineHeight: 20 }]}>
+                                        {channel.narrative.practical_use}
+                                      </Text>
+                                    </View>
+                                  )}
+                                </View>
+                              )}
                             </View>
                           ))}
                         </>
@@ -975,11 +1120,52 @@ export default function ForumMappingsScreen() {
                         </View>
                     ) : null}
 
+                    {/* NUMEROLOGY V2 CARD — Mirror Language fields (v2-lite)
+                        Renders core_dynamic / natural_strength / growth_edge /
+                        shadow_pattern / repair_pathway PROMINENTLY before the
+                        legacy "themes" list. marker: numerology-v2-card-v1.5.2 */}
+                    {(() => {
+                      const v2c = (signals as any)?.numerology?.v2_card;
+                      if (!v2c || typeof v2c !== 'object') return null;
+                      const SECTIONS: Array<{ key: string; label: string }> = [
+                        { key: 'core_dynamic',     label: 'Core Dynamic' },
+                        { key: 'natural_strength', label: 'Natural Strength' },
+                        { key: 'growth_edge',      label: 'Growth Edge' },
+                        { key: 'shadow_pattern',   label: 'Shadow Pattern' },
+                        { key: 'repair_pathway',   label: 'Repair Pathway' },
+                      ];
+                      const anyText = SECTIONS.some(
+                        s => typeof v2c[s.key] === 'string' && v2c[s.key].trim().length > 0,
+                      );
+                      if (!anyText) return null;
+                      return (
+                        <View testID="numerology-v2-card-v152" style={styles.lensSection}>
+                          <Text style={[styles.signalsNote, { color: theme.textTertiary }]}>
+                            NUMBER RESONANCE — RELATIONSHIP STORY
+                          </Text>
+                          {SECTIONS.map(({ key, label }) => {
+                            const body = v2c[key];
+                            if (typeof body !== 'string' || body.trim().length === 0) return null;
+                            return (
+                              <View key={`nv2-${key}`} style={{ marginTop: 10 }}>
+                                <Text style={[styles.lensSignalText, { color: theme.text, fontWeight: '600', marginBottom: 4 }]}>
+                                  {label}
+                                </Text>
+                                <Text style={[styles.lensSignalText, { color: theme.textSecondary, lineHeight: 20 }]}>
+                                  {body}
+                                </Text>
+                              </View>
+                            );
+                          })}
+                        </View>
+                      );
+                    })()}
+
                     {/* NUMEROLOGY SIGNALS (only if present) */}
                     {signals?.numerology && signals.numerology.themes?.length > 0 && (
                       <View style={styles.lensSection}>
                         <Text style={[styles.signalsNote, { color: theme.textTertiary }]}>
-                          NUMBER RESONANCE
+                          NUMBER RESONANCE — themes
                         </Text>
                         {signals.numerology.themes.map((item: string, i: number) => (
                           <View key={`nt-${i}`} style={styles.lensSignalRow}>
@@ -989,6 +1175,60 @@ export default function ForumMappingsScreen() {
                         ))}
                       </View>
                     )}
+
+                    {/* BAZI ANIMAL NARRATIVE — grounded zodiac story (v1.5.2)
+                        Three blocks: pair_dynamic / inner_dynamic / triad_signal.
+                        Renders above the v2 narrative card.
+                        marker: bazi-animal-narrative-v1.5.2 */}
+                    {(() => {
+                      const an = (signals as any)?.bazi?.animal_narrative;
+                      if (!an || typeof an !== 'object') return null;
+                      const pair  = an.pair_dynamic;
+                      const inner = an.inner_dynamic;
+                      const triad = an.triad_signal;
+                      const hasAny =
+                        (pair && pair.summary) ||
+                        (inner && inner.summary) ||
+                        (triad && triad.summary);
+                      if (!hasAny) return null;
+                      return (
+                        <View testID="bazi-animal-narrative-v152" style={styles.lensSection}>
+                          <Text style={[styles.signalsNote, { color: theme.textTertiary }]}>
+                            BAZI ANIMAL DYNAMICS
+                          </Text>
+                          {!!(pair && pair.summary) && (
+                            <View style={{ marginTop: 10 }}>
+                              <Text style={[styles.lensSignalText, { color: theme.text, fontWeight: '600', marginBottom: 4 }]}>
+                                Pair Dynamic{pair.tone ? `  ·  ${String(pair.tone).replace('-', ' ')}` : ''}
+                              </Text>
+                              <Text style={[styles.lensSignalText, { color: theme.textSecondary, lineHeight: 20 }]}>
+                                {pair.summary}
+                              </Text>
+                            </View>
+                          )}
+                          {!!(inner && inner.summary) && (
+                            <View style={{ marginTop: 10 }}>
+                              <Text style={[styles.lensSignalText, { color: theme.text, fontWeight: '600', marginBottom: 4 }]}>
+                                Inner Dynamic
+                              </Text>
+                              <Text style={[styles.lensSignalText, { color: theme.textSecondary, lineHeight: 20 }]}>
+                                {inner.summary}
+                              </Text>
+                            </View>
+                          )}
+                          {!!(triad && triad.summary) && (
+                            <View style={{ marginTop: 10 }}>
+                              <Text style={[styles.lensSignalText, { color: theme.text, fontWeight: '600', marginBottom: 4 }]}>
+                                Triad Signal{triad.element ? `  ·  ${triad.element}` : ''}
+                              </Text>
+                              <Text style={[styles.lensSignalText, { color: theme.textSecondary, lineHeight: 20 }]}>
+                                {triad.summary}
+                              </Text>
+                            </View>
+                          )}
+                        </View>
+                      );
+                    })()}
 
                     {/* BAZI DYNAMICS — narrative card (5 sections) */}
                     {/* relationship-mapping-bazi-narrative-v1                */}

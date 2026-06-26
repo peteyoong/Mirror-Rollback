@@ -1121,7 +1121,24 @@ def compute_bazi_signals(
         result["support"] = [f"Your {el_a} nature and {name_b}'s {el_b} nature create a specific energetic dynamic"]
         if animal_a and animal_b:
             result["growth"] = [f"{animal_emoji_a} {animal_a} and {animal_emoji_b} {animal_b} bring different generational perspectives"]
-    
+
+    # Additive: grounded animal narrative blocks for the BaZi drill-down.
+    # Strict templates, no mystical fatalism. See bazi_animal_narrative.py.
+    try:
+        from services.bazi_animal_narrative import compute_animal_narrative
+        _animal_narr = compute_animal_narrative(
+            animal_a=animal_a or "",
+            animal_b=animal_b or "",
+            day_animal_a=day_animal_a or "",
+            day_animal_b=day_animal_b or "",
+            name_a=name_a,
+            name_b=name_b,
+        )
+        if _animal_narr:
+            result["animal_narrative"] = _animal_narr
+    except Exception as _ban_err:
+        logger.warning(f"[BaziAnimalNarrative] skipped: {_ban_err}")
+
     return result if result else None
 
 
@@ -1682,6 +1699,23 @@ def generate_mapping_interpretation(
             or CHANNEL_INTERPRETATIONS.get("default", {})
         )
 
+        # Per-channel narrative (gift / tension / practical_use) — additive
+        # for the relationship-page HD drill-down. See hd_channel_narrative.py.
+        channel_narrative = None
+        try:
+            from services.hd_channel_narrative import compute_channel_narrative
+            channel_narrative = compute_channel_narrative(
+                channel_id=cid,
+                channel_name=c.get("name", ""),
+                theme=c.get("theme", ""),
+                relational=c.get("relational", ""),
+                name_a=current_user_name,
+                name_b=member_name,
+            )
+        except Exception as _ch_n_err:
+            logger.warning(f"[HDChannelNarrative] skipped for {cid}: {_ch_n_err}")
+            channel_narrative = None
+
         hd_signals.append({
             "channel": cid,
             # Backend returns the short name only (e.g. "Community"); the UI
@@ -1702,6 +1736,9 @@ def generate_mapping_interpretation(
                 "what_to_watch": interp.get("what_to_watch"),
                 "is_curated":    cid in CHANNEL_INTERPRETATIONS,
             },
+            # NEW — per-channel narrative {gift, tension, practical_use}.
+            # Frontend renders this directly under each channel box.
+            "narrative": channel_narrative,
         })
     
     # Compute multi-lens signals (real data, not placeholders)
@@ -1797,6 +1834,25 @@ def generate_mapping_interpretation(
                 f"em={hd_field_v3['diagnostics']['electromagnetic_count']} "
                 f"dom={hd_field_v3['diagnostics']['dominance_count']}"
             )
+            # Additive: build human-readable HD relationship narrative blocks
+            # (type_pair, authority, profile, definition, centers, channels,
+            # practical_guidance). See hd_relationship_narrative.py.
+            try:
+                from services.hd_relationship_narrative import (
+                    compute_hd_narrative_blocks,
+                )
+                _nblocks = compute_hd_narrative_blocks(
+                    field_v3=hd_field_v3.get("field_v3"),
+                    diagnostics=hd_field_v3.get("diagnostics"),
+                    name_a=current_user_name,
+                    name_b=member_name,
+                )
+                if _nblocks:
+                    hd_field_v3["narrative_blocks"] = _nblocks
+            except Exception as _nb_err:
+                logger.warning(
+                    f"[HDRelationshipNarrative] skipped: {_nb_err}"
+                )
     except Exception as _hd_v3_err:
         logger.warning(f"[HDFieldV3] error: {_hd_v3_err}")
 

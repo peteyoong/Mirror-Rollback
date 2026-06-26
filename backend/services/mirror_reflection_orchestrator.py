@@ -13,6 +13,131 @@ from typing import Any, Dict, List, Optional
 
 ORCHESTRATOR_VERSION = "mirror-reflection-orchestrator-v1.5"
 
+# ─────────────────────────────────────────────────────────────────────
+# V1.5.1 — Humanization + dedup / diversification layer
+# Strips raw HD/astrology jargon from the *top-story* layer. Technical
+# terms still appear in evidence_ladder.technical_refs (drill-down).
+# ─────────────────────────────────────────────────────────────────────
+import re as _re
+
+_TECH_TERMS_PATTERN = _re.compile(
+    r"\b("
+    r"defined\s+Ajna|open\s+Ajna|Ajna(?!\w)|"
+    r"defined\s+Sacral|open\s+Sacral|Sacral(?!\w)|"
+    r"defined\s+Solar\s+Plexus|open\s+Solar\s+Plexus|Solar\s+Plexus|"
+    r"defined\s+G[\s-]?Center|open\s+G[\s-]?Center|G[\s-]?Center|"
+    r"defined\s+Throat|open\s+Throat|Throat(?!\w)|"
+    r"defined\s+Spleen|open\s+Spleen|Spleen|"
+    r"defined\s+Ego|open\s+Ego|Heart\s+Center|"
+    r"defined\s+Root|open\s+Root|Root\s+Center|"
+    r"defined\s+Head|open\s+Head|Head\s+Center|"
+    r"defined\s+center|open\s+center|defined\s+centers|open\s+centers|"
+    r"Gate\s+\d{1,2}(?:\.\d)?|Channel\s+\d{1,2}-\d{1,2}|"
+    r"Ten\s+God|"
+    r"\b\d{1,2}-\d{1,2}\b"
+    r")\b",
+    _re.IGNORECASE,
+)
+
+# Phrase-level humanization mappings (deterministic, prepend before regex strip).
+_HUMANIZE_PHRASES = [
+    (_re.compile(r"defined\s+Ajna\s+amplifies\s+certainty", _re.IGNORECASE),
+     "one of you can become certain so fast the room starts reacting to it"),
+    (_re.compile(r"defined\s+Solar\s+Plexus\b.*?(?=\.|$)", _re.IGNORECASE),
+     "one of you carries the emotional weather for both"),
+    (_re.compile(r"open\s+Solar\s+Plexus\b.*?(?=\.|$)", _re.IGNORECASE),
+     "one of you may absorb the other's emotional weather before knowing what is theirs"),
+    (_re.compile(r"defined\s+Sacral\b.*?(?=\.|$)", _re.IGNORECASE),
+     "one of you brings a steady body-yes that the other can lean into"),
+    (_re.compile(r"open\s+Sacral\b.*?(?=\.|$)", _re.IGNORECASE),
+     "one of you may take on the other's energy and over-give before noticing"),
+    (_re.compile(r"Manifestor\s*[x×]\s*Reflector", _re.IGNORECASE),
+     "one of you initiates, the other samples and reflects the field over time"),
+    (_re.compile(r"Generator\s*[x×]\s*Projector", _re.IGNORECASE),
+     "one of you responds with steady body-knowing, the other reads and guides"),
+    (_re.compile(r"defined\s+(?:throat|G[\s-]?Center)\s+pulls", _re.IGNORECASE),
+     "one of you tends to set the direction the room moves toward"),
+    (_re.compile(r"centre\s+conditioning|center\s+conditioning", _re.IGNORECASE),
+     "the way you each shape the atmosphere around the other"),
+    # SENTENCE-LEVEL CATCH-ALLS — when a sentence is dominated by HD jargon
+    # that the regex would otherwise leave grammatically broken, drop the
+    # whole sentence and substitute a clean one. These run AFTER the phrase
+    # replacements above.
+    (_re.compile(r"[A-Z][a-z]+'s\s+defined\s+\w+(?:\s+\w+)?\s+amplifies[^.]*\.",
+                 _re.IGNORECASE),
+     "One of you can amplify a state until both of you are inside it."),
+    (_re.compile(r"[A-Z][a-z]+\s+will\s+leave\s+the\s+field\s+carrying[^.]*\.",
+                 _re.IGNORECASE),
+     "The other tends to leave the room carrying what was shared between you."),
+    (_re.compile(r"open-?\s*(?:[A-Z][a-z]+(?:\s+Center)?|center)\s+side\s+stays[^.]*\.",
+                 _re.IGNORECASE),
+     "The more receptive side can stay longer than is healthy."),
+    (_re.compile(r"\bsplenic\s+signals\s+don'?t\s+repeat[^.]*\.", _re.IGNORECASE),
+     "Quiet, in-the-moment knowing doesn't repeat itself — listen the first time."),
+    (_re.compile(r"Inform\s+before\s+acting\s+next\s+time\.", _re.IGNORECASE),
+     "Inform before acting next time."),
+]
+
+
+def _humanize(text: str) -> str:
+    """Strip / soften raw HD jargon for top-story rendering. Idempotent."""
+    if not isinstance(text, str) or not text:
+        return text
+    out = text
+    for pat, repl in _HUMANIZE_PHRASES:
+        out = pat.sub(repl, out)
+    # Remove residual standalone technical tokens
+    out = _TECH_TERMS_PATTERN.sub("the field between you", out)
+    # Collapse repeated phrase "the field between you"
+    out = _re.sub(r"(the field between you)(\s+\1)+", r"\1", out)
+    # Collapse the "the the field between you" artefact (double article)
+    out = _re.sub(r"\bthe\s+(the field between you)", r"\1", out, flags=_re.IGNORECASE)
+    # Also strip residual "Type pair: X × Y" diagnostic-only summaries
+    out = _re.sub(r"^\s*Type\s+pair\s*:\s*[^.]+\.?\s*$",
+                  "Two different mechanics meeting — the rhythm between you is its own thing.",
+                  out, flags=_re.IGNORECASE)
+    # Tidy spaces & punctuation
+    out = _re.sub(r"\s+", " ", out).strip()
+    out = _re.sub(r"\s+([.;,])", r"\1", out)
+    return out
+
+
+def _normalize_for_dedupe(text: str) -> str:
+    """Lowercased, punctuation-stripped, whitespace-collapsed dedupe key."""
+    if not isinstance(text, str): return ""
+    s = _re.sub(r"[^\w\s]", " ", text.lower())
+    return _re.sub(r"\s+", " ", s).strip()
+
+
+def _diversified_pick(clusters: List[Dict[str, Any]],
+                       used_signal_ids: set,
+                       used_text_keys: set,
+                       polarity: Optional[str] = None,
+                       theme: Optional[str] = None) -> Optional[Dict[str, Any]]:
+    """Pick a cluster whose top signal is NOT already used. Falls back
+    to any-cluster if needed."""
+    candidates = list(clusters)
+    if polarity:
+        candidates = [c for c in clusters
+                      if (c.get("polarity_tally") or {}).get(polarity)] or candidates
+    if theme:
+        candidates = [c for c in candidates if c.get("theme") == theme] or candidates
+    for c in candidates:
+        sigs_sorted = sorted(c.get("signals", []),
+                              key=lambda s: -(s.get("strength", 0.5) * s.get("confidence", 0.5)))
+        for s in sigs_sorted:
+            sid = s.get("id")
+            txt_key = _normalize_for_dedupe(s.get("summary", ""))
+            if sid in used_signal_ids or (txt_key and txt_key in used_text_keys):
+                continue
+            used_signal_ids.add(sid)
+            if txt_key:
+                used_text_keys.add(txt_key)
+            # Return a synthetic "cluster-like" pick keyed by chosen signal
+            return {**c, "_chosen_signal": s}
+    return None
+
+
 FORBIDDEN = ("destiny", "destined", "soulmate", "meant to be",
              "karmic partner", "guaranteed compatibility",
              "prediction", "fortune telling", "fortune-telling")
@@ -156,7 +281,8 @@ def _build_evidence_ladder(story, clusters):
         prov_rollup = cluster.get("provenance_status") or "unknown"
         return {
             "claim_label":         claim_label,
-            "claim":               claim_text,
+            "claim":               _humanize(claim_text),
+            "claim_raw":           claim_text,
             "cluster_theme":       cluster.get("theme"),
             "supporting_signals":  supporting,
             "lens_contributions":  lens_contrib,
@@ -218,15 +344,51 @@ def synthesize_relationship(
     headline  = _headline(clusters, name_a, name_b)
     summary   = _first_summary(top) if top else ""
 
+    # V1.5.1 — diversified picks: each story slot draws from a DISTINCT
+    # signal whose text hasn't already been used. This prevents a single
+    # high-strength signal from dominating headline/movement/shadow.
+    _used_sids: set = set()
+    _used_keys: set = set()
+    head_pick = _diversified_pick(clusters, _used_sids, _used_keys)  # any-strongest
+    movement_pick = _diversified_pick(clusters, _used_sids, _used_keys, polarity="movement")
+    growth_pick = _diversified_pick(clusters, _used_sids, _used_keys, polarity="growth")
+    shadow_pick = _diversified_pick(clusters, _used_sids, _used_keys, polarity="shadow") \
+                   or _diversified_pick(clusters, _used_sids, _used_keys, polarity="friction")
+
+    def _picked_summary(pick: Optional[Dict[str, Any]]) -> str:
+        if not pick: return ""
+        chosen = pick.get("_chosen_signal") or {}
+        return (chosen.get("summary") or "").strip()
+
     story = {
-        "headline":          headline,
-        "summary":           summary,
-        "current_movement":  _first_summary(movement_cluster),
-        "growth_edge":       _first_summary(growth_cluster),
-        "shadow_pattern":    _first_summary(shadow_cluster) if shadow_cluster else "",
-        "repair_pathway":    _collect_repair_lines(clusters, 3),
-        "question_to_ask":   _question(top),
+        "headline":          _humanize(headline),
+        "summary":           _humanize(summary),
+        "current_movement":  _humanize(_picked_summary(movement_pick) or _first_summary(movement_cluster)),
+        "growth_edge":       _humanize(_picked_summary(growth_pick)   or _first_summary(growth_cluster)),
+        "shadow_pattern":    _humanize(_picked_summary(shadow_pick)   or (_first_summary(shadow_cluster) if shadow_cluster else "")),
+        "repair_pathway":    [_humanize(line) for line in _collect_repair_lines(clusters, 3)],
+        "question_to_ask":   _humanize(_question(top)),
     }
+
+    # Final guard: dedupe across ALL story slots after humanization.
+    _seen_keys: set = set()
+    for slot in ("headline", "summary", "current_movement", "growth_edge", "shadow_pattern"):
+        text = story.get(slot, "")
+        if not text:
+            continue
+        key = _normalize_for_dedupe(text)
+        if key in _seen_keys:
+            story[slot] = ""  # blank duplicate slot rather than repeating
+        else:
+            _seen_keys.add(key)
+    # Repair pathway dedupe
+    seen_rp: set = set()
+    rp_out: List[str] = []
+    for line in story.get("repair_pathway", []) or []:
+        k = _normalize_for_dedupe(line)
+        if k and k not in seen_rp and k not in _seen_keys:
+            seen_rp.add(k); rp_out.append(line)
+    story["repair_pathway"] = rp_out
 
     # Evidence tray
     evidence_lines: List[str] = []
@@ -269,8 +431,32 @@ def synthesize_relationship(
     # V1.5 — every story claim traces to supporting signals.
     evidence_ladder = _build_evidence_ladder(story, clusters)
 
+    # V1.5.1 — `undertone_for_today` is a SHORT, deterministic, KG-derived
+    # line that the frontend may render as a subtle subtitle underneath the
+    # transit-based "Between You Today" hero. It is NOT a replacement for
+    # transits/weather — strictly an architectural undertone.
+    undertone = ""
+    _LOW_VALUE_PREFIXES = (
+        "type pair:", "authority pair:", "profile pair:", "definition pair:",
+        "no electromagnetic", "no companion", "no compromise", "no dominance",
+    )
+    if top and top.get("signals"):
+        # Pick a single short-summary signal that survives humanization, is
+        # not used in any story slot, and is NOT a low-value diagnostic line.
+        for s in sorted(top["signals"], key=lambda x: -(x.get("strength", 0.5) * x.get("confidence", 0.5))):
+            cand = _humanize((s.get("summary") or "").strip())
+            if not cand or len(cand) >= 180:
+                continue
+            if any(cand.lower().startswith(p) for p in _LOW_VALUE_PREFIXES):
+                continue
+            if _normalize_for_dedupe(cand) in _seen_keys:
+                continue
+            undertone = "Underneath today, the field carries: " + cand.rstrip(".") + "."
+            break
+
     return {
         "story":      story,
+        "undertone_for_today": undertone,
         "evidence": {
             "why_mirror_sees_this": evidence_lines,
             "lens_contributions":   lens_contributions,

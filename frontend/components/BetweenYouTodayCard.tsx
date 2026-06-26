@@ -45,6 +45,12 @@ interface Props {
   memberId: string;
   memberName: string;
   theme: ThemeShape;
+  /**
+   * Optional subtle undertone line (KG-derived) rendered beneath the
+   * transit-driven hero. Per product spec v1.5.2 the hero MUST come
+   * from today/transits; this undertone is supplementary.
+   */
+  undertone?: string;
 }
 
 const intensityChipStyle = (level: 'low' | 'medium' | 'high', accent: string) => {
@@ -64,6 +70,7 @@ const BetweenYouTodayCard: React.FC<Props> = ({
   memberId,
   memberName,
   theme,
+  undertone,
 }) => {
   const accent = theme.accent || '#8B5CF6';
   const [today, setToday] = useState<BetweenYouToday | null>(null);
@@ -198,8 +205,25 @@ const BetweenYouTodayCard: React.FC<Props> = ({
         </View>
       </View>
 
-      {/* HERO — the retention hook */}
+      {/* HERO — the retention hook (transit-driven) */}
       <Text style={[styles.hero, { color: theme.text }]}>{today.hero}</Text>
+
+      {/* Optional subtle KG-derived undertone (NEVER replaces the hero) */}
+      {!!undertone && (
+        <Text
+          testID="between-you-today-undertone"
+          style={{
+            color: theme.textTertiary,
+            fontStyle: 'italic',
+            fontSize: 13,
+            lineHeight: 19,
+            marginTop: 4,
+            marginBottom: 8,
+          }}
+        >
+          {undertone}
+        </Text>
+      )}
 
       {/* WHAT'S ACTIVATED TODAY */}
       {today.activated_today && today.activated_today.length > 0 && (
