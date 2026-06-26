@@ -1801,6 +1801,38 @@ def generate_mapping_interpretation(
         logger.warning(f"[HDFieldV3] error: {_hd_v3_err}")
 
     # =========================================================================
+    # MIRROR KG OVERLAY V1 — relationship_synthesis (additive only).
+    # Normalises lens signals → ephemeral knowledge graph → progressive
+    # synthesis.  Wrapped in try/except so it cannot break the mapping.
+    # Adds ONE new key: mapping["relationship_synthesis"]
+    # =========================================================================
+    relationship_synthesis = None
+    try:
+        from services.mirror_signal_normalizer import normalize_signals
+        from services.mirror_knowledge_graph import build_knowledge_graph
+        from services.mirror_reflection_orchestrator import synthesize_relationship
+        _kg_signals_input = {
+            "human_design_field": hd_field_v3,
+            "bazi":       bazi_signals,
+            "numerology": numerology_signals,
+            "astrology":  astrology_signals,
+            "enneagram":  enneagram_signals,
+        }
+        _norm_signals = normalize_signals(_kg_signals_input)
+        _graph = build_knowledge_graph(_norm_signals)
+        relationship_synthesis = synthesize_relationship(
+            _norm_signals, _graph, current_user_name, member_name,
+        )
+        logger.info(
+            f"[MirrorKG] pair={current_user_name}<->{member_name} "
+            f"signals={len(_norm_signals)} "
+            f"clusters={(_graph.get('diagnostics') or {}).get('cluster_count')} "
+            f"conf={relationship_synthesis['confidence']['level']}"
+        )
+    except Exception as _kg_err:
+        logger.warning(f"[MirrorKG] overlay error: {_kg_err}")
+
+    # =========================================================================
     # RELATIONSHIP FIELD ARCHITECTURE v1 — additive synthesis layer.
     # ---------------------------------------------------------------------
     # Reads all the per-lens outputs already computed above and synthesizes
@@ -1860,6 +1892,8 @@ def generate_mapping_interpretation(
         "why_this_happens": hd_signals,
         "channel_count": channel_count,
         "strength_score": min(channel_count * 20 + 10, 100),
+        # MIRROR KG OVERLAY V1 — additive, may be None on failure.
+        "relationship_synthesis": relationship_synthesis,
     }
 
     # Attach the new field envelope ONLY when synthesis succeeded.
