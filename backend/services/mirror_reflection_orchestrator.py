@@ -439,19 +439,30 @@ def synthesize_relationship(
     _LOW_VALUE_PREFIXES = (
         "type pair:", "authority pair:", "profile pair:", "definition pair:",
         "no electromagnetic", "no companion", "no compromise", "no dominance",
+        "the field between you",
     )
-    if top and top.get("signals"):
-        # Pick a single short-summary signal that survives humanization, is
-        # not used in any story slot, and is NOT a low-value diagnostic line.
-        for s in sorted(top["signals"], key=lambda x: -(x.get("strength", 0.5) * x.get("confidence", 0.5))):
+
+    def _pick_undertone_from(cluster):
+        if not cluster or not cluster.get("signals"):
+            return ""
+        for s in sorted(cluster["signals"], key=lambda x: -(x.get("strength", 0.5) * x.get("confidence", 0.5))):
             cand = _humanize((s.get("summary") or "").strip())
-            if not cand or len(cand) >= 180:
+            if not cand or len(cand) < 18 or len(cand) >= 200:
                 continue
-            if any(cand.lower().startswith(p) for p in _LOW_VALUE_PREFIXES):
+            cand_l = cand.lower()
+            if any(cand_l.startswith(p) for p in _LOW_VALUE_PREFIXES):
                 continue
             if _normalize_for_dedupe(cand) in _seen_keys:
                 continue
-            undertone = "Underneath today, the field carries: " + cand.rstrip(".") + "."
+            # First letter must be a word char (avoid orphan punctuation residue)
+            if not cand[0].isalpha():
+                continue
+            return cand
+    # Walk top cluster first, then any subsequent clusters
+    for c in clusters[:6]:
+        candidate = _pick_undertone_from(c)
+        if candidate:
+            undertone = "Underneath today: " + candidate.rstrip(".") + "."
             break
 
     return {
