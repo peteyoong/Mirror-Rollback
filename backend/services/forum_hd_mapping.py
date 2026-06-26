@@ -1259,7 +1259,31 @@ def compute_numerology_signals(
 
     # Cap output to keep the lens scannable.  Forum FE renders all
     # entries verbatim; >3 reads as noise.
-    return {"themes": themes[:3]}
+    out: Dict[str, Any] = {"themes": themes[:3]}
+
+    # ── Phase 2-lite enrichment (additive; backward compatible) ──────
+    # Attach v2_card + diagnostics from the deterministic engine.
+    # Frontend may ignore these fields; existing `themes` consumers
+    # see identical shape.  Engine returns None only when life_path
+    # missing on either side — already guarded above.
+    try:
+        from services.relationship_numerology_engine_lite import (
+            compute_numerology_relationship,
+        )
+        enriched = compute_numerology_relationship(
+            num_a, num_b, name_a, name_b,
+        )
+        if isinstance(enriched, dict):
+            if "v2_card" in enriched:
+                out["v2_card"] = enriched["v2_card"]
+            if "diagnostics" in enriched:
+                out["diagnostics"] = enriched["diagnostics"]
+    except Exception as e:  # pragma: no cover — defensive
+        logger.warning(
+            "[NumerologyLite] v2_card attachment failed: %s", e,
+        )
+
+    return out
 
 
 
