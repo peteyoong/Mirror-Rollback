@@ -475,124 +475,135 @@ async def scan_timezone_fallback_cohort(
     near_miss_asia_safe: List[Dict[str, Any]] = []
     near_miss_explicit_zone: List[Dict[str, Any]] = []
     near_miss_no_coords: List[Dict[str, Any]] = []
+    row_failures: List[Dict[str, Any]] = []
     scanned = 0
     cursor = db.charts.find({}).limit(limit)
     async for c in cursor:
         scanned += 1
-        astro = c.get("astrology") or {}
-        # FIX: migration_info lives at the chart top level (chart.migration_info),
-        # NOT under astrology. The first version of this scan read the wrong path
-        # and returned zero hits even for Ana.
-        mig = c.get("migration_info") or astro.get("migration_info") or {}
-        resolved_offset = (mig.get("resolved_offset") or "").strip()
-        timezone_iana = (mig.get("timezone_iana") or "").strip()
-
-        uid = c.get("user_id")
-        if not uid:
-            continue
         try:
-            user = await db.users.find_one({"_id": ObjectId(uid)})
-        except Exception:
-            user = None
-        if not user:
-            continue
-        loc = user.get("birth_location") or {}
-        lat = loc.get("lat") or loc.get("latitude") or user.get("lat")
-        lon = loc.get("lon") or loc.get("lng") or loc.get("longitude") or user.get("lon")
-        try:
-            lonf = float(lon) if lon is not None else None
-            latf = float(lat) if lat is not None else None
-        except Exception:
-            lonf = latf = None
+            astro = c.get("astrology") or {}
+            # FIX: migration_info lives at the chart top level (chart.migration_info),
+            # NOT under astrology. The first version of this scan read the wrong path
+            # and returned zero hits even for Ana.
+            mig = c.get("migration_info") or astro.get("migration_info") or {}
+            resolved_offset = (mig.get("resolved_offset") or "").strip()
+            timezone_iana = (mig.get("timezone_iana") or "").strip()
 
-        stored_user_tz = (user.get("timezone") or "").strip() or None
-        stored_input_utc = (astro.get("metadata") or {}).get("input_datetime_utc")
-
-        # ---- Criterion C: stored UTC implies offset; compare to lon ----
-        implied_offset_h: Optional[float] = None
-        offset_disagree_h: Optional[float] = None
-        local_dt = _parse_local_dt(user.get("birth_date"), user.get("birth_time"))
-        stored_utc = _parse_utc_iso(stored_input_utc)
-        if local_dt and stored_utc:
+            uid = c.get("user_id")
+            if not uid:
+                continue
             try:
-                # Strip TZ for diff
-                stored_utc_naive = stored_utc.replace(tzinfo=None)
-                implied_offset_h = (local_dt - stored_utc_naive).total_seconds() / 3600.0
+                user = await db.users.find_one({"_id": ObjectId(uid)})
             except Exception:
-                implied_offset_h = None
-        if implied_offset_h is not None and lonf is not None:
-            expected_h = lonf / 15.0
-            offset_disagree_h = round(implied_offset_h - expected_h, 2)
+                user = None
+            if not user:
+                continue
+            loc = user.get("birth_location") or {}
+            lat = loc.get("lat") or loc.get("latitude") or user.get("lat")
+            lon = loc.get("lon") or loc.get("lng") or loc.get("longitude") or user.get("lon")
+            try:
+                lonf = float(lon) if lon is not None else None
+                latf = float(lat) if lat is not None else None
+            except Exception:
+                lonf = latf = None
 
-        # ---- Criterion B: user.timezone raw offset vs lon ----
-        raw_offset_h = _parse_offset_to_hours(stored_user_tz)
-        user_tz_is_iana = bool(stored_user_tz and "/" in stored_user_tz)
-        offset_disagree_user_tz_h: Optional[float] = None
-        if raw_offset_h is not None and lonf is not None:
-            offset_disagree_user_tz_h = round(raw_offset_h - (lonf / 15.0), 2)
+            stored_user_tz = (user.get("timezone") or "").strip() or None
+            stored_input_utc = (astro.get("metadata") or {}).get("input_datetime_utc")
 
-        # ---- Criterion A: classic +08:00 silent fallback ----
-        crit_A = bool(
-            resolved_offset == "+08:00"
-            and not timezone_iana
-            and lonf is not None
-            and not (asia_lon_min <= lonf <= asia_lon_max)
-        )
-        crit_B = bool(
-            raw_offset_h is not None
-            and not user_tz_is_iana
-            and offset_disagree_user_tz_h is not None
-            and abs(offset_disagree_user_tz_h) > offset_tolerance_h
-        )
-        crit_C = bool(
-            offset_disagree_h is not None
-            and abs(offset_disagree_h) > offset_tolerance_h
-        )
+            # ---- Criterion C: stored UTC implies offset; compare to lon ----
+            implied_offset_h: Optional[float] = None
+            offset_disagree_h: Optional[float] = None
+            local_dt = _parse_local_dt(user.get("birth_date"), user.get("birth_time"))
+            stored_utc = _parse_utc_iso(stored_input_utc)
+            if local_dt and stored_utc:
+                try:
+                    # Strip TZ for diff
+                    stored_utc_naive = stored_utc.replace(tzinfo=None)
+                    implied_offset_h = (local_dt - stored_utc_naive).total_seconds() / 3600.0
+                except Exception:
+                    implied_offset_h = None
+            if implied_offset_h is not None and lonf is not None:
+                expected_h = lonf / 15.0
+                offset_disagree_h = round(implied_offset_h - expected_h, 2)
 
-        any_crit = crit_A or crit_B or crit_C
-        row = {
-            "user_id": uid,
-            "chart_id": str(c.get("_id")),
-            "name": user.get("name"),
-            "email": user.get("email"),
-            "stored_birth_date": _safe_iso(user.get("birth_date")),
-            "stored_birth_time": user.get("birth_time"),
-            "user_timezone_field": stored_user_tz,
-            "user_timezone_is_iana": user_tz_is_iana,
-            "stored_resolved_offset": resolved_offset or None,
-            "stored_timezone_iana": timezone_iana or None,
-            "stored_input_datetime_utc": stored_input_utc,
-            "lat": latf,
-            "lon": lonf,
-            "expected_offset_h_from_lon": (lonf / 15.0 if lonf is not None else None),
-            "implied_offset_h_from_stored_utc": implied_offset_h,
-            "offset_disagree_implied_vs_expected_h": offset_disagree_h,
-            "raw_user_tz_offset_h": raw_offset_h,
-            "offset_disagree_user_tz_vs_lon_h": offset_disagree_user_tz_h,
-            "criteria_hit": [k for k, v in (("A", crit_A), ("B", crit_B), ("C", crit_C)) if v],
-            "engine_version": astro.get("astrology_engine_version"),
-            "migration_marker": astro.get("migration_marker"),
-            "calculated_at": _safe_iso(c.get("calculated_at")),
-            "likely_correct_iana_hint": (_lon_to_iana_hint(lonf, latf or 0.0) if lonf is not None else None),
-        }
+            # ---- Criterion B: user.timezone raw offset vs lon ----
+            raw_offset_h = _parse_offset_to_hours(stored_user_tz)
+            user_tz_is_iana = bool(stored_user_tz and "/" in stored_user_tz)
+            offset_disagree_user_tz_h: Optional[float] = None
+            if raw_offset_h is not None and lonf is not None:
+                offset_disagree_user_tz_h = round(raw_offset_h - (lonf / 15.0), 2)
 
-        if any_crit:
-            cohort.append(row)
-            continue
+            # ---- Criterion A: classic +08:00 silent fallback ----
+            crit_A = bool(
+                resolved_offset == "+08:00"
+                and not timezone_iana
+                and lonf is not None
+                and not (asia_lon_min <= lonf <= asia_lon_max)
+            )
+            crit_B = bool(
+                raw_offset_h is not None
+                and not user_tz_is_iana
+                and offset_disagree_user_tz_h is not None
+                and abs(offset_disagree_user_tz_h) > offset_tolerance_h
+            )
+            crit_C = bool(
+                offset_disagree_h is not None
+                and abs(offset_disagree_h) > offset_tolerance_h
+            )
 
-        # near-miss classification (no real bug, but interesting for context)
-        if not any_crit and resolved_offset == "+08:00" and not timezone_iana:
-            if lonf is not None and asia_lon_min <= lonf <= asia_lon_max:
-                near_miss_asia_safe.append(row)
-            elif lonf is None:
-                near_miss_no_coords.append(row)
-            else:
-                # Already covered by crit_A above; defensive
+            any_crit = crit_A or crit_B or crit_C
+            row = {
+                "user_id": uid,
+                "chart_id": str(c.get("_id")),
+                "name": user.get("name"),
+                "email": user.get("email"),
+                "stored_birth_date": _safe_iso(user.get("birth_date")),
+                "stored_birth_time": user.get("birth_time"),
+                "user_timezone_field": stored_user_tz,
+                "user_timezone_is_iana": user_tz_is_iana,
+                "stored_resolved_offset": resolved_offset or None,
+                "stored_timezone_iana": timezone_iana or None,
+                "stored_input_datetime_utc": stored_input_utc,
+                "lat": latf,
+                "lon": lonf,
+                "expected_offset_h_from_lon": (lonf / 15.0 if lonf is not None else None),
+                "implied_offset_h_from_stored_utc": implied_offset_h,
+                "offset_disagree_implied_vs_expected_h": offset_disagree_h,
+                "raw_user_tz_offset_h": raw_offset_h,
+                "offset_disagree_user_tz_vs_lon_h": offset_disagree_user_tz_h,
+                "criteria_hit": [k for k, v in (("A", crit_A), ("B", crit_B), ("C", crit_C)) if v],
+                "engine_version": astro.get("astrology_engine_version"),
+                "migration_marker": astro.get("migration_marker"),
+                "calculated_at": _safe_iso(c.get("calculated_at")),
+                "likely_correct_iana_hint": (_lon_to_iana_hint(lonf, latf or 0.0) if lonf is not None else None),
+            }
+
+            if any_crit:
                 cohort.append(row)
-        elif not any_crit and timezone_iana:
-            near_miss_explicit_zone.append(row)
-        elif not any_crit and lonf is None:
-            near_miss_no_coords.append(row)
+                continue
+
+            # near-miss classification (no real bug, but interesting for context)
+            if not any_crit and resolved_offset == "+08:00" and not timezone_iana:
+                if lonf is not None and asia_lon_min <= lonf <= asia_lon_max:
+                    near_miss_asia_safe.append(row)
+                elif lonf is None:
+                    near_miss_no_coords.append(row)
+                else:
+                    # Already covered by crit_A above; defensive
+                    cohort.append(row)
+            elif not any_crit and timezone_iana:
+                near_miss_explicit_zone.append(row)
+            elif not any_crit and lonf is None:
+                near_miss_no_coords.append(row)
+        except Exception as e:
+            # Never let one rotten row crash the whole scan.
+            row_failures.append({
+                "chart_id": str(c.get("_id")) if c else None,
+                "user_id": c.get("user_id") if isinstance(c, dict) else None,
+                "error": f"{type(e).__name__}: {e!s}",
+            })
+            logger.warning("[scan_timezone_fallback_cohort] row failed: %s", e)
+            continue
 
     return JSONResponse(
         content={
@@ -614,10 +625,12 @@ async def scan_timezone_fallback_cohort(
             "near_miss_asia_safe_count": len(near_miss_asia_safe),
             "near_miss_explicit_zone_count": len(near_miss_explicit_zone),
             "near_miss_no_coords_count": len(near_miss_no_coords),
+            "row_failure_count": len(row_failures),
             "cohort": cohort,
             "near_miss_asia_safe": near_miss_asia_safe[:50],
             "near_miss_explicit_zone": near_miss_explicit_zone[:50],
             "near_miss_no_coords": near_miss_no_coords[:50],
+            "row_failures": row_failures[:50],
         },
         headers={"Cache-Control": "no-store"},
     )
