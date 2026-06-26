@@ -32635,6 +32635,14 @@ app.include_router(_fix_htz_cohort.router)
 from routers import admin_audit_chart as _audit_chart
 app.include_router(_audit_chart.router)
 
+# Read-only name/email user lookup (find-user-readonly-v1).
+# Scans users, forum_members, saved_people, charts collections for any
+# record whose name or email matches the query, and reports chart_id
+# + engine_version + migration_marker for each match.  No writes.
+# Built specifically for the Ana stored-chart drift investigation.
+from routers import admin_find_user as _find_user
+app.include_router(_find_user.router)
+
 # Temporary screenshot-package download endpoint (download-screenshots-v1).
 # Serves /app/memory/screenshots.zip as a file download for browser
 # users with the SCREENSHOTS_DOWNLOAD_V1 confirm token.  Read-only;
