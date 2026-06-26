@@ -1,0 +1,38 @@
+{
+  "summary": "P0 verification of Pete stored-chart repair (user_id 697f224b366f6814412d8c84) against PRODUCTION (https://mirror-lens-fixes-r-1779710763.emergent.host). 20/20 active assertions PASS (1 MC skip in audit was independently verified via public /api/astrology/chart). All step A-E success criteria confirmed: (A) astrology.astrology_engine_version=midpoint13_variant_a_v1, migration_marker=variant-a-13-sign-migration-v1, input_datetime_utc=1968-03-31T17:55:00 (correct MY pre-1982 +07:30 offset), ASC Sagittarius 19.796° (target 19.80°, within ±0.05°), MC Virgo 28.279° (target 28.28°, within ±0.5° — via /api/astrology/chart since audit_chart does not expose MC), debug_stamp.fix_marker=chart_provenance_repair_v1, debug_stamp.provenance_hash=a81edea6597cf0edb549a2c5386351c673dffbf7c4727457c92be2dbf8d9f13f EXACT MATCH, calculated_at=2026-06-26T16:06:13.896Z (~2 min before test run). debug_stamp.provenance_inputs.timezone_iana=Asia/Kuala_Lumpur and resolved_timezone=Asia/Kuala_Lumpur correctly stamped. (B) find_user(Pete) returns Pete in users collection, chart_present=true, engine/migration markers stamped. (C) /api/v1/profile/full {1968-04-01, 01:25, tz_offset=7.5, lat=3.1073, lon=101.607}: type=Manifestor, authority=Emotional, profile=5/1, personality Sun=37.5, design Sun=5.1, defined_channels=[63-4, 35-36, 37-40], incarnation_cross.name='Left Angle Cross of Migration 1' — ALL EXACT. (D) Jaan (calc 2026-02-09, 2026-03-06) and Mel (calc 2026-02-01 through 2026-06-25) untouched, all predate today by days-to-months. (E) Public chart: ASC Sagittarius, Sun Pisces h3 (consistent with Sag rising). No 5xx, no rate-limiting on admin/audit/find endpoints. Known-limitation (legacy chart.migration_info top-level field still stale) acknowledged per request — does not impact this verification.",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {
+        "endpoint": "GET /api/admin/audit_chart",
+        "issue": "audit_chart response exposes asc_snapshot but does NOT expose mc_snapshot / angles. Had to fall back to /api/astrology/chart/{uid} to verify MC. Suggest extending audit_chart to surface mc_snapshot for symmetry with asc_snapshot."
+      },
+      {
+        "endpoint": "POST /api/admin/repair_chart_for_user (carried over from iteration_13)",
+        "issue": "Repair endpoint still does not rewrite/clear legacy top-level chart.migration_info — Pete (like Ana) may still appear in cohort_scan criterion A. Astrology subtree is fully correct. Documented as follow-up commit; not a failure of this verification."
+      }
+    ]
+  },
+  "frontend_issues": {"ui_bugs": [], "integration_issues": [], "design_issues": [], "react_native_issues": []},
+  "test_report_links": [
+    "/app/backend/tests/test_pete_chart_repair_verification.py",
+    "/app/test_reports/pytest/pete_repair_verification.xml"
+  ],
+  "action_items": [
+    "Optional: extend GET /api/admin/audit_chart to include mc_snapshot alongside asc_snapshot (current verification had to bounce through /api/astrology/chart for MC).",
+    "Follow-up (same as iteration_13 RCA): patch admin_chart_provenance_repair.py to also $set or $unset chart.migration_info so cohort scanner stops flagging repaired users. Apply on next deploy and re-run the repair idempotently for Pete and Ana."
+  ],
+  "critical_code_review_comments": [
+    "Repair endpoint correctly stamped debug_stamp.provenance_inputs.timezone_iana=Asia/Kuala_Lumpur and resolved_timezone=Asia/Kuala_Lumpur for Pete. provenance_hash deterministic and matches expected value byte-for-byte — strong evidence the repair pipeline is reproducible."
+  ],
+  "updated_files": ["/app/backend/tests/test_pete_chart_repair_verification.py (new test file)"],
+  "success_rate": {
+    "backend": "100% (20/20 active assertions + MC verified out-of-band; 1 skipped due to audit endpoint payload shape, not a chart correctness issue)",
+    "frontend": "N/A (testing_type=backend only)"
+  },
+  "seed_data_creation": "None. Read-only verification against production Atlas via /api/admin/audit_chart, /api/admin/find_user, /api/astrology/chart, /api/v1/profile/full.",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Test file /app/backend/tests/test_pete_chart_repair_verification.py exercises PROD (PROD_URL) read-only. All 20 assertions pass. The /api/v1/profile/full endpoint accepts timezone_offset as a FLOAT (7.5 worked for Malaysia pre-1982 +07:30). audit_chart payload shape: top-level keys are ['build_marker','served_at','user_id','chart_id','found','state_flags','provenance','asc_snapshot','planets_snapshot','user_inputs','write_timeline','last_write','next_actions'] — note no mc_snapshot. Use /api/astrology/chart/{uid}.natal.angles.{asc,mc,ic,dc} for MC. The chart provenance subtree exposes debug_stamp.provenance_inputs.timezone_iana and debug_stamp.resolved_timezone as canonical resolved-tz fields. Iteration_13's RCA on the cohort-scan stale-migration_info residue applies identically to Pete and is a known follow-up.",
+  "rca_of_issue": "Bug confirmed FIXED. RCA of original bug: Pete's user.timezone was stored as raw UTC-offset string '+00:00' instead of an IANA zone. The chart-compute pipeline interpreted that as 0h offset and stored 1968-04-01T01:25:00Z, but Pete's true birth was 1968-04-01 01:25 LOCAL in Kuala Lumpur (pre-1982 Malaysia = UTC+07:30), so correct UTC is 1968-03-31T17:55:00Z. The 7h30m drift rotated Pete's ASC away from Sagittarius. Repair: POST /api/admin/repair_chart_for_user with timezone_override=Asia/Kuala_Lumpur was invoked LIVE. Verification confirms the repair: input_datetime_utc=1968-03-31T17:55:00, ASC=Sagittarius 19.796° (target 19.80°), MC=Virgo 28.279° (target 28.28°), provenance_hash matches deterministic expected value, V-A markers stamped, debug_stamp.resolved_timezone=Asia/Kuala_Lumpur, all HD outputs (Manifestor / Emotional / 5/1 / Sun 37.5 / Design Sun 5.1 / channels 63-4, 35-36, 37-40 / Left Angle Cross of Migration 1) match the canonical expected values. Jaan and Mel charts untouched."
+}
