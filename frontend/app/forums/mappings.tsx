@@ -286,6 +286,123 @@ export default function ForumMappingsScreen() {
             showsVerticalScrollIndicator={false}
           >
             {/* ============================================================
+                MIRROR KNOWLEDGE GRAPH V1.5 — SYNTHESIS FIRST
+                Renders the cross-lens deterministic synthesis on top
+                when `relationship_synthesis` is present in the payload.
+                Falls back silently to the existing legacy lens sections
+                below when absent.  Additive only — does NOT remove or
+                rewrite any existing content.
+                surface marker: relationship-synthesis-first-v1.5
+                ============================================================ */}
+            {(() => {
+              const rs: any = (selectedMember as any)?.relationship_synthesis
+                || (selectedMember as any)?.mapping?.relationship_synthesis;
+              if (!rs || !rs.story) return null;
+              const story = rs.story || {};
+              const ladder = Array.isArray(rs.evidence_ladder) ? rs.evidence_ladder : [];
+              const conf = rs.confidence || {};
+              const diag = rs.diagnostics || {};
+              const repair: string[] = Array.isArray(story.repair_pathway)
+                ? story.repair_pathway
+                : story.repair_pathway ? [String(story.repair_pathway)] : [];
+              return (
+                <View
+                  testID="relationship-synthesis-first-v15"
+                  style={[styles.themesSection, { backgroundColor: theme.surface,
+                                                   borderColor: theme.border,
+                                                   borderWidth: 1,
+                                                   padding: 16,
+                                                   marginBottom: 16,
+                                                   borderRadius: 12 }]}
+                >
+                  <Text style={[styles.patternLabel, { color: theme.textTertiary, marginBottom: 8 }]}>
+                    MIRROR SEES
+                  </Text>
+                  {!!story.headline && (
+                    <Text style={[styles.modalTitle, { color: theme.text, marginBottom: 8 }]}>
+                      {String(story.headline)}
+                    </Text>
+                  )}
+                  {!!story.summary && (
+                    <Text style={[styles.modalSubtitle, { color: theme.textSecondary, marginBottom: 12 }]}>
+                      {String(story.summary)}
+                    </Text>
+                  )}
+                  {!!story.current_movement && (
+                    <View style={{ marginBottom: 10 }}>
+                      <Text style={[styles.patternLabel, { color: theme.textTertiary }]}>CURRENT MOVEMENT</Text>
+                      <Text style={[styles.activationText, { color: theme.text }]}>{String(story.current_movement)}</Text>
+                    </View>
+                  )}
+                  {!!story.growth_edge && (
+                    <View style={{ marginBottom: 10 }}>
+                      <Text style={[styles.patternLabel, { color: theme.textTertiary }]}>GROWTH EDGE</Text>
+                      <Text style={[styles.activationText, { color: theme.text }]}>{String(story.growth_edge)}</Text>
+                    </View>
+                  )}
+                  {!!story.shadow_pattern && (
+                    <View style={{ marginBottom: 10 }}>
+                      <Text style={[styles.patternLabel, { color: theme.textTertiary }]}>SHADOW PATTERN</Text>
+                      <Text style={[styles.activationText, { color: theme.text }]}>{String(story.shadow_pattern)}</Text>
+                    </View>
+                  )}
+                  {repair.length > 0 && (
+                    <View style={{ marginBottom: 10 }}>
+                      <Text style={[styles.patternLabel, { color: theme.textTertiary }]}>REPAIR PATHWAY</Text>
+                      {repair.map((line, i) => (
+                        <Text key={`rp-${i}`} style={[styles.activationText, { color: theme.text }]}>
+                          • {String(line)}
+                        </Text>
+                      ))}
+                    </View>
+                  )}
+                  {!!story.question_to_ask && (
+                    <View style={{ marginBottom: 10 }}>
+                      <Text style={[styles.patternLabel, { color: theme.textTertiary }]}>QUESTION TO HOLD</Text>
+                      <Text style={[styles.activationText, { color: theme.text, fontStyle: 'italic' }]}>
+                        {String(story.question_to_ask)}
+                      </Text>
+                    </View>
+                  )}
+                  {(!!conf.label || !!conf.level || diag.provenance_rollup) && (
+                    <View style={{ marginTop: 8, flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+                      {!!(conf.label || conf.level) && (
+                        <Text style={[styles.patternLabel, { color: theme.textTertiary }]}>
+                          Confidence: {String(conf.label || conf.level)}
+                        </Text>
+                      )}
+                      {Array.isArray(diag.lenses_present) && diag.lenses_present.length > 0 && (
+                        <Text style={[styles.patternLabel, { color: theme.textTertiary }]}>
+                          · Lenses: {diag.lenses_present.join(', ')}
+                        </Text>
+                      )}
+                    </View>
+                  )}
+                  {ladder.length > 0 && (
+                    <View style={{ marginTop: 12, borderTopWidth: 1, borderTopColor: theme.border, paddingTop: 12 }}>
+                      <Text style={[styles.patternLabel, { color: theme.textTertiary, marginBottom: 6 }]}>
+                        WHY MIRROR SEES THIS · evidence ladder
+                      </Text>
+                      {ladder.slice(0, 6).map((entry: any, i: number) => (
+                        <View key={`evl-${i}`} style={{ marginBottom: 8 }}>
+                          <Text style={[styles.activationText, { color: theme.text, fontWeight: '600' }]}>
+                            · {String(entry.claim || entry.claim_label || '')}
+                          </Text>
+                          {entry.lens_contributions && typeof entry.lens_contributions === 'object' && (
+                            <Text style={[styles.patternLabel, { color: theme.textTertiary, marginLeft: 12 }]}>
+                              from {Object.keys(entry.lens_contributions).join(' + ')}
+                              {entry.provenance_status ? `  ·  ${entry.provenance_status}` : ''}
+                            </Text>
+                          )}
+                        </View>
+                      ))}
+                    </View>
+                  )}
+                </View>
+              );
+            })()}
+
+            {/* ============================================================
                 BETWEEN YOU TODAY — Relationship Timing Layer v1
                 Modulation card sits ABOVE the Relationship Field
                 architecture. Today is modulation; the field below is
