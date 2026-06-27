@@ -1,0 +1,49 @@
+{
+  "summary": "Ana production chart integrity verified against GM reference. 14/14 backend tests PASS against prod URL. ASC=Aries 17.12, MC=Capricorn 25.53 match GM. Forum member-summary now reads 'Aries Sun · Sagittarius Moon · Aries Rising' (no stale 'Sagittarius Rising'). HD details match GM exactly: Manifesting Generator · 3/5 · Sacral; Pete↔Ana relationship mapping populated with HD signals (incl. 28-38), human_design_field, and narrative_blocks. KNOWN P2 RESIDUE confirmed: legacy top-level migration_info still has resolved_offset='+08:00' / timezone_iana=null even though astrology.metadata is correct. Sun/Moon SIGN delta vs GM REPRODUCED (Mirror Sun=Aries 11.41 / Moon=Sagittarius 27.21 vs GM Sun=Taurus 14.13 / Moon=Aries 0.22) — diagnosed as a zodiac-convention difference (Mirror uses True-Sidereal-M Variant-A with 13-sign + SVP 31.2836°; GM uses Tropical 12-sign). This pre-existed the repair and is NOT a regression from this turn's timezone fix.",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {
+        "endpoint": "/api/admin/peek_chart_angles",
+        "issue": "Legacy migration_info top-level fields still stale after repair: resolved_offset='+08:00', timezone_iana=null. Astrology engine output itself is now correct (ASC Aries, MC Capricorn) but the legacy provenance side-table was not updated by the repair endpoint. Confirms main agent's P2 callout."
+      },
+      {
+        "endpoint": "calculations.astrology / engine",
+        "issue": "Sun/Moon sign mismatch vs GM (Sun Aries vs Taurus; Moon Sagittarius vs Aries). Sun delta ≈ 1.4° on tropical scale (zodiac convention difference is the simplest explanation). Moon tropical-equivalent comes out to Capricorn 24.3°, GM says Aries 0.22° (≈66° apart) — NOT explainable by SVP alone or by the 15-minute 08:05 vs 08:20 birth_time discrepancy. Needs engine-side audit (or confirmation that GM uses a fundamentally different node/ayanamsa). Pre-existing; NOT caused by today's timezone repair."
+      }
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [],
+    "react_native_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_ana_gm_chart_integrity.py",
+    "/app/test_reports/pytest/ana_gm_integrity.xml"
+  ],
+  "action_items": [
+    "P2: Update /api/admin/repair_chart_for_user to also rewrite the legacy top-level migration_info fields (resolved_offset, timezone_iana) so they reflect the true resolved timezone, not the stale +08:00/null fallback. File: /app/backend/routers/admin_chart_provenance_repair.py.",
+    "P1 ENGINE AUDIT: Sun is plausibly a zodiac-convention difference, but Moon is ~66° off on tropical scale even after backing out SVP. Investigate /app/backend/calculations/astrology.py — verify (1) ayanamsa/SVP is applied symmetrically to Moon, (2) Moon ephemeris uses the same epoch/JD as Sun, (3) node_mode='true_node' isn't influencing Moon position, (4) Mel calibration (sub-arc-minute) actually verified Moon (or only ASC/MC/Sun). Cross-check via Swiss Ephemeris or another reference for 1983-05-03 11:05 UTC at -34.55/-58.70.",
+    "P3: Reconcile time-source discrepancy — GM PDF metadata = 08:20 local, Mirror DB = 08:05 local. Confirm with the user which is authoritative. 15-min delta will not flip Moon sign but will shift its degree by ~3.3°.",
+    "P3: Consider exposing a 'gm_reference_mode' tropical-12-sign view of the chart for users who want to reconcile with their Genetic Matrix PDF — without changing the canonical engine."
+  ],
+  "critical_code_review_comments": [
+    "Repair endpoint writes to astrology.metadata correctly but leaves user.migration_info legacy fields untouched — readers that still consult the top-level migration_info (any?) will see stale tz info.",
+    "Mel achieved sub-arc-minute GM parity per /app/backend/tools/GM_CALIBRATION_REPORT.md; Ana now shows sign-level disagreement on Sun/Moon despite identical engine config. Suggests Mel's calibration may have been ASC/MC-centric and the planet-side parity should be re-verified across multiple charts."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_ana_gm_chart_integrity.py (new)"
+  ],
+  "success_rate": {"backend": "100% (14/14 tests pass against production)", "frontend": "not tested (backend-only request)"},
+  "seed_data_creation": "None — strictly read-only against production.",
+  "retest_needed": false,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "Repair to Ana (user_id 6a1c17323b39ec46cfd74326) is verified on prod (https://mirror-lens-fixes-r-1779710763.emergent.host). All acceptance criteria #1–#3 met. Two follow-ups for main agent: (a) stale legacy migration_info residue on Ana's user doc (low risk), (b) Sun/Moon vs GM delta — diagnosed but Moon discrepancy is too large to be pure zodiac-convention drift; recommend an engine audit.",
+  "rca_of_issue": {
+    "asc_mc_repair": "Root cause was timezone resolution falling back to +08:00 default when timezone_iana was null in astrology.metadata. Repair endpoint forced timezone_override='America/Argentina/Buenos_Aires' which recomputed correct UTC (1983-05-03T11:05:00+00:00) and triggered chart recomputation. ASC/MC now align with GM signs.",
+    "legacy_migration_info_residue": "Top-level user.migration_info is a stale side-table written by an older migration pass. The current repair endpoint only updates astrology.metadata; nothing rewrites the legacy top-level keys. Cosmetic and does not affect rendered chart, but visible via peek_chart_angles. Mitigation: extend repair_chart_for_user to also overwrite the legacy keys.",
+    "sun_moon_gm_delta": "Reproducible. Mirror returns sidereal 13-sign positions (Sun Aries 11.41° lon 11.41, Moon Sag 27.21° lon 262.99) with SVP=31.2836. GM appears tropical 12-sign (Sun Taurus 14.13, Moon Aries 0.22). Sun aligns on tropical scale within ~1.4°. Moon however is ~66° off even after SVP correction — exceeds the 15-min birth_time uncertainty (≈3.3°). Hypothesis: GM is computed at a materially different time (e.g., 08:20 local treated differently, or a different timezone interpretation by GM) OR Mirror's Moon ephemeris has a sign-level bug. Engine inspection of /app/backend/calculations/astrology.py is recommended before declaring 'convention difference'."
+  }
+}
