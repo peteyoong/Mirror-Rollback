@@ -10912,7 +10912,48 @@ async def check_and_migrate_astrology_chart(user_id: str) -> Tuple[bool, str, di
     elif not astro:
         needs_migration = True
         migration_reason = "empty_astrology"
-    
+
+    # Case 4 (v1.5.4) — Legacy +08:00 silent-fallback signature.
+    # A chart whose migration_info shows `resolved_offset == "+08:00"`
+    # while the user has a non-+08 IANA timezone (or was born in a
+    # location whose historical UTC offset differs from +08:00 — e.g.,
+    # Malaysia pre-1982 which used +07:30 LMT) was likely built with a
+    # silent fallback. These produce a wrong Ascendant. Force one-time
+    # re-migration when this pattern is detected AND the chart has no
+    # provenance_hash (i.e., never went through canonical repair).
+    try:
+        mi = chart.get("migration_info") or {}
+        ro = (mi.get("resolved_offset") or "").strip()
+        prov_hash = (chart.get("debug_stamp") or {}).get("provenance_hash") \
+                    or (astro.get("metadata") or {}).get("provenance_hash")
+        if ro == "+08:00" and not prov_hash:
+            user_tz = (user.get("timezone") or "").strip()
+            birth_date = user.get("birth_date")
+            # If user is in a known LMT-band (Malaysia pre-1982) OR has a
+            # non-+08 IANA zone, the +08:00 fallback was almost certainly
+            # wrong. Conservative: only trigger when user has a known
+            # IANA zone AND we can demonstrate a possible offset mismatch.
+            if user_tz and user_tz.startswith(("Asia/Kuala_Lumpur",
+                                                "Asia/Kuching",
+                                                "Asia/Singapore",
+                                                "Asia/Brunei")):
+                try:
+                    from datetime import datetime as _dt
+                    bd = birth_date if isinstance(birth_date, _dt) else None
+                    if bd is None and isinstance(birth_date, str):
+                        try:
+                            bd = _dt.fromisoformat(birth_date[:10])
+                        except Exception:
+                            bd = None
+                    if bd is not None and bd.year < 1982:
+                        needs_migration = True
+                        migration_reason = "legacy_plus_08_fallback_pre_1982_malaysia"
+                except Exception:
+                    pass
+    except Exception:
+        # Defensive: never let legacy-fallback detection crash chart reads.
+        pass
+
     if not needs_migration:
         return (False, "Chart is current", chart)
     

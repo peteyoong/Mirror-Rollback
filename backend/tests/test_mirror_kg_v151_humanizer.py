@@ -172,14 +172,52 @@ def test_humanize_sentence_level_atomicity():
 
 
 def test_evidence_ladder_keeps_technical_refs():
+    """v1.5.4 — ladder entries no longer ECHO story claims (used to keep
+    `claim_raw`).  Each entry now surfaces a humanized supporting signal
+    and exposes technical refs / lens contributions for drill-down."""
     syn = _run(_pete_mel_signals())
     ladder = syn.get("evidence_ladder", [])
     assert ladder, "ladder must be present"
-    # Each ladder entry still carries supporting_signals (which keep raw summaries via .summary)
     for entry in ladder:
         assert "supporting_signals" in entry
-        # claim is humanized; claim_raw preserves original for drill-down
-        assert "claim_raw" in entry, "drill-down must keep raw claim text"
+        assert "lens_contributions" in entry
+        assert "technical_refs" in entry
+        # `claim` is the human-readable bullet; drill-down stays available
+        assert "claim" in entry and isinstance(entry["claim"], str) and entry["claim"]
+
+
+def test_ladder_does_not_echo_story_slots():
+    """Regression: production showed every story slot duplicated as a
+    ladder bullet. The new builder dedupes against story slots."""
+    syn = _run(_pete_mel_signals())
+    used = set()
+    for k in ("headline", "summary", "current_movement",
+              "growth_edge", "shadow_pattern", "question_to_ask"):
+        v = syn["story"].get(k)
+        if isinstance(v, str) and v.strip():
+            used.add(_normalize_for_dedupe(v))
+    for line in (syn["story"].get("repair_pathway") or []):
+        if isinstance(line, str):
+            used.add(_normalize_for_dedupe(line))
+    for entry in syn["evidence_ladder"]:
+        norm = _normalize_for_dedupe(entry["claim"])
+        # Allow ONLY when ladder fell back to top-cluster (single entry,
+        # sparse signals). Multi-entry ladders MUST not echo.
+        if len(syn["evidence_ladder"]) > 1:
+            assert norm not in used, f"ladder echoes story slot: {entry['claim']!r}"
+
+
+def test_headline_no_lens_names():
+    """Regression: production headline was
+    'Pressure is the strongest signal between Pete and Mel (enneagram +
+     human_design + numerology converge).'
+    The new headline must contain no raw lens identifiers."""
+    syn = _run(_pete_mel_signals())
+    h = syn["story"].get("headline", "")
+    BAD = ("human_design", "numerology", "enneagram", "bazi", "astrology",
+           "converge)")
+    for term in BAD:
+        assert term not in h.lower(), f"headline still leaks '{term}': {h!r}"
 
 
 def test_diversified_slots_distinct_signals():

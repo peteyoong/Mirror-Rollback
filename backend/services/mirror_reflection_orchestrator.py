@@ -86,6 +86,10 @@ _SENTENCE_REWRITES = [
         r"^\s*Generator\s*[x×]\s*Projector\s*[^.?!]*[.?!]?\s*$",
         _re.IGNORECASE),
      "One of you responds with steady body-knowing; the other reads and guides."),
+    (_re.compile(
+        r"^\s*[A-Z][\w'’]+\s+will\s+leave\s+the\s+(?:field|room)\s+carrying[^.?!]*[.?!]?\s*$",
+        _re.IGNORECASE),
+     "The other tends to walk away carrying impressions of what just passed between you."),
     # Catch any sentence that still has hyphenated "defined-Xxx" or
     # "open-Xxx" residue followed by "side's conclusions" — drop it.
     (_re.compile(
@@ -151,8 +155,14 @@ def _humanize(text: str) -> str:
                 tmp2 = _TECH_TERMS_PATTERN.sub("the field between you", tmp)
                 tmp2 = _re.sub(r"(open|defined)-?\s*the\s+field\s+between\s+you",
                                 "the field between you", tmp2, flags=_re.IGNORECASE)
-                tmp2 = _re.sub(r"\b(\w+)'s\s+the\s+field\s+between\s+you",
-                                r"the field between \1", tmp2, flags=_re.IGNORECASE)
+                # Repair broken possessive sequences like "Pete's the field
+                # between you" → "what passes between you".  The earlier
+                # "the field between Pete" output was a regression here.
+                tmp2 = _re.sub(r"\b[A-Z]?[\w'’]*'s\s+the\s+field\s+between\s+you\b",
+                                "what passes between you", tmp2, flags=_re.IGNORECASE)
+                tmp2 = _re.sub(r"\bimpressions?\s+of\s+the\s+field\s+between\s+[A-Z][\w'’]*\b",
+                                "impressions of what passed between you",
+                                tmp2, flags=_re.IGNORECASE)
                 if _TECH_TERMS_PATTERN.search(tmp2):
                     # Still leaking — drop entirely.
                     continue
@@ -172,6 +182,11 @@ def _humanize(text: str) -> str:
     out = _re.sub(r"\s+([.;,!?])", r"\1", out)
     # Collapse repeated "the field between you" / duplicate phrases.
     out = _re.sub(r"(the field between you)(\s+\1)+", r"\1", out)
+    # Collapse double article: "If the the field between you..."  →
+    # "If the field between you..." (regression seen in repair_pathway)
+    out = _re.sub(r"\b(the|a|an)\s+(the\s+field\s+between\s+you)\b",
+                  r"\2", out, flags=_re.IGNORECASE)
+    out = _re.sub(r"\bthe\s+the\b", "the", out, flags=_re.IGNORECASE)
     # Also strip residual "Type pair: X × Y" diagnostic-only summaries
     out = _re.sub(r"^\s*Type\s+pair\s*:\s*[^.]+\.?\s*$",
                   "Two different mechanics meeting — the rhythm between you is its own thing.",
@@ -287,17 +302,19 @@ def _confidence_score(clusters: List[Dict[str, Any]]) -> Dict[str, Any]:
 
 
 def _headline(clusters: List[Dict[str, Any]], name_a: str, name_b: str) -> str:
+    """Headline never exposes lens names. Lens counts are mapped to
+    human-readable confidence qualifiers; raw lens identifiers stay in
+    the technical drill-down only."""
     if not clusters:
         return f"{name_a} and {name_b}: insufficient evidence to synthesize."
     top = clusters[0]
     theme = top["theme"].replace("_", " ").title()
     lc = top["lens_count"]
-    lens_str = " + ".join(top["supporting_lenses"])
     if lc >= 3:
-        return f"{theme} is the strongest signal between {name_a} and {name_b} ({lens_str} converge)."
+        return f"{theme} is the strongest signal between {name_a} and {name_b}."
     if lc == 2:
-        return f"{theme} is the leading theme between {name_a} and {name_b} ({lens_str})."
-    return f"{theme} is an emerging theme for {name_a} and {name_b} ({lens_str} only)."
+        return f"{theme} is the leading theme between {name_a} and {name_b}."
+    return f"{theme} is an emerging theme for {name_a} and {name_b}."
 
 
 def _question(top_cluster: Optional[Dict[str, Any]]) -> str:
@@ -325,29 +342,56 @@ ORCHESTRATOR_VERSION_V15 = "mirror-reflection-orchestrator-v1.5"
 
 
 def _build_evidence_ladder(story, clusters):
-    """V1.5 — every story claim traces back to supporting signals,
-    lens contributions, technical refs, and a provenance status rollup.
-    No claim is invented; each line maps to an existing cluster's
-    polarity-targeted pick or top signals.
-    """
-    ladder = []
+    """V1.5.4 — evidence ladder no longer ECHOES the story.
 
-    def _entry(claim_label, claim_text, cluster):
-        if not cluster or not claim_text:
-            return None
-        sigs = cluster.get("signals") or []
-        supporting = [{"signal_id": s.get("id"),
-                        "lens": s.get("lens"),
-                        "summary": s.get("summary"),
-                        "polarity": s.get("polarity"),
-                        "strength": s.get("strength"),
-                        "confidence": s.get("confidence"),
-                        "layer": s.get("layer"),
-                        "mechanic": s.get("mechanic"),
-                        "evidence_type": s.get("evidence_type"),
-                        "provenance_status": (s.get("provenance") or {}).get("status")}
-                      for s in sigs[:6]]
-        lens_contrib = {}
+    Old behaviour: each story slot (headline/summary/movement/growth/
+    shadow/repair/question) re-appeared as a ladder entry with the same
+    text, producing the user-visible repetition reported in production.
+
+    New behaviour: the ladder surfaces NEW supporting signal summaries
+    (humanized, deduped) that the reader hasn't already seen in the
+    story. Each entry is a short evidence bullet, NOT the story line.
+    """
+    ladder: List[Dict[str, Any]] = []
+    if not clusters:
+        return ladder
+
+    # Collect every text already used in the story (normalized) so we
+    # never echo it back. We also split each slot into SENTENCES so a
+    # one-sentence ladder bullet that exactly matches one sentence of a
+    # multi-sentence story slot is still treated as a duplicate.
+    story_used: set = set()
+
+    def _add_to_used(text: str):
+        if not isinstance(text, str) or not text.strip():
+            return
+        humanized = _humanize(text)
+        story_used.add(_normalize_for_dedupe(humanized))
+        for sent in _split_sentences(humanized):
+            n = _normalize_for_dedupe(sent)
+            if n:
+                story_used.add(n)
+
+    for k in ("headline", "summary", "current_movement",
+              "growth_edge", "shadow_pattern", "question_to_ask"):
+        _add_to_used(story.get(k))
+    for line in (story.get("repair_pathway") or []):
+        _add_to_used(line)
+
+    seen_in_ladder: set = set()
+
+    for c in clusters[:5]:
+        theme    = c.get("theme")
+        sigs     = c.get("signals") or []
+        if not sigs:
+            continue
+        # Sort signals by strength × confidence to surface most useful first
+        sigs_sorted = sorted(
+            sigs,
+            key=lambda s: -(float(s.get("strength", 0.5)) * float(s.get("confidence", 0.5))),
+        )
+        # Compute cluster-wide rollups for the entry
+        lens_contrib: Dict[str, int] = {}
         for s in sigs:
             lens_contrib[s.get("lens", "unknown")] = lens_contrib.get(s.get("lens", "unknown"), 0) + 1
         tech_refs = [{"signal_id": s.get("id"),
@@ -355,50 +399,103 @@ def _build_evidence_ladder(story, clusters):
                       "source_path": s.get("source_path"),
                       "data": s.get("technical")}
                      for s in sigs if s.get("technical")][:6]
-        prov_rollup = cluster.get("provenance_status") or "unknown"
-        return {
-            "claim_label":         claim_label,
-            "claim":               _humanize(claim_text),
-            "claim_raw":           claim_text,
-            "cluster_theme":       cluster.get("theme"),
-            "supporting_signals":  supporting,
-            "lens_contributions":  lens_contrib,
-            "technical_refs":      tech_refs,
-            "provenance_status":   ("verified" if prov_rollup == "verified"
-                                    else ("suspect" if prov_rollup in ("suspect","stale","missing")
-                                          else "mixed")),
-            "agreement_score":     cluster.get("agreement_score"),
-            "confidence_score":    cluster.get("confidence_score"),
-            "drilldown_level":     "technical",
-        }
+        prov_rollup = c.get("provenance_status") or "unknown"
+        prov_label  = ("verified" if prov_rollup == "verified"
+                       else ("suspect" if prov_rollup in ("suspect", "stale", "missing")
+                             else "cross-checked"))
 
-    # Map each story slot to its origin cluster (re-derive cheaply).
-    top              = clusters[0] if clusters else None
-    movement_cluster = _pick_cluster_by_polarity(clusters, "movement") or top
-    growth_cluster   = _pick_cluster_by_polarity(clusters, "growth") or top
-    shadow_cluster   = (_pick_cluster_by_polarity(clusters, "shadow")
-                        or _pick_cluster_by_polarity(clusters, "friction"))
+        # Pick up to 2 humanized signal summaries that aren't already in
+        # the story and aren't dupes of each other in the ladder.
+        added_for_cluster = 0
+        for s in sigs_sorted:
+            if added_for_cluster >= 2:
+                break
+            raw = (s.get("summary") or "").strip()
+            if not raw:
+                continue
+            cleaned = _humanize(raw)
+            if not cleaned:
+                continue
+            # Strip any sentence inside `cleaned` that already appears in
+            # the story or earlier ladder entries.
+            kept_sentences: List[str] = []
+            for sent in _split_sentences(cleaned):
+                n = _normalize_for_dedupe(sent)
+                if not n:
+                    continue
+                if n in story_used or n in seen_in_ladder:
+                    continue
+                kept_sentences.append(sent)
+                seen_in_ladder.add(n)
+            if not kept_sentences:
+                continue
+            cleaned = " ".join(kept_sentences)
+            norm = _normalize_for_dedupe(cleaned)
+            if norm in story_used:
+                continue
+            # First-letter capitalize, single sentence assert
+            display = cleaned[0].upper() + cleaned[1:] if cleaned else cleaned
+            ladder.append({
+                "claim_label":         theme,
+                "claim":               display,
+                "cluster_theme":       theme,
+                "supporting_signals":  [{
+                    "signal_id":  s.get("id"),
+                    "lens":       s.get("lens"),
+                    "summary":    cleaned,
+                    "polarity":   s.get("polarity"),
+                    "strength":   s.get("strength"),
+                    "confidence": s.get("confidence"),
+                    "layer":      s.get("layer"),
+                }],
+                "lens_contributions":  lens_contrib,
+                "technical_refs":      tech_refs,
+                "provenance_status":   prov_label,
+                "agreement_score":     c.get("agreement_score"),
+                "confidence_score":    c.get("confidence_score"),
+                "drilldown_level":     "technical",
+            })
+            added_for_cluster += 1
 
-    for label, claim, c in (
-        ("headline",         story.get("headline"),         top),
-        ("summary",          story.get("summary"),          top),
-        ("current_movement", story.get("current_movement"), movement_cluster),
-        ("growth_edge",      story.get("growth_edge"),      growth_cluster),
-        ("shadow_pattern",   story.get("shadow_pattern"),   shadow_cluster),
-        ("question_to_ask",  story.get("question_to_ask"),  top),
-    ):
-        entry = _entry(label, claim, c)
-        if entry:
-            ladder.append(entry)
+    # Guarantee at least one ladder entry if any cluster has signals —
+    # surface the strongest signal of the top cluster verbatim (this
+    # only kicks in when dedup removed everything else).
+    if not ladder and clusters and (clusters[0].get("signals") or []):
+        c = clusters[0]
+        sigs = sorted(
+            c["signals"],
+            key=lambda s: -(float(s.get("strength", 0.5)) * float(s.get("confidence", 0.5))),
+        )
+        s = sigs[0]
+        cleaned = _humanize((s.get("summary") or "").strip()) or (s.get("summary") or "")
+        if cleaned:
+            ladder.append({
+                "claim_label":         c.get("theme"),
+                "claim":               cleaned[0].upper() + cleaned[1:] if cleaned else cleaned,
+                "cluster_theme":       c.get("theme"),
+                "supporting_signals":  [{
+                    "signal_id":  s.get("id"),
+                    "lens":       s.get("lens"),
+                    "summary":    cleaned,
+                    "polarity":   s.get("polarity"),
+                    "strength":   s.get("strength"),
+                    "confidence": s.get("confidence"),
+                    "layer":      s.get("layer"),
+                }],
+                "lens_contributions":  {s.get("lens", "unknown"): 1},
+                "technical_refs":      ([{"signal_id": s.get("id"),
+                                          "lens": s.get("lens"),
+                                          "source_path": s.get("source_path"),
+                                          "data": s.get("technical")}]
+                                        if s.get("technical") else []),
+                "provenance_status":   ("verified" if (c.get("provenance_status") == "verified")
+                                        else ("suspect" if c.get("provenance_status") in ("suspect","stale","missing")
+                                              else "cross-checked")),
+                "agreement_score":     c.get("agreement_score"),
+                "confidence_score":    c.get("confidence_score"),
+                "drilldown_level":     "technical",
+            })
 
-    # Repair pathway entries (each line traces to its source cluster)
-    for line in (story.get("repair_pathway") or []):
-        # Find best cluster matching this line's text (deterministic).
-        match = next((c for c in clusters
-                      if any((s.get("summary") or "") == line
-                             for s in c.get("signals") or [])), None) or top
-        e = _entry("repair_pathway", line, match)
-        if e: ladder.append(e)
     return ladder
 
 
@@ -466,6 +563,9 @@ def synthesize_relationship(
         if k and k not in seen_rp and k not in _seen_keys:
             seen_rp.add(k); rp_out.append(line)
     story["repair_pathway"] = rp_out
+    # Merge repair-pathway keys into _seen_keys so downstream surfaces
+    # (undertone, evidence ladder) never echo a repair line.
+    _seen_keys |= seen_rp
 
     # Evidence tray
     evidence_lines: List[str] = []
@@ -518,6 +618,24 @@ def synthesize_relationship(
         "no electromagnetic", "no companion", "no compromise", "no dominance",
         "the field between you",
     )
+    # Sentence-level dedup set — include every SENTENCE inside each story
+    # slot + each repair line. The undertone must not echo even a single
+    # sentence already shown above.
+    _undertone_seen: set = set(_seen_keys)
+    for slot in ("headline", "summary", "current_movement",
+                 "growth_edge", "shadow_pattern", "question_to_ask"):
+        v = story.get(slot)
+        if isinstance(v, str) and v.strip():
+            for sent in _split_sentences(v):
+                n = _normalize_for_dedupe(sent)
+                if n:
+                    _undertone_seen.add(n)
+    for line in (story.get("repair_pathway") or []):
+        if isinstance(line, str):
+            for sent in _split_sentences(line):
+                n = _normalize_for_dedupe(sent)
+                if n:
+                    _undertone_seen.add(n)
 
     def _pick_undertone_from(cluster):
         if not cluster or not cluster.get("signals"):
@@ -529,7 +647,10 @@ def synthesize_relationship(
             cand_l = cand.lower()
             if any(cand_l.startswith(p) for p in _LOW_VALUE_PREFIXES):
                 continue
-            if _normalize_for_dedupe(cand) in _seen_keys:
+            # Reject if any constituent sentence overlaps the story
+            sentences = _split_sentences(cand)
+            sent_norms = {_normalize_for_dedupe(s) for s in sentences if s}
+            if sent_norms & _undertone_seen:
                 continue
             # First letter must be a word char (avoid orphan punctuation residue)
             if not cand[0].isalpha():
