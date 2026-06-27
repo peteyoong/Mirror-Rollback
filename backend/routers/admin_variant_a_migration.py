@@ -330,6 +330,40 @@ async def build_info():
     except Exception:  # noqa: BLE001
         pass
 
+    # v1.5.5 — Frontend bundle fingerprint. Reads the latest entry-*.js
+    # filename + mtime from `backend/web_dist/`.  This lets the caller
+    # PROVE whether the deployed frontend matches the deployed backend
+    # without trusting any external sources. Returns None when not
+    # built or when web_dist is missing.
+    frontend_bundle_info = None
+    try:
+        import glob as _glob
+        from pathlib import Path as _Path
+        wd_root = _Path("/app/backend/web_dist")
+        js_dir  = wd_root / "_expo" / "static" / "js" / "web"
+        if js_dir.is_dir():
+            entries = sorted(js_dir.glob("entry-*.js"),
+                             key=lambda p: p.stat().st_mtime, reverse=True)
+            if entries:
+                top = entries[0]
+                idx_html = wd_root / "index.html"
+                frontend_bundle_info = {
+                    "entry_filename": top.name,
+                    "entry_size_bytes": top.stat().st_size,
+                    "entry_mtime_utc": datetime.fromtimestamp(
+                        top.stat().st_mtime, tz=timezone.utc).isoformat(),
+                    "index_html_mtime_utc": (
+                        datetime.fromtimestamp(idx_html.stat().st_mtime,
+                                                tz=timezone.utc).isoformat()
+                        if idx_html.is_file() else None),
+                    # The "hash" inside the filename — used by CDN cache
+                    # to prove freshness.
+                    "entry_hash": (top.name.replace("entry-", "")
+                                     .replace(".js", "")),
+                }
+    except Exception:  # noqa: BLE001
+        pass
+
     # Env-flag presence (do not echo a real token; just a state label).
     flag_value = os.environ.get("RUN_VARIANT_A_MIGRATION")
     if flag_value is None:
@@ -377,6 +411,7 @@ async def build_info():
                 "startup_hook":     startup_hook_marker,
                 "member_summary":   _member_summary_marker(),
             },
+            "frontend_bundle":                frontend_bundle_info,
             "startup_hook_imported":           startup_hook_imported,
             "env_flag_run_variant_a":          flag_state,
             "migration_marker_chart_count":   migrated_n,
