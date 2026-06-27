@@ -1,0 +1,46 @@
+{
+  "summary": "Ana 08:20 birth_time repair VERIFIED on production. user.birth_time persisted as '08:20', stored chart recomputed: ASC=Taurus 0.4682° (sid lon 20.1968), MC=Aquarius 3.8732° (sid lon 298.7167). member-summary now reads 'Aries Sun · Sagittarius Moon · Taurus Rising' (no stale Aries Rising). HD line unchanged: 'Manifesting Generator · Sacral Authority · 3/5'. Pete↔Ana relationship mapping has populated narrative_blocks (9 slots incl. type_pair_engagement, authority_rhythm) and the compromise channel [28,38] is present in diagnostics. No raw HD jargon (Ajna / Gate ## / Channel ##-##) leaks into relationship_synthesis.story or top-level story slots. ENGINE DIAGNOSIS: Mirror's tropical computation matches Swiss Ephemeris EXACTLY for 1983-05-03 11:20 UTC at -34.5538/-58.7030 (ASC trop=51.4803°, MC trop=330.0003°, Sun trop=42.4622°, Moon trop=294.1637°). Mirror's stored sidereal = SE tropical - SVP(31.2836) confirmed bit-perfect. Engine is Variant-A 13-sign (Ophiuchus included between Scorpio and Sagittarius), sign mapping is 0-indexed, attribution table operates on TROPICAL longitude with SVP-baked-in boundaries. The 'sign' field in planet output is the Variant-A 13-sign True-Sidereal-M label (neither classical-tropical nor classical-sidereal). CRITICAL FINDING: the 'clean 30° one-sign offset' framing in the request is INCORRECT — the actual raw tropical longitude deltas vs GM-claimed values are ASC≈50.80°, MC≈55.92°, Moon≈66.06° (Sun is the only body within ~1.67°). No plausible timezone reinterpretation of '08:20 local' lands at GM's claimed ASC=Aries 0.68° — the required UTC for that ASC is ~07:15 (local AR 04:15), incompatible with 08:20. This means either (a) GM PDF's Ana chart was computed at a materially different time/date than '08:20 local 1983-05-03', or (b) the GM-canonical values quoted in the request were misread. The Mirror engine math is astronomically correct; Mel matches GM because Mel's chart happens to land on a stretch of the Variant-A table where 13-sign and 12-sign tropical labels coincide, not because of any engine-side difference between Mel and Ana.",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {
+        "endpoint": "/api/admin/peek_chart_angles",
+        "issue": "Legacy migration_info residue persists: top-level migration_info still shows resolved_offset='+08:00', timezone_iana=null even after the 08:20 + Argentina timezone_override repair. Cosmetic (chart itself is correct) but should be cleaned up by the repair endpoint. File: /app/backend/routers/admin_chart_provenance_repair.py."
+      }
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [],
+    "react_native_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_ana_birth_time_0820_diagnosis.py",
+    "/app/test_reports/pytest/ana_0820_diag.xml"
+  ],
+  "action_items": [
+    "DIAGNOSTIC CLARIFICATION FOR MAIN AGENT: the 'clean 30° one-sign offset' hypothesis is FALSIFIED. Raw tropical longitudes Mirror produces differ from GM-claimed values by 50.80° (ASC), 55.92° (MC), 1.67° (Sun), 66.06° (Moon) — not 30°. The 'one-sign' appearance is an artifact of comparing Variant-A 13-sign sign-labels to classical-tropical 12-sign sign-labels; once the underlying tropical longitudes are compared head-to-head, the discrepancy is large and bi-modal (small on Sun, very large on ASC/MC/Moon).",
+    "RECOMMEND: ask the user to re-verify the GM PDF values for Ana. The Mirror tropical ASC=51.48° (Taurus 21.48°) is what Swiss Ephemeris produces for 1983-05-03 11:20 UTC at -34.55/-58.70. If GM PDF shows Aries 0°41', GM's PDF is computed for a different moment (e.g., 04:15 local, or a different date) — not for '08:20 local'.",
+    "RECOMMEND: spot-check Mel's GM chart with the same Swiss Ephemeris harness in test_ana_birth_time_0820_diagnosis.py::TestEngineGmDiagnosis.test_mirror_sidereal_matches_swisseph to confirm Mel's parity also holds on a raw-longitude basis (not just on sign labels).",
+    "P2 (carry-over from iter 18): /api/admin/repair_chart_for_user should also overwrite the legacy top-level migration_info fields (resolved_offset, timezone_iana) to reflect the actual resolved timezone."
+  ],
+  "critical_code_review_comments": [
+    "Engine architecture confirmed correct: Variant-A 13-sign True-Sidereal-M mode at /app/backend/calculations/sign_attribution.py L73 (DEFAULT_MODE) → boundaries built at L157 (_build_variant_a_tropical) by shifting zodiacal frame by SVP=31.2836. The attribute_sign() router takes TROPICAL longitude and returns 13-sign label including Ophiuchus.",
+    "/app/backend/calculations/astrology.py L444 get_full_natal_chart: tropical computation via swe.houses+SEFLG_SWIEPH, then sidereal=tropical-SVP, then sign attribution via longitude_to_sign_degree() which calls attribute_sign() on TROPICAL longitude (reconstructed by adding SVP back). Verified: ASC sidereal 20.1968 matches SE output to <0.01°.",
+    "The 'sign' field on every planet is the Variant-A 13-sign True-Sidereal-M label, NOT classical tropical. Any downstream code comparing against GM PDFs (which appear to use classical-tropical-12-sign) must remap or be aware of this. There is no per-planet 'tropical_sign' field exposed for cross-checking; consider adding one for GM-reconciliation use cases."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_ana_birth_time_0820_diagnosis.py (new, 13 tests, all pass)"
+  ],
+  "success_rate": {"backend": "100% (13/13 against prod)", "frontend": "not tested (backend-only request)"},
+  "seed_data_creation": "None — strictly read-only against production.",
+  "retest_needed": false,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "Ana repair to 08:20 is confirmed live on prod (https://mirror-lens-fixes-r-1779710763.emergent.host). Stored chart matches what Swiss Ephemeris computes from scratch (verified independently in test_ana_birth_time_0820_diagnosis.py::TestEngineGmDiagnosis). Engine produces tropical → sidereal (subtract SVP) → Variant-A 13-sign label including Ophiuchus. The supposed '30° one-sign offset' vs GM is a labeling artifact, not an engine bug — raw tropical longitudes disagree with the user-quoted GM values by 50-66° on ASC/MC/Moon, which exceeds any plausible timezone or convention error. If main agent wants to chase the GM-mismatch further, the next step is to re-read the GM PDF for Ana directly and compare tropical longitudes raw (not sign labels).",
+  "rca_of_issue": {
+    "repair_verification": "Repair endpoint correctly persisted user.birth_time='08:20' and recomputed astrology.metadata-anchored chart. ASC moved from sidereal 17.12° (Aries, 08:05) to 20.20° (Taurus, 08:20); MC moved from sidereal ~295.5° to 298.72°. Delta is consistent with 15 minutes of additional sidereal rotation (~3.75°). HD outputs are stable across the recompute because they were never tied to chart.angles in the first place.",
+    "30_degree_offset_falsification": "Computed Ana's chart from scratch in Swiss Ephemeris (1983-05-03 11:20 UTC, lat=-34.5538, lon=-58.7030) and obtained ASC tropical=51.4803°, MC tropical=330.0003°, Sun tropical=42.4622°, Moon tropical=294.1637°. These match Mirror stored values to <0.01° after SVP subtraction. Compared head-to-head against user-quoted GM values: ASC delta=+50.80°, MC delta=+55.92°, Sun delta=-1.67°, Moon delta=+65.94°. NOT a 30° clean offset. The 'one sign later' appearance is because Variant-A 13-sign Taurus starts at tropical 51.01° (vs classical 30°) and Variant-A Aquarius starts at tropical 326.13° (vs classical 300°). When Mirror's tropical 51.48 (clearly 21° Taurus in classical 12-sign) gets labeled 'Taurus 0.47°' under Variant-A, and the GM PDF's Aries 0.68° tropical claim is taken at face value, the sign labels look 'one apart' even though the underlying longitudes are 50° apart.",
+    "no_timezone_explains_gm": "Swept UTC offsets (-4 through +3) for '08:20 local' and computed ASC for each. No interpretation produces ASC near GM's 0.68°. The closest match requires UTC≈07:15, which is local AR 04:15 — incompatible with '08:20 local'. Therefore the GM Ana chart is either computed at a different moment than the stated 08:20-local-1983-05-03, or the GM-quoted values in the request are not directly comparable."
+  }
+}
