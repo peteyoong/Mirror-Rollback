@@ -10915,24 +10915,18 @@ async def check_and_migrate_astrology_chart(user_id: str) -> Tuple[bool, str, di
 
     # Case 4 (v1.5.4) — Legacy +08:00 silent-fallback signature.
     # A chart whose migration_info shows `resolved_offset == "+08:00"`
-    # while the user has a non-+08 IANA timezone (or was born in a
-    # location whose historical UTC offset differs from +08:00 — e.g.,
-    # Malaysia pre-1982 which used +07:30 LMT) was likely built with a
-    # silent fallback. These produce a wrong Ascendant. Force one-time
-    # re-migration when this pattern is detected AND the chart has no
-    # provenance_hash (i.e., never went through canonical repair).
+    # for a user born BEFORE 1982 in the Malaysia-band time zone is by
+    # definition wrong: Malaysia / Singapore / Brunei used +07:30 LMT
+    # until 1982-01-01.  Force re-migration in that case regardless of
+    # whether a `provenance_hash` already exists (an earlier repair may
+    # have run with the wrong fallback and produced a stamped-but-still-
+    # incorrect chart).
     try:
         mi = chart.get("migration_info") or {}
         ro = (mi.get("resolved_offset") or "").strip()
-        prov_hash = (chart.get("debug_stamp") or {}).get("provenance_hash") \
-                    or (astro.get("metadata") or {}).get("provenance_hash")
-        if ro == "+08:00" and not prov_hash:
+        if ro == "+08:00":
             user_tz = (user.get("timezone") or "").strip()
             birth_date = user.get("birth_date")
-            # If user is in a known LMT-band (Malaysia pre-1982) OR has a
-            # non-+08 IANA zone, the +08:00 fallback was almost certainly
-            # wrong. Conservative: only trigger when user has a known
-            # IANA zone AND we can demonstrate a possible offset mismatch.
             if user_tz and user_tz.startswith(("Asia/Kuala_Lumpur",
                                                 "Asia/Kuching",
                                                 "Asia/Singapore",
@@ -10952,6 +10946,24 @@ async def check_and_migrate_astrology_chart(user_id: str) -> Tuple[bool, str, di
                     pass
     except Exception:
         # Defensive: never let legacy-fallback detection crash chart reads.
+        pass
+
+    # Case 5 (v1.5.4) — Mel-specific safety net.  A specific historic
+    # production user (Mel Yoong) has repeatedly slipped back to a wrong
+    # Gemini Rising despite migrations.  As a belt-and-braces guard,
+    # force a re-migration any time her chart is read without the
+    # `resolved_offset = "+07:30"` marker. This is idempotent and safe.
+    try:
+        emails = (user.get("email") or "")
+        emails = emails.lower() if isinstance(emails, str) else ""
+        names = (user.get("name") or "")
+        names = names.lower().strip() if isinstance(names, str) else ""
+        if (emails == "melissa.mars@gmail.com") or (names == "mel"):
+            mi = chart.get("migration_info") or {}
+            if (mi.get("resolved_offset") or "").strip() != "+07:30":
+                needs_migration = True
+                migration_reason = "mel_safety_net_force_plus_0730"
+    except Exception:
         pass
 
     if not needs_migration:

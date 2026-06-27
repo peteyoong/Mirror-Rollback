@@ -386,20 +386,35 @@ export default function ForumMappingsScreen() {
                       </Text>
                     </View>
                   )}
-                  {(!!conf.label || !!conf.level || diag.provenance_rollup) && (
-                    <View style={{ marginTop: 8, flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
-                      {!!(conf.label || conf.level) && (
-                        <Text style={[styles.patternLabel, { color: theme.textTertiary }]}>
-                          Confidence: {String(conf.label || conf.level)}
-                        </Text>
-                      )}
-                      {Array.isArray(diag.lenses_present) && diag.lenses_present.length > 0 && (
-                        <Text style={[styles.patternLabel, { color: theme.textTertiary }]}>
-                          · Lenses: {diag.lenses_present.join(', ')}
-                        </Text>
-                      )}
-                    </View>
-                  )}
+                  {(!!conf.label || !!conf.level || diag.provenance_rollup) && (() => {
+                    // Humanize lens identifiers everywhere on the page.
+                    const LENS_LABELS: Record<string, string> = {
+                      human_design: 'Human Design',
+                      numerology:   'Numerology',
+                      enneagram:    'Enneagram',
+                      bazi:         'BaZi',
+                      astrology:    'Astrology',
+                    };
+                    const humanLenses = Array.isArray(diag.lenses_present)
+                      ? diag.lenses_present
+                          .map((l: string) => LENS_LABELS[l] || String(l).replace(/_/g, ' '))
+                          .join(', ')
+                      : '';
+                    return (
+                      <View style={{ marginTop: 8, flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+                        {!!(conf.label || conf.level) && (
+                          <Text style={[styles.patternLabel, { color: theme.textTertiary }]}>
+                            Confidence: {String(conf.label || conf.level)}
+                          </Text>
+                        )}
+                        {!!humanLenses && (
+                          <Text style={[styles.patternLabel, { color: theme.textTertiary }]}>
+                            · Lenses: {humanLenses}
+                          </Text>
+                        )}
+                      </View>
+                    );
+                  })()}
                   {ladder.length > 0 && (
                     <View style={{ marginTop: 12, borderTopWidth: 1, borderTopColor: theme.border, paddingTop: 12 }}>
                       <Text style={[styles.patternLabel, { color: theme.textTertiary, marginBottom: 6 }]}>
