@@ -74,16 +74,30 @@ async def peek_chart_angles(
     angles = astro.get("angles") or {}
     planets = astro.get("planets") or []
 
-    def _pick(p_name: str) -> Dict[str, Any]:
-        for p in planets:
-            if not isinstance(p, dict): continue
-            if (p.get("planet") == p_name) or (p.get("name") == p_name):
-                return {"sign": p.get("sign"), "degree": _round(p.get("degree")),
-                        "longitude": _round(p.get("longitude"))}
-        return {}
-
     asc_node = angles.get("asc") or angles.get("ascendant") or {}
     mc_node  = angles.get("mc")  or angles.get("midheaven") or {}
+
+    def _pick(p_name: str) -> Dict[str, Any]:
+        """Find Sun/Moon/etc in either list-shaped or dict-shaped
+        `astro.planets`. Supports lower-case keys too."""
+        # List form: [{name|planet: "Sun", sign: "...", ...}, ...]
+        if isinstance(planets, list):
+            for p in planets:
+                if not isinstance(p, dict):
+                    continue
+                if (p.get("planet") == p_name) or (p.get("name") == p_name):
+                    return {"sign": p.get("sign"),
+                            "degree": _round(p.get("degree")),
+                            "longitude": _round(p.get("longitude"))}
+        # Dict form: {"sun": {...}, "moon": {...}, "Sun": {...}, ...}
+        elif isinstance(planets, dict):
+            for k in (p_name, p_name.lower(), p_name.upper()):
+                node = planets.get(k)
+                if isinstance(node, dict):
+                    return {"sign": node.get("sign"),
+                            "degree": _round(node.get("degree")),
+                            "longitude": _round(node.get("longitude"))}
+        return {}
     payload = {
         "ok": True,
         "build_marker": "peek-chart-angles-v1",
