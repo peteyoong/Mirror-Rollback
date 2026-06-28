@@ -32706,6 +32706,15 @@ app.include_router(_find_user.router)
 from routers import admin_chart_provenance_repair as _provenance_repair
 app.include_router(_provenance_repair.router)
 
+# GM-parity dual-house audit (dual-house-audit-v2).
+# Read-only diagnostic exposing Equal (Mirror canonical) and Placidus
+# (GM "House: Placidus" panel) side-by-side for a single user, with a
+# Variant-A validity sweep (degree must be < real sign_width, not 30°).
+# Does NOT mutate the canonical system. Confirm-token gated.
+#   GET /api/admin/dual_house_audit?user_id=...&confirm=DUAL_HOUSE_AUDIT_2026_06_28
+from routers import admin_dual_house_audit as _dual_house_audit
+app.include_router(_dual_house_audit.router)
+
 # Temporary screenshot-package download endpoint (download-screenshots-v1).
 # Serves /app/memory/screenshots.zip as a file download for browser
 # users with the SCREENSHOTS_DOWNLOAD_V1 confirm token.  Read-only;

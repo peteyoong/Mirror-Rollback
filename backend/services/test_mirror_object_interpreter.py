@@ -426,18 +426,20 @@ def test_pairwise_with_one_failed_envelope_still_renders():
 
 # ----------------------------------------------------------------------
 # Degree-rendering — Variant-A signs can be > 30° wide.
-# Display-cap at 29 so user-visible text never shows "33° Leo".
-# voice-floor-v2 degree-rendering-fix
+# Per the canonical Variant-A policy (real constellation-width display,
+# 2026-06-28), we surface the REAL within-sign offset, including values
+# > 30° when astronomically valid. No clamping, no rescaling.
+# variant-a-real-width-display-v1
 # ----------------------------------------------------------------------
-def test_display_degree_caps_above_29():
+def test_display_degree_shows_real_width_above_29():
     env = _make_envelope("Pallas", sign="Leo", house=9)
     env["placement"]["degree"] = 33.3121   # Variant-A Pallas in wide Leo
     block = build_mirror_object_proof_block(env)
-    # Capped to 29° in the user-visible proof block
-    assert "29°Leo" in block
-    # Raw 33° MUST NOT appear (would confuse users)
-    assert "33°" not in block
-    assert "33° Leo" not in block
+    # Real value 33° MUST appear in the user-visible proof block —
+    # Leo's Variant-A band is ~33.82° wide so this is valid.
+    assert "33°Leo" in block
+    # We must NOT silently cap to 29° anymore.
+    assert "29°Leo" not in block
 
 
 def test_display_degree_normal_range_unchanged():

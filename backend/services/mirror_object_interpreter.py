@@ -179,19 +179,20 @@ _UNIVERSAL_VOICE_FLOOR = (
 
 # ---------------------------------------------------------------------------
 # Display-degree helper — Variant-A sign widths are non-uniform (some
-# signs span > 30°). Internal `degree` is preserved as the canonical
-# within-sign value (e.g. Pallas Leo 33.31° in a 33.34°-wide Leo band).
-# But user-facing rendering must NOT surface "33° Leo" because users
-# read degrees against a mental 0–29° model.  Display-cap at 29.
+# signs span > 30°). Per the Variant-A canonical policy (real
+# constellation-width display, 2026-06-28), we surface the REAL within-
+# sign offset to users — including values > 30° when astronomically
+# valid (Virgo spans ~49.71°, so "37°Virgo" is correct). We do NOT
+# clamp, wrap, or rescale.
 # ---------------------------------------------------------------------------
 def _display_degree(degree: Any) -> Optional[int]:
-    """Return a 0–29 integer for user-facing rendering, or None if
-    `degree` isn't numeric. Internal float value stays untouched in the
-    envelope; this only affects the proof block string shown to the LLM."""
+    """Return the integer within-sign degree for user-facing rendering,
+    or None if `degree` isn't numeric. No clamping — Variant-A signs
+    have real (unequal) widths and the raw offset is what we show."""
     if not isinstance(degree, (int, float)):
         return None
-    capped = max(0.0, min(float(degree), 29.999))
-    return int(capped)
+    val = max(0.0, float(degree))
+    return int(val)
 
 
 def _format_placement_display(placement: Dict[str, Any]) -> str:

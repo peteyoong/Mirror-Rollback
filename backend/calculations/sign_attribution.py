@@ -196,9 +196,25 @@ def _attribute_with_table(
         if start <= end:
             if start <= trop < end:
                 width = end - start
+                raw_deg = round(trop - start, 6)
+                # variant-a-real-width-display-v1
+                # Variant-A canonical policy (per product owner, 2026-06-28):
+                # Under the 13-sign Athen / Sharatan boundary table the
+                # constellations have UNEQUAL widths (Virgo ≈ 49.71°,
+                # Taurus ≈ 36.86°, Pisces ≈ 41.99°). The displayed degree
+                # within a sign is the REAL offset from sign_start and
+                # MAY legitimately exceed 30°. We do NOT clamp, wrap, or
+                # proportionally rescale — that destroys astronomical
+                # fidelity. The validity rule is simply:
+                #     0 <= degree_within_sign < sign_width
+                # `display_degree` is exposed as an alias of
+                # `degree_within_sign` so downstream callers have a stable
+                # field name; both values are identical.
+                disp_deg = raw_deg
                 return {
                     "sign":               name,
-                    "degree_within_sign": round(trop - start, 6),
+                    "degree_within_sign": raw_deg,
+                    "display_degree":     disp_deg,
                     "sign_start":         round(start, 6),
                     "sign_end":           round(end, 6),
                     "sign_width":         round(width, 6),
@@ -210,9 +226,13 @@ def _attribute_with_table(
             if trop >= start or trop < end:
                 width = (360.0 - start) + end
                 deg = (trop - start) % 360.0
+                raw_deg = round(deg, 6)
+                # See note above — display_degree is the raw offset.
+                disp_deg = raw_deg
                 return {
                     "sign":               name,
-                    "degree_within_sign": round(deg, 6),
+                    "degree_within_sign": raw_deg,
+                    "display_degree":     disp_deg,
                     "sign_start":         round(start, 6),
                     "sign_end":           round(end, 6),
                     "sign_width":         round(width, 6),
