@@ -77,6 +77,11 @@ async def peek_chart_angles(
     asc_node = angles.get("asc") or angles.get("ascendant") or {}
     mc_node  = angles.get("mc")  or angles.get("midheaven") or {}
 
+    # v1.5.6 — surface house_system + ayanamsa metadata so GM-parity
+    # audits can be performed externally without trawling chart docs.
+    astro_meta = astro.get("metadata") or {}
+    houses_meta = astro.get("houses") if isinstance(astro.get("houses"), dict) else {}
+
     def _pick(p_name: str) -> Dict[str, Any]:
         """Find Sun/Moon/etc in either list-shaped or dict-shaped
         `astro.planets`. Supports lower-case keys too."""
@@ -123,6 +128,13 @@ async def peek_chart_angles(
             },
             "Sun":  _pick("Sun"),
             "Moon": _pick("Moon"),
+        },
+        "engine": {
+            "house_system":         astro_meta.get("house_system") or houses_meta.get("system"),
+            "ayanamsa":             astro_meta.get("ayanamsa"),
+            "svp_degrees":          astro_meta.get("svp_degrees"),
+            "sidereal_mode":        astro_meta.get("sidereal_mode") or astro_meta.get("zodiac_mode"),
+            "astrology_engine_version": astro_meta.get("astrology_engine_version"),
         },
         "migration_info":   chart.get("migration_info"),
         "astrology_metadata_keys": list((astro.get("metadata") or {}).keys()),

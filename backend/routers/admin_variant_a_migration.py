@@ -411,6 +411,18 @@ async def build_info():
                 "startup_hook":     startup_hook_marker,
                 "member_summary":   _member_summary_marker(),
             },
+            "engine_config": {
+                # v1.5.6 — expose canonical engine settings so any GM-parity
+                # audit can compare these directly without round-tripping a
+                # full chart compute.
+                "house_system":  "Equal",                       # CANONICAL_HOUSE_SYSTEM
+                "zodiac_mode":   "true_sidereal_user_defined",
+                "ayanamsa_label":"Variant-A 13-sign True Sidereal-M (Midpoint)",
+                "svp_degrees":   31.2836,
+                "sign_zodiac":   "13-sign (Ophiuchus included)",
+                "node_mode":     "true",
+                "house_anchor":  "Asc = 1st",
+            },
             "frontend_bundle":                frontend_bundle_info,
             "startup_hook_imported":           startup_hook_imported,
             "env_flag_run_variant_a":          flag_state,

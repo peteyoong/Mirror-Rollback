@@ -1,0 +1,9 @@
+{
+  "sharatan_tropical_lon_j2000_deg": 33.970310037233205,
+  "sharatan_tropical_lon_1983_deg": 33.73749955148389,
+  "years_from_j2000_to_1983": -16.66537383070992,
+  "precession_rate_deg_per_year": 0.013969712777777777,
+  "gm_sharatan_ayanamsa_1983": 31.737499551483893,
+  "mirror_svp_degrees": 31.2836,
+  "ayanamsa_delta_gm_minus_mirror_deg": 0.45389955148389305
+}

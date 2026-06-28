@@ -1,0 +1,41 @@
+{
+  "sign_misses_equal_vs_gm": [
+    {
+      "body": "DC",
+      "mirror": "Libra",
+      "gm": "Scorpio"
+    },
+    {
+      "body": "Saturn",
+      "mirror": "Virgo",
+      "gm": "Libra"
+    },
+    {
+      "body": "Pluto",
+      "mirror": "Virgo",
+      "gm": "Libra"
+    }
+  ],
+  "within_sign_delta_over_0p5": [
+    {
+      "body": "Venus",
+      "mirror_deg": 32.444688,
+      "gm_deg": 2.433,
+      "delta": 30.01168800000005
+    }
+  ],
+  "house_misses": [
+    {
+      "body": "Moon",
+      "mirror": 9,
+      "gm": 8,
+      "system": "Equal"
+    },
+    {
+      "body": "Pluto",
+      "mirror": 6,
+      "gm": 5,
+      "system": "Equal"
+    }
+  ]
+}
