@@ -13,8 +13,8 @@
  *   • Silent by default when the network fails or the user has no chart —
  *     never blocks the surrounding Timeline tab.
  */
-import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ActivityIndicator, Pressable } from 'react-native';
+import React, { useEffect, useMemo, useState } from 'react';
+import { View, Text, StyleSheet, ActivityIndicator, Pressable, ScrollView, Platform } from 'react-native';
 import Constants from 'expo-constants';
 
 // Match the URL resolution pattern used by AstrologyTimelineTab.
@@ -63,6 +63,15 @@ export default function TimingSignalsSection({ userId, theme, isDark }: Props) {
   const [error, setError] = useState<string | null>(null);
   const [signals, setSignals] = useState<Record<string, TimingSignal> | null>(null);
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
+  // Date scrubber — offset in YEARS from today. 0 = today, negative = past.
+  const [yearOffset, setYearOffset] = useState<number>(0);
+
+  // Turn yearOffset → concrete YYYY-MM-DD (today shifted by N years).
+  const scrubDate = useMemo(() => {
+    const d = new Date();
+    d.setFullYear(d.getFullYear() + yearOffset);
+    return d.toISOString().slice(0, 10);
+  }, [yearOffset]);
 
   useEffect(() => {
     if (!userId) { setLoading(false); return; }
@@ -71,7 +80,10 @@ export default function TimingSignalsSection({ userId, theme, isDark }: Props) {
       try {
         setLoading(true);
         setError(null);
-        const url = `${APP_BASE}/api/timeline/signals/current?user_id=${encodeURIComponent(userId)}`;
+        const url =
+          `${APP_BASE}/api/timeline/signals/current` +
+          `?user_id=${encodeURIComponent(userId)}` +
+          `&date=${scrubDate}`;
         const res = await fetch(url);
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const data: TimingSignalsResponse = await res.json();
@@ -85,7 +97,7 @@ export default function TimingSignalsSection({ userId, theme, isDark }: Props) {
       }
     })();
     return () => { cancelled = true; };
-  }, [userId]);
+  }, [userId, scrubDate]);
 
   // Silent when no user or nothing to show.
   if (!userId) return null;
@@ -98,12 +110,49 @@ export default function TimingSignalsSection({ userId, theme, isDark }: Props) {
 
   return (
     <View style={[styles.container, { backgroundColor: palette.bg, borderColor: palette.border }]}>
-      <Text style={[styles.header, { color: palette.muted }]}>Timing Signals</Text>
+      <View style={styles.headerRow}>
+        <Text style={[styles.header, { color: palette.muted }]}>Timing Signals</Text>
+        <Text style={[styles.scrubDateLabel, { color: palette.muted }]}>
+          {yearOffset === 0 ? 'today' : `${yearOffset > 0 ? '+' : ''}${yearOffset}y · ${scrubDate}`}
+        </Text>
+      </View>
+
+      {/* Mini date scrubber — past 5 → future 5 years, plus today. */}
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={styles.scrubStrip}
+      >
+        {[-5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5].map(offset => {
+          const active = offset === yearOffset;
+          return (
+            <Pressable
+              key={offset}
+              onPress={() => setYearOffset(offset)}
+              style={[
+                styles.scrubChip,
+                {
+                  borderColor: active ? palette.accent : palette.border,
+                  backgroundColor: active ? palette.accent + '22' : 'transparent',
+                },
+              ]}
+            >
+              <Text style={[
+                styles.scrubChipText,
+                { color: active ? palette.accent : palette.muted,
+                  fontWeight: active ? '700' : '500' },
+              ]}>
+                {offset === 0 ? 'now' : (offset > 0 ? `+${offset}y` : `${offset}y`)}
+              </Text>
+            </Pressable>
+          );
+        })}
+      </ScrollView>
 
       {loading && (
         <View style={styles.loadingRow}>
           <ActivityIndicator size="small" color={palette.accent} />
-          <Text style={[styles.loadingText, { color: palette.muted }]}>Reading current timing…</Text>
+          <Text style={[styles.loadingText, { color: palette.muted }]}>Reading timing…</Text>
         </View>
       )}
 
@@ -235,7 +284,15 @@ function ExpandedLine({ label, body, palette, italic }: {
 // ---------------------------------------------------------------------------
 const styles = StyleSheet.create({
   container: { padding: 16, borderRadius: 16, borderWidth: 1, marginBottom: 16 },
-  header:    { fontSize: 12, fontWeight: '600', letterSpacing: 1.2, textTransform: 'uppercase', marginBottom: 12 },
+  headerRow: { flexDirection: 'row', justifyContent: 'space-between',
+               alignItems: 'flex-end', marginBottom: 8 },
+  header:    { fontSize: 12, fontWeight: '600', letterSpacing: 1.2,
+               textTransform: 'uppercase' },
+  scrubDateLabel: { fontSize: 11, fontFamily: Platform.select({ios:'Menlo', android:'monospace', default:'monospace'}) as any },
+  scrubStrip:{ flexDirection: 'row', gap: 6, paddingBottom: 12, paddingRight: 4 },
+  scrubChip: { paddingHorizontal: 10, paddingVertical: 6, borderRadius: 999,
+               borderWidth: 1, minWidth: 44, alignItems: 'center' },
+  scrubChipText: { fontSize: 11 },
   loadingRow:{ flexDirection: 'row', alignItems: 'center', gap: 10 },
   loadingText:{ fontSize: 13 },
   card:      { padding: 14, borderRadius: 12, borderWidth: 1, marginBottom: 10 },

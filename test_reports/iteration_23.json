@@ -1,0 +1,36 @@
+{
+  "summary": "WP0XX Timeline V2 Phase 4 (Transits + ZR scaffold + signals aggregator) fully validated. Pytest suite: 41/41 passed on test_transits_and_zr_engines.py + test_timing_evidence_layer.py + test_annual_profection_engine.py. New HTTP integration suite (9 tests) against the public backend all pass: aggregator returns engines_run=['annual_profection','transits','zodiacal_releasing'] with all 3 keys in timing_signals; transits.details includes aspects_top, loci_measured (Ascendant, MC, IC, Descendant + 'Lord of the Year (Venus)'), target_date=today, confidence in {high,moderate,low}; ZR Spirit=Pisces (Jupiter, 12y, 2025-03-31→2037-03-31, 10.693y remaining) and Fortune=Aquarius (Saturn, 30y, 2022-03-31→2052-03-31) — both 12-sign, valid rulers, years_remaining ≤ period_years, start<end. Historical scrub date=2000-06-01 returns age=32 (Pete born 1968-03-31), transits.target_date=2000-06-01, ZR Spirit Aquarius window 1995-03-31..2025-03-31 correctly contains 2000-06-01. Future scrub date=2030-06-01 shifts activated_house from 11 (now) to 3 — exactly the expected +4 modular advance. Profection regression endpoints /profection/current and /profection/series still 200 for Pete. Live Saturn-square-ASC 2.128° applying observation confirmed on wire.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [],
+    "react_native_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_transits_and_zr_engines.py",
+    "/app/backend/tests/test_timing_evidence_layer.py",
+    "/app/backend/tests/test_annual_profection_engine.py",
+    "/app/backend/tests/test_timeline_signals_scrubber_http.py",
+    "/app/test_reports/pytest/wp0xx_phase4_v2.xml",
+    "/app/test_reports/pytest/wp0xx_phase4_v2_http.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "transit_timing_engine.py uses datetime.utcnow() (deprecated in Py3.12+). Consider datetime.now(timezone.utc). Non-blocking; still functional on Py3.11.",
+    "zodiacal_releasing_engine.py also uses datetime.utcnow() as target_date default — same note.",
+    "timing_evidence_layer.build_default_layer() re-imports engines lazily inside function; fine for avoiding circulars but worth documenting."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_timeline_signals_scrubber_http.py (new)"
+  ],
+  "success_rate": {"backend": "100%", "frontend": "n/a (backend-only per request)"},
+  "seed_data_creation": "None — used existing Mongo user 697f0c6abf35c0528ff06954 (Pete Yoong).",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Aggregator is stable. If additional TimingEngines get added, extend test_timeline_signals_scrubber_http.py::TestSignalsAggregatorShape.test_engines_run_lists_three_plugins to include them. Historical/future scrub math verified: +N years advances activated_house by N mod 12.",
+  "rca_of_issue": "N/A — no bugs surfaced."
+}

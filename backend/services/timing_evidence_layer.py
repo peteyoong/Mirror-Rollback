@@ -177,11 +177,14 @@ class TimingEvidenceLayer:
 # Default layer — pre-registered with Mirror's canonical engines.
 # ---------------------------------------------------------------------------
 def build_default_layer() -> TimingEvidenceLayer:
+    from services.transit_timing_engine        import TransitTimingEngine           # noqa: PLC0415
+    from services.zodiacal_releasing_engine    import ZodiacalReleasingScaffoldEngine  # noqa: PLC0415
+
     layer = TimingEvidenceLayer()
     layer.register(AnnualProfectionTimingEngine())
+    layer.register(TransitTimingEngine())
+    layer.register(ZodiacalReleasingScaffoldEngine())
     # Future engines register themselves here:
-    #   layer.register(TransitsTimingEngine())
-    #   layer.register(ZodiacalReleasingTimingEngine())
     #   layer.register(HumanDesignCycleTimingEngine())
     #   layer.register(LifeMilestoneTimingEngine())
     return layer
