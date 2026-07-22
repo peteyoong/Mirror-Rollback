@@ -256,6 +256,31 @@ export default function ForumMappingsScreen() {
     const amplifiers = field?.amplifiers || {};
     const hasAnyAmplifier = !!(amplifiers.juno || amplifiers.north_node || amplifiers.vertex);
 
+    // ── TOP-OF-PAGE DEDUPLICATION (v1.5.3) ───────────────────────
+    // Historically the page rendered up to five stacked summary
+    // blocks at the top (MIRROR SEES + FIELD PARAGRAPH + WHAT
+    // ACTIVATES chip + LEGACY STORY card + THEMES/GIFT/AMPLIFIERS).
+    // The first two are semantically identical — both are cross-lens
+    // synthesised summaries produced by different generations of the
+    // engine. When MIRROR SEES has content, suppress the older field
+    // paragraph, the activation chip, and the legacy story card so
+    // the user sees exactly ONE synthesised story block at the top.
+    // The still-distinct blocks (WHAT LIVES BETWEEN YOU themes, GIFT
+    // OF THIS CONNECTION, WHY THE STAKES FEEL HIGHER amplifiers) are
+    // preserved because they carry genuinely different content.
+    // build_marker: relationship-mapping-top-dedup-v1.5.3
+    const relationshipSynthesis: any =
+      (selectedMember as any)?.relationship_synthesis
+      || (selectedMember as any)?.mapping?.relationship_synthesis;
+    const mirrorSeesHasContent = !!(
+      relationshipSynthesis?.story
+      && (
+        relationshipSynthesis.story.headline
+        || relationshipSynthesis.story.summary
+        || relationshipSynthesis.story.current_movement
+      )
+    );
+
     return (
       <Modal
         visible={!!selectedMember}
@@ -476,12 +501,18 @@ export default function ForumMappingsScreen() {
                     Activation-first synthesis BEFORE evidence.
                     ============================================================ */}
 
-                {/* FIELD PARAGRAPH — the opener, integrates all lenses */}
-                <View style={[styles.storyCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-                  <Text style={[styles.fieldParagraph, { color: theme.text }]}>
-                    {field.field_paragraph}
-                  </Text>
-                </View>
+                {/* FIELD PARAGRAPH — the opener, integrates all lenses.
+                    Suppressed when MIRROR SEES already carries the
+                    synthesised story to avoid stacking two paragraphs
+                    that say the same thing.
+                    build_marker: relationship-mapping-top-dedup-v1.5.3 */}
+                {!mirrorSeesHasContent && (
+                  <View style={[styles.storyCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+                    <Text style={[styles.fieldParagraph, { color: theme.text }]}>
+                      {field.field_paragraph}
+                    </Text>
+                  </View>
+                )}
 
                 {/* ACTIVATION — DETERMINISTIC SINGLE-SURFACE RULE v2.
                     relationship-mapping-activation-single-surface-v2:
@@ -491,8 +522,12 @@ export default function ForumMappingsScreen() {
                       (b) substring-contained either way (normalized), OR
                       (c) Jaccard token overlap ≥ 0.55.
                     Last guard catches near-identical strings that differ by
-                    one or two surrounding sentences. */}
-                {(() => {
+                    one or two surrounding sentences.
+                    v1.5.3 addition: also suppress the chip entirely when
+                    MIRROR SEES has taken over the story surface. The
+                    activation content is the same territory MIRROR SEES
+                    already occupies (current_movement / growth_edge). */}
+                {!mirrorSeesHasContent && (() => {
                   const rawPara = field.field_paragraph || '';
                   const rawAct = field.activation || '';
                   if (!rawAct.trim()) {
@@ -660,15 +695,19 @@ export default function ForumMappingsScreen() {
                     Renders when mapping.field is absent OR not v1.
                     ============================================================ */}
 
-                {/* LAYER 1: STORY */}
-                <View style={[styles.storyCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-                  <Text style={[styles.storyHeadline, { color: theme.text }]}>
-                    {story.headline}
-                  </Text>
-                  <Text style={[styles.storySummary, { color: theme.textSecondary }]}>
-                    {story.summary}
-                  </Text>
-                </View>
+                {/* LAYER 1: STORY — suppressed when MIRROR SEES already
+                    carries the synthesised story at the top.
+                    build_marker: relationship-mapping-top-dedup-v1.5.3 */}
+                {!mirrorSeesHasContent && (
+                  <View style={[styles.storyCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+                    <Text style={[styles.storyHeadline, { color: theme.text }]}>
+                      {story.headline}
+                    </Text>
+                    <Text style={[styles.storySummary, { color: theme.textSecondary }]}>
+                      {story.summary}
+                    </Text>
+                  </View>
+                )}
 
                 {/* LAYER 2: PATTERNS */}
                 {patterns?.what_happens && patterns.what_happens.length > 0 && (
@@ -1188,7 +1227,7 @@ export default function ForumMappingsScreen() {
                       return (
                         <View testID="enneagram-v2-card-v1" style={styles.lensSection}>
                           <Text style={[styles.signalsNote, { color: theme.textTertiary }]}>
-                            TYPE RESONANCE — RELATIONSHIP STORY
+                            TYPE RESONANCE · RELATIONSHIP STORY
                           </Text>
                           {SECTIONS.map(({ key, label }) => {
                             const body = v2c[key];
@@ -1229,7 +1268,7 @@ export default function ForumMappingsScreen() {
                       return (
                         <View testID="numerology-v2-card-v152" style={styles.lensSection}>
                           <Text style={[styles.signalsNote, { color: theme.textTertiary }]}>
-                            NUMBER RESONANCE — RELATIONSHIP STORY
+                            NUMBER RESONANCE · RELATIONSHIP STORY
                           </Text>
                           {SECTIONS.map(({ key, label }) => {
                             const body = v2c[key];
@@ -1249,11 +1288,12 @@ export default function ForumMappingsScreen() {
                       );
                     })()}
 
-                    {/* NUMEROLOGY SIGNALS (only if present) */}
+                    {/* NUMEROLOGY SIGNALS (only if present)
+                        label normalized v1.5.3 — was "NUMBER RESONANCE — themes" */}
                     {signals?.numerology && signals.numerology.themes?.length > 0 && (
                       <View style={styles.lensSection}>
                         <Text style={[styles.signalsNote, { color: theme.textTertiary }]}>
-                          NUMBER RESONANCE — themes
+                          NUMEROLOGY · THEMES
                         </Text>
                         {signals.numerology.themes.map((item: string, i: number) => (
                           <View key={`nt-${i}`} style={styles.lensSignalRow}>
@@ -1377,7 +1417,7 @@ export default function ForumMappingsScreen() {
                       if (!diag) {
                         return (
                           <View style={styles.lensSection}>
-                            <Text style={[styles.signalsNote, { color: theme.textTertiary }]}>ELEMENTAL DYNAMICS — Evidence</Text>
+                            <Text style={[styles.signalsNote, { color: theme.textTertiary }]}>ELEMENTAL DYNAMICS · EVIDENCE</Text>
                             {support.map((it, i) => (<View key={`bs-${i}`} style={styles.lensSignalRow}><Text style={[styles.lensSignalIcon, { color: '#81C784' }]}>+</Text><Text style={[styles.lensSignalText, { color: theme.textSecondary }]}>{it}</Text></View>))}
                             {tension.map((it, i) => (<View key={`bt-${i}`} style={styles.lensSignalRow}><Text style={[styles.lensSignalIcon, { color: '#CF6679' }]}>−</Text><Text style={[styles.lensSignalText, { color: theme.textSecondary }]}>{it}</Text></View>))}
                             {growth.map((it, i) => (<View key={`bg-${i}`} style={styles.lensSignalRow}><Text style={[styles.lensSignalIcon, { color: '#90CAF9' }]}>↑</Text><Text style={[styles.lensSignalText, { color: theme.textSecondary }]}>{it}</Text></View>))}
@@ -1412,7 +1452,7 @@ export default function ForumMappingsScreen() {
                       return (
                         <View style={styles.lensSection}>
                           <Text style={[styles.signalsNote, { color: theme.textTertiary }]}>
-                            ELEMENTAL DYNAMICS — Evidence
+                            ELEMENTAL DYNAMICS · EVIDENCE
                           </Text>
 
                           {/* 1. ELEMENTAL STRUCTURE */}
@@ -1522,7 +1562,9 @@ export default function ForumMappingsScreen() {
               const legacy = (selectedMember as any)?.signals?.astrology || {};
               const legacyHidden = !!legacy.legacy_hidden_due_to_v2;
               const activationSurface =
-                (selectedMember as any).__diagActivationSurface || 'unknown';
+                mirrorSeesHasContent
+                  ? 'mirror-sees-owns-top (field paragraph + chip suppressed)'
+                  : (selectedMember as any).__diagActivationSurface || 'unknown';
               const role = rel.relationship_role || 'none';
               return (
                 <View style={[styles.diagFooter, { borderTopColor: theme.border, backgroundColor: (theme.surfaceLight || theme.surface) + '80' }]}>
