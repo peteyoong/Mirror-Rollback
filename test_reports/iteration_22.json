@@ -1,0 +1,42 @@
+{
+  "summary": "WP0XX Timeline Intelligence V2 · Phases 3+4 — verified end-to-end. Backend contract for GET /api/timeline/signals/current is complete: for Pete (697f0c6abf35c0528ff06954), today's call returns 200 with ok=true, protocol.engines_run=['annual_profection'], timing_signals.annual_profection.confidence='moderate', name='11th House Year' (age 58, Libra, Lord=Venus in Pisces H3 cadent), 3 supporting_signals, details.activated_house=11 (in 1..12), and interpretation.tone_contract with all four flags True (observational_not_predictive, no_fatalism, no_certainty_claim, identity_first). Historical variant date=1993-08-01 returns 200 with a valid past year (activated_house 1..12). Error handling: invalid user_id → 400, unknown 24-hex → 404, malformed date → 400. Phase-1+2 endpoints /api/timeline/profection/current and /api/timeline/profection/series still return 200 (no regression from the new /signals/current router path). Ran the four Phase 4 test files together: test_timeline_signals_http.py (7/7), test_timing_evidence_layer.py (5/5), test_annual_profection_engine.py (27/27), test_timeline_profection_api.py (14/14) → 53/53 passed. Full backend suite: broader failures observed (test_astrology_timeline_generator, test_identity_pattern_recurrence, test_pete_chart_repair_verification, test_p0/p1_relationship_*, test_pressure_topology_v6, test_saved_people, test_slice_a_auto_context_http, test_today_ranking_demote, test_mel_regression, test_relationship_aware_astrology_v10, test_v15_payload_contract) — none of these touch timing/profection/signals; they were not covered in prior WP0XX iteration 21's 153-test subset either. Phase-4 code paths show 0 regressions. Frontend regression: seeded Pete's user_id into localStorage, loaded /lenses/astrology in mobile viewport (390×844), clicked Timeline tab. Page loads cleanly (0 pageerror, 0 console errors). The new TIMING SIGNALS section renders above the Year Theme card (Timing Signals body index 625 < Year Theme index 785), showing 'The Year As It Unfolds' → Chapter card → TIMING SIGNALS → '11th House Year' + MODERATE badge + 'Show details', then 'THIS YEAR'S QUESTION' below. The frontend fetches /api/timeline/signals/current live and receives 200.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [],
+    "react_native_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_timeline_signals_http.py",
+    "/app/backend/tests/test_timing_evidence_layer.py",
+    "/app/backend/tests/test_annual_profection_engine.py",
+    "/app/backend/tests/test_timeline_profection_api.py",
+    "/app/test_reports/pytest/wp0xx_phase4_signals.xml",
+    "/app/test_reports/pytest/wp0xx_phase4_full.xml"
+  ],
+  "action_items": [
+    "No action needed on Phase 3+4. Broader pre-existing failures in unrelated modules (timeline_generator content strings, pete_chart_repair, relationship graph/classifier, pressure_topology, saved_people, slice_a_auto_context, today_ranking_demote, mel_regression) are outside the Phase 4 scope and were not verified in iteration 21 either — recommend confirming with main agent whether they should be triaged as separate WPs."
+  ],
+  "critical_code_review_comments": [
+    "timeline_profection.py:272 — /signals/current is registered under the same APIRouter as /profection/current, verified via test_signals_endpoint_registered. Prefix '/api/timeline' + tag 'timeline'. Good.",
+    "timing_evidence_layer.py:117-123 — register() is idempotent by engine_id (unit-tested). Fan-out preserves engine order via list; per-engine exceptions become inactive TimingEvidence rather than aborting the aggregate (defensive).",
+    "TimingSignalsSection.tsx:74 — Uses `${APP_BASE}/api/...` where APP_BASE is '' on web (relative → same-origin) and EXPO_PUBLIC_BACKEND_URL on native. Correct per Mirror's BACKEND URL convention. Silent-on-error branches (:92-93) intentionally protect the surrounding Timeline tab — verified visually the section is present with a real Pete session.",
+    "AstrologyTimelineTab.tsx:721-723 — TimingSignalsSection is mounted inside the userId guard, above the Year Theme card. Verified rendered order visually and by DOM string index."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_timeline_signals_http.py (new)"
+  ],
+  "success_rate": {
+    "backend": "100% for Phase 4 scope (53/53 tests across 4 files; live curl 6/6)",
+    "frontend": "100% for Phase 4 scope (page loads, 0 errors, Timing Signals section visible above Year Theme with a real 200 response)"
+  },
+  "seed_data_creation": "None. Read-only endpoint. Used pre-existing Pete user_id 697f0c6abf35c0528ff06954. Test data prefixed 'TEST_' would have been used if we had needed writes.",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Backend URL var in this project is EXPO_PUBLIC_BACKEND_URL (frontend/.env). Some legacy backend test files also expect EXPO_BACKEND_URL — export both when running full suite. The full pytest run has ~80 pre-existing failures unrelated to Phase 4 (timeline_generator content drift, relationship classifier, pressure topology, saved_people, etc.). If asked to certify 'full suite green', triage those separately before rerunning. Phase-4 test files to trust: test_timing_evidence_layer.py, test_annual_profection_engine.py, test_timeline_profection_api.py, test_timeline_signals_http.py.",
+  "rca_of_issue": "N/A — no bugs found in Phase 3+4 scope."
+}

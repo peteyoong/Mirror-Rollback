@@ -26,6 +26,7 @@ import { getJournalEntriesByPhase, getJournalPatterns, JournalEntryResponseWithP
 import { useAppStore } from '../../store';
 import { cleanText } from '../../utils/languageGuard';
 import GoverningChapterCard from '../GoverningChapterCard';
+import TimingSignalsSection from './TimingSignalsSection';
 
 // Backend URL resolution (same pattern AstrologyTodayV4 uses) — on web
 // we rely on the relative /api proxy, on native we use the absolute
@@ -713,6 +714,13 @@ export default function AstrologyTimelineTab({
           year-theme / arc / phase cards still render below — they are
           becoming subordinate, not removed. */}
       {user?.id ? <GoverningChapterCard userId={user.id} /> : null}
+
+      {/* Timing Signals — Timeline Intelligence V2 · Phase 3 aggregated
+          plug-in evidence layer (currently: Annual Profection). Silent
+          if user has no chart or the endpoint fails. */}
+      {user?.id ? (
+        <TimingSignalsSection userId={user.id} theme={theme} isDark={isDark} />
+      ) : null}
 
       {/* Year Theme */}
       <View style={[styles.yearThemeCard, { backgroundColor: isDark ? 'rgba(139, 92, 246, 0.08)' : 'rgba(139, 92, 246, 0.05)', borderColor: Colors.accent + '30' }]}>

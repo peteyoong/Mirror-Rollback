@@ -264,3 +264,68 @@ def _ordinal(n: int) -> str:
     if 10 <= (n % 100) < 20: suf = "th"
     else: suf = {1:"st", 2:"nd", 3:"rd"}.get(n % 10, "th")
     return f"{n}{suf}"
+
+
+# ---------------------------------------------------------------------------
+# Endpoint 3 — aggregated timing signals (Phase 4)
+# ---------------------------------------------------------------------------
+@router.get("/signals/current")
+async def timeline_signals(
+    user_id: str = Query(..., description="Mongo _id of the user (24-hex)."),
+    date:    Optional[str] = Query(
+        None, description="Target date YYYY-MM-DD. Defaults to today (UTC)."),
+    include_inactive: bool = Query(
+        False, description="Surface engines that returned active=False."),
+):
+    """Aggregated `timing_signals` block from every registered TimingEngine.
+
+    Currently registered plug-ins:
+        • annual_profection
+
+    Future plug-ins will appear here automatically once registered in
+    `services.timing_evidence_layer.build_default_layer()`.
+    """
+    from server import db                                                 # noqa: PLC0415
+    from bson import ObjectId                                              # noqa: PLC0415
+    from services.timing_evidence_layer import build_default_layer         # noqa: PLC0415
+
+    try:
+        oid = ObjectId(user_id)
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"invalid user_id: {e!s}")
+
+    user = await db.users.find_one({"_id": oid})
+    if not user:
+        raise HTTPException(status_code=404, detail=f"user_id {user_id} not found")
+
+    if date is None:
+        target = datetime.now(_tz.utc).date()
+    else:
+        try:
+            target = _date.fromisoformat(date)
+        except ValueError:
+            raise HTTPException(status_code=400,
+                                detail="date must be YYYY-MM-DD")
+
+    chart     = await _resolve_natal_chart(user)
+    birth_utc = _resolve_birth_utc(user)
+
+    layer = build_default_layer()
+    agg = layer.aggregate(
+        natal_chart        = chart,
+        birth_datetime_utc = birth_utc,
+        target_date        = target,
+        include_inactive   = include_inactive,
+    )
+
+    return JSONResponse({
+        "ok":            True,
+        "engine_marker": BUILD_MARKER,
+        "computed_for":  {"user_id": user_id, "date": target.isoformat()},
+        "timing_signals": agg["signals"],
+        "protocol": {
+            "protocol_marker": agg["protocol_marker"],
+            "layer_marker":    agg["layer_marker"],
+            "engines_run":     agg["engines_run"],
+        },
+    }, headers={"Cache-Control": "no-store"})
