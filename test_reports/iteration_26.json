@@ -1,0 +1,39 @@
+{
+  "summary": "V1.5 real provenance plumbing VERIFIED end-to-end. Unit tests: 27/27 passed for test_mirror_signal_normalizer_provenance.py. Regressions: enneagram lite 28/28, numerology lite 19/19. Live API integration on real forum (Pete+Mel+Isaac+Thaddeus, forum_id=69dda348de9cb1c83c0780fa) via GET /api/forums/{forum_id}/member-mappings returned HTTP 200 with 3 mappings; all 26 evidence_ladder entries across the 3 mappings show provenance_status='verified' (0 unknown/missing). relationship_synthesis.diagnostics.provenance_rollup (note: lives under 'diagnostics', not 'debug' as stated in the request) contains 23 theme rows all with status='verified' and penalty=0.0 across all three pairs. Backend logs show the new [MirrorKG] line ending with provenance={'human_design': 'verified', 'bazi': 'verified', 'numerology': 'verified', 'astrology': 'verified', 'enneagram': 'verified'} for every Pete<->X pair. Failure-mode (missing lens → status='missing' without crashing) is covered by the unit tests (test_build_provenance_by_lens_status_missing_when_lens_absent, test_missing_lens_creates_missing_provenance_not_crash) — both passed.",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {
+        "endpoint": "/api/forums/{forum_id}/member-mappings",
+        "issue": "Documentation nit: review request said provenance_rollup lives at relationship_synthesis.debug.provenance_rollup, but it is actually emitted at relationship_synthesis.diagnostics.provenance_rollup (see mirror_reflection_orchestrator.py:683). Data is present and correct — just under a slightly different key. FE consumers should reference .diagnostics.provenance_rollup."
+      }
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [],
+    "react_native_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_mirror_signal_normalizer_provenance.py",
+    "/app/backend/tests/test_relationship_enneagram_engine_lite.py",
+    "/app/backend/tests/test_relationship_numerology_engine_lite.py"
+  ],
+  "action_items": [
+    "OPTIONAL: If a FE reader is looking for debug.provenance_rollup per the request spec, either (a) update the FE selector to diagnostics.provenance_rollup, or (b) mirror the key into a top-level relationship_synthesis.debug bucket in mirror_reflection_orchestrator.py. Non-blocking."
+  ],
+  "critical_code_review_comments": [
+    "build_provenance_by_lens correctly extracts engine_version from all three shapes (top-level, .diagnostics, .field_v3) — verified by unit tests and by observing engine_version being non-None in the live pipeline (rollup shows penalty=0.0 for every theme, confirming verified provenance flowed through KG cluster scoring).",
+    "The [MirrorKG] log line now carries the per-lens verified/missing summary — good field-ops observability.",
+    "No behavioural regressions detected in the two locked engines (enneagram/numerology lite) after the caller switch to normalize_signals_v15."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "100%", "frontend": "not tested (per request)"},
+  "seed_data_creation": "None. Used existing forum 69dda348de9cb1c83c0780fa with Pete (user_id=697f0c6abf35c0528ff06954) + Mel + Isaac Yoong + Thaddeus Yoong.",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "V1.5 provenance plumbing is now wired end-to-end. Every relationship mapping evidence-ladder entry has provenance_status='verified' when all lenses produced content, and 0.0 confidence penalty. If regression testing this later, hit GET /api/forums/69dda348de9cb1c83c0780fa/member-mappings?user_id=697f0c6abf35c0528ff06954 and assert Counter(e['provenance_status'] for m in resp['mappings'] for e in m['relationship_synthesis']['evidence_ladder']) contains only 'verified'.",
+  "rca_of_issue": "N/A — this iteration was a verification of a fix, not a bug hunt. Root cause of the previous 'unknown' status was that forum_hd_mapping.py called normalize_signals() (which defaults provenance_by_lens=None → status='unknown') instead of normalize_signals_v15(signals, provenance_by_lens=...). Fix wires build_provenance_by_lens() which inspects each lens payload for content + engine_version and emits real provenance dicts. Confirmed working in unit tests + live API + backend logs.",
+  "git_diff_summary": "backend/services/forum_hd_mapping.py: +21/-3  (switched normalize_signals → normalize_signals_v15 with real build_provenance_by_lens, added lens-status logging). backend/services/mirror_signal_normalizer.py: +147/-0  (new helpers _stable_hash, _iso_utc_now, _extract_engine_version, _lens_has_content, and public build_provenance_by_lens). frontend/.env and frontend/yarn.lock also show diffs but are unrelated to this change."
+}

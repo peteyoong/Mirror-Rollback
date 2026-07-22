@@ -411,3 +411,150 @@ def normalize_signals_v15(signals: Dict[str, Any],
         if pen > 0:
             s["confidence"] = round(max(0.0, s["confidence"] - pen), 3)
     return out
+
+
+# ─────────────────────────────────────────────────────────────────────
+# V1.5 — Real Provenance Builder
+# ─────────────────────────────────────────────────────────────────────
+# Extracts real engine_version / source_input_status / stable hash from
+# the actual lens signal payloads (as produced by
+# forum_hd_mapping.compute_*_signals).  This is the plumbing that
+# replaces the previous status="unknown" default with lens-level truth.
+#
+# build_marker: mirror-signal-normalizer-provenance-v1.5.1
+# ─────────────────────────────────────────────────────────────────────
+
+def _stable_hash(*parts: Any) -> str:
+    """Deterministic short hash of arbitrary parts.  Used to correlate
+    signals to their source input across traces without leaking content."""
+    joined = "|".join("" if p is None else str(p) for p in parts)
+    return hashlib.sha1(joined.encode("utf-8")).hexdigest()[:16]
+
+
+def _iso_utc_now() -> str:
+    """UTC ISO timestamp with 'Z' suffix.  Isolated for testability."""
+    from datetime import datetime, timezone
+    return datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
+
+
+def _extract_engine_version(lens_payload: Any) -> Optional[str]:
+    """Locate the lens's engine_version in whatever shape the payload
+    happens to be.  Every relationship engine publishes it under one of
+    these keys, and every lens tests were verified to expose it:
+        top-level:  engine_version / build_marker / version
+        diagnostics: diagnostics.engine_version / diagnostics.build_marker
+        field_v3:   field_v3.engine_version (HD Field)
+        v2_card:    (never carries the version itself)
+    """
+    if not isinstance(lens_payload, dict):
+        return None
+    for key in ("engine_version", "build_marker", "version"):
+        v = lens_payload.get(key)
+        if isinstance(v, str) and v:
+            return v
+    diag = lens_payload.get("diagnostics")
+    if isinstance(diag, dict):
+        for key in ("engine_version", "build_marker", "version"):
+            v = diag.get(key)
+            if isinstance(v, str) and v:
+                return v
+    fv3 = lens_payload.get("field_v3")
+    if isinstance(fv3, dict):
+        for key in ("engine_version", "build_marker"):
+            v = fv3.get(key)
+            if isinstance(v, str) and v:
+                return v
+    return None
+
+
+def _lens_has_content(lens_payload: Any) -> bool:
+    """A lens is "verified" when it emitted actual observable content
+    (any v2_card field, any field_v3 field, any narrative bucket).
+    Otherwise it's "missing" — the input was insufficient to compute."""
+    if not isinstance(lens_payload, dict) or not lens_payload:
+        return False
+    # v2_card presence + any field populated
+    v2 = lens_payload.get("v2_card")
+    if isinstance(v2, dict) and any(isinstance(v, str) and v for v in v2.values()):
+        return True
+    # HD Field V3 sub-object
+    fv3 = lens_payload.get("field_v3")
+    if isinstance(fv3, dict) and any(
+        isinstance(fv3.get(k), (str, list)) and fv3.get(k) for k in fv3.keys()
+    ):
+        return True
+    # Directional / legacy lens shapes — any non-empty string or list
+    ignored = {"diagnostics", "v2_card", "field_v3", "narrative_blocks",
+               "engine_version", "build_marker", "version"}
+    for k, v in lens_payload.items():
+        if k in ignored:
+            continue
+        if isinstance(v, str) and v.strip():
+            return True
+        if isinstance(v, list) and any(x for x in v if x):
+            return True
+        if isinstance(v, dict) and v:
+            return True
+    return False
+
+
+# Lens-key map from `signals` input dict → canonical lens name emitted
+# by the normalizer.
+_LENS_KEY_MAP: Dict[str, str] = {
+    "human_design_field": "human_design",
+    "bazi":               "bazi",
+    "numerology":         "numerology",
+    "astrology":          "astrology",
+    "enneagram":          "enneagram",
+}
+
+
+def build_provenance_by_lens(signals: Dict[str, Any],
+                             computed_at: Optional[str] = None,
+                             ) -> Dict[str, Dict[str, Any]]:
+    """Inspect the raw lens signal payloads and emit a real
+    provenance_by_lens dict ready for `normalize_signals_v15`.
+
+    Contract:
+      * Always returns a dict keyed by canonical lens names emitted by
+        `normalize_signals` (see `_LENS_KEY_MAP.values()`).
+      * status ∈ {"verified", "missing"} — "verified" when the lens
+        produced observable content; "missing" when it didn't.
+      * engine_version pulled from the payload where present; otherwise
+        None (but status may still be "verified").
+      * hash is a deterministic 16-char sha1 of (lens, engine_version,
+        content-length-proxy) — stable across identical runs, so downstream
+        traces can correlate.
+      * computed_at is a single ISO timestamp for the whole batch,
+        supplied by the caller (deterministic across a request) or
+        generated here.
+      * source_input_status is "valid" when the lens signal payload
+        carries a meaningful shape, else "missing".
+      * confidence_penalty defaults to 0.0.  Callers may bump it later
+        when they know the source chart was flagged (e.g. timezone drift).
+    """
+    if not isinstance(signals, dict):
+        signals = {}
+    ts = computed_at or _iso_utc_now()
+    out: Dict[str, Dict[str, Any]] = {}
+    for input_key, canonical in _LENS_KEY_MAP.items():
+        payload = signals.get(input_key)
+        has_content = _lens_has_content(payload)
+        engine_version = _extract_engine_version(payload) if isinstance(payload, dict) else None
+        # Content-length proxy for hash — deterministic without leaking text
+        proxy: Any = None
+        if isinstance(payload, dict):
+            proxy = sum(
+                len(v) if isinstance(v, (str, list, dict)) else 0
+                for v in payload.values()
+            )
+        out[canonical] = {
+            "status":              "verified" if has_content else "missing",
+            "hash":                _stable_hash(canonical, engine_version, proxy),
+            "engine_version":      engine_version,
+            "computed_at":         ts,
+            "source_input_status": "valid" if has_content else "missing",
+            "confidence_penalty":  0.0,
+        }
+    return out
+

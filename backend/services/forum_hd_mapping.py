@@ -1887,7 +1887,10 @@ def generate_mapping_interpretation(
     # =========================================================================
     relationship_synthesis = None
     try:
-        from services.mirror_signal_normalizer import normalize_signals
+        from services.mirror_signal_normalizer import (
+            normalize_signals_v15,
+            build_provenance_by_lens,
+        )
         from services.mirror_knowledge_graph import build_knowledge_graph
         from services.mirror_reflection_orchestrator import synthesize_relationship
         _kg_signals_input = {
@@ -1897,16 +1900,31 @@ def generate_mapping_interpretation(
             "astrology":  astrology_signals,
             "enneagram":  enneagram_signals,
         }
-        _norm_signals = normalize_signals(_kg_signals_input)
+        # ── V1.5 Real Provenance Plumbing ─────────────────────────
+        # Extract engine_version / source_input_status / hash from
+        # the actual lens payloads (was status="unknown" default).
+        # build_marker: forum-hd-mapping-provenance-plumbing-v1
+        _provenance_by_lens = build_provenance_by_lens(_kg_signals_input)
+        _norm_signals = normalize_signals_v15(
+            _kg_signals_input,
+            provenance_by_lens=_provenance_by_lens,
+        )
         _graph = build_knowledge_graph(_norm_signals)
         relationship_synthesis = synthesize_relationship(
             _norm_signals, _graph, current_user_name, member_name,
         )
+        # Emit lens-status summary in the log so field ops can see at a
+        # glance which lenses were verified vs. missing on any given pair.
+        _lens_status = {
+            lens: prov.get("status")
+            for lens, prov in _provenance_by_lens.items()
+        }
         logger.info(
             f"[MirrorKG] pair={current_user_name}<->{member_name} "
             f"signals={len(_norm_signals)} "
             f"clusters={(_graph.get('diagnostics') or {}).get('cluster_count')} "
-            f"conf={relationship_synthesis['confidence']['level']}"
+            f"conf={relationship_synthesis['confidence']['level']} "
+            f"provenance={_lens_status}"
         )
     except Exception as _kg_err:
         logger.warning(f"[MirrorKG] overlay error: {_kg_err}")
