@@ -25951,3 +25951,72 @@ agent_communication:
       "shadow telemetry window complete" fails (expected, window ends
       2026-06-14).  No production code paths altered; INTENT_ROUTER_V2_CUTOVER
       remains false.  Proposed_action payloads are receipt-only.
+
+  - task: "Relationship Enneagram Engine (Phase 2-lite) — v2_card + diagnostics"
+    implemented: true
+    working: "NA"
+    file: "backend/services/relationship_enneagram_engine_lite.py, backend/services/forum_hd_mapping.py (compute_enneagram_signals), frontend/app/forums/mappings.tsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: |
+          Completes the final deterministic relationship lens
+          (parity with numerology-lite / hd-field / astrology).
+
+          NEW: relationship_enneagram_engine_lite.compute_enneagram_relationship
+          → returns {v2_card, diagnostics} for any two users with a
+          resolvable core type (1..9).  Uses canonical
+          enneagram_source.get_user_enneagram resolver.
+
+          v2_card five keys (Mirror-language):
+            core_dynamic / natural_strength / growth_edge /
+            shadow_pattern / repair_pathway
+
+          Coverage:
+            * 21 hand-authored pair cells (all 9 same-type + 12
+              high-signal line-connected / cross-center pairs).
+            * Compositional fallback (center-pair + line-aware) covers
+              every remaining 9x9 combination.
+            * 28 pytest cases pass locally (tests/test_relationship_enneagram_engine_lite.py)
+              including 9x9 sweep, forbidden-language guard, DB sweep
+              on real user pairs, snapshot pairs (3x7, 8x5, 3x6).
+
+          Diagnostics fields:
+            core_a/b, wing_a/b, instinct_a/b, center_a/b, center_pair,
+            shared_center, line_relationship (stress/security direction),
+            pair_type, used_hand_authored, engine_version.
+
+          Additive wiring in compute_enneagram_signals — legacy shape
+          (how_you_help_them / how_they_help_you / friction_pattern)
+          is byte-identical for existing consumers.
+
+          Frontend: mappings.tsx renders the new v2_card block under
+          "TYPE RESONANCE — RELATIONSHIP STORY" (testID
+          enneagram-v2-card-v1) right after the directional signals.
+
+          Tests to run:
+            * GET /api/forums/{forum_id}/mappings (any pair with both
+              users having enneagram_type set) — response
+              .signals.enneagram MUST contain v2_card + diagnostics
+              alongside the existing directional signals.
+            * v2_card must have all 5 keys; each value a non-empty string.
+            * diagnostics.core_a, core_b, engine_version, pair_type all
+              populated; center_a/b in {Body, Heart, Head}.
+            * For 3<->6, 1<->7, 8<->5, 2<->8, 3<->9, 5<->7, 6<->9 pairs,
+              diagnostics.line_relationship MUST be non-null.
+
+agent_communication:
+  - agent: "main"
+    message: |
+      Enneagram Relationship Engine Parity shipped.  Backend engine is
+      pure Python (no LLM), no DB writes, purely additive on
+      compute_enneagram_signals output.  Local pytest 28/28 passes and
+      pre-existing numerology tests (19/19) still pass.  Please verify
+      via /api/forums/{forum_id}/mappings that .signals.enneagram
+      carries v2_card + diagnostics alongside the legacy directional
+      signals, and confirm shape for a handful of core-pair
+      combinations (same-type, line-connected, hand-authored,
+      fallback).

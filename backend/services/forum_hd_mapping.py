@@ -965,7 +965,30 @@ def compute_enneagram_signals(
     if not result:
         result["how_you_help_them"] = [f"Type {core_a} and Type {core_b} see the world from different centers — this creates a natural complementarity"]
         result["how_they_help_you"] = [f"{name_b}'s Type {core_b} perspective balances what your Type {core_a} tends to overlook"]
-    
+
+    # ── Phase 2-lite enrichment (additive; backward compatible) ──────
+    # Attach v2_card + diagnostics from the deterministic Enneagram
+    # relationship engine.  Existing directional-signal consumers see
+    # identical shape (how_you_help_them / how_they_help_you /
+    # friction_pattern remain byte-identical).  Frontend may opt into
+    # rendering v2_card via signals.enneagram.v2_card.
+    try:
+        from services.relationship_enneagram_engine_lite import (
+            compute_enneagram_relationship,
+        )
+        enriched = compute_enneagram_relationship(
+            user_data_a, user_data_b, name_a, name_b,
+        )
+        if isinstance(enriched, dict):
+            if "v2_card" in enriched:
+                result["v2_card"] = enriched["v2_card"]
+            if "diagnostics" in enriched:
+                result["diagnostics"] = enriched["diagnostics"]
+    except Exception as e:  # pragma: no cover — defensive
+        logger.warning(
+            "[EnneagramLite] v2_card attachment failed: %s", e,
+        )
+
     return result
 
 

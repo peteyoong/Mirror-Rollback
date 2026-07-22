@@ -1165,6 +1165,49 @@ export default function ForumMappingsScreen() {
                         </View>
                     ) : null}
 
+                    {/* ENNEAGRAM V2 CARD — Mirror Language fields (v2-lite)
+                        Parity with numerology v2_card: renders core_dynamic /
+                        natural_strength / growth_edge / shadow_pattern /
+                        repair_pathway as a "TYPE RESONANCE — RELATIONSHIP
+                        STORY" block right after the directional signals.
+                        marker: enneagram-v2-card-v1 */}
+                    {(() => {
+                      const v2c = (signals as any)?.enneagram?.v2_card;
+                      if (!v2c || typeof v2c !== 'object') return null;
+                      const SECTIONS: Array<{ key: string; label: string }> = [
+                        { key: 'core_dynamic',     label: 'Core Dynamic' },
+                        { key: 'natural_strength', label: 'Natural Strength' },
+                        { key: 'growth_edge',      label: 'Growth Edge' },
+                        { key: 'shadow_pattern',   label: 'Shadow Pattern' },
+                        { key: 'repair_pathway',   label: 'Repair Pathway' },
+                      ];
+                      const anyText = SECTIONS.some(
+                        s => typeof v2c[s.key] === 'string' && v2c[s.key].trim().length > 0,
+                      );
+                      if (!anyText) return null;
+                      return (
+                        <View testID="enneagram-v2-card-v1" style={styles.lensSection}>
+                          <Text style={[styles.signalsNote, { color: theme.textTertiary }]}>
+                            TYPE RESONANCE — RELATIONSHIP STORY
+                          </Text>
+                          {SECTIONS.map(({ key, label }) => {
+                            const body = v2c[key];
+                            if (typeof body !== 'string' || body.trim().length === 0) return null;
+                            return (
+                              <View key={`ev2-${key}`} style={{ marginTop: 10 }}>
+                                <Text style={[styles.lensSignalText, { color: theme.text, fontWeight: '600', marginBottom: 4 }]}>
+                                  {label}
+                                </Text>
+                                <Text style={[styles.lensSignalText, { color: theme.textSecondary, lineHeight: 20 }]}>
+                                  {body}
+                                </Text>
+                              </View>
+                            );
+                          })}
+                        </View>
+                      );
+                    })()}
+
                     {/* NUMEROLOGY V2 CARD — Mirror Language fields (v2-lite)
                         Renders core_dynamic / natural_strength / growth_edge /
                         shadow_pattern / repair_pathway PROMINENTLY before the
