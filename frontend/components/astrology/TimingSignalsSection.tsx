@@ -16,6 +16,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { View, Text, StyleSheet, ActivityIndicator, Pressable, ScrollView, Platform } from 'react-native';
 import Constants from 'expo-constants';
+import { useLocalSearchParams, useRouter, usePathname } from 'expo-router';
 
 // Match the URL resolution pattern used by AstrologyTimelineTab.
 const BACKEND_BASE =
@@ -59,12 +60,37 @@ interface Props {
 // Component
 // ---------------------------------------------------------------------------
 export default function TimingSignalsSection({ userId, theme, isDark }: Props) {
+  const router   = useRouter();
+  const pathname = usePathname();
+  const params   = useLocalSearchParams<{ ty?: string }>();
+
+  // Hydrate initial yearOffset from URL (?ty=<int>), else 0.
+  const initialOffset = (() => {
+    const raw = params?.ty;
+    if (raw === undefined) return 0;
+    const n = parseInt(String(raw), 10);
+    if (Number.isFinite(n) && n >= -5 && n <= 5) return n;
+    return 0;
+  })();
+
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [signals, setSignals] = useState<Record<string, TimingSignal> | null>(null);
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
   // Date scrubber — offset in YEARS from today. 0 = today, negative = past.
-  const [yearOffset, setYearOffset] = useState<number>(0);
+  const [yearOffset, setYearOffset] = useState<number>(initialOffset);
+
+  // Persist yearOffset in the URL as ?ty=<int> so shareable Timeline
+  // permalinks reopen at the same scrub window.
+  useEffect(() => {
+    if (!pathname) return;
+    try {
+      const next: Record<string, any> = { ...(params || {}) };
+      if (yearOffset === 0) delete next.ty; else next.ty = String(yearOffset);
+      router.setParams(next as any);
+    } catch { /* no-op on native */ }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [yearOffset]);
 
   // Turn yearOffset → concrete YYYY-MM-DD (today shifted by N years).
   const scrubDate = useMemo(() => {

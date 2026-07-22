@@ -134,8 +134,12 @@ def test_zr_years_remaining_within_period_span():
 # ---- Aggregator registration -----------------------------------------------
 def test_default_layer_now_has_three_engines():
     layer = build_default_layer()
-    assert layer.engine_ids == [
-        "annual_profection", "transits", "zodiacal_releasing"]
+    # Contract: annual_profection is first, and transits + zr are present.
+    # (Engine count grows over time — assert the SUBSET, not equality.)
+    ids = layer.engine_ids
+    assert ids[0] == "annual_profection"
+    assert "transits" in ids
+    assert "zodiacal_releasing" in ids
 
 
 def test_aggregator_returns_all_three_signals():
@@ -143,8 +147,8 @@ def test_aggregator_returns_all_three_signals():
     agg = layer.aggregate(
         natal_chart=_pete_like_chart(), birth_datetime_utc=BIRTH,
         target_date=date(2026, 6, 1))
-    assert set(agg["signals"].keys()) == {
-        "annual_profection", "transits", "zodiacal_releasing"}
+    for required in ("annual_profection", "transits", "zodiacal_releasing"):
+        assert required in agg["signals"], f"missing {required}"
     # Confidence vocabulary honoured
     for sid, sig in agg["signals"].items():
         assert sig["confidence"] in ("high","moderate","conditional","low")

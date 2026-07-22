@@ -179,14 +179,15 @@ class TimingEvidenceLayer:
 def build_default_layer() -> TimingEvidenceLayer:
     from services.transit_timing_engine        import TransitTimingEngine           # noqa: PLC0415
     from services.zodiacal_releasing_engine    import ZodiacalReleasingScaffoldEngine  # noqa: PLC0415
+    from services.life_cycle_timing_engine     import LifeCycleTimingEngine         # noqa: PLC0415
+    from services.life_milestone_engine        import LifeMilestoneTimingEngine     # noqa: PLC0415
 
     layer = TimingEvidenceLayer()
     layer.register(AnnualProfectionTimingEngine())
     layer.register(TransitTimingEngine())
     layer.register(ZodiacalReleasingScaffoldEngine())
-    # Future engines register themselves here:
-    #   layer.register(HumanDesignCycleTimingEngine())
-    #   layer.register(LifeMilestoneTimingEngine())
+    layer.register(LifeCycleTimingEngine())
+    layer.register(LifeMilestoneTimingEngine())
     return layer
 
 

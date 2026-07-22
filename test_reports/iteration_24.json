@@ -1,0 +1,36 @@
+{
+  "summary": "Backend-only regression + live HTTP verification for Timeline V2 Phase-4 plug-ins 4 & 5 (LifeCycleTimingEngine, LifeMilestoneTimingEngine). All 47/47 pytest unit tests pass (test_life_cycle_and_milestones.py, test_transits_and_zr_engines.py, test_timing_evidence_layer.py, test_annual_profection_engine.py). All 7/7 live HTTP tests against Pete's public preview URL pass: engines_run == ['annual_profection','transits','zodiacal_releasing','life_cycle','life_milestones']; life_cycle ACTIVE with saturn_return window 2025-08-30 → 2028-08-29, confidence=high, age_years≈57.7, next_hit populated; scrubbed to 1978-06-01 returns active_windows=[] with populated next_hit (years_from_now>0) and age~10; life_milestones inactive for Pete with confidence=conditional and 'Record...' meaning; annual_profection/transits/zodiacal_releasing all still shape-compatible; /api/timeline/profection/current and /api/timeline/profection/series still return 200. No issues found.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [],
+    "react_native_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_timeline_signals_lifecycle_http.py",
+    "/app/test_reports/pytest/timeline_signals_lifecycle_http.xml",
+    "/app/test_reports/pytest/lifecycle_milestones.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "Router prefers .get('life_events') and .get('recognition_moments') on the user doc and merges into extras.events — matches engine's data contract; empty case correctly yields active=False, confidence=conditional.",
+    "life_cycle_timing_engine.compute always returns active=True even for the quiet-stretch case (no active_windows). Router uses aggregator include_inactive default=False; since engine hardcodes active=True, the engine will always be surfaced. Behavior is intentional per code but note: an evaluator reading only `active` may misinterpret a quiet stretch as 'in a window'. Consumers should check details.active_windows length. Not a bug — flagging as observation only.",
+    "In life_milestone_engine._parse_iso, ev.get('date') accepts str/datetime/date; good. Nothing to fix."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_timeline_signals_lifecycle_http.py (new)"
+  ],
+  "success_rate": {
+    "backend": "100% (47/47 unit + 7/7 live HTTP)",
+    "frontend": "N/A (backend-only per request)"
+  },
+  "seed_data_creation": "None — used existing Pete Yoong user 697f0c6abf35c0528ff06954.",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Live HTTP test file at /app/backend/tests/test_timeline_signals_lifecycle_http.py can be re-run any time; it exercises /api/timeline/signals/current for Pete including the quiet-stretch scrub-back case (1978-06-01) with include_inactive=true to see the milestone engine while it's inactive. Base URL is read from EXPO_PUBLIC_BACKEND_URL env or falls back to the current preview domain.",
+  "rca_of_issue": "N/A — no defects observed."
+}

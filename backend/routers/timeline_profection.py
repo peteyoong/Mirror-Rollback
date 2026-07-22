@@ -310,11 +310,16 @@ async def timeline_signals(
     chart     = await _resolve_natal_chart(user)
     birth_utc = _resolve_birth_utc(user)
 
+    # Feed user-recorded events into the milestone engine if present.
+    extras = {"events": (user.get("life_events") or [])
+                        + (user.get("recognition_moments") or [])}
+
     layer = build_default_layer()
     agg = layer.aggregate(
         natal_chart        = chart,
         birth_datetime_utc = birth_utc,
         target_date        = target,
+        extras             = extras,
         include_inactive   = include_inactive,
     )
 
