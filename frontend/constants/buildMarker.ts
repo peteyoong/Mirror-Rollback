@@ -10,5 +10,5 @@
  * diagnostic step is to ask whether they see this BUILD_ID at the
  * bottom of those screens.
  */
-export const BUILD_ID = 'rel-mapping-top-dedup-v1.5.3';
-export const BUILD_AT = '2026-07-22T12:30';
+export const BUILD_ID = 'rel-mapping-text-dedup-helpers-v1';
+export const BUILD_AT = '2026-07-22T17:35';

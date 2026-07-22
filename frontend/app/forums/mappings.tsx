@@ -24,6 +24,70 @@ import BetweenYouTodayCard from '../../components/BetweenYouTodayCard';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
+// ─────────────────────────────────────────────────────────────────────
+// Text dedup helpers — used by three surfaces on this screen:
+//   1. WHAT ACTIVATES chip vs Field paragraph (existing IIFE)
+//   2. HD narrative field_overview vs aura_dynamics (case 1 dup fix)
+//   3. Astrology supporting_signals vs body prose (case 2 dup fix)
+// build_marker: relationship-mapping-text-dedup-helpers-v1
+// ─────────────────────────────────────────────────────────────────────
+const _normText = (s: string): string =>
+  (s || '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+
+const _tokens = (s: string): Set<string> =>
+  new Set(_normText(s).split(/\s+/).filter(t => t.length > 3));
+
+/**
+ * Returns true when `a` and `b` are close enough to be treated as the
+ * same content.  Symmetric.  Catches: exact-match, substring-either-way,
+ * and >=55 % token overlap (Jaccard) for near-duplicates that differ by
+ * one or two surrounding sentences.
+ */
+const areDuplicateTexts = (a: string, b: string, jaccardMin: number = 0.55): boolean => {
+  const na = _normText(a);
+  const nb = _normText(b);
+  if (!na || !nb) return false;
+  if (na === nb) return true;
+  if (na.includes(nb) || nb.includes(na)) return true;
+  const tA = _tokens(a);
+  const tB = _tokens(b);
+  if (!tA.size || !tB.size) return false;
+  let inter = 0;
+  tA.forEach(t => { if (tB.has(t)) inter++; });
+  const union = new Set([..._tokens(a), ..._tokens(b)]).size || 1;
+  return inter / union >= jaccardMin;
+};
+
+/**
+ * Split into sentences, filter out any sentence whose normalized form
+ * appears (as substring OR high-Jaccard match) inside `haystack`.
+ * Used to filter Astrology supporting_signals whose sentences are
+ * already inside the astrology body prose.
+ */
+const stripSentencesAlreadyIn = (candidate: string, haystack: string): string => {
+  if (!candidate) return '';
+  const normHay = _normText(haystack || '');
+  if (!normHay) return candidate;
+  const sentences = candidate
+    .split(/(?<=[.!?])\s+/)
+    .map(s => s.trim())
+    .filter(Boolean);
+  const kept = sentences.filter(sent => {
+    const ns = _normText(sent);
+    if (!ns) return false;
+    if (normHay.includes(ns)) return false;
+    // token-overlap guard for near-dups
+    const t1 = _tokens(sent);
+    const t2 = _tokens(haystack);
+    if (!t1.size) return false;
+    let inter = 0;
+    t1.forEach(t => { if (t2.has(t)) inter++; });
+    const overlap = inter / t1.size;
+    return overlap < 0.70;
+  });
+  return kept.join(' ').trim();
+};
+
 export default function ForumMappingsScreen() {
   const { theme, isDark } = useTheme();
   const { user } = useAppStore();
@@ -864,11 +928,21 @@ export default function ForumMappingsScreen() {
                               HUMAN DESIGN — RELATIONSHIP DYNAMICS
                             </Text>
                             {renderBlock('TYPE ENGAGEMENT', blocks.type_pair_engagement?.headline, blocks.type_pair_engagement?.summary)}
-                            {!!blocks.type_pair_engagement?.field_overview && (
-                              <Text style={[styles.activationText, { color: theme.textSecondary, marginTop: -8, marginBottom: 14, lineHeight: 20 }]}>
-                                {blocks.type_pair_engagement.field_overview}
-                              </Text>
-                            )}
+                            {/* field_overview is often byte-identical to
+                                aura_dynamics (which feeds .summary).  Only
+                                render when it actually adds new copy.
+                                build_marker: relationship-mapping-text-dedup-helpers-v1 */}
+                            {(() => {
+                              const summary = blocks.type_pair_engagement?.summary || '';
+                              const overview = blocks.type_pair_engagement?.field_overview || '';
+                              if (!overview) return null;
+                              if (areDuplicateTexts(summary, overview, 0.55)) return null;
+                              return (
+                                <Text style={[styles.activationText, { color: theme.textSecondary, marginTop: -8, marginBottom: 14, lineHeight: 20 }]}>
+                                  {overview}
+                                </Text>
+                              );
+                            })()}
                             {renderBlock('AUTHORITY · DECISION RHYTHM', blocks.authority_rhythm?.headline, blocks.authority_rhythm?.summary)}
                             {renderBlock('PROFILE INTERACTION', blocks.profile_interaction?.headline, blocks.profile_interaction?.summary, blocks.profile_interaction?.watch)}
                             {renderBlock('DEFINITION DYNAMICS', blocks.definition_dynamics?.headline, blocks.definition_dynamics?.summary, blocks.definition_dynamics?.watch)}
@@ -1075,21 +1149,46 @@ export default function ForumMappingsScreen() {
                                 {v2.body}
                               </Text>
                             ) : null}
-                            {Array.isArray(v2.supporting_signals) && v2.supporting_signals.length > 0 ? (
-                              <View style={{ marginTop: 10 }}>
-                                <Text style={[styles.signalsNote, { color: theme.textTertiary, fontSize: 11 }]}>
-                                  WHY THIS IS SHOWING UP
-                                </Text>
-                                {v2.supporting_signals.slice(0, 6).map((sig: string, i: number) => (
-                                  <View key={`v2sup-acc-${i}`} style={styles.lensSignalRow}>
-                                    <Text style={[styles.lensSignalIcon, { color: '#D4A574' }]}>·</Text>
-                                    <Text style={[styles.lensSignalText, { color: theme.textTertiary, fontSize: 12 }]}>
-                                      {sig}
-                                    </Text>
-                                  </View>
-                                ))}
-                              </View>
-                            ) : null}
+                            {Array.isArray(v2.supporting_signals) && v2.supporting_signals.length > 0 ? (() => {
+                              /* Dedup: filter out supporting_signals whose
+                                 sentences already appear in `body`, and skip
+                                 any supporting_signal that's a near-duplicate
+                                 of the body prose in whole.
+                                 build_marker: relationship-mapping-text-dedup-helpers-v1 */
+                              const body = typeof v2.body === 'string' ? v2.body : '';
+                              const cleaned: string[] = [];
+                              const seenNorm = new Set<string>();
+                              for (const raw of (v2.supporting_signals as string[])) {
+                                if (typeof raw !== 'string' || !raw.trim()) continue;
+                                // Skip if the whole supporting-signal duplicates the body.
+                                if (areDuplicateTexts(raw, body, 0.55)) continue;
+                                // Otherwise strip sentences inside the signal that
+                                // already appear in the body.
+                                const trimmed = stripSentencesAlreadyIn(raw, body).trim();
+                                if (!trimmed) continue;
+                                const n = _normText(trimmed);
+                                if (seenNorm.has(n)) continue;
+                                seenNorm.add(n);
+                                cleaned.push(trimmed);
+                                if (cleaned.length >= 6) break;
+                              }
+                              if (cleaned.length === 0) return null;
+                              return (
+                                <View style={{ marginTop: 10 }}>
+                                  <Text style={[styles.signalsNote, { color: theme.textTertiary, fontSize: 11 }]}>
+                                    WHY THIS IS SHOWING UP
+                                  </Text>
+                                  {cleaned.map((sig: string, i: number) => (
+                                    <View key={`v2sup-acc-${i}`} style={styles.lensSignalRow}>
+                                      <Text style={[styles.lensSignalIcon, { color: '#D4A574' }]}>·</Text>
+                                      <Text style={[styles.lensSignalText, { color: theme.textTertiary, fontSize: 12 }]}>
+                                        {sig}
+                                      </Text>
+                                    </View>
+                                  ))}
+                                </View>
+                              );
+                            })() : null}
                             {/* relationship-mapping-deep-astrology-v2.1 — advanced-object corroboration tray.
                                 These are advanced-body signals (Juno / Vertex / Anti-Vertex / Chiron /
                                 Lilith / Fortune / Spirit) attached BELOW the core Sun/Moon/IC evidence
