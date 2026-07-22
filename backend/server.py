@@ -32715,6 +32715,16 @@ app.include_router(_provenance_repair.router)
 from routers import admin_dual_house_audit as _dual_house_audit
 app.include_router(_dual_house_audit.router)
 
+# Timeline Intelligence V2 — Annual Profection (Phase 1 + 2).
+# Canonical annual-profection engine + Mirror-voice narrative under the
+# Timeline namespace. Read-only, deterministic, no LLM.
+# NOTE: uses 3-segment paths (/timeline/profection/*) to avoid collision
+# with the pre-existing catch-all `/api/timeline/{user_id}` route.
+#   GET /api/timeline/profection/current?user_id=...&date=YYYY-MM-DD
+#   GET /api/timeline/profection/series?user_id=...&from_age=0&to_age=48
+from routers import timeline_profection as _timeline_profection
+app.include_router(_timeline_profection.router)
+
 # Temporary screenshot-package download endpoint (download-screenshots-v1).
 # Serves /app/memory/screenshots.zip as a file download for browser
 # users with the SCREENSHOTS_DOWNLOAD_V1 confirm token.  Read-only;

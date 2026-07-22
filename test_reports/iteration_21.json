@@ -1,0 +1,36 @@
+{
+  "summary": "WP0XX Timeline Intelligence V2 (Annual Profection Engine, Phases 1+2) — backend testing complete. All 14 HTTP tests against the LIVE public backend URL pass (https://hd-incarnation-fix.preview.emergentagent.com), and all 25 pytest engine/narrative/router tests pass. Additionally ran a 153-test regression subset covering server routing, variant-A/Ophiuchus, house-system source-of-truth, sign attribution, lifecycle engine, timezone resolution — 0 regressions. Live curl on Pete Yoong (697f0c6abf35c0528ff06954) confirms coherent Mirror-canonical profection: age 58 → H11 Libra, Lord of the Year = Venus in Pisces H3 cadent. Historical date 2000-01-01 → age 31 H8 with is_current=true (target inside window). Future date 2050-06-01 → age 82, no error. Series[0..48] = 49 entries, exactly one is_current, houses advance +1 each year and wrap 12→1. Six Mirror-V2 interpretation fields all non-empty, tone_contract flags all True, timing_signals.annual_profection wrapper has name/house/meaning/confidence='moderate'/supporting_signals. Error handling: invalid user_id → 400, non-existent 24-hex → 404, invalid date '2020-13-40' → 400. Regression: /api/mirror/home/{user_id} → 200 (router mount intact), /api/admin/build-info → 200, /api/admin/dual_house_audit → 403 (expected admin confirm-token guard, not 404). No LLM. No DB writes. Read-only endpoint. No mocked APIs.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [],
+    "react_native_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_timeline_profection_api.py",
+    "/app/backend/tests/test_annual_profection_engine.py",
+    "/app/test_reports/pytest/timeline_profection_full.xml",
+    "/app/test_reports/pytest/wp0xx_regression.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "annual_profection_engine.py:170 — compute_profection_series uses `datetime.now(tz=birth_datetime_utc.tzinfo or None).date()` for the default `today`. Since birth_datetime_utc is required to be UTC-aware, this always yields UTC 'today', which is correct — but a caller may reasonably expect wall-clock 'today' at the user's timezone. Cosmetic only; router explicitly overrides is_current in the response path via compute_profection_series default, and unit tests pass.",
+    "timeline_profection.py:139 — `await db.users.find_one({\"_id\": oid})` requires ObjectId validity BEFORE lookup; the try/except at :135 correctly returns 400 for bad hex. Good.",
+    "timeline_profection.py:145 — Uses `datetime.now(_tz.utc).date()` for default target date. Matches series() semantics. Consistent.",
+    "timeline_profection.py: The /profection/current path is exposed at /api/timeline/profection/current (3-segment) per the WP0XX design note to avoid collision with a legacy /profection route. Verified via router-registration test.",
+    "annual_profection_narrative.py — Templates are static strings; no template injection risk. All 12 house entries populated. Ophiuchus fallback covered."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_timeline_profection_api.py (new — 14 HTTP tests)"
+  ],
+  "success_rate": {"backend": "100%", "frontend": "n/a (backend-only per request)"},
+  "seed_data_creation": "None — used existing Mongo user Pete Yoong (697f0c6abf35c0528ff06954). Read-only endpoint; no DB writes performed by the code under test.",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "New HTTP regression file at /app/backend/tests/test_timeline_profection_api.py exercises /api/timeline/profection/current and /series against the LIVE preview URL. Uses Pete (697f0c6abf35c0528ff06954). If the profection age math changes, the historical test test_current_historical_2000_01_01 asserts age==31, activated_house==8 (31%12=7 → H8), and is_current=true because 2000-01-01 falls inside the 1999-04-01..2000-03-31 birthday-year window. If Pete's birth data changes on prod, adjust that assertion. Router expected at 3-segment path /api/timeline/profection/{current|series} — NOT /api/timeline/profection alone.",
+  "rca_of_issue": "n/a — no bugs found. Two initial test failures were script-side (I incorrectly assumed dual_house_audit had no auth guard and that openapi.json was exposed at /openapi.json). Both corrected; regression assertions now validate route survival (non-404) with the admin confirm-token guard treated as expected behaviour."
+}
