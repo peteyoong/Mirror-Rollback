@@ -27,28 +27,16 @@ import {
   touchTarget,
 } from '../theme/tokens';
 
-// Forums redirect target type
-type ForumsRedirect = 'create' | 'join' | null;
-
 /**
  * Welcome — The Mirror's single-page arrival moment.
  *
- * A confident, non-scrolling composition on standard mobile viewports.
- * The layout uses `justifyContent: 'space-between'` so the wordmark
- * block breathes at the top-third and the primary CTA is anchored to
- * the safe-area bottom, with forums / build marker footer beneath.
- *
- * Kept intentionally under one screen height on ≥ 360×640; on very
- * short viewports the KeyboardAvoidingView / SafeArea still absorbs
- * cleanly without visual collision.
+ * A quiet, centred composition: wordmark, headline, bridge line, and
+ * exactly two actions — "I'm new here" (primary) and "Sign in" (ghost).
  */
 export default function Welcome() {
   const router = useRouter();
-  const { setUser, setChart, user, hasCompletedOnboarding } = useAppStore();
+  const { setUser, setChart } = useAppStore();
   const { height } = useWindowDimensions();
-
-  const isAuthenticated = !!user?.id;
-  const hasExistingSession = isAuthenticated;
 
   const t = colorDark;
 
@@ -56,7 +44,6 @@ export default function Welcome() {
   const [email, setEmail] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
-  const [forumsRedirect, setForumsRedirect] = useState<ForumsRedirect>(null);
 
   const headline = {
     main: 'You almost did it again.',
@@ -64,18 +51,6 @@ export default function Welcome() {
   };
 
   const handleBeginReflection = () => router.push('/onboarding');
-  const handleShowMe = () => {
-    if (isAuthenticated && hasCompletedOnboarding) router.replace('/(tabs)');
-    else router.push('/onboarding');
-  };
-  const handleCreateForum = () => {
-    if (hasExistingSession) router.push('/forums/create');
-    else { setForumsRedirect('create'); setShowLogin(true); }
-  };
-  const handleJoinForum = () => {
-    if (hasExistingSession) router.push('/forums/join');
-    else { setForumsRedirect('join'); setShowLogin(true); }
-  };
 
   const handleLogin = async () => {
     if (!email.trim()) { setError('Please enter your email'); return; }
@@ -86,9 +61,7 @@ export default function Welcome() {
       if (result.success && result.user) {
         await setUser(result.user);
         if (result.chart) await setChart(result.chart);
-        if (forumsRedirect === 'create') router.replace('/forums/create');
-        else if (forumsRedirect === 'join') router.replace('/forums/join');
-        else router.replace('/(tabs)');
+        router.replace('/(tabs)');
       } else {
         setError(result.detail || 'No account found with this email. Please create a new account.');
       }
@@ -233,56 +206,34 @@ export default function Welcome() {
           </Text>
         </View>
 
-        {/* PRIMARY CTA + secondary auth row */}
+        {/* ACTIONS — exactly two, quiet and centred */}
         <View style={styles.ctaBlock}>
+          <Text style={styles.ornament}>—  ◇  —</Text>
+
           <TouchableOpacity
-            style={[
-              styles.primaryButton,
-              {
-                backgroundColor: 'rgba(255, 255, 255, 0.08)',
-                borderColor: 'rgba(255, 255, 255, 0.15)',
-              },
-            ]}
-            onPress={handleShowMe}
+            style={styles.primaryButton}
+            onPress={handleBeginReflection}
             activeOpacity={0.7}
+            testID="welcome-new-here-button"
+            accessibilityRole="button"
           >
-            <Text style={[styles.primaryButtonText, { color: 'rgba(255, 255, 255, 0.9)' }]}>
-              Show me
-            </Text>
+            <Text style={styles.primaryButtonText}>{"I\u2019m new here"}</Text>
           </TouchableOpacity>
 
-          <View style={styles.secondaryActionsRow}>
-            <TouchableOpacity
-              style={styles.ghostButton}
-              onPress={handleBeginReflection}
-              activeOpacity={0.6}
-            >
-              <Text style={styles.ghostButtonText}>{"I\u2019m new here"}</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.ghostButton}
-              onPress={() => setShowLogin(true)}
-              activeOpacity={0.6}
-              testID="welcome-sign-in-link"
-              accessibilityLabel="Sign in"
-              accessibilityRole="button"
-            >
-              <Text style={styles.ghostButtonText}>Sign in</Text>
-            </TouchableOpacity>
-          </View>
+          <TouchableOpacity
+            style={styles.ghostButton}
+            onPress={() => setShowLogin(true)}
+            activeOpacity={0.6}
+            testID="welcome-sign-in-link"
+            accessibilityLabel="Sign in"
+            accessibilityRole="button"
+          >
+            <Text style={styles.ghostButtonText}>Sign in</Text>
+          </TouchableOpacity>
         </View>
 
-        {/* FOOTER — forums quick-access + build marker */}
+        {/* FOOTER — build marker only */}
         <View style={styles.footerArea}>
-          <View style={styles.forumsFooter}>
-            <TouchableOpacity style={styles.forumLink} onPress={handleCreateForum} activeOpacity={0.5} hitSlop={4}>
-              <Text style={styles.forumLinkText}>Create Forum</Text>
-            </TouchableOpacity>
-            <Text style={styles.forumDivider}>·</Text>
-            <TouchableOpacity style={styles.forumLink} onPress={handleJoinForum} activeOpacity={0.5} hitSlop={4}>
-              <Text style={styles.forumLinkText}>Join Forum</Text>
-            </TouchableOpacity>
-          </View>
           <Text style={styles.buildMarker}>build · {BUILD_ID}</Text>
         </View>
       </ScrollView>
@@ -353,36 +304,39 @@ const styles = StyleSheet.create({
     width: '100%',
     maxWidth: 320,
     alignItems: 'center',
-    gap: space.md,
+    gap: space.lg,
+  },
+  ornament: {
+    fontFamily: fontFamily.display,
+    fontSize: fontSize.base,
+    color: 'rgba(198, 168, 124, 0.45)',
+    letterSpacing: 6,
+    marginBottom: space.xs,
   },
   primaryButton: {
+    width: '100%',
     borderWidth: 1,
+    borderColor: 'rgba(198, 168, 124, 0.35)',
+    backgroundColor: 'rgba(198, 168, 124, 0.08)',
     paddingVertical: space.lg,
     paddingHorizontal: space['2xl'],
     borderRadius: radius.md,
     alignItems: 'center',
-    width: '100%',
-    minHeight: touchTarget.minSize,
+    minHeight: touchTarget.minSize + 8,
     justifyContent: 'center',
   },
   primaryButtonText: {
     ...textRole.buttonPrimary,
+    color: '#E8DCC8',
+    letterSpacing: 0.6,
   },
   buttonDisabled: {
     opacity: 0.6,
   },
-  secondaryActionsRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: space.sm,
-    gap: space.md,
-    width: '100%',
-  },
   ghostButton: {
-    flex: 1,
+    width: '100%',
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.14)',
+    borderColor: 'rgba(255, 255, 255, 0.12)',
     borderRadius: radius.md,
     paddingVertical: space.md + 2,
     alignItems: 'center',
@@ -391,40 +345,21 @@ const styles = StyleSheet.create({
   },
   ghostButtonText: {
     ...textRole.buttonSecondary,
-    color: 'rgba(255, 255, 255, 0.72)',
+    color: 'rgba(255, 255, 255, 0.65)',
+    letterSpacing: 0.4,
   },
 
   // ── Footer ────────────────────────────────────────────────
   footerArea: {
     alignItems: 'center',
-    gap: space.sm,
     paddingBottom: space.xs,
-  },
-  forumsFooter: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: space.md,
-    minHeight: touchTarget.minSize,
-  },
-  forumLink: {
-    paddingVertical: space.xs,
-    paddingHorizontal: space.sm,
-  },
-  forumLinkText: {
-    ...textRole.body,
-    color: 'rgba(255, 255, 255, 0.42)',
-  },
-  forumDivider: {
-    ...textRole.body,
-    color: 'rgba(255, 255, 255, 0.25)',
   },
   buildMarker: {
     fontFamily: fontFamily.text,
     fontSize: 11,
     fontVariant: ['tabular-nums'],
-    color: 'rgba(255, 255, 255, 0.22)',
+    color: 'rgba(255, 255, 255, 0.18)',
     letterSpacing: 0.3,
-    marginTop: space.xs,
   },
 
   // ── Login form ────────────────────────────────────────────
