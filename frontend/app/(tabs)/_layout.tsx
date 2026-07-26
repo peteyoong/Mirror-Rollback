@@ -2,6 +2,7 @@ import { Tabs } from 'expo-router';
 import { Text, Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../contexts/ThemeContext';
+import { fontFamily } from '../../theme/tokens';
 import SessionRestoreWrapper from '../../components/SessionRestoreWrapper';
 
 export default function TabLayout() {
@@ -65,6 +66,13 @@ export default function TabLayout() {
           headerStyle: {
             backgroundColor: theme.background,
           },
+          headerTitleStyle: {
+            fontFamily: fontFamily.display,
+            fontSize: 20,
+            fontWeight: '400',
+            letterSpacing: 0.4,
+            color: theme.text,
+          },
           headerTintColor: theme.text,
           headerShadowVisible: false,
         }}
@@ -97,6 +105,7 @@ export default function TabLayout() {
           name="reflect"
           options={{
             title: 'Reflect',
+            headerShown: false,
             tabBarIcon: ({ color }) => (
               <Text style={{ fontSize: 20, color, lineHeight: 24, textAlign: 'center' }}>◇</Text>
             ),
@@ -116,6 +125,7 @@ export default function TabLayout() {
           name="lenses"
           options={{
             title: 'Lenses',
+            headerShown: false,
             tabBarIcon: ({ color }) => (
               <Text style={{ fontSize: 20, color, lineHeight: 24, textAlign: 'center' }}>◉</Text>
             ),

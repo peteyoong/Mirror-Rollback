@@ -318,7 +318,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   badge: {
     paddingHorizontal: 8,
@@ -404,7 +404,7 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
     textTransform: 'uppercase',
     letterSpacing: 1,
   },

@@ -182,12 +182,12 @@ const styles = StyleSheet.create({
   },
   cycleLabelText: {
     fontSize: 12,
-    fontWeight: '700',
+    fontWeight: '500',
     letterSpacing: 0.5,
   },
   cycleYears: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   cycleSummary: {
     fontSize: 14,
@@ -220,14 +220,14 @@ const styles = StyleSheet.create({
   },
   cycleEventYear: {
     fontSize: 12,
-    fontWeight: '700',
+    fontWeight: '500',
   },
   cycleEventInfo: {
     flex: 1,
   },
   cycleEventTitle: {
     fontSize: 13,
-    fontWeight: '600',
+    fontWeight: '500',
     marginBottom: 2,
   },
   cycleEventMeta: {
@@ -254,7 +254,7 @@ const styles = StyleSheet.create({
   decisionIndicatorText: {
     fontSize: 10,
     color: '#10B981',
-    fontWeight: '700',
+    fontWeight: '500',
   },
   moreEventsText: {
     fontSize: 11,

@@ -163,14 +163,14 @@ const styles = StyleSheet.create({
   },
   eyebrow: {
     fontSize: 10,
-    fontWeight: '600',
+    fontWeight: '500',
     letterSpacing: 1,
     marginBottom: 8,
     textTransform: 'uppercase',
   },
   title: {
     fontSize: 24,
-    fontWeight: '600',
+    fontWeight: '500',
     lineHeight: 30,
     marginBottom: 12,
   },

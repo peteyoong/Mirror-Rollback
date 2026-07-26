@@ -735,7 +735,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 22,
-    fontWeight: '600',
+    fontWeight: '500',
     letterSpacing: -0.3,
     marginBottom: 4,
   },
@@ -762,7 +762,7 @@ const styles = StyleSheet.create({
   },
   statValue: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '500',
     marginBottom: 2,
   },
   statLabel: {

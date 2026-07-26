@@ -470,7 +470,7 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     fontSize: 17,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   headerRight: {
     minWidth: 80,
@@ -488,7 +488,7 @@ const styles = StyleSheet.create({
   },
   introTitle: {
     fontSize: 24,
-    fontWeight: '600',
+    fontWeight: '500',
     marginBottom: 6,
   },
   introSubtext: {
@@ -505,7 +505,7 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 17,
-    fontWeight: '600',
+    fontWeight: '500',
     marginBottom: 4,
   },
   sectionSubtext: {
@@ -597,7 +597,7 @@ const styles = StyleSheet.create({
   },
   savedTitle: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '500',
     marginBottom: 6,
   },
   savedSubtitle: {
@@ -621,7 +621,7 @@ const styles = StyleSheet.create({
   },
   primaryButtonText: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   secondaryButton: {
     paddingVertical: 14,
@@ -631,6 +631,6 @@ const styles = StyleSheet.create({
   },
   secondaryButtonText: {
     fontSize: 17,
-    fontWeight: '600',
+    fontWeight: '500',
   },
 });

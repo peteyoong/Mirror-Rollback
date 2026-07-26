@@ -284,7 +284,7 @@ const AstrologyTodayV3: React.FC<AstrologyTodayV3Props> = ({
               <View style={styles.technicalRow}>
                 <Ionicons name="flash-outline" size={14} color={theme.accent || '#FF6B35'} style={{ marginRight: 8, marginTop: 2 }} />
                 <View style={{ flex: 1 }}>
-                  <Text style={[styles.technicalText, { color: theme.text, fontWeight: '600' }]}>
+                  <Text style={[styles.technicalText, { color: theme.text, fontWeight: '500' }]}>
                     {data.technical.dominant_pattern}
                   </Text>
                   {data.technical.pattern_detail ? (
@@ -412,7 +412,7 @@ const styles = StyleSheet.create({
   },
   retryText: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   card: {
     margin: 16,
@@ -427,7 +427,7 @@ const styles = StyleSheet.create({
   },
   headlineText: {
     fontSize: 24,
-    fontWeight: '600',
+    fontWeight: '500',
     lineHeight: 30,
   },
   whereContext: {
@@ -455,7 +455,7 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
     letterSpacing: 0.5,
     textTransform: 'uppercase',
   },
@@ -487,7 +487,7 @@ const styles = StyleSheet.create({
   },
   moveLabel: {
     fontSize: 14,
-    fontWeight: '700',
+    fontWeight: '500',
     letterSpacing: 0.6,
     marginBottom: 14,
   },
@@ -519,7 +519,7 @@ const styles = StyleSheet.create({
   },
   technicalLabel: {
     fontSize: 12,
-    fontWeight: '600',
+    fontWeight: '500',
     letterSpacing: 0.8,
     marginBottom: 12,
     textTransform: 'uppercase',
@@ -536,7 +536,7 @@ const styles = StyleSheet.create({
   },
   proofSectionLabel: {
     fontSize: 11,
-    fontWeight: '700',
+    fontWeight: '500',
     letterSpacing: 1.0,
     textTransform: 'uppercase',
     marginBottom: 6,

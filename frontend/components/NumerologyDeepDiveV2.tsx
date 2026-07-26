@@ -1128,7 +1128,7 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 14,
-    fontWeight: '700',
+    fontWeight: '500',
     letterSpacing: 0.5,
   },
   sectionContent: {
@@ -1146,16 +1146,16 @@ const styles = StyleSheet.create({
   },
   lifePathLabel: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
     letterSpacing: 0.5,
   },
   lifePathNumber: {
     fontSize: 24,
-    fontWeight: '700',
+    fontWeight: '500',
   },
   headline: {
     fontSize: 22,
-    fontWeight: '600',
+    fontWeight: '500',
     lineHeight: 30,
   },
 
@@ -1202,7 +1202,7 @@ const styles = StyleSheet.create({
   },
   contributionLabel: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   contributionValue: {
     fontSize: 14,
@@ -1220,7 +1220,7 @@ const styles = StyleSheet.create({
   },
   warningLabel: {
     fontSize: 14,
-    fontWeight: '700',
+    fontWeight: '500',
     letterSpacing: 0.5,
     marginBottom: 4,
   },
@@ -1250,7 +1250,7 @@ const styles = StyleSheet.create({
   },
   missingNumber: {
     fontSize: 16,
-    fontWeight: '700',
+    fontWeight: '500',
   },
   buildTitle: {
     flex: 1,
@@ -1260,7 +1260,7 @@ const styles = StyleSheet.create({
   },
   buildSubtitle: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
     letterSpacing: 0.5,
     marginBottom: 14,
   },
@@ -1278,7 +1278,7 @@ const styles = StyleSheet.create({
   },
   watchForLabel: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
     marginBottom: 4,
   },
   watchForText: {
@@ -1306,7 +1306,7 @@ const styles = StyleSheet.create({
   },
   gridNumber: {
     fontSize: 22,
-    fontWeight: '700',
+    fontWeight: '500',
   },
   gridCount: {
     fontSize: 14,
@@ -1345,7 +1345,7 @@ const styles = StyleSheet.create({
   },
   computationLabel: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '500',
     marginBottom: 4,
   },
   computationValue: {
@@ -1439,7 +1439,7 @@ const styles = StyleSheet.create({
   },
   modalTitle: {
     fontSize: 24,
-    fontWeight: '600',
+    fontWeight: '500',
     marginBottom: 14,
     marginTop: 8,
   },
@@ -1487,7 +1487,7 @@ const styles = StyleSheet.create({
   },
   modalPrimaryButtonText: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '500',
     color: '#fff',
   },
 
@@ -1504,7 +1504,7 @@ const styles = StyleSheet.create({
   },
   interruptLabel: {
     fontSize: 14,
-    fontWeight: '700',
+    fontWeight: '500',
     letterSpacing: 0.6,
     marginBottom: 14,
   },
@@ -1522,7 +1522,7 @@ const styles = StyleSheet.create({
   },
   interruptBlockTitle: {
     fontSize: 16,
-    fontWeight: '700',
+    fontWeight: '500',
     letterSpacing: 0.5,
   },
   interruptBlockSubtitle: {
@@ -1537,7 +1537,7 @@ const styles = StyleSheet.create({
   },
   interruptActionNumber: {
     fontSize: 16,
-    fontWeight: '700',
+    fontWeight: '500',
     width: 20,
   },
   interruptActionText: {
@@ -1552,7 +1552,7 @@ const styles = StyleSheet.create({
   },
   whyWorksLabel: {
     fontSize: 14,
-    fontWeight: '700',
+    fontWeight: '500',
     letterSpacing: 0.6,
     marginBottom: 6,
   },

@@ -410,7 +410,7 @@ const styles = StyleSheet.create({
   },
   savedLabel: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   date: {
     fontSize: 14,
@@ -430,7 +430,7 @@ const styles = StyleSheet.create({
   },
   phasePillText: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   headerActions: {
     flexDirection: 'row',
@@ -453,7 +453,7 @@ const styles = StyleSheet.create({
   },
   reflectButtonText: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
     color: Colors.accent,
   },
   menuButton: {
@@ -463,7 +463,7 @@ const styles = StyleSheet.create({
   menuDots: {
     fontSize: 16,
     letterSpacing: 1,
-    fontWeight: '700',
+    fontWeight: '500',
   },
   menuDropdown: {
     position: 'absolute',
@@ -516,7 +516,7 @@ const styles = StyleSheet.create({
   // Edit mode styles
   editingLabel: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   editInput: {
     borderRadius: 10,
@@ -556,7 +556,7 @@ const styles = StyleSheet.create({
   },
   editSaveText: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '500',
     color: '#fff',
   },
   
@@ -577,7 +577,7 @@ const styles = StyleSheet.create({
   },
   deleteModalTitle: {
     fontSize: 17,
-    fontWeight: '600',
+    fontWeight: '500',
     marginBottom: 14,
     textAlign: 'center',
   },
@@ -610,7 +610,7 @@ const styles = StyleSheet.create({
   },
   deleteModalConfirmText: {
     fontSize: 17,
-    fontWeight: '600',
+    fontWeight: '500',
     color: '#fff',
   },
 });

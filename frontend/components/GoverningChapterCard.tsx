@@ -258,12 +258,12 @@ const styles = StyleSheet.create({
   },
   eyebrow: {
     fontSize: 10,
-    fontWeight: '700',
+    fontWeight: '500',
     letterSpacing: 1.5,
   },
   arcChip: {
     fontSize: 9,
-    fontWeight: '700',
+    fontWeight: '500',
     letterSpacing: 1.0,
     paddingHorizontal: 6,
     paddingVertical: 2,
@@ -273,7 +273,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 22,
-    fontWeight: '700',
+    fontWeight: '500',
     lineHeight: 28,
     marginBottom: 4,
   },

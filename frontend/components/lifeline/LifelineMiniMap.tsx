@@ -713,7 +713,7 @@ const styles = StyleSheet.create({
   },
   headerLabel: {
     fontSize: 11,
-    fontWeight: '600',
+    fontWeight: '500',
     letterSpacing: 1,
     textTransform: 'uppercase',
     marginBottom: 4,
@@ -846,7 +846,7 @@ const styles = StyleSheet.create({
   },
   selectionYear: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   selectionDetail: {
     fontSize: 11,

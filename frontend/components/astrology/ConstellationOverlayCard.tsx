@@ -240,7 +240,7 @@ const ConstellationOverlayCard: React.FC<Props> = ({ userId, theme, overlay: pre
                 </Text>
                 <Text style={[styles.narrativeText, { color: theme.textSecondary }]}>
                   In the symbolic system, this reads as{' '}
-                  <Text style={{ color: theme.text, fontWeight: '600' }}>{item.zodiac_sign}</Text>
+                  <Text style={{ color: theme.text, fontWeight: '500' }}>{item.zodiac_sign}</Text>
                   .
                 </Text>
                 <Text
@@ -250,9 +250,9 @@ const ConstellationOverlayCard: React.FC<Props> = ({ userId, theme, overlay: pre
                   ]}
                 >
                   But in the actual sky,{' '}
-                  <Text style={{ color: theme.text, fontWeight: '600' }}>{item.body}</Text> is moving
+                  <Text style={{ color: theme.text, fontWeight: '500' }}>{item.body}</Text> is moving
                   through{' '}
-                  <Text style={{ color: theme.accent || '#8B5CF6', fontWeight: '700' }}>
+                  <Text style={{ color: theme.accent || '#8B5CF6', fontWeight: '500' }}>
                     {item.constellation}
                   </Text>{' '}
                   — a region that doesn't follow the same clean boundaries.
@@ -351,7 +351,7 @@ const styles = StyleSheet.create({
   },
   headerLabel: {
     fontSize: 10,
-    fontWeight: '700',
+    fontWeight: '500',
     letterSpacing: 0.8,
     marginBottom: 4,
   },
@@ -382,13 +382,13 @@ const styles = StyleSheet.create({
   },
   bodyHeading: {
     fontSize: 13,
-    fontWeight: '700',
+    fontWeight: '500',
     letterSpacing: 0.4,
     marginBottom: 2,
   },
   sectionLabel: {
     fontSize: 10,
-    fontWeight: '800',
+    fontWeight: '500',
     letterSpacing: 1.0,
     marginTop: 14,
     marginBottom: 6,
@@ -427,7 +427,7 @@ const styles = StyleSheet.create({
   },
   th: {
     fontSize: 10,
-    fontWeight: '700',
+    fontWeight: '500',
     letterSpacing: 0.5,
   },
   tr: {

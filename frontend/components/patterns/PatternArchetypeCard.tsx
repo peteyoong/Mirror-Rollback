@@ -318,7 +318,7 @@ const styles = StyleSheet.create({
   },
   headline: {
     fontSize: 22,
-    fontWeight: '700',
+    fontWeight: '500',
     marginBottom: 2,
   },
   subheadline: {
@@ -337,7 +337,7 @@ const styles = StyleSheet.create({
   },
   expandToggleText: {
     fontSize: 13,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   expandedContent: {
     marginBottom: 12,
@@ -347,7 +347,7 @@ const styles = StyleSheet.create({
   },
   sectionLabel: {
     fontSize: 11,
-    fontWeight: '600',
+    fontWeight: '500',
     letterSpacing: 0.5,
     marginBottom: 8,
     textTransform: 'uppercase',

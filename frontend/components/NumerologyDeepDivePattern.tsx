@@ -633,13 +633,13 @@ const styles = StyleSheet.create({
   },
   lifePathLabel: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
     letterSpacing: 0.5,
     textTransform: 'uppercase',
   },
   lifePathNumber: {
     fontSize: 22,
-    fontWeight: '700',
+    fontWeight: '500',
   },
 
   // 2. Hero Section (Core Truth)
@@ -658,7 +658,7 @@ const styles = StyleSheet.create({
   },
   heroText: {
     fontSize: 22,
-    fontWeight: '600',
+    fontWeight: '500',
     lineHeight: 32,
   },
 
@@ -675,7 +675,7 @@ const styles = StyleSheet.create({
   },
   premiumSectionTitle: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
     letterSpacing: 0.3,
     marginBottom: 16,
     textTransform: 'lowercase',
@@ -752,7 +752,7 @@ const styles = StyleSheet.create({
   },
   shiftLabel: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
     letterSpacing: 0.5,
     textTransform: 'uppercase',
     marginBottom: 14,
@@ -796,14 +796,14 @@ const styles = StyleSheet.create({
   },
   identityLabel: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
     letterSpacing: 0.3,
     textTransform: 'uppercase',
     marginBottom: 4,
   },
   identityValue: {
     fontSize: 24,
-    fontWeight: '700',
+    fontWeight: '500',
     marginBottom: 2,
   },
   identityDesc: {
@@ -817,7 +817,7 @@ const styles = StyleSheet.create({
   },
   tensionPair: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '500',
     marginBottom: 4,
   },
   tensionDesc: {
@@ -849,7 +849,7 @@ const styles = StyleSheet.create({
   },
   exploreCTAText: {
     fontSize: 17,
-    fontWeight: '600',
+    fontWeight: '500',
   },
 
   // =============================================================================
@@ -880,7 +880,7 @@ const styles = StyleSheet.create({
   },
   layerLabel: {
     fontSize: 14,
-    fontWeight: '700',
+    fontWeight: '500',
     letterSpacing: 1,
   },
   layerSubLabel: {
@@ -903,13 +903,13 @@ const styles = StyleSheet.create({
   },
   coreNumberLabel: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
     letterSpacing: 0.5,
     marginBottom: 4,
   },
   coreNumberValue: {
     fontSize: 22,
-    fontWeight: '700',
+    fontWeight: '500',
   },
   coreNumberDivider: {
     width: 1,
@@ -930,13 +930,13 @@ const styles = StyleSheet.create({
   },
   identityNumberLabel: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
     letterSpacing: 0.5,
     marginBottom: 4,
   },
   identityNumberValue: {
     fontSize: 24,
-    fontWeight: '700',
+    fontWeight: '500',
   },
   identityNumberDesc: {
     fontSize: 9,
@@ -955,7 +955,7 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 14,
-    fontWeight: '700',
+    fontWeight: '500',
     letterSpacing: 1,
     marginBottom: 4,
   },
@@ -988,7 +988,7 @@ const styles = StyleSheet.create({
   },
   gridCellText: {
     fontSize: 24,
-    fontWeight: '700',
+    fontWeight: '500',
   },
   gridCellMultiple: {
     fontSize: 16,
@@ -1031,13 +1031,13 @@ const styles = StyleSheet.create({
   },
   corePatternLabel: {
     fontSize: 14,
-    fontWeight: '700',
+    fontWeight: '500',
     letterSpacing: 1,
     marginBottom: 6,
   },
   corePatternText: {
     fontSize: 17,
-    fontWeight: '600',
+    fontWeight: '500',
     lineHeight: 30,
   },
 
@@ -1086,15 +1086,15 @@ const styles = StyleSheet.create({
   },
   tensionA: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   tensionVs: {
     fontSize: 14,
-    fontWeight: '700',
+    fontWeight: '500',
   },
   tensionB: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   tensionDescription: {
     fontSize: 14,
@@ -1114,7 +1114,7 @@ const styles = StyleSheet.create({
   },
   costLabel: {
     fontSize: 14,
-    fontWeight: '700',
+    fontWeight: '500',
     letterSpacing: 0.5,
   },
   costText: {
@@ -1132,7 +1132,7 @@ const styles = StyleSheet.create({
   },
   balanceLabel: {
     fontSize: 14,
-    fontWeight: '700',
+    fontWeight: '500',
     letterSpacing: 1,
     marginBottom: 6,
   },
@@ -1151,7 +1151,7 @@ const styles = StyleSheet.create({
   },
   reflectionLabel: {
     fontSize: 14,
-    fontWeight: '700',
+    fontWeight: '500',
     letterSpacing: 1,
     marginBottom: 6,
   },
@@ -1189,7 +1189,7 @@ const styles = StyleSheet.create({
   },
   askMirrorText: {
     fontSize: 17,
-    fontWeight: '600',
+    fontWeight: '500',
   },
 
   // Footer
@@ -1226,7 +1226,7 @@ const styles = StyleSheet.create({
   },
   modalTitle: {
     fontSize: 22,
-    fontWeight: '600',
+    fontWeight: '500',
     textAlign: 'center',
     marginBottom: 4,
   },
@@ -1264,7 +1264,7 @@ const styles = StyleSheet.create({
   },
   modalPrimaryButtonText: {
     fontSize: 17,
-    fontWeight: '600',
+    fontWeight: '500',
     color: '#fff',
   },
 });

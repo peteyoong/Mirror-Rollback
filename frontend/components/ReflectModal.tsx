@@ -261,7 +261,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 18,
-    fontWeight: '700',
+    fontWeight: '500',
     marginBottom: 6,
   },
   prompt: {
@@ -306,7 +306,7 @@ const styles = StyleSheet.create({
   },
   saveText: {
     fontSize: 14,
-    fontWeight: '700',
+    fontWeight: '500',
     letterSpacing: 0.2,
   },
   savedFlash: {
@@ -320,6 +320,6 @@ const styles = StyleSheet.create({
   },
   savedFlashText: {
     fontSize: 12,
-    fontWeight: '600',
+    fontWeight: '500',
   },
 });

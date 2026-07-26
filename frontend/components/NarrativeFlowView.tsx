@@ -295,7 +295,7 @@ const styles = StyleSheet.create({
   fieldTextRelationship: {
     fontSize: 17,
     lineHeight: 26,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   
   // Dividers
@@ -311,7 +311,7 @@ const styles = StyleSheet.create({
   // Section hints
   sectionHint: {
     fontSize: 11,
-    fontWeight: '600',
+    fontWeight: '500',
     letterSpacing: 0.5,
     textTransform: 'lowercase',
     marginBottom: 6,
@@ -377,7 +377,7 @@ const styles = StyleSheet.create({
   moveTextRelationship: {
     fontSize: 16,
     lineHeight: 25,
-    fontWeight: '600',
+    fontWeight: '500',
   },
 });
 

@@ -391,7 +391,7 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     fontSize: 17,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   headerSpacer: {
     width: 32,
@@ -415,7 +415,7 @@ const styles = StyleSheet.create({
   },
   formatsTitle: {
     fontSize: 11,
-    fontWeight: '600',
+    fontWeight: '500',
     letterSpacing: 1,
     textAlign: 'center',
     marginBottom: 16,
@@ -503,7 +503,7 @@ const styles = StyleSheet.create({
   primaryButtonText: {
     color: '#FFFFFF',
     fontSize: 17,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   buttonDisabled: {
     opacity: 0.7,

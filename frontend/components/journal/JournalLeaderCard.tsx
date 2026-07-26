@@ -172,7 +172,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 15, // Reduced from 16
-    fontWeight: '600',
+    fontWeight: '500',
     lineHeight: 20,
     flex: 1,
     paddingRight: 10,

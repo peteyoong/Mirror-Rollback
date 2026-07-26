@@ -388,7 +388,7 @@ const styles = StyleSheet.create({
   },
   emptyTitle: {
     fontSize: 22,
-    fontWeight: '600',
+    fontWeight: '500',
     marginBottom: 8,
     textAlign: 'center',
   },
@@ -402,7 +402,7 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     fontSize: 11,
-    fontWeight: '600',
+    fontWeight: '500',
     letterSpacing: 1,
     marginBottom: 4,
   },
@@ -417,7 +417,7 @@ const styles = StyleSheet.create({
   },
   topicLabel: {
     fontSize: 10,
-    fontWeight: '600',
+    fontWeight: '500',
     letterSpacing: 1,
     marginBottom: 4,
   },
@@ -453,7 +453,7 @@ const styles = StyleSheet.create({
   },
   statValue: {
     fontSize: 24,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   statLabel: {
     fontSize: 11,
@@ -503,7 +503,7 @@ const styles = StyleSheet.create({
   },
   dayNumber: {
     fontSize: 15,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   dayGates: {
     fontSize: 12,
@@ -551,7 +551,7 @@ const styles = StyleSheet.create({
   },
   cycleEndTitle: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
     marginBottom: 8,
   },
   cycleEndText: {

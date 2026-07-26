@@ -347,7 +347,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 12,
-    fontWeight: '600',
+    fontWeight: '500',
     letterSpacing: 1,
   },
   errorBox: {
@@ -372,7 +372,7 @@ const styles = StyleSheet.create({
   },
   topicLabel: {
     fontSize: 10,
-    fontWeight: '600',
+    fontWeight: '500',
     letterSpacing: 1,
     marginBottom: 8,
   },
@@ -387,7 +387,7 @@ const styles = StyleSheet.create({
   },
   promptsLabel: {
     fontSize: 10,
-    fontWeight: '600',
+    fontWeight: '500',
     letterSpacing: 1,
     marginBottom: 12,
   },
@@ -402,7 +402,7 @@ const styles = StyleSheet.create({
   },
   inputLabel: {
     fontSize: 10,
-    fontWeight: '600',
+    fontWeight: '500',
     letterSpacing: 1,
     marginBottom: 10,
   },
@@ -435,7 +435,7 @@ const styles = StyleSheet.create({
   checkmark: {
     color: '#1A1D24',
     fontSize: 14,
-    fontWeight: '700',
+    fontWeight: '500',
   },
   optionText: {
     flex: 1,
@@ -473,7 +473,7 @@ const styles = StyleSheet.create({
   },
   completeButtonText: {
     fontSize: 15,
-    fontWeight: '600',
+    fontWeight: '500',
     color: '#1A1D24',
   },
   loadingContainer: {
@@ -483,7 +483,7 @@ const styles = StyleSheet.create({
   },
   loadingText: {
     fontSize: 15,
-    fontWeight: '600',
+    fontWeight: '500',
     color: '#1A1D24',
   },
 });

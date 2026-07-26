@@ -1239,7 +1239,7 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     fontSize: 22,
-    fontWeight: '600',
+    fontWeight: '500',
     color: Colors.text,
     letterSpacing: -0.3,
   },
@@ -1307,7 +1307,7 @@ const styles = StyleSheet.create({
   },
   memorySectionLabel: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
     color: Colors.textTertiary,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
@@ -1350,7 +1350,7 @@ const styles = StyleSheet.create({
   },
   evidenceLabel: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
     color: Colors.textTertiary,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
@@ -1451,7 +1451,7 @@ const styles = StyleSheet.create({
   },
   threadModalTitle: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
     color: Colors.textTertiary,
     letterSpacing: 1.5,
     marginBottom: 16,
@@ -1477,7 +1477,7 @@ const styles = StyleSheet.create({
   },
   threadModalReflectLabel: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
     color: Colors.textTertiary,
     letterSpacing: 1.2,
     marginBottom: 14,

@@ -144,7 +144,7 @@ const styles = StyleSheet.create({
   },
   collapsedTitle: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
     lineHeight: 18,
   },
   collapsedSubtext: {
@@ -184,7 +184,7 @@ const styles = StyleSheet.create({
   title: {
     flex: 1,
     fontSize: 22,
-    fontWeight: '600',
+    fontWeight: '500',
     lineHeight: 24,
   },
   chevronExpanded: {

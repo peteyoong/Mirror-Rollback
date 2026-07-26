@@ -545,7 +545,7 @@ const styles = StyleSheet.create({
   },
   doneText: {
     fontSize: 15,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   doneFooterBtn: {
     marginTop: 18,
@@ -566,11 +566,11 @@ const styles = StyleSheet.create({
     fontSize: 10.5,
     letterSpacing: 1.5,
     textTransform: 'uppercase',
-    fontWeight: '600',
+    fontWeight: '500',
   },
   title: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '500',
     letterSpacing: -0.2,
     marginTop: 1,
   },
@@ -606,7 +606,7 @@ const styles = StyleSheet.create({
   },
   memberName: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '500',
     letterSpacing: -0.2,
   },
   memberSub: {
@@ -621,7 +621,7 @@ const styles = StyleSheet.create({
     fontSize: 10.5,
     letterSpacing: 1.2,
     textTransform: 'uppercase',
-    fontWeight: '600',
+    fontWeight: '500',
     marginTop: 4,
   },
   chipRow: {
@@ -653,7 +653,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  saveBtnText: { fontSize: 13.5, fontWeight: '600', letterSpacing: 0.2 },
+  saveBtnText: { fontSize: 13.5, fontWeight: '500', letterSpacing: 0.2 },
 
   buildBadge: {
     position: 'absolute',

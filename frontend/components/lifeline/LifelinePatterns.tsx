@@ -153,7 +153,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 15,
-    fontWeight: '600',
+    fontWeight: '500',
     letterSpacing: -0.2,
   },
   insightsContainer: {

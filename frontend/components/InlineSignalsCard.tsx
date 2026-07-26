@@ -144,7 +144,7 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
     letterSpacing: 0.8,
     marginBottom: 14,
   },
@@ -170,7 +170,7 @@ const styles = StyleSheet.create({
   },
   groupTitle: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
     letterSpacing: 0.5,
     textTransform: 'uppercase',
   },
@@ -195,7 +195,7 @@ const styles = StyleSheet.create({
   },
   synthesisLabel: {
     fontSize: 9,
-    fontWeight: '600',
+    fontWeight: '500',
     letterSpacing: 0.6,
     marginBottom: 6,
   },

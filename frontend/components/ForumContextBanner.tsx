@@ -141,7 +141,7 @@ const styles = StyleSheet.create({
   },
   reflectButtonText: {
     fontSize: 13,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   exitButton: {
     paddingVertical: 4,

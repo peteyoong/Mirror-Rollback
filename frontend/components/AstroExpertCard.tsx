@@ -349,7 +349,7 @@ const AstroExpertCard: React.FC<AstroExpertCardProps> = ({
           {/* Event Priority Info */}
           {data.event_priority && (
             <>
-              <Text style={[styles.signalsLabel, { color: theme.textSecondary, fontWeight: '600' }]}>
+              <Text style={[styles.signalsLabel, { color: theme.textSecondary, fontWeight: '500' }]}>
                 Event Priority V5.1
               </Text>
               <Text style={[styles.signalsDetail, { color: theme.textTertiary }]}>
@@ -426,7 +426,7 @@ const styles = StyleSheet.create({
   retryText: {
     fontSize: 16,
     textAlign: 'center',
-    fontWeight: '600',
+    fontWeight: '500',
   },
   eventBadge: {
     flexDirection: 'row',
@@ -445,12 +445,12 @@ const styles = StyleSheet.create({
   },
   eventBadgeName: {
     fontSize: 16,
-    fontWeight: '700',
+    fontWeight: '500',
     letterSpacing: -0.3,
   },
   eventBadgeTiming: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
     textTransform: 'uppercase',
     letterSpacing: 0.5,
     marginTop: 2,
@@ -463,14 +463,14 @@ const styles = StyleSheet.create({
   },
   themeLabel: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
     letterSpacing: 1.2,
     textTransform: 'uppercase',
     marginBottom: 6,
   },
   themeText: {
     fontSize: 24,
-    fontWeight: '700',
+    fontWeight: '500',
     lineHeight: 30,
     letterSpacing: -0.3,
   },
@@ -499,7 +499,7 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
     letterSpacing: 0.5,
     textTransform: 'uppercase',
   },
@@ -527,7 +527,7 @@ const styles = StyleSheet.create({
     lineHeight: 30,
   },
   mainEventText: {
-    fontWeight: '600',
+    fontWeight: '500',
   },
   questionSection: {
     flexDirection: 'row',

@@ -539,7 +539,7 @@ const styles = StyleSheet.create({
   },
   emptyTitle: {
     fontSize: 24,
-    fontWeight: '600',
+    fontWeight: '500',
     marginBottom: 12,
   },
   emptyText: {
@@ -556,7 +556,7 @@ const styles = StyleSheet.create({
   emptyButtonText: {
     color: '#FFFFFF',
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   header: {
     flexDirection: 'row',
@@ -573,7 +573,7 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     fontSize: 24,
-    fontWeight: '600',
+    fontWeight: '500',
     flex: 1,
   },
   card: {
@@ -587,7 +587,7 @@ const styles = StyleSheet.create({
   },
   sectionLabel: {
     fontSize: 11,
-    fontWeight: '700',
+    fontWeight: '500',
     letterSpacing: 1,
     marginBottom: 12,
   },
@@ -608,7 +608,7 @@ const styles = StyleSheet.create({
   },
   sequenceText: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   sequenceArrow: {
     fontSize: 24,
@@ -630,7 +630,7 @@ const styles = StyleSheet.create({
   },
   yearBadge: {
     fontSize: 15,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   yearDot: {
     fontSize: 12,
@@ -703,7 +703,7 @@ const styles = StyleSheet.create({
   primaryButtonText: {
     color: '#FFFFFF',
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   secondaryButton: {
     borderWidth: 1,

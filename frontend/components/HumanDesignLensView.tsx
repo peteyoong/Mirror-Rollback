@@ -6558,7 +6558,7 @@ Remember: Your wisdom comes from sampling. You're not designed for quick certain
                     style={{
                       color: theme.textTertiary,
                       fontSize: 10,
-                      fontWeight: '700',
+                      fontWeight: '500',
                       letterSpacing: 1,
                     }}
                   >
@@ -6575,7 +6575,7 @@ Remember: Your wisdom comes from sampling. You're not designed for quick certain
                     style={{
                       color: theme.textTertiary,
                       fontSize: 10,
-                      fontWeight: '700',
+                      fontWeight: '500',
                       letterSpacing: 1,
                     }}
                   >
@@ -6592,7 +6592,7 @@ Remember: Your wisdom comes from sampling. You're not designed for quick certain
                     style={{
                       color: theme.accent,
                       fontSize: 10,
-                      fontWeight: '700',
+                      fontWeight: '500',
                       letterSpacing: 1,
                     }}
                   >
@@ -6628,7 +6628,7 @@ Remember: Your wisdom comes from sampling. You're not designed for quick certain
                 style={{
                   color: theme.textTertiary,
                   fontSize: 10,
-                  fontWeight: '700',
+                  fontWeight: '500',
                   letterSpacing: 1,
                 }}
               >
@@ -8254,7 +8254,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 24,
-    fontWeight: '600',
+    fontWeight: '500',
     color: "inherit",
     marginBottom: 14,
   },
@@ -8273,7 +8273,7 @@ const styles = StyleSheet.create({
   },
   coreMechanicsTitle: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
     color: "inherit",
     letterSpacing: 1.5,
     textAlign: 'center',
@@ -8350,7 +8350,7 @@ const styles = StyleSheet.create({
   },
   sectionLabel: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '500',
     color: "inherit",
     letterSpacing: 0.3,
     flex: 1,
@@ -8380,7 +8380,7 @@ const styles = StyleSheet.create({
   },
   mirrorPromptLabel: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
     color: "inherit",
     letterSpacing: 1.2,
     marginBottom: 14,
@@ -8442,7 +8442,7 @@ const styles = StyleSheet.create({
   },
   hdIdentityType: {
     fontSize: 22,
-    fontWeight: '600',
+    fontWeight: '500',
     color: "inherit",
     marginBottom: 2,
   },
@@ -8468,7 +8468,7 @@ const styles = StyleSheet.create({
   },
   hdOverviewCardTitle: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
     color: "inherit",
     marginBottom: 14,
     letterSpacing: 0.5,
@@ -8495,7 +8495,7 @@ const styles = StyleSheet.create({
   },
   hdCorePatternLabel: {
     fontSize: 14,
-    fontWeight: '700',
+    fontWeight: '500',
     letterSpacing: 1,
     marginBottom: 14,
   },
@@ -8525,7 +8525,7 @@ const styles = StyleSheet.create({
   },
   hdMasterSynthesisTitle: {
     fontSize: 24,
-    fontWeight: '600',
+    fontWeight: '500',
     marginBottom: 4,
   },
   hdMasterSynthesisSubtitle: {
@@ -8547,7 +8547,7 @@ const styles = StyleSheet.create({
   },
   hdSynthesisSectionLabel: {
     fontSize: 14,
-    fontWeight: '700',
+    fontWeight: '500',
     letterSpacing: 1,
     marginBottom: 14,
   },
@@ -8606,13 +8606,13 @@ const styles = StyleSheet.create({
   },
   hdTensionLabel: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
     letterSpacing: 0.5,
     marginBottom: 6,
   },
   hdGeniusLabel: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
     letterSpacing: 0.5,
     marginBottom: 6,
   },
@@ -8636,7 +8636,7 @@ const styles = StyleSheet.create({
   },
   hdManifestationLabel: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
     color: "inherit",
     marginBottom: 3,
   },
@@ -8657,7 +8657,7 @@ const styles = StyleSheet.create({
   },
   hdReflectionLabel: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
     color: "inherit",
     letterSpacing: 0.8,
     marginBottom: 14,
@@ -8697,7 +8697,7 @@ const styles = StyleSheet.create({
   },
   todayIntroTitle: {
     fontSize: 24,
-    fontWeight: '700',
+    fontWeight: '500',
     letterSpacing: -0.5,
     marginBottom: 4,
   },
@@ -8716,7 +8716,7 @@ const styles = StyleSheet.create({
   },
   dominantThemeLabel: {
     fontSize: 9,
-    fontWeight: '600',
+    fontWeight: '500',
     letterSpacing: 1.2,
     marginBottom: 4,
     textTransform: 'uppercase',
@@ -8724,7 +8724,7 @@ const styles = StyleSheet.create({
   },
   dominantThemeText: {
     fontSize: 17,
-    fontWeight: '600',
+    fontWeight: '500',
     lineHeight: 30,
     marginBottom: 2,
   },
@@ -8739,7 +8739,7 @@ const styles = StyleSheet.create({
   },
   timingSectionTitle: {
     fontSize: 22,
-    fontWeight: '600',
+    fontWeight: '500',
     marginBottom: 0,
   },
   timingSectionSubtitle: {
@@ -8757,7 +8757,7 @@ const styles = StyleSheet.create({
   },
   fieldTitle: {
     fontSize: 24,
-    fontWeight: '700',
+    fontWeight: '500',
     color: "inherit",
     marginBottom: 4,
   },
@@ -8798,7 +8798,7 @@ const styles = StyleSheet.create({
   },
   fieldCardTitle: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '500',
     marginBottom: 4,
   },
   fieldCardBody: {
@@ -8812,7 +8812,7 @@ const styles = StyleSheet.create({
   },
   fieldCardHeadline: {
     fontSize: 17,
-    fontWeight: '600',
+    fontWeight: '500',
     paddingHorizontal: 14,
     paddingTop: 14,
     paddingBottom: 8,
@@ -8837,7 +8837,7 @@ const styles = StyleSheet.create({
   },
   fieldCardSectionLabel: {
     fontSize: 9,
-    fontWeight: '600',
+    fontWeight: '500',
     letterSpacing: 0.8,
     marginBottom: 4,
     textTransform: 'uppercase',
@@ -8867,7 +8867,7 @@ const styles = StyleSheet.create({
   },
   heroTitle: {
     fontSize: 22,
-    fontWeight: '700',
+    fontWeight: '500',
     color: "inherit",
     marginBottom: 4,
   },
@@ -8914,7 +8914,7 @@ const styles = StyleSheet.create({
   },
   signalCardLabel: {
     fontSize: 14,
-    fontWeight: '700',
+    fontWeight: '500',
     letterSpacing: 1,
     textTransform: 'uppercase',
   },
@@ -8927,7 +8927,7 @@ const styles = StyleSheet.create({
   },
   signalCardTitle: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '500',
     paddingHorizontal: 14,
     paddingBottom: 6,
   },
@@ -8958,7 +8958,7 @@ const styles = StyleSheet.create({
   },
   signalSectionLabel: {
     fontSize: 9,
-    fontWeight: '600',
+    fontWeight: '500',
     letterSpacing: 0.8,
     marginBottom: 4,
     textTransform: 'uppercase',
@@ -9007,7 +9007,7 @@ const styles = StyleSheet.create({
   },
   timingCardTitle: {
     fontSize: 17,
-    fontWeight: '600',
+    fontWeight: '500',
     color: "inherit",
     marginBottom: 2,
   },
@@ -9025,7 +9025,7 @@ const styles = StyleSheet.create({
   },
   timingSectionLabel: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
     letterSpacing: 0.8,
     color: "inherit",
     marginBottom: 4,
@@ -9059,7 +9059,7 @@ const styles = StyleSheet.create({
   },
   timingCardTitleCompact: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '500',
     letterSpacing: 0.5,
     marginBottom: 6,
     textTransform: 'uppercase',
@@ -9090,7 +9090,7 @@ const styles = StyleSheet.create({
   },
   versionDebugTitle: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
     color: '#6a6a8a',
     letterSpacing: 1,
     marginBottom: 14,
@@ -9125,7 +9125,7 @@ const styles = StyleSheet.create({
   },
   crossSectionTitle: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
     color: "inherit",
     letterSpacing: 1.5,
   },
@@ -9138,7 +9138,7 @@ const styles = StyleSheet.create({
   },
   crossName: {
     fontSize: 24,
-    fontWeight: '600',
+    fontWeight: '500',
     color: "inherit",
     marginBottom: 14,
     letterSpacing: 0.3,
@@ -9219,7 +9219,7 @@ const styles = StyleSheet.create({
   },
   gkSectionMainTitle: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
     color: "inherit",
     letterSpacing: 1.5,
   },
@@ -9243,7 +9243,7 @@ const styles = StyleSheet.create({
   },
   gkDividerText: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
     color: "inherit",
     letterSpacing: 2.5,
     opacity: 0.7,
@@ -9276,7 +9276,7 @@ const styles = StyleSheet.create({
   },
   gkSectionTitle: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '500',
     color: "inherit",
   },
   gkSectionSubtitle: {
@@ -9317,7 +9317,7 @@ const styles = StyleSheet.create({
   },
   gkArcTitle: {
     fontSize: 17,
-    fontWeight: '600',
+    fontWeight: '500',
     color: "inherit",
   },
   gkArcSubtitle: {
@@ -9358,7 +9358,7 @@ const styles = StyleSheet.create({
   },
   sphereTitle: {
     fontSize: 22,
-    fontWeight: '600',
+    fontWeight: '500',
     color: "inherit",
     marginBottom: 2,
     letterSpacing: 0.2,
@@ -9410,7 +9410,7 @@ const styles = StyleSheet.create({
   },
   gkSphereTitle: {
     fontSize: 17,
-    fontWeight: '600',
+    fontWeight: '500',
     color: "inherit",
     marginBottom: 14,
     letterSpacing: 0.2,
@@ -9485,7 +9485,7 @@ const styles = StyleSheet.create({
   },
   structureAccordionTitle: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   structureAccordionChevron: {
     fontSize: 14,
@@ -9513,7 +9513,7 @@ const styles = StyleSheet.create({
   },
   coreMechanicsLabel: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
     letterSpacing: 0.5,
     textTransform: 'uppercase',
     marginBottom: 4,
@@ -9628,7 +9628,7 @@ const styles = StyleSheet.create({
   },
   modalTitle: {
     fontSize: 22,
-    fontWeight: '700',
+    fontWeight: '500',
     textAlign: 'center',
     marginBottom: 4,
   },
@@ -9642,7 +9642,7 @@ const styles = StyleSheet.create({
   },
   modalSectionTitle: {
     fontSize: 14,
-    fontWeight: '700',
+    fontWeight: '500',
     letterSpacing: 1,
     marginBottom: 14,
   },
@@ -9684,7 +9684,7 @@ const styles = StyleSheet.create({
   },
   modalCloseText: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   // Deep Dive Tab Styles
   deepDiveAccordion: {
@@ -9704,7 +9704,7 @@ const styles = StyleSheet.create({
   },
   deepDiveTitle: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '500',
     marginBottom: 2,
   },
   deepDiveSubtitle: {
@@ -9725,7 +9725,7 @@ const styles = StyleSheet.create({
   },
   deepDiveSectionLabel: {
     fontSize: 14,
-    fontWeight: '700',
+    fontWeight: '500',
     letterSpacing: 1,
     marginTop: 12,
     marginBottom: 14,
@@ -9771,7 +9771,7 @@ const styles = StyleSheet.create({
   },
   mirrorSectionLabel: {
     fontSize: 14,
-    fontWeight: '700',
+    fontWeight: '500',
     letterSpacing: 1,
     marginBottom: 14,
   },
@@ -9837,7 +9837,7 @@ const styles = StyleSheet.create({
   },
   tabBlurbTitle: {
     fontSize: 24,
-    fontWeight: '600',
+    fontWeight: '500',
     marginBottom: 4,
   },
   tabBlurbText: {
@@ -9864,7 +9864,7 @@ const styles = StyleSheet.create({
   },
   primaryAskButtonText: {
     fontSize: 17,
-    fontWeight: '600',
+    fontWeight: '500',
     color: '#FFFFFF',
   },
   primaryAskSubtext: {
@@ -9881,7 +9881,7 @@ const styles = StyleSheet.create({
   },
   suggestedQuestionsLabel: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
     letterSpacing: 0.8,
     marginBottom: 16,
     textTransform: 'uppercase',
@@ -9917,7 +9917,7 @@ const styles = StyleSheet.create({
   },
   centerName: {
     fontSize: 17,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   centerStatus: {
     fontSize: 14,
@@ -9940,7 +9940,7 @@ const styles = StyleSheet.create({
   },
   gateName: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   gateCenter: {
     fontSize: 14,
@@ -9972,7 +9972,7 @@ const styles = StyleSheet.create({
   },
   sequenceTitle: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '500',
     marginBottom: 4,
   },
   sequenceSubtitle: {
@@ -10000,7 +10000,7 @@ const styles = StyleSheet.create({
   },
   meaningBridgeTitle: {
     fontSize: 14,
-    fontWeight: '700',
+    fontWeight: '500',
     letterSpacing: 0.8,
     marginBottom: 14,
   },
@@ -10139,7 +10139,7 @@ const styles = StyleSheet.create({
   },
   sphereSequenceTitle: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   sphereSequenceSubtitle: {
     fontSize: 14,
@@ -10171,11 +10171,11 @@ const styles = StyleSheet.create({
   },
   sequenceSphereName: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   sequenceSphereGeneKey: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   sequenceSphereGiftFlow: {
     flexDirection: 'row',
@@ -10206,7 +10206,7 @@ const styles = StyleSheet.create({
   },
   sequenceBlockTitle: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '500',
     marginBottom: 4,
   },
   sequenceBlockSubtitle: {
@@ -10221,7 +10221,7 @@ const styles = StyleSheet.create({
   // NEW Deep Dive Card System - Compact & Premium
   deepDiveSectionHeader: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
     letterSpacing: 1,
     marginBottom: 14,
     marginTop: 10,
@@ -10239,7 +10239,7 @@ const styles = StyleSheet.create({
   },
   deepDiveCardTitle: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '500',
     marginBottom: 1,
   },
   deepDiveCardSubtitle: {
@@ -10255,7 +10255,7 @@ const styles = StyleSheet.create({
   },
   deepDiveCardSectionLabel: {
     fontSize: 9,
-    fontWeight: '600',
+    fontWeight: '500',
     letterSpacing: 0.5,
     marginBottom: 1,
   },
@@ -10332,7 +10332,7 @@ const styles = StyleSheet.create({
   },
   summaryGraphTitle: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
     letterSpacing: 1,
   },
   summaryGraphTypeBadge: {
@@ -10345,7 +10345,7 @@ const styles = StyleSheet.create({
   },
   summaryGraphTypeText: {
     fontSize: 22,
-    fontWeight: '600',
+    fontWeight: '500',
     textAlign: 'center',
   },
   summaryGraphGrid: {
@@ -10360,7 +10360,7 @@ const styles = StyleSheet.create({
   },
   summaryGraphItemLabel: {
     fontSize: 9,
-    fontWeight: '600',
+    fontWeight: '500',
     letterSpacing: 0.5,
     marginBottom: 2,
   },
@@ -10374,7 +10374,7 @@ const styles = StyleSheet.create({
   },
   summaryGraphCrossLabel: {
     fontSize: 9,
-    fontWeight: '600',
+    fontWeight: '500',
     letterSpacing: 0.5,
     marginBottom: 2,
   },
@@ -10401,7 +10401,7 @@ const styles = StyleSheet.create({
   },
   accordionTitle: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   accordionSubtitle: {
     fontSize: 14,
@@ -10417,7 +10417,7 @@ const styles = StyleSheet.create({
   },
   accordionSectionLabel: {
     fontSize: 9,
-    fontWeight: '600',
+    fontWeight: '500',
     letterSpacing: 0.5,
     marginBottom: 3,
   },
@@ -10455,7 +10455,7 @@ const styles = StyleSheet.create({
   },
   parentAccordionTitle: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '500',
     letterSpacing: 0.5,
   },
   parentAccordionSubtitle: {
@@ -10480,7 +10480,7 @@ const styles = StyleSheet.create({
   },
   deepDiveAskTitle: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '500',
     marginBottom: 14,
     textAlign: 'center',
   },
@@ -10502,7 +10502,7 @@ const styles = StyleSheet.create({
   deepDiveAskButtonText: {
     color: '#FFFFFF',
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   
   // Deep Dive Mode Toggle
@@ -10533,7 +10533,7 @@ const styles = StyleSheet.create({
   },
   readingSectionTitle: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '500',
     marginBottom: 16,
     letterSpacing: 0.3,
   },
@@ -10554,14 +10554,14 @@ const styles = StyleSheet.create({
   },
   keystoneEyebrow: {
     fontSize: 14,
-    fontWeight: '700',
+    fontWeight: '500',
     letterSpacing: 1.5,
     textTransform: 'uppercase',
     marginBottom: 14,
   },
   keystoneLabel: {
     fontSize: 24,
-    fontWeight: '600',
+    fontWeight: '500',
     marginBottom: 16,
   },
   keystoneSequence: {
@@ -10580,13 +10580,13 @@ const styles = StyleSheet.create({
   },
   keystoneRoleLabel: {
     fontSize: 14,
-    fontWeight: '700',
+    fontWeight: '500',
     letterSpacing: 1.2,
     textTransform: 'uppercase',
   },
   keystoneExplanationTitle: {
     fontSize: 17,
-    fontWeight: '600',
+    fontWeight: '500',
     marginTop: 4,
   },
   keystoneExplanationBody: {
@@ -10603,7 +10603,7 @@ const styles = StyleSheet.create({
   },
   patternThreadTitle: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '500',
     letterSpacing: 0.8,
     textTransform: 'uppercase',
     marginBottom: 16,
@@ -10633,7 +10633,7 @@ const styles = StyleSheet.create({
   },
   patternStateTitle: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
     letterSpacing: 1.5,
     textTransform: 'uppercase',
     marginBottom: 16,
@@ -10694,7 +10694,7 @@ const styles = StyleSheet.create({
   },
   hdSummaryType: {
     fontSize: 26,
-    fontWeight: '700',
+    fontWeight: '500',
     marginBottom: 4,
   },
   hdSummaryProfile: {
@@ -10716,7 +10716,7 @@ const styles = StyleSheet.create({
   },
   hdSummaryPatternLabel: {
     fontSize: 14,
-    fontWeight: '700',
+    fontWeight: '500',
     letterSpacing: 0.8,
     marginBottom: 14,
   },
@@ -10730,7 +10730,7 @@ const styles = StyleSheet.create({
   },
   hdSummaryTensionLabel: {
     fontSize: 9,
-    fontWeight: '700',
+    fontWeight: '500',
     letterSpacing: 0.5,
     marginBottom: 4,
   },
@@ -10747,7 +10747,7 @@ const styles = StyleSheet.create({
   },
   hdSummaryReflectionLabel: {
     fontSize: 9,
-    fontWeight: '700',
+    fontWeight: '500',
     letterSpacing: 0.8,
     marginBottom: 14,
   },
@@ -10778,7 +10778,7 @@ const styles = StyleSheet.create({
   },
   hdGlanceTitle: {
     fontSize: 14,
-    fontWeight: '700',
+    fontWeight: '500',
     letterSpacing: 0.8,
     marginBottom: 14,
   },
@@ -10806,7 +10806,7 @@ const styles = StyleSheet.create({
   },
   hdGlanceCenterLabel: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
     marginBottom: 4,
   },
   hdGlanceCenterList: {
@@ -10821,7 +10821,7 @@ const styles = StyleSheet.create({
   },
   hdGlanceGateNumber: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
     width: 55,
   },
   hdGlanceGateName: {
@@ -10835,7 +10835,7 @@ const styles = StyleSheet.create({
   },
   hdGlanceChannelLabel: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
     marginBottom: 4,
   },
   hdGlanceChannelList: {
@@ -10844,7 +10844,7 @@ const styles = StyleSheet.create({
   },
   hdGlanceCrossName: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '500',
     marginBottom: 4,
   },
   hdGlanceCrossDesc: {
@@ -10875,7 +10875,7 @@ const styles = StyleSheet.create({
   },
   hdGlancePVDLabel: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
     textTransform: 'uppercase',
     letterSpacing: 0.5,
     marginBottom: 6,
@@ -10948,7 +10948,7 @@ const styles = StyleSheet.create({
   },
   reflectorPhaseName: {
     fontSize: 22,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   reflectorPhaseTheme: {
     fontSize: 16,
@@ -10980,7 +10980,7 @@ const styles = StyleSheet.create({
   },
   reflectorSectionLabel: {
     fontSize: 14,
-    fontWeight: '700',
+    fontWeight: '500',
     letterSpacing: 0.8,
     marginBottom: 14,
   },
@@ -11049,7 +11049,7 @@ const styles = StyleSheet.create({
   },
   reflectorReflectCtaText: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   reflectorSynthesisCard: {
     marginHorizontal: 16,
@@ -11063,7 +11063,7 @@ const styles = StyleSheet.create({
   },
   reflectorSynthesisTitle: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
     letterSpacing: 1,
     marginBottom: 14,
   },
@@ -11107,7 +11107,7 @@ const styles = StyleSheet.create({
   },
   reflectorAmplifyCenter: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   reflectorAmplifyDesc: {
     fontSize: 14,

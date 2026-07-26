@@ -261,7 +261,7 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     fontSize: 17,
-    fontWeight: '600',
+    fontWeight: '500',
     color: Colors.text,
   },
   headerSpacer: {
@@ -275,7 +275,7 @@ const styles = StyleSheet.create({
   // Step content
   stepTitle: {
     fontSize: 22,
-    fontWeight: '600',
+    fontWeight: '500',
     color: Colors.text,
     marginBottom: 14,
   },
@@ -315,7 +315,7 @@ const styles = StyleSheet.create({
   },
   typeNumberText: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '500',
     color: Colors.text,
   },
   typeInfo: {
@@ -323,7 +323,7 @@ const styles = StyleSheet.create({
   },
   typeName: {
     fontSize: 17,
-    fontWeight: '600',
+    fontWeight: '500',
     color: Colors.text,
     marginBottom: 2,
   },
@@ -372,7 +372,7 @@ const styles = StyleSheet.create({
   },
   selectedTypeLabel: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
     color: Colors.textTertiary,
     letterSpacing: 0.5,
     marginBottom: 4,
@@ -380,7 +380,7 @@ const styles = StyleSheet.create({
   },
   selectedTypeValue: {
     fontSize: 22,
-    fontWeight: '600',
+    fontWeight: '500',
     color: Colors.text,
   },
   
@@ -410,7 +410,7 @@ const styles = StyleSheet.create({
   },
   wingNumber: {
     fontSize: 17,
-    fontWeight: '600',
+    fontWeight: '500',
     color: Colors.text,
   },
   wingName: {

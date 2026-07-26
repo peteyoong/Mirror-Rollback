@@ -266,7 +266,7 @@ const styles = StyleSheet.create({
   },
   modalTitle: {
     fontSize: 22,
-    fontWeight: '600',
+    fontWeight: '500',
     textAlign: 'center',
     marginBottom: 4,
   },
@@ -286,7 +286,7 @@ const styles = StyleSheet.create({
   },
   optionPrimaryText: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   optionSecondary: {
     paddingVertical: 14,

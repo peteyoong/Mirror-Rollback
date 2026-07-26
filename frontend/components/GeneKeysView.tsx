@@ -375,7 +375,7 @@ const styles = StyleSheet.create({
   },
   introTitle: {
     fontSize: 24,
-    fontWeight: '600',
+    fontWeight: '500',
     marginBottom: 4,
   },
   introSubtext: {
@@ -419,7 +419,7 @@ const styles = StyleSheet.create({
   },
   sequenceTitle: {
     fontSize: 17,
-    fontWeight: '600',
+    fontWeight: '500',
     marginBottom: 2,
   },
   sequenceDescription: {
@@ -439,13 +439,13 @@ const styles = StyleSheet.create({
   },
   sphereLabel: {
     fontSize: 9,
-    fontWeight: '700',
+    fontWeight: '500',
     letterSpacing: 0.8,
     marginBottom: 4,
   },
   sphereGeneKey: {
     fontSize: 24,
-    fontWeight: '600',
+    fontWeight: '500',
     marginBottom: 4,
   },
   sphereSpectrum: {
@@ -487,13 +487,13 @@ const styles = StyleSheet.create({
   },
   detailSphereLabel: {
     fontSize: 14,
-    fontWeight: '700',
+    fontWeight: '500',
     letterSpacing: 0.5,
     marginBottom: 6,
   },
   detailGeneKeyTitle: {
     fontSize: 22,
-    fontWeight: '600',
+    fontWeight: '500',
     marginBottom: 14,
   },
   spectrumInline: {
@@ -518,7 +518,7 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
     letterSpacing: 0.3,
     marginBottom: 14,
     textTransform: 'uppercase',
@@ -542,7 +542,7 @@ const styles = StyleSheet.create({
   },
   rememberLabel: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
     letterSpacing: 0.5,
     marginBottom: 6,
     textTransform: 'uppercase',

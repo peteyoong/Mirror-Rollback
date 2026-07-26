@@ -186,11 +186,11 @@ const styles = StyleSheet.create({
   phaseLabel: {
     marginTop: 6,
     fontSize: 11,
-    fontWeight: '600',
+    fontWeight: '500',
     textAlign: 'center',
   },
   phaseLabelActive: {
-    fontWeight: '700',
+    fontWeight: '500',
   },
   phaseLine: {
     position: 'absolute',
@@ -207,7 +207,7 @@ const styles = StyleSheet.create({
   },
   phaseDisplay: {
     fontSize: 16,
-    fontWeight: '700',
+    fontWeight: '500',
     marginBottom: 8,
   },
   phaseDescription: {

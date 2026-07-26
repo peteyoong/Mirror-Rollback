@@ -352,7 +352,7 @@ const styles = StyleSheet.create({
     fontSize: 10.5,
     letterSpacing: 1.5,
     textTransform: 'uppercase',
-    fontWeight: '600',
+    fontWeight: '500',
   },
   prompt: {
     fontSize: 16,

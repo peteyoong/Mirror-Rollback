@@ -384,7 +384,7 @@ const styles = StyleSheet.create({
 
   // Header
   header: { marginBottom: 4 },
-  title: { fontSize: 28, fontWeight: '700', marginBottom: 6, letterSpacing: -0.5 },
+  title: { fontSize: 28, fontWeight: '500', marginBottom: 6, letterSpacing: -0.5 },
   subtitle: { fontSize: 15, lineHeight: 22, marginBottom: 16 },
   divider: { height: StyleSheet.hairlineWidth, marginTop: 4 },
 
@@ -392,7 +392,7 @@ const styles = StyleSheet.create({
   section: { gap: 10 },
   sectionHeader: {
     fontSize: 11,
-    fontWeight: '700',
+    fontWeight: '500',
     letterSpacing: 1.2,
     marginBottom: 4,
   },
@@ -413,7 +413,7 @@ const styles = StyleSheet.create({
     marginBottom: 2,
   },
   glyph: { fontSize: 18, fontWeight: '500', minWidth: 22, textAlign: 'center' },
-  cardTitle: { fontSize: 17, fontWeight: '600' },
+  cardTitle: { fontSize: 17, fontWeight: '500' },
 
   metaRow: {
     flexDirection: 'row',
@@ -427,7 +427,7 @@ const styles = StyleSheet.create({
   traitText: { fontSize: 13, fontStyle: 'italic', marginTop: 2 },
 
   deepDiveButton: { marginTop: 6, alignSelf: 'flex-start' },
-  deepDiveText: { fontSize: 13, fontWeight: '600', letterSpacing: 0.2 },
+  deepDiveText: { fontSize: 13, fontWeight: '500', letterSpacing: 0.2 },
 
   // House cusps card
   cuspCard: { borderRadius: 14, borderWidth: 1, paddingHorizontal: 16 },
@@ -437,7 +437,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 11,
   },
-  cuspHouse: { fontSize: 14, fontWeight: '600' },
+  cuspHouse: { fontSize: 14, fontWeight: '500' },
   cuspMeta: { fontSize: 14 },
 
   // Empty / fallback
@@ -448,7 +448,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 10,
   },
-  emptyTitle: { fontSize: 22, fontWeight: '600' },
+  emptyTitle: { fontSize: 22, fontWeight: '500' },
   emptySubtitle: { fontSize: 15, textAlign: 'center', lineHeight: 22 },
 
   fallbackNote: {

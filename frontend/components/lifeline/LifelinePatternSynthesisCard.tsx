@@ -377,7 +377,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 15,
-    fontWeight: '600',
+    fontWeight: '500',
     letterSpacing: -0.2,
   },
   subtitle: {
@@ -396,7 +396,7 @@ const styles = StyleSheet.create({
   },
   sectionLabel: {
     fontSize: 11,
-    fontWeight: '600',
+    fontWeight: '500',
     textTransform: 'uppercase',
     letterSpacing: 0.5,
     marginBottom: 8,
@@ -434,7 +434,7 @@ const styles = StyleSheet.create({
   },
   detailLabel: {
     fontSize: 13,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   detailText: {
     fontSize: 14,
@@ -445,7 +445,7 @@ const styles = StyleSheet.create({
   },
   clusterYears: {
     fontSize: 13,
-    fontWeight: '600',
+    fontWeight: '500',
     marginBottom: 2,
   },
   clusterDesc: {

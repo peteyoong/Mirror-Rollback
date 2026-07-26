@@ -255,7 +255,7 @@ const styles = StyleSheet.create({
   retryText: {
     fontSize: 16,
     textAlign: 'center',
-    fontWeight: '600',
+    fontWeight: '500',
   },
   stateIndicator: {
     flexDirection: 'row',
@@ -274,13 +274,13 @@ const styles = StyleSheet.create({
   },
   stateText: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
     letterSpacing: 0.5,
     textTransform: 'uppercase',
   },
   theCall: {
     fontSize: 22,
-    fontWeight: '700',
+    fontWeight: '500',
     lineHeight: 28,
     marginBottom: 16,
     letterSpacing: -0.3,
@@ -321,7 +321,7 @@ const styles = StyleSheet.create({
   },
   ctaText: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '500',
     letterSpacing: 0.2,
   },
   resonanceFooter: {

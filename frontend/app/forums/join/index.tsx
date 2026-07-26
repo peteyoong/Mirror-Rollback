@@ -379,7 +379,7 @@ const styles = StyleSheet.create({
   },
   backButton: { width: 60 },
   backText: { fontSize: 16, fontWeight: '500' },
-  headerTitle: { fontSize: 24, fontWeight: '600' },
+  headerTitle: { fontSize: 24, fontWeight: '500' },
   content: { flex: 1, paddingHorizontal: 20, paddingTop: 20 },
   description: { fontSize: 15, lineHeight: 22, marginBottom: 20 },
   inputGroup: { gap: 8, marginBottom: 24 },
@@ -397,7 +397,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     alignItems: 'center',
   },
-  previewButtonText: { fontSize: 16, fontWeight: '600' },
+  previewButtonText: { fontSize: 16, fontWeight: '500' },
   // Preview screen
   previewContent: { flex: 1, paddingHorizontal: 20, paddingTop: 20 },
   previewCard: {
@@ -409,7 +409,7 @@ const styles = StyleSheet.create({
   },
   previewName: {
     fontSize: 22,
-    fontWeight: '600',
+    fontWeight: '500',
     marginBottom: 8,
     textAlign: 'center',
   },
@@ -431,7 +431,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     alignItems: 'center',
   },
-  joinButtonText: { fontSize: 16, fontWeight: '600' },
+  joinButtonText: { fontSize: 16, fontWeight: '500' },
   // Inline banner
   banner: {
     borderWidth: StyleSheet.hairlineWidth,

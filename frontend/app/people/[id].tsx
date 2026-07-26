@@ -701,27 +701,27 @@ const styles = StyleSheet.create({
   scrollContent: { paddingHorizontal: 20, paddingBottom: 40 },
 
   snapshotCard: { borderRadius: 14, borderWidth: 1, padding: 16, marginTop: 8, marginBottom: 24 },
-  personName: { fontSize: 22, fontWeight: '700', letterSpacing: -0.3 },
+  personName: { fontSize: 22, fontWeight: '500', letterSpacing: -0.3 },
   personType: { fontSize: 14, marginTop: 2 },
   snapshotRows: { marginTop: 16, gap: 8 },
   snapRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  snapLabel: { fontSize: 12, fontWeight: '600', letterSpacing: 1, textTransform: 'uppercase' },
+  snapLabel: { fontSize: 12, fontWeight: '500', letterSpacing: 1, textTransform: 'uppercase' },
   snapValue: { fontSize: 14, flex: 1, textAlign: 'right', marginLeft: 12 },
   lensRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 16 },
   lensChip: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 999, borderWidth: 1 },
   lensChipText: { fontSize: 11, fontWeight: '500' },
 
-  sectionTitle: { fontSize: 17, fontWeight: '600', marginBottom: 6, marginTop: 8 },
+  sectionTitle: { fontSize: 17, fontWeight: '500', marginBottom: 6, marginTop: 8 },
   sectionSubtitle: { fontSize: 13, marginBottom: 12 },
 
   synthesisBlock: { borderRadius: 12, borderWidth: 1, paddingHorizontal: 16, marginBottom: 28 },
   synthRow: { paddingVertical: 14 },
-  synthLabel: { fontSize: 10, fontWeight: '700', letterSpacing: 1.3, marginBottom: 4 },
+  synthLabel: { fontSize: 10, fontWeight: '500', letterSpacing: 1.3, marginBottom: 4 },
   synthBody: { fontSize: 15, lineHeight: 23 },
 
   patternList: { gap: 10, marginBottom: 24 },
   patternCard: { borderRadius: 12, borderWidth: 1, padding: 14 },
-  patternTitle: { fontSize: 14, fontWeight: '600', marginBottom: 4 },
+  patternTitle: { fontSize: 14, fontWeight: '500', marginBottom: 4 },
   patternBody: { fontSize: 13, lineHeight: 20 },
 
   askBtn: {
@@ -732,14 +732,14 @@ const styles = StyleSheet.create({
     marginBottom: 28,
     alignItems: 'flex-start',
   },
-  askBtnTitle: { fontSize: 15, fontWeight: '600', marginBottom: 4 },
+  askBtnTitle: { fontSize: 15, fontWeight: '500', marginBottom: 4 },
   askBtnSubtitle: { fontSize: 12, lineHeight: 17 },
 
   evidenceToggle: { paddingVertical: 10, marginBottom: 8 },
   evidenceToggleText: { fontSize: 14, fontWeight: '500' },
   evidencePanel: { borderRadius: 12, borderWidth: 1, paddingHorizontal: 14, marginBottom: 28 },
   evidenceRow: { paddingVertical: 10 },
-  evidenceLabel: { fontSize: 12, fontWeight: '600', marginBottom: 2 },
+  evidenceLabel: { fontSize: 12, fontWeight: '500', marginBottom: 2 },
   evidenceBody: { fontSize: 13, lineHeight: 19 },
 
   enhanceBlock: { borderRadius: 12, borderWidth: 1, padding: 16, marginBottom: 24 },
@@ -758,7 +758,7 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     alignItems: 'center',
   },
-  saveEnhanceText: { fontSize: 14, fontWeight: '600' },
+  saveEnhanceText: { fontSize: 14, fontWeight: '500' },
   enhanceMsg: { fontSize: 12, marginTop: 8, textAlign: 'center' },
 
   buildMarker: { fontSize: 10, textAlign: 'center', marginTop: 16, letterSpacing: 0.6 },

@@ -309,7 +309,7 @@ const styles = StyleSheet.create({
   teaserTitle: {
     flex: 1,
     fontSize: 17,
-    fontWeight: '600',
+    fontWeight: '500',
     letterSpacing: -0.2,
   },
   teaserSummary: {
@@ -363,7 +363,7 @@ const styles = StyleSheet.create({
   },
   fullTitle: {
     fontSize: 17,
-    fontWeight: '600',
+    fontWeight: '500',
     letterSpacing: -0.3,
   },
   fullSubtitle: {

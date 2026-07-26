@@ -315,7 +315,7 @@ export const HDReadingSections: React.FC<Props> = ({ userId, data: preloaded, th
           <Text style={[styles.h2, { color: theme.text }]}>{cm.signature}</Text>
           <Text style={[styles.bodyText, { color: theme.textSecondary }]}>
             When the mechanism above operates without interference, the felt experience settles into{' '}
-            <Text style={{ fontWeight: '600', color: theme.text }}>{cm.signature.toLowerCase()}</Text>. This is
+            <Text style={{ fontWeight: '500', color: theme.text }}>{cm.signature.toLowerCase()}</Text>. This is
             not aspiration; it is the natural signature of this configuration living as itself.
           </Text>
         </Section>
@@ -327,7 +327,7 @@ export const HDReadingSections: React.FC<Props> = ({ userId, data: preloaded, th
           <Text style={[styles.h2, { color: theme.text }]}>{cm.not_self}</Text>
           <Text style={[styles.bodyText, { color: theme.textSecondary }]}>
             The not-self theme for this configuration is{' '}
-            <Text style={{ fontWeight: '600', color: theme.text }}>{cm.not_self.toLowerCase()}</Text>. Noticing
+            <Text style={{ fontWeight: '500', color: theme.text }}>{cm.not_self.toLowerCase()}</Text>. Noticing
             it — without judgement — is the practical signal that this design is being overridden by the mind
             or by outside pressure.
           </Text>
@@ -338,7 +338,7 @@ export const HDReadingSections: React.FC<Props> = ({ userId, data: preloaded, th
       {cm.strategy && (
         <Section title="Practical experiment" subtitle="How to test this in a week" theme={theme}>
           <Text style={[styles.bodyText, { color: theme.textSecondary }]}>
-            For seven days, try the strategy of your type — <Text style={{ fontWeight: '600', color: theme.text }}>{cm.strategy}</Text> — as your only decision filter. Note when the signature ({cm.signature || '—'}) or the not-self ({cm.not_self || '—'}) shows up. The experiment is the data.
+            For seven days, try the strategy of your type — <Text style={{ fontWeight: '500', color: theme.text }}>{cm.strategy}</Text> — as your only decision filter. Note when the signature ({cm.signature || '—'}) or the not-self ({cm.not_self || '—'}) shows up. The experiment is the data.
           </Text>
         </Section>
       )}
@@ -650,11 +650,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 14,
   },
-  sectionTitle: { fontSize: 16, fontWeight: '600' },
+  sectionTitle: { fontSize: 16, fontWeight: '500' },
   sectionSubtitle: { fontSize: 12, marginTop: 2 },
   sectionChevron: { fontSize: 20, marginLeft: 8, fontWeight: '400' },
   sectionBody: { paddingHorizontal: 16, paddingBottom: 14 },
-  primaryHeadline: { fontSize: 15, fontWeight: '600', marginBottom: 6 },
+  primaryHeadline: { fontSize: 15, fontWeight: '500', marginBottom: 6 },
   primaryText: { fontSize: 14, lineHeight: 20 },
   subtleLabel: {
     fontSize: 11,
@@ -666,7 +666,7 @@ const styles = StyleSheet.create({
   threadRow: { marginTop: 12, paddingBottom: 8 },
   threadHead: { fontSize: 14, fontWeight: '500', marginBottom: 4 },
   threadText: { fontSize: 13, lineHeight: 19 },
-  h2: { fontSize: 15, fontWeight: '600', marginBottom: 6 },
+  h2: { fontSize: 15, fontWeight: '500', marginBottom: 6 },
   bodyText: { fontSize: 13, lineHeight: 19 },
   componentRow: { fontSize: 13, marginTop: 2 },
   methodologyNote: { fontSize: 12, marginTop: 8, fontStyle: 'italic' },

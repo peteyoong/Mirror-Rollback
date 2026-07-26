@@ -434,7 +434,7 @@ const styles = StyleSheet.create({
   },
   backText: { fontSize: 15, fontWeight: '500', width: 50 },
   headerCenter: { flex: 1, alignItems: 'center' },
-  headerTitle: { fontSize: 17, fontWeight: '600', letterSpacing: -0.2 },
+  headerTitle: { fontSize: 17, fontWeight: '500', letterSpacing: -0.2 },
   headerSubtitle: { fontSize: 11, marginTop: 2, fontStyle: 'italic' },
 
   list: { flex: 1 },
@@ -478,7 +478,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 8,
   },
-  debugTitle: { fontSize: 9, fontWeight: '700', letterSpacing: 1.5, marginBottom: 2 },
+  debugTitle: { fontSize: 9, fontWeight: '500', letterSpacing: 1.5, marginBottom: 2 },
   debugBody: {
     fontSize: 11,
     lineHeight: 15,
@@ -517,7 +517,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  sendText: { fontSize: 14, fontWeight: '600' },
+  sendText: { fontSize: 14, fontWeight: '500' },
 
   buildMarker: {
     fontSize: 9,

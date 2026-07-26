@@ -337,10 +337,10 @@ export default function NumerologySummaryV2({ userId, onOpenChat, existingName, 
         {showComputation && (
           <View style={styles.computationContent}>
             <Text style={[styles.computationText, { color: theme.textSecondary }]}>
-              <Text style={{ fontWeight: '600' }}>Birth date</Text> → digit distribution (Lo Shu Grid)
+              <Text style={{ fontWeight: '500' }}>Birth date</Text> → digit distribution (Lo Shu Grid)
             </Text>
             <Text style={[styles.computationText, { color: theme.textSecondary }]}>
-              <Text style={{ fontWeight: '600' }}>Full name</Text> → letter-to-number mapping (Pythagorean system)
+              <Text style={{ fontWeight: '500' }}>Full name</Text> → letter-to-number mapping (Pythagorean system)
             </Text>
 
             {/* Name Breakdown */}
@@ -544,7 +544,7 @@ const styles = StyleSheet.create({
   },
   cardLabel: {
     fontSize: 14,
-    fontWeight: '700',
+    fontWeight: '500',
     letterSpacing: 0.8,
     marginBottom: 16,
   },
@@ -563,7 +563,7 @@ const styles = StyleSheet.create({
   },
   watchForLabel: {
     fontSize: 14,
-    fontWeight: '700',
+    fontWeight: '500',
     letterSpacing: 0.8,
     marginBottom: 6,
   },
@@ -592,7 +592,7 @@ const styles = StyleSheet.create({
   },
   blueprintNumber: {
     fontSize: 28,
-    fontWeight: '700',
+    fontWeight: '500',
   },
   blueprintLabel: {
     fontSize: 14,
@@ -609,7 +609,7 @@ const styles = StyleSheet.create({
   },
   addNameText: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '500',
   },
 
   // Lo Shu Grid
@@ -632,7 +632,7 @@ const styles = StyleSheet.create({
   },
   gridNumber: {
     fontSize: 24,
-    fontWeight: '700',
+    fontWeight: '500',
   },
   gridCount: {
     fontSize: 14,
@@ -649,13 +649,13 @@ const styles = StyleSheet.create({
   },
   missingSectionLabel: {
     fontSize: 14,
-    fontWeight: '700',
+    fontWeight: '500',
     letterSpacing: 0.6,
     marginBottom: 6,
   },
   missingNumbers: {
     fontSize: 22,
-    fontWeight: '600',
+    fontWeight: '500',
     marginBottom: 14,
   },
   missingHelper: {
@@ -667,13 +667,13 @@ const styles = StyleSheet.create({
   },
   presentSectionLabel: {
     fontSize: 14,
-    fontWeight: '700',
+    fontWeight: '500',
     letterSpacing: 0.6,
     marginBottom: 6,
   },
   presentNumbers: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '500',
   },
 
   // How This Is Built
@@ -706,7 +706,7 @@ const styles = StyleSheet.create({
   },
   breakdownLabel: {
     fontSize: 14,
-    fontWeight: '700',
+    fontWeight: '500',
     letterSpacing: 0.6,
     marginBottom: 14,
   },
@@ -771,7 +771,7 @@ const styles = StyleSheet.create({
   },
   nameStatusTitle: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   nameStatusText: {
     fontSize: 16,
@@ -792,7 +792,7 @@ const styles = StyleSheet.create({
   },
   nameDisplayLabel: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
     letterSpacing: 0.5,
     marginBottom: 2,
   },

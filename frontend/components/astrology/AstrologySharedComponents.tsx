@@ -158,7 +158,7 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 10,
-    fontWeight: '700',
+    fontWeight: '500',
     letterSpacing: 0.8,
     marginBottom: 4,
   },
@@ -206,7 +206,7 @@ const styles = StyleSheet.create({
   },
   reflectionLabel: {
     fontSize: 10,
-    fontWeight: '700',
+    fontWeight: '500',
     letterSpacing: 0.5,
     marginBottom: 8,
   },
@@ -223,7 +223,7 @@ const styles = StyleSheet.create({
   },
   insightTitle: {
     fontSize: 9,
-    fontWeight: '700',
+    fontWeight: '500',
     letterSpacing: 0.5,
     marginBottom: 6,
   },

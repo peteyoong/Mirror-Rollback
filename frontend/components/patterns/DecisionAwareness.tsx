@@ -129,7 +129,7 @@ const styles = StyleSheet.create({
   },
   styleText: {
     fontSize: 13,
-    fontWeight: '700',
+    fontWeight: '500',
   },
   promptCard: {
     padding: 16,

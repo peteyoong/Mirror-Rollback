@@ -489,7 +489,7 @@ const styles = StyleSheet.create({
   },
   emptyTitle: {
     fontSize: 22,
-    fontWeight: '700',
+    fontWeight: '500',
     marginBottom: 12,
     paddingHorizontal: 20,
     paddingTop: 20,
@@ -510,7 +510,7 @@ const styles = StyleSheet.create({
   },
   emptyActionsTitle: {
     fontSize: 12,
-    fontWeight: '600',
+    fontWeight: '500',
     marginBottom: 12,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
@@ -535,7 +535,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 22,
-    fontWeight: '700',
+    fontWeight: '500',
   },
   momentumBadge: {
     paddingHorizontal: 10,
@@ -544,7 +544,7 @@ const styles = StyleSheet.create({
   },
   momentumText: {
     fontSize: 12,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   statsText: {
     fontSize: 12,
@@ -555,7 +555,7 @@ const styles = StyleSheet.create({
   },
   summaryLabel: {
     fontSize: 10,
-    fontWeight: '600',
+    fontWeight: '500',
     letterSpacing: 0.8,
     textTransform: 'uppercase',
     marginBottom: 6,
@@ -600,7 +600,7 @@ const styles = StyleSheet.create({
   },
   accordionTitle: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   accordionCount: {
     fontSize: 12,
@@ -625,7 +625,7 @@ const styles = StyleSheet.create({
   },
   domainName: {
     fontSize: 13,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   domainSignalCount: {
     fontSize: 11,
@@ -677,7 +677,7 @@ const styles = StyleSheet.create({
   },
   showMoreText: {
     fontSize: 12,
-    fontWeight: '600',
+    fontWeight: '500',
     textAlign: 'center',
     paddingVertical: 8,
   },
@@ -703,7 +703,7 @@ const styles = StyleSheet.create({
   },
   sourcePillText: {
     fontSize: 13,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   noSourcesText: {
     fontSize: 12,
@@ -724,7 +724,7 @@ const styles = StyleSheet.create({
   },
   debugTitle: {
     fontSize: 12,
-    fontWeight: '700',
+    fontWeight: '500',
     marginBottom: 6,
   },
   debugText: {

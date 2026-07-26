@@ -421,13 +421,13 @@ const styles = StyleSheet.create({
   },
   badgeLabel: {
     fontSize: 12,
-    fontWeight: '600',
+    fontWeight: '500',
     textTransform: 'uppercase',
     letterSpacing: 0.5,
   },
   badgeYears: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   
   // Compact badge
@@ -446,7 +446,7 @@ const styles = StyleSheet.create({
   },
   compactText: {
     fontSize: 11,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   
   // Highlight wrapper
@@ -481,7 +481,7 @@ const styles = StyleSheet.create({
   },
   modalTitle: {
     fontSize: 22,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   modalSubtitle: {
     fontSize: 14,
@@ -511,7 +511,7 @@ const styles = StyleSheet.create({
   // Section title
   sectionTitle: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
     textTransform: 'uppercase',
     letterSpacing: 0.5,
     marginBottom: 12,
@@ -539,7 +539,7 @@ const styles = StyleSheet.create({
   },
   highImpactText: {
     fontSize: 10,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   eventTitle: {
     fontSize: 16,
@@ -564,7 +564,7 @@ const styles = StyleSheet.create({
   },
   reflectionTitle: {
     fontSize: 15,
-    fontWeight: '600',
+    fontWeight: '500',
     marginBottom: 8,
   },
   reflectionText: {
@@ -579,7 +579,7 @@ const styles = StyleSheet.create({
   },
   sectionHeader: {
     fontSize: 13,
-    fontWeight: '700',
+    fontWeight: '500',
     letterSpacing: 0.5,
     marginBottom: 12,
   },
@@ -602,7 +602,7 @@ const styles = StyleSheet.create({
   },
   stormCardLabel: {
     fontSize: 17,
-    fontWeight: '600',
+    fontWeight: '500',
     flex: 1,
   },
   intensityBadge: {
@@ -612,7 +612,7 @@ const styles = StyleSheet.create({
   },
   intensityText: {
     fontSize: 11,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   stormCardDescription: {
     fontSize: 14,

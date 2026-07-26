@@ -325,7 +325,7 @@ const styles = StyleSheet.create({
   },
   accordionTitle: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   accordionSubtitle: {
     fontSize: 14,
@@ -361,7 +361,7 @@ const styles = StyleSheet.create({
   },
   sectionHeaderTitle: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
     letterSpacing: 1.5,
     marginBottom: 4,
   },
@@ -400,7 +400,7 @@ const styles = StyleSheet.create({
   },
   centerName: {
     fontSize: 17,
-    fontWeight: '600',
+    fontWeight: '500',
     marginBottom: 4,
   },
   centerMeta: {
@@ -448,7 +448,7 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
     letterSpacing: 0.5,
     marginBottom: 6,
   },
@@ -482,7 +482,7 @@ const styles = StyleSheet.create({
   },
   rememberLabel: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
     letterSpacing: 0.5,
     marginBottom: 6,
   },

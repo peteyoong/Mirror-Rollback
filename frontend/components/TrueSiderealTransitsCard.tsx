@@ -698,7 +698,7 @@ const styles = StyleSheet.create({
   retryText: {
     fontSize: 16,
     textAlign: 'center',
-    fontWeight: '600',
+    fontWeight: '500',
   },
   
   // Header
@@ -707,7 +707,7 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     fontSize: 22,
-    fontWeight: '700',
+    fontWeight: '500',
     letterSpacing: -0.3,
   },
   headerDate: {
@@ -749,7 +749,7 @@ const styles = StyleSheet.create({
   },
   heroLabel: {
     fontSize: 14,
-    fontWeight: '700',
+    fontWeight: '500',
     letterSpacing: 0.5,
   },
   heroExactTime: {
@@ -791,12 +791,12 @@ const styles = StyleSheet.create({
   },
   moonLabel: {
     fontSize: 9,
-    fontWeight: '600',
+    fontWeight: '500',
     letterSpacing: 0.5,
   },
   moonSign: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '500',
     flex: 1,
   },
   moonIngress: {
@@ -812,7 +812,7 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 14,
-    fontWeight: '700',
+    fontWeight: '500',
     letterSpacing: 0.5,
   },
   
@@ -831,7 +831,7 @@ const styles = StyleSheet.create({
   },
   eventTimeText: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   eventDetails: {
     flex: 1,
@@ -877,7 +877,7 @@ const styles = StyleSheet.create({
   },
   slowLabel: {
     fontSize: 14,
-    fontWeight: '700',
+    fontWeight: '500',
     letterSpacing: 0.5,
   },
   slowList: {
@@ -931,7 +931,7 @@ const styles = StyleSheet.create({
   },
   showMoreText: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   
   // Slow Section Header Left
@@ -983,7 +983,7 @@ const styles = StyleSheet.create({
   },
   debugBadgeText: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   debugSvp: {
     fontSize: 14,

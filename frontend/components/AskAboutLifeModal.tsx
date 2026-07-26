@@ -378,7 +378,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: StyleSheet.hairlineWidth,
   },
   closeText: { fontSize: 14, fontWeight: '500' },
-  headerTitle: { fontSize: 16, fontWeight: '700' },
+  headerTitle: { fontSize: 16, fontWeight: '500' },
   scrollBody: { paddingHorizontal: 16, paddingTop: 18, paddingBottom: 60 },
   subtle: {
     fontSize: 13,
@@ -398,7 +398,7 @@ const styles = StyleSheet.create({
     borderWidth: StyleSheet.hairlineWidth,
     marginRight: 8,
   },
-  chipText: { fontSize: 13, fontWeight: '600' },
+  chipText: { fontSize: 13, fontWeight: '500' },
   input: {
     marginTop: 18,
     borderWidth: StyleSheet.hairlineWidth,
@@ -418,7 +418,7 @@ const styles = StyleSheet.create({
   },
   askBtnText: {
     fontSize: 14,
-    fontWeight: '700',
+    fontWeight: '500',
     letterSpacing: 0.3,
   },
   answerCard: {
@@ -441,7 +441,7 @@ const styles = StyleSheet.create({
   },
   reflectBtnText: {
     fontSize: 13,
-    fontWeight: '600',
+    fontWeight: '500',
     letterSpacing: 0.2,
   },
   followUpsWrap: {
@@ -449,7 +449,7 @@ const styles = StyleSheet.create({
   },
   followUpsHeader: {
     fontSize: 12,
-    fontWeight: '600',
+    fontWeight: '500',
     textTransform: 'uppercase',
     letterSpacing: 0.6,
     marginBottom: 10,

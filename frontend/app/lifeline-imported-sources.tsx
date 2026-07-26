@@ -366,7 +366,7 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     fontSize: 22,
-    fontWeight: '600',
+    fontWeight: '500',
     letterSpacing: -0.3,
   },
   headerSubtitle: {
@@ -409,7 +409,7 @@ const styles = StyleSheet.create({
   },
   statsTitle: {
     fontSize: 15,
-    fontWeight: '600',
+    fontWeight: '500',
     marginBottom: 12,
   },
   statsGrid: {
@@ -424,7 +424,7 @@ const styles = StyleSheet.create({
   },
   statsValue: {
     fontSize: 24,
-    fontWeight: '700',
+    fontWeight: '500',
     letterSpacing: -0.5,
   },
   statsLabel: {
@@ -436,7 +436,7 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 13,
-    fontWeight: '600',
+    fontWeight: '500',
     textTransform: 'uppercase',
     letterSpacing: 0.5,
     marginBottom: 12,
@@ -478,7 +478,7 @@ const styles = StyleSheet.create({
   },
   statusText: {
     fontSize: 11,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   sourceStats: {
     flexDirection: 'row',
@@ -494,7 +494,7 @@ const styles = StyleSheet.create({
   },
   statValue: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   statLabel: {
     fontSize: 12,
@@ -514,7 +514,7 @@ const styles = StyleSheet.create({
   },
   emptyTitle: {
     fontSize: 22,
-    fontWeight: '600',
+    fontWeight: '500',
     marginBottom: 8,
   },
   emptySubtitle: {
@@ -534,7 +534,7 @@ const styles = StyleSheet.create({
   importButtonText: {
     color: '#FFFFFF',
     fontSize: 15,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   helpSection: {
     flexDirection: 'row',

@@ -78,7 +78,7 @@ const styles = StyleSheet.create({
   },
   loadingText: {
     fontSize: 22,
-    fontWeight: '600',
+    fontWeight: '500',
     color: Colors.text,
     marginTop: 16,
   },
@@ -89,7 +89,7 @@ const styles = StyleSheet.create({
   },
   errorTitle: {
     fontSize: 24,
-    fontWeight: '600',
+    fontWeight: '500',
     color: Colors.text,
     marginTop: 16,
   },
@@ -112,6 +112,6 @@ const styles = StyleSheet.create({
   retryButtonText: {
     color: Colors.surface,
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '500',
   },
 });

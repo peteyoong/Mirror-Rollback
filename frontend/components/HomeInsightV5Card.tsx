@@ -365,7 +365,7 @@ const styles = StyleSheet.create({
   },
   retryText: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   
   // Pattern Label
@@ -380,7 +380,7 @@ const styles = StyleSheet.create({
   },
   patternLabel: {
     fontSize: 14,
-    fontWeight: '700',
+    fontWeight: '500',
     letterSpacing: 0.8,
   },
   
@@ -398,7 +398,7 @@ const styles = StyleSheet.create({
   // Headline - Pattern-based
   headline: {
     fontSize: 24,
-    fontWeight: '600',
+    fontWeight: '500',
     lineHeight: 32,
     marginBottom: 18,
     letterSpacing: 0.1,
@@ -425,7 +425,7 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 14,
-    fontWeight: '700',
+    fontWeight: '500',
     letterSpacing: 0.6,
     marginBottom: 16,
   },
@@ -474,7 +474,7 @@ const styles = StyleSheet.create({
   },
   createsLabel: {
     fontSize: 14,
-    fontWeight: '700',
+    fontWeight: '500',
     letterSpacing: 0.5,
     marginBottom: 14,
   },
@@ -492,7 +492,7 @@ const styles = StyleSheet.create({
   },
   moveLabel: {
     fontSize: 14,
-    fontWeight: '700',
+    fontWeight: '500',
     letterSpacing: 0.6,
     marginBottom: 14,
   },

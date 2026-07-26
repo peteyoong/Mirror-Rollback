@@ -189,7 +189,7 @@ const styles = StyleSheet.create({
   },
   chatTitle: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '500',
     color: Colors.text,
   },
   messagesContainer: {

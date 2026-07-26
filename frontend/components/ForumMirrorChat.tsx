@@ -374,7 +374,7 @@ const styles = StyleSheet.create({
   },
   emptyTitle: {
     fontSize: 20,
-    fontWeight: '600',
+    fontWeight: '500',
     letterSpacing: -0.3,
   },
   emptySub: {

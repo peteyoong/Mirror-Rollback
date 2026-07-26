@@ -258,7 +258,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 24,
-    fontWeight: '600',
+    fontWeight: '500',
     letterSpacing: -0.3,
     marginBottom: 6,
   },
@@ -315,7 +315,7 @@ const styles = StyleSheet.create({
   },
   comingSoonText: {
     fontSize: 10,
-    fontWeight: '600',
+    fontWeight: '500',
     textTransform: 'uppercase',
     letterSpacing: 0.5,
   },
@@ -330,7 +330,7 @@ const styles = StyleSheet.create({
   badgeText: {
     color: '#FFFFFF',
     fontSize: 12,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   cancelButton: {
     marginHorizontal: 16,

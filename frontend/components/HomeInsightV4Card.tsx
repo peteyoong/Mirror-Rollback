@@ -336,7 +336,7 @@ const styles = StyleSheet.create({
   },
   retryText: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   
   // Pattern Label
@@ -349,14 +349,14 @@ const styles = StyleSheet.create({
   },
   patternLabel: {
     fontSize: 14,
-    fontWeight: '700',
+    fontWeight: '500',
     letterSpacing: 0.8,
   },
   
   // Headline
   headline: {
     fontSize: 22,
-    fontWeight: '600',
+    fontWeight: '500',
     lineHeight: 30,
     marginBottom: 20,
   },
@@ -367,7 +367,7 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 14,
-    fontWeight: '700',
+    fontWeight: '500',
     letterSpacing: 0.6,
     marginBottom: 14,
   },
@@ -412,7 +412,7 @@ const styles = StyleSheet.create({
   },
   createsLabel: {
     fontSize: 14,
-    fontWeight: '700',
+    fontWeight: '500',
     letterSpacing: 0.5,
     marginBottom: 6,
   },
@@ -430,7 +430,7 @@ const styles = StyleSheet.create({
   },
   moveLabel: {
     fontSize: 14,
-    fontWeight: '700',
+    fontWeight: '500',
     letterSpacing: 0.6,
     marginBottom: 6,
   },

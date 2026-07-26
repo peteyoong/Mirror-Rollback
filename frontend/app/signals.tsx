@@ -326,7 +326,7 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     fontSize: 22,
-    fontWeight: '600',
+    fontWeight: '500',
     marginBottom: 4,
   },
   patternTitle: {
@@ -374,7 +374,7 @@ const styles = StyleSheet.create({
   },
   diagnosisLabel: {
     fontSize: 10,
-    fontWeight: '600',
+    fontWeight: '500',
     letterSpacing: 0.8,
     marginBottom: 10,
   },
@@ -412,7 +412,7 @@ const styles = StyleSheet.create({
   },
   sectionLabel: {
     fontSize: 10,
-    fontWeight: '600',
+    fontWeight: '500',
     letterSpacing: 0.8,
     marginBottom: 16,
   },
@@ -449,7 +449,7 @@ const styles = StyleSheet.create({
   },
   evidenceSource: {
     fontSize: 10,
-    fontWeight: '600',
+    fontWeight: '500',
     letterSpacing: 0.8,
     marginBottom: 6,
   },

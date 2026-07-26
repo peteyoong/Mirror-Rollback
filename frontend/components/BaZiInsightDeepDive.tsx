@@ -516,12 +516,12 @@ const styles = StyleSheet.create({
   },
   elementBadgeText: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
     letterSpacing: 0.5,
   },
   heroLine1: {
     fontSize: 24,
-    fontWeight: '600',
+    fontWeight: '500',
     lineHeight: 32,
     marginBottom: 14,
     letterSpacing: -0.4,
@@ -544,7 +544,7 @@ const styles = StyleSheet.create({
   },
   patternLabel: {
     fontSize: 14,
-    fontWeight: '700',
+    fontWeight: '500',
     letterSpacing: 1.2,
     marginBottom: 16,
   },
@@ -603,7 +603,7 @@ const styles = StyleSheet.create({
   },
   costHeader: {
     fontSize: 14,
-    fontWeight: '700',
+    fontWeight: '500',
     letterSpacing: 1.2,
     marginBottom: 16,
   },
@@ -615,7 +615,7 @@ const styles = StyleSheet.create({
   },
   costCategory: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
     letterSpacing: 0.5,
     textTransform: 'uppercase',
   },
@@ -639,7 +639,7 @@ const styles = StyleSheet.create({
   },
   shiftLabel: {
     fontSize: 14,
-    fontWeight: '700',
+    fontWeight: '500',
     letterSpacing: 1.2,
     marginBottom: 14,
   },
@@ -725,7 +725,7 @@ const styles = StyleSheet.create({
   },
   elementPillText: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   pillarsBox: {
     marginTop: 8,
@@ -735,7 +735,7 @@ const styles = StyleSheet.create({
   },
   pillarsLabel: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
     letterSpacing: 0.5,
     marginBottom: 16,
     textTransform: 'uppercase',
@@ -774,7 +774,7 @@ const styles = StyleSheet.create({
   },
   ctaText: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '500',
   },
 
   // ==========================================================================

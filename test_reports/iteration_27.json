@@ -1,0 +1,33 @@
+{
+  "summary": "UI/UX retrofit verified end-to-end at mobile viewport 360x700 for user Pete (pete@pulsifi.me). All 11 requested flows PASS. Landing page /welcome renders clean with wordmark, headline, 'Show me' primary CTA and two ghost buttons ('I'm new here' + 'Sign in') fully visible, 48px touch targets, NO PWA banner overlay (confirmed hidden on /welcome, /onboarding). Sign-in flow works: Sign-in link -> 'Welcome back' form -> email -> Enter -> lands on Home (tabs root). Home tab shows serif 'Mirror' header + insight card with serif headline (no clipping). Life tab renders serif 'Life' + role card with 'THE ROLE YOU'RE IN' body content. Reflect tab shows single serif 'Reflect' hero + 'Capture what's real' and 'Ask Mirror' cards (no duplicated native header). Lenses tab shows single 'Your Lenses' serif title, 5 lens cards each with 'View Summary' -> lens detail navigates correctly (e.g. /lenses/astrology loads True Sidereal Astrology detail). Forums page shows serif 'Forums' header, + Create Forum + Join Forum buttons, and 4 forum cards for Pete. Tapping 'Yoong family' opens forum detail (/forums/{id}) with story/talk-to-the-room/map-your-role cards. /forums/mappings?forumId=69dda348de9cb1c83c0780fa&forumName=Yoong%20family renders 'How they map to me' serif header, member cards for Thaddeus/Isaac Yoong (and others) with HD/BaZi/Enne signal rows; tapping a member opens the detail modal ('What happens between you') without layout breakage. /forums/mappings WITHOUT forumId shows a friendly '! Open this screen from one of your forums to see how its members map to you.' message + Retry button (no infinite spinner). Onboarding /onboarding renders 'The Mirror' + 'Create your space' + Gender Male/Female + DD/MM/YYYY date boxes fully visible (no clipping). PWA banner is dark-styled and sits above the tab bar on tab routes with a working X dismiss button.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "/onboarding", "issues": ["Console emits two React warnings 'Unexpected text node: . A text node cannot be a child of a <View>.' when the onboarding screen mounts. Cosmetic (no visual defect) but should be tracked — likely a stray whitespace/string inside a <View> in one of the onboarding subtrees."]}
+    ],
+    "react_native_issues": [
+      {"component": "global (react-native-web deprecation)", "issue": "Console shows 'shadow* style props are deprecated. Use \"boxShadow\".' warnings on welcome/tabs. Non-blocking but should be migrated to boxShadow in styles for RN Web. Reference: various style sheets."},
+      {"component": "global (react-native-web deprecation)", "issue": "Console shows 'props.pointerEvents is deprecated. Use style.pointerEvents' warning after entering the login form. Reference: a component in the welcome/login subtree still passes pointerEvents as a prop instead of via style."}
+    ]
+  },
+  "test_report_links": [],
+  "action_items": [
+    "OPTIONAL / non-blocking: silence the two 'Unexpected text node' warnings on /onboarding by hunting the stray whitespace/string child inside a <View> in the onboarding subtree.",
+    "OPTIONAL / non-blocking: migrate remaining shadow* style props to boxShadow and move pointerEvents prop to style.pointerEvents to align with react-native-web deprecations."
+  ],
+  "critical_code_review_comments": [
+    "welcome.tsx correctly wraps the landing composition in ScrollView with paddingVertical scaling by viewport height — short viewports no longer clip the auth row.",
+    "AddToHomeScreenBanner.tsx correctly early-returns on /welcome, /onboarding, /questionnaire so the banner cannot overlay the auth CTAs; on tab routes it sits at bottom:78 (above the tab bar) instead of covering interactions.",
+    "welcome-sign-in-link has testID + accessibilityLabel + accessibilityRole=button, meeting the interactive-element testID guideline.",
+    "forums/mappings gracefully handles missing forumId with a friendly message + Retry, matching the requested regression fix."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "not tested (per request)", "frontend": "100% (11/11 requested flows verified)"},
+  "seed_data_creation": "None. Used existing test user pete@pulsifi.me (697f0c6abf35c0528ff06954) and existing forum Yoong family (69dda348de9cb1c83c0780fa).",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "All requested UI/UX retrofit acceptance criteria PASS at 360x700 mobile viewport on the deployed preview URL. Login is email-only (GET /api/account/login?email=...) — no password needed. Sign-in link testID is 'welcome-sign-in-link'. For mappings compute, allow ~15-20s after route load for member cards to appear. The only artifacts are three cosmetic RN-Web deprecation warnings and two 'Unexpected text node' warnings on /onboarding — none block user flows.",
+  "rca_of_issue": "N/A — this iteration verified a UI/UX retrofit, not a bug hunt. The original 'can't click Sign in' root cause (PWA banner at zIndex 999 / bottom:70 overlaying the auth row on short viewports) is confirmed fixed: banner is hidden on /welcome (verified via pathname check in AddToHomeScreenBanner.tsx isAuthSurface guard), and the landing composition is now ScrollView-wrapped so nothing clips at 360x700."
+}

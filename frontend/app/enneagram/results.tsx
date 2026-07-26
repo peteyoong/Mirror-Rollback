@@ -748,7 +748,7 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     fontSize: 17,
-    fontWeight: '600',
+    fontWeight: '500',
     color: Colors.text,
   },
   headerSpacer: {
@@ -772,7 +772,7 @@ const styles = StyleSheet.create({
   },
   errorTitle: {
     fontSize: 24,
-    fontWeight: '600',
+    fontWeight: '500',
     color: Colors.text,
     marginTop: 16,
     marginBottom: 14,
@@ -813,12 +813,12 @@ const styles = StyleSheet.create({
   },
   typeNumber: {
     fontSize: 32,
-    fontWeight: '700',
+    fontWeight: '500',
     color: Colors.background,
   },
   typeTitle: {
     fontSize: 24,
-    fontWeight: '600',
+    fontWeight: '500',
     color: Colors.text,
     marginBottom: 4,
     textAlign: 'center',
@@ -913,7 +913,7 @@ const styles = StyleSheet.create({
   },
   whyTitle: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '500',
     color: Colors.text,
     marginBottom: 14,
   },
@@ -934,7 +934,7 @@ const styles = StyleSheet.create({
   },
   candidatesTitle: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '500',
     color: Colors.text,
     marginBottom: 16,
   },
@@ -954,7 +954,7 @@ const styles = StyleSheet.create({
   candidateRank: {
     width: 24,
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '500',
     color: Colors.textTertiary,
   },
   candidateType: {
@@ -964,7 +964,7 @@ const styles = StyleSheet.create({
   },
   candidateProbability: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '500',
     color: Colors.text,
   },
   
@@ -998,7 +998,7 @@ const styles = StyleSheet.create({
   },
   primaryButtonText: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '500',
     color: Colors.background,
   },
   secondaryButton: {
@@ -1011,7 +1011,7 @@ const styles = StyleSheet.create({
   },
   secondaryButtonText: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '500',
     color: Colors.text,
   },
   
@@ -1036,7 +1036,7 @@ const styles = StyleSheet.create({
   },
   modalTitle: {
     fontSize: 22,
-    fontWeight: '600',
+    fontWeight: '500',
     color: Colors.text,
     marginBottom: 16,
   },
@@ -1061,7 +1061,7 @@ const styles = StyleSheet.create({
   },
   modalCancelText: {
     fontSize: 17,
-    fontWeight: '600',
+    fontWeight: '500',
     color: Colors.text,
   },
   modalConfirmButton: {
@@ -1073,7 +1073,7 @@ const styles = StyleSheet.create({
   },
   modalConfirmText: {
     fontSize: 17,
-    fontWeight: '600',
+    fontWeight: '500',
     color: Colors.background,
   },
   
@@ -1116,7 +1116,7 @@ const styles = StyleSheet.create({
   },
   debugSectionTitle: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
     color: Colors.textTertiary,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
@@ -1176,7 +1176,7 @@ const styles = StyleSheet.create({
   },
   testerDebugTitle: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
     color: '#666',
     marginBottom: 14,
     fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',

@@ -276,13 +276,13 @@ const styles = StyleSheet.create({
   },
   headerLabel: {
     fontSize: 11,
-    fontWeight: '600',
+    fontWeight: '500',
     letterSpacing: 1,
     marginBottom: 6,
   },
   diagnosisTitle: {
     fontSize: 22,
-    fontWeight: '600',
+    fontWeight: '500',
     lineHeight: 28,
   },
   
@@ -321,7 +321,7 @@ const styles = StyleSheet.create({
   },
   guidanceLabel: {
     fontSize: 11,
-    fontWeight: '600',
+    fontWeight: '500',
     letterSpacing: 0.5,
     marginBottom: 6,
   },
@@ -369,7 +369,7 @@ const styles = StyleSheet.create({
   },
   signalGroupLabel: {
     fontSize: 11,
-    fontWeight: '600',
+    fontWeight: '500',
     letterSpacing: 0.5,
     marginBottom: 10,
   },

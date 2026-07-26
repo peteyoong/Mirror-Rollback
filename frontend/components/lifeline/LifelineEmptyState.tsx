@@ -73,7 +73,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 22,
-    fontWeight: '600',
+    fontWeight: '500',
     marginBottom: 12,
     textAlign: 'center',
   },
@@ -100,7 +100,7 @@ const styles = StyleSheet.create({
   },
   addButtonText: {
     fontSize: 15,
-    fontWeight: '600',
+    fontWeight: '500',
     color: '#FFFFFF',
   },
 });

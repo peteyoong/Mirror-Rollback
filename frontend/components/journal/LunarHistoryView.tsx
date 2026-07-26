@@ -393,7 +393,7 @@ const styles = StyleSheet.create({
   },
   emptyTitle: {
     fontSize: 22,
-    fontWeight: '600',
+    fontWeight: '500',
     marginBottom: 8,
     textAlign: 'center',
   },
@@ -407,7 +407,7 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     fontSize: 11,
-    fontWeight: '600',
+    fontWeight: '500',
     letterSpacing: 1,
     marginBottom: 4,
   },
@@ -457,7 +457,7 @@ const styles = StyleSheet.create({
   },
   finalReflectionLabel: {
     fontSize: 9,
-    fontWeight: '600',
+    fontWeight: '500',
     letterSpacing: 0.5,
     marginBottom: 4,
   },
@@ -499,7 +499,7 @@ const styles = StyleSheet.create({
   },
   modalTitle: {
     fontSize: 11,
-    fontWeight: '600',
+    fontWeight: '500',
     letterSpacing: 1,
     marginTop: 8,
   },
@@ -510,7 +510,7 @@ const styles = StyleSheet.create({
   },
   modalLabel: {
     fontSize: 10,
-    fontWeight: '600',
+    fontWeight: '500',
     letterSpacing: 1,
     marginBottom: 8,
   },
@@ -536,7 +536,7 @@ const styles = StyleSheet.create({
   },
   modalStatValue: {
     fontSize: 24,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   modalStatLabel: {
     fontSize: 12,
@@ -557,7 +557,7 @@ const styles = StyleSheet.create({
   },
   entryDay: {
     fontSize: 13,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   entryGate: {
     fontSize: 11,

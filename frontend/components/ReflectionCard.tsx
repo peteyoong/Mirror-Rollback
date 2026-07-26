@@ -49,7 +49,7 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 12,
-    fontWeight: '600',
+    fontWeight: '500',
     color: Colors.textTertiary,
     textTransform: 'uppercase',
     letterSpacing: 1,

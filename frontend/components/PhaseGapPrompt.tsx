@@ -76,7 +76,7 @@ const styles = StyleSheet.create({
   },
   cta: {
     fontSize: 13,
-    fontWeight: '600',
+    fontWeight: '500',
     letterSpacing: 0.2,
   },
 });

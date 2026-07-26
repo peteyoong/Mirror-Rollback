@@ -13,6 +13,7 @@ import { useRouter, useFocusEffect } from 'expo-router';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useAppStore } from '../../store';
 import { getUserForums, Forum } from '../../services/api';
+import { fontFamily } from '../../theme/tokens';
 import { Ionicons } from '@expo/vector-icons';
 import {
   listSavedPeople,
@@ -335,8 +336,10 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   headerTitle: {
+    fontFamily: fontFamily.display,
     fontSize: 24,
-    fontWeight: '600',
+    fontWeight: '400',
+    letterSpacing: 0.4,
   },
   content: {
     flex: 1,
@@ -361,7 +364,7 @@ const styles = StyleSheet.create({
   },
   actionButtonText: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   actionButtonSecondary: {
     paddingVertical: 16,
@@ -390,7 +393,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255,255,255,0.04)',
   },
   peopleSetupBody: { flex: 1, gap: 2 },
-  peopleSetupTitle: { fontSize: 15, fontWeight: '600' },
+  peopleSetupTitle: { fontSize: 15, fontWeight: '500' },
   peopleSetupSub: { fontSize: 12, lineHeight: 17 },
 
   // ─────────────────────────────────────────────────────────────
@@ -405,7 +408,7 @@ const styles = StyleSheet.create({
   },
   mappingSectionLabel: {
     fontSize: 11,
-    fontWeight: '600',
+    fontWeight: '500',
     letterSpacing: 1.2,
     textTransform: 'uppercase',
     marginBottom: 4,
@@ -441,7 +444,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
   },
-  profileName: { fontSize: 15, fontWeight: '600', flex: 1 },
+  profileName: { fontSize: 15, fontWeight: '500', flex: 1 },
   profilePrecision: { fontSize: 11, fontWeight: '500', marginLeft: 8 },
   profileType: { fontSize: 12, marginTop: 2 },
   profileLensRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 8 },
@@ -461,7 +464,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 6,
   },
-  profileCardAddText: { fontSize: 14, fontWeight: '600' },
+  profileCardAddText: { fontSize: 14, fontWeight: '500' },
   profileCardAddHint: { fontSize: 12, lineHeight: 17, textAlign: 'center', marginTop: 4 },
 
   // ─────────────────────────────────────────────────────────────
@@ -483,12 +486,12 @@ const styles = StyleSheet.create({
   },
   imapsLabel: {
     fontSize: 11,
-    fontWeight: '600',
+    fontWeight: '500',
     letterSpacing: 1.2,
     textTransform: 'uppercase',
   },
-  imapsCount: { fontSize: 12, fontWeight: '600' },
-  imapsTitle: { fontSize: 16, fontWeight: '600' },
+  imapsCount: { fontSize: 12, fontWeight: '500' },
+  imapsTitle: { fontSize: 16, fontWeight: '500' },
   imapsHint: { fontSize: 13, lineHeight: 18 },
   imapsPreviewRow: {
     flexDirection: 'row',
@@ -506,13 +509,15 @@ const styles = StyleSheet.create({
   },
   imapsPreviewName: { fontSize: 12, fontWeight: '500' },
   imapsMore: { fontSize: 11, fontWeight: '500', marginLeft: 4 },
-  imapsCta: { fontSize: 13, fontWeight: '600', marginTop: 4 },
+  imapsCta: { fontSize: 13, fontWeight: '500', marginTop: 4 },
   section: {
     marginBottom: 24,
   },
   sectionTitle: {
-    fontSize: 22,
-    fontWeight: '600',
+    fontFamily: fontFamily.display,
+    fontSize: 21,
+    fontWeight: '400',
+    letterSpacing: 0.3,
     marginBottom: 16,
   },
   emptyState: {
@@ -556,7 +561,7 @@ const styles = StyleSheet.create({
   },
   forumName: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '500',
     flex: 1,
   },
   forumMembers: {

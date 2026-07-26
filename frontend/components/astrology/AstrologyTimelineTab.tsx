@@ -1054,7 +1054,7 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     fontSize: 24,
-    fontWeight: '600',
+    fontWeight: '500',
     letterSpacing: 0.3,
     marginBottom: 4,
   },
@@ -1084,7 +1084,7 @@ const styles = StyleSheet.create({
   },
   sectionLabel: {
     fontSize: 10,
-    fontWeight: '700',
+    fontWeight: '500',
     letterSpacing: 1,
     marginBottom: 8,
   },
@@ -1104,7 +1104,7 @@ const styles = StyleSheet.create({
   },
   yearThemeLabel: {
     fontSize: 9,
-    fontWeight: '700',
+    fontWeight: '500',
     letterSpacing: 1,
     marginBottom: 10,
   },
@@ -1155,7 +1155,7 @@ const styles = StyleSheet.create({
   },
   phaseName: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
     marginTop: 1,
   },
   phaseHumanMeaning: {
@@ -1181,7 +1181,7 @@ const styles = StyleSheet.create({
   },
   phaseSectionTitle: {
     fontSize: 11,
-    fontWeight: '600',
+    fontWeight: '500',
     marginBottom: 5,
   },
   phaseBullet: {
@@ -1209,7 +1209,7 @@ const styles = StyleSheet.create({
   },
   turningPointDate: {
     fontSize: 13,
-    fontWeight: '700',
+    fontWeight: '500',
   },
   turningPointArea: {
     fontSize: 11,
@@ -1220,7 +1220,7 @@ const styles = StyleSheet.create({
   },
   turningPointSectionTitle: {
     fontSize: 10,
-    fontWeight: '600',
+    fontWeight: '500',
     marginBottom: 3,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
@@ -1252,7 +1252,7 @@ const styles = StyleSheet.create({
   },
   decisionWindowContext: {
     fontSize: 10,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   decisionWindowPrompt: {
     fontSize: 14,
@@ -1270,7 +1270,7 @@ const styles = StyleSheet.create({
   },
   decisionOutcomeLabel: {
     fontSize: 11,
-    fontWeight: '600',
+    fontWeight: '500',
     marginBottom: 3,
   },
   decisionOutcomeText: {
@@ -1302,7 +1302,7 @@ const styles = StyleSheet.create({
   },
   evidenceSectionTitle: {
     fontSize: 10,
-    fontWeight: '700',
+    fontWeight: '500',
     letterSpacing: 0.8,
     marginBottom: 4,
   },
@@ -1366,7 +1366,7 @@ const styles = StyleSheet.create({
   },
   timelineIdentityEchoLabel: {
     fontSize: 10,
-    fontWeight: '600',
+    fontWeight: '500',
     letterSpacing: 0.5,
     textTransform: 'uppercase',
     marginBottom: 4,

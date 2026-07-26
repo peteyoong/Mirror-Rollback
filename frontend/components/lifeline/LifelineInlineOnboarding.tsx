@@ -175,7 +175,7 @@ const styles = StyleSheet.create({
   },
   introTitle: {
     fontSize: 17,
-    fontWeight: '600',
+    fontWeight: '500',
     marginBottom: 10,
     textAlign: 'center',
   },
@@ -201,7 +201,7 @@ const styles = StyleSheet.create({
   },
   teaserTitle: {
     fontSize: 15,
-    fontWeight: '600',
+    fontWeight: '500',
     textAlign: 'center',
     marginBottom: 16,
   },
@@ -227,7 +227,7 @@ const styles = StyleSheet.create({
   },
   arcNodeText: {
     fontSize: 11,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   arcConnector: {
     width: 14,
@@ -247,7 +247,7 @@ const styles = StyleSheet.create({
   primaryButtonText: {
     color: '#FFFFFF',
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   secondaryButton: {
     paddingVertical: 14,

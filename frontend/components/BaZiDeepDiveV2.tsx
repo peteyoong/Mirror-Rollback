@@ -642,13 +642,13 @@ const styles = StyleSheet.create({
   },
   coreBadgeText: {
     fontSize: 7,
-    fontWeight: '700',
+    fontWeight: '500',
     color: '#000',
     letterSpacing: 0.2,
   },
   chartPillarLabel: {
     fontSize: 7,
-    fontWeight: '600',
+    fontWeight: '500',
     letterSpacing: 0.3,
     marginBottom: 2,
     textTransform: 'uppercase',
@@ -659,7 +659,7 @@ const styles = StyleSheet.create({
   },
   chartPillarAnimal: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
     marginBottom: 1,
   },
   chartPillarStem: {
@@ -700,7 +700,7 @@ const styles = StyleSheet.create({
   },
   sectionLabel: {
     fontSize: 14,
-    fontWeight: '700',
+    fontWeight: '500',
     letterSpacing: 1,
     marginBottom: 14,
   },
@@ -716,7 +716,7 @@ const styles = StyleSheet.create({
   },
   corePatternText: {
     fontSize: 24,
-    fontWeight: '600',
+    fontWeight: '500',
     lineHeight: 32,
   },
   
@@ -765,7 +765,7 @@ const styles = StyleSheet.create({
   },
   dayMasterLabel: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   dayMasterStrength: {
     fontSize: 14,
@@ -792,12 +792,12 @@ const styles = StyleSheet.create({
   },
   pillarDomain: {
     fontSize: 14,
-    fontWeight: '700',
+    fontWeight: '500',
     letterSpacing: 0.5,
   },
   pillarAnimal: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '500',
     marginBottom: 4,
   },
   pillarBehavioral: {
@@ -820,7 +820,7 @@ const styles = StyleSheet.create({
   },
   synthesisLabel: {
     fontSize: 9,
-    fontWeight: '700',
+    fontWeight: '500',
     letterSpacing: 0.8,
     marginBottom: 14,
   },
@@ -868,7 +868,7 @@ const styles = StyleSheet.create({
   },
   shiftText: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '500',
     lineHeight: 32,
   },
   

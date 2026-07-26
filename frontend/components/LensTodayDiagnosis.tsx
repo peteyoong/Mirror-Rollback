@@ -353,7 +353,7 @@ const styles = StyleSheet.create({
   },
   diagnosisTitle: {
     fontSize: 22,
-    fontWeight: '600',
+    fontWeight: '500',
     marginBottom: 16,
     lineHeight: 28,
   },
@@ -383,7 +383,7 @@ const styles = StyleSheet.create({
   },
   misstepLabel: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
     letterSpacing: 0.5,
     marginBottom: 4,
   },
@@ -398,7 +398,7 @@ const styles = StyleSheet.create({
   },
   betterMoveLabel: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
     letterSpacing: 0.5,
     marginBottom: 4,
   },
@@ -446,7 +446,7 @@ const styles = StyleSheet.create({
   },
   signalGroupLabel: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
     letterSpacing: 0.5,
     marginBottom: 14,
   },

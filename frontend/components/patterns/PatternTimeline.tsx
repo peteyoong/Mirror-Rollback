@@ -528,7 +528,7 @@ const styles = StyleSheet.create({
   },
   sequenceStep: {
     fontSize: 15,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   sequenceArrow: {
     fontSize: 14,
@@ -577,12 +577,12 @@ const styles = StyleSheet.create({
   nodeCheck: {
     fontSize: 8,
     color: '#FFFFFF',
-    fontWeight: '700',
+    fontWeight: '500',
   },
   nodeYear: {
     marginTop: 8,
     fontSize: 12,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   tapHint: {
     textAlign: 'center',
@@ -616,7 +616,7 @@ const styles = StyleSheet.create({
   },
   patternContextLabel: {
     fontSize: 10,
-    fontWeight: '700',
+    fontWeight: '500',
     letterSpacing: 0.5,
     marginBottom: 6,
   },
@@ -627,20 +627,20 @@ const styles = StyleSheet.create({
   },
   patternStep: {
     fontSize: 13,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   patternArrow: {
     fontSize: 12,
   },
   modalYear: {
     fontSize: 36,
-    fontWeight: '700',
+    fontWeight: '500',
     textAlign: 'center',
     marginBottom: 4,
   },
   modalTitle: {
     fontSize: 22,
-    fontWeight: '600',
+    fontWeight: '500',
     textAlign: 'center',
     marginBottom: 12,
     lineHeight: 24,
@@ -662,7 +662,7 @@ const styles = StyleSheet.create({
   },
   categoryText: {
     fontSize: 13,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   descriptionText: {
     fontSize: 14,
@@ -677,7 +677,7 @@ const styles = StyleSheet.create({
   },
   sectionLabel: {
     fontSize: 11,
-    fontWeight: '700',
+    fontWeight: '500',
     letterSpacing: 0.5,
     marginBottom: 12,
   },
@@ -708,7 +708,7 @@ const styles = StyleSheet.create({
   saveButtonText: {
     color: '#FFFFFF',
     fontSize: 15,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   disabledButton: {
     opacity: 0.6,
@@ -755,14 +755,14 @@ const styles = StyleSheet.create({
   },
   momentYear: {
     fontSize: 13,
-    fontWeight: '700',
+    fontWeight: '500',
   },
   momentInfo: {
     flex: 1,
   },
   momentTitle: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
     marginBottom: 2,
   },
   momentMeta: {
@@ -788,7 +788,7 @@ const styles = StyleSheet.create({
   },
   decisionStatusText: {
     fontSize: 11,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   noDecisionText: {
     fontSize: 12,

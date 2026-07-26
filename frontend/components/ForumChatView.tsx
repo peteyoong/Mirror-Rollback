@@ -539,7 +539,7 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     fontSize: 17,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   modeSelector: {
     flexDirection: 'row',
@@ -660,7 +660,7 @@ const styles = StyleSheet.create({
   },
   suggestedTitle: {
     fontSize: 22,
-    fontWeight: '600',
+    fontWeight: '500',
     marginBottom: 14,
   },
   suggestedSubtitle: {
@@ -698,7 +698,7 @@ const styles = StyleSheet.create({
   },
   mirrorLabel: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
     textTransform: 'uppercase',
     letterSpacing: 0.5,
   },

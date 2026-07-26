@@ -276,7 +276,7 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 10,
     letterSpacing: 1.2,
-    fontWeight: '600',
+    fontWeight: '500',
     textTransform: 'uppercase',
   },
   line: {

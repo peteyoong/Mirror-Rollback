@@ -371,7 +371,7 @@ export default function BaziLensView({ userId, onOpenChat }: Props) {
         {/* Day Master Description - Mirror Language */}
         <View style={[styles.summaryCard, { backgroundColor: theme.background, borderColor: theme.border }]}>
           <Text style={[styles.summaryText, { color: theme.textSecondary }]}>
-            <Text style={{ fontWeight: '600', color: theme.text }}>{day_master.stem_pinyin} {day_master.element}</Text>{' '}
+            <Text style={{ fontWeight: '500', color: theme.text }}>{day_master.stem_pinyin} {day_master.element}</Text>{' '}
             {dmDescription}
           </Text>
         </View>
@@ -381,14 +381,14 @@ export default function BaziLensView({ userId, onOpenChat }: Props) {
           <Text style={[styles.summaryLabel, { color: theme.textTertiary }]}>ELEMENT BALANCE</Text>
           <Text style={[styles.summaryText, { color: theme.textSecondary, marginTop: 6 }]}>
             Your chart leans toward{' '}
-            <Text style={{ fontWeight: '600', color: ELEMENT_COLORS[element_analysis.dominant_element] }}>
+            <Text style={{ fontWeight: '500', color: ELEMENT_COLORS[element_analysis.dominant_element] }}>
               {element_analysis.dominant_element}
             </Text>
             {element_analysis.supporting_elements.length > 1 && element_analysis.supporting_elements[0] !== element_analysis.dominant_element && (
-              <Text> and <Text style={{ fontWeight: '600' }}>{element_analysis.supporting_elements[0]}</Text></Text>
+              <Text> and <Text style={{ fontWeight: '500' }}>{element_analysis.supporting_elements[0]}</Text></Text>
             )}
             , with less{' '}
-            <Text style={{ fontWeight: '600', color: ELEMENT_COLORS[element_analysis.weak_element] }}>
+            <Text style={{ fontWeight: '500', color: ELEMENT_COLORS[element_analysis.weak_element] }}>
               {element_analysis.weak_element}
             </Text>.
           </Text>
@@ -489,7 +489,7 @@ export default function BaziLensView({ userId, onOpenChat }: Props) {
                   <Text style={[
                     styles.elementName,
                     { color: isDominant ? ELEMENT_COLORS[element] : theme.text },
-                    isDominant && { fontWeight: '600' },
+                    isDominant && { fontWeight: '500' },
                   ]}>
                     {element}
                   </Text>
@@ -529,11 +529,11 @@ export default function BaziLensView({ userId, onOpenChat }: Props) {
         <View style={[styles.elementSummary, { backgroundColor: theme.surface, borderColor: theme.border }]}>
           <Text style={[styles.elementSummaryText, { color: theme.textSecondary }]}>
             Your chart currently leans more toward{' '}
-            <Text style={{ fontWeight: '600', color: ELEMENT_COLORS[dominant_element] }}>{dominant_element}</Text>
+            <Text style={{ fontWeight: '500', color: ELEMENT_COLORS[dominant_element] }}>{dominant_element}</Text>
             {data.element_analysis.supporting_elements.length > 1 && (
-              <Text> and <Text style={{ fontWeight: '600' }}>{data.element_analysis.supporting_elements[0]}</Text></Text>
+              <Text> and <Text style={{ fontWeight: '500' }}>{data.element_analysis.supporting_elements[0]}</Text></Text>
             )}
-            , with less <Text style={{ fontWeight: '600', color: ELEMENT_COLORS[weak_element] }}>{weak_element}</Text>.
+            , with less <Text style={{ fontWeight: '500', color: ELEMENT_COLORS[weak_element] }}>{weak_element}</Text>.
           </Text>
         </View>
       </View>
@@ -795,7 +795,7 @@ const styles = StyleSheet.create({
   errorTitle: {
     marginTop: 16,
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   errorText: {
     marginTop: 8,
@@ -818,7 +818,7 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     fontSize: 28,
-    fontWeight: '700',
+    fontWeight: '500',
     letterSpacing: -0.5,
   },
   headerSubtitle: {
@@ -843,7 +843,7 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 17,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   sectionContent: {
     paddingVertical: 12,
@@ -860,7 +860,7 @@ const styles = StyleSheet.create({
   },
   dayMasterLabel: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
     letterSpacing: 0.5,
     marginBottom: 14,
   },
@@ -878,7 +878,7 @@ const styles = StyleSheet.create({
   },
   dayMasterPinyin: {
     fontSize: 22,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   dayMasterPolarity: {
     fontSize: 16,
@@ -901,7 +901,7 @@ const styles = StyleSheet.create({
   },
   summaryLabel: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
     letterSpacing: 0.5,
   },
   summaryText: {
@@ -926,7 +926,7 @@ const styles = StyleSheet.create({
   },
   balanceLabel: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
     letterSpacing: 0.5,
     marginBottom: 4,
   },
@@ -952,7 +952,7 @@ const styles = StyleSheet.create({
   },
   pillarLabel: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
     letterSpacing: 0.5,
     marginBottom: 14,
   },
@@ -1014,7 +1014,7 @@ const styles = StyleSheet.create({
   },
   elementTagText: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   elementBarContainer: {
     flexDirection: 'row',
@@ -1059,13 +1059,13 @@ const styles = StyleSheet.create({
   },
   tenGodPillar: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
     letterSpacing: 0.5,
     marginBottom: 4,
   },
   tenGodLabel: {
     fontSize: 17,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   tenGodMeaning: {
     fontSize: 14,
@@ -1089,7 +1089,7 @@ const styles = StyleSheet.create({
   },
   reflectionLabel: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
     letterSpacing: 0.5,
     marginBottom: 14,
   },
@@ -1103,7 +1103,7 @@ const styles = StyleSheet.create({
   },
   questionLabel: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
     letterSpacing: 0.5,
     marginBottom: 14,
   },

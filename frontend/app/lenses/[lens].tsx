@@ -933,7 +933,7 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     fontSize: 17,
-    fontWeight: '600',
+    fontWeight: '500',
     color: Colors.text,
   },
   headerSpacer: {
@@ -968,7 +968,7 @@ const styles = StyleSheet.create({
   },
   tabTextActive: {
     color: Colors.text,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   scrollView: {
     flex: 1,
@@ -979,7 +979,7 @@ const styles = StyleSheet.create({
   },
   modeLabel: {
     fontSize: 12,
-    fontWeight: '600',
+    fontWeight: '500',
     color: Colors.textSecondary,
     letterSpacing: 1,
     marginBottom: 12,
@@ -1012,7 +1012,7 @@ const styles = StyleSheet.create({
   },
   mirrorTitle: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '500',
     color: Colors.text,
   },
   mirrorBody: {
@@ -1031,7 +1031,7 @@ const styles = StyleSheet.create({
   },
   reflectionLabel: {
     fontSize: 11,
-    fontWeight: '600',
+    fontWeight: '500',
     color: Colors.textSecondary,
     letterSpacing: 1.5,
     textAlign: 'center',
@@ -1066,7 +1066,7 @@ const styles = StyleSheet.create({
   },
   profileTitle: {
     fontSize: 12,
-    fontWeight: '600',
+    fontWeight: '500',
     color: Colors.textSecondary,
     letterSpacing: 1,
     textAlign: 'center',
@@ -1087,7 +1087,7 @@ const styles = StyleSheet.create({
   },
   profileValue: {
     fontSize: 22,
-    fontWeight: '700',
+    fontWeight: '500',
     color: Colors.text,
     marginBottom: 2,
   },
@@ -1101,7 +1101,7 @@ const styles = StyleSheet.create({
   },
   computedTitle: {
     fontSize: 12,
-    fontWeight: '600',
+    fontWeight: '500',
     color: Colors.text,
     letterSpacing: 0.5,
     marginBottom: 12,
@@ -1117,7 +1117,7 @@ const styles = StyleSheet.create({
   },
   computedValue: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
     color: Colors.text,
   },
   sourceText: {
@@ -1170,7 +1170,7 @@ const styles = StyleSheet.create({
   },
   personalizedMirrorTitle: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '500',
     color: Colors.text,
     letterSpacing: 0.3,
   },
@@ -1187,7 +1187,7 @@ const styles = StyleSheet.create({
   },
   mirrorBlockLabel: {
     fontSize: 11,
-    fontWeight: '600',
+    fontWeight: '500',
     color: Colors.accent,
     letterSpacing: 0.8,
     textTransform: 'uppercase',
@@ -1233,7 +1233,7 @@ const styles = StyleSheet.create({
   },
   askLensButtonText: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
     color: Colors.accent,
   },
   // Modal container

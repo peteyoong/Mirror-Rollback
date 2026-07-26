@@ -924,19 +924,19 @@ export default function PeopleWizardScreen() {
               <View style={[styles.diagBanner, { borderColor: theme.border, backgroundColor: theme.surface }]}>
                 <Text style={[styles.diagLabel, { color: theme.textTertiary }]}>Build / API diagnostic</Text>
                 <Text style={[styles.diagLine, { color: theme.text }]} numberOfLines={1}>
-                  build: <Text style={{ fontWeight: '700' }}>{BUILD_ID}</Text>
+                  build: <Text style={{ fontWeight: '500' }}>{BUILD_ID}</Text>
                 </Text>
                 <Text style={[styles.diagLine, { color: theme.text }]} numberOfLines={1}>
-                  api base: <Text style={{ fontWeight: '600' }}>{resolvedApiBase || '(relative)'}</Text>
+                  api base: <Text style={{ fontWeight: '500' }}>{resolvedApiBase || '(relative)'}</Text>
                 </Text>
                 <Text style={[styles.diagLine, { color: theme.text }]} numberOfLines={1}>
-                  save url: <Text style={{ fontWeight: '600' }}>{savePostUrl}</Text>
+                  save url: <Text style={{ fontWeight: '500' }}>{savePostUrl}</Text>
                 </Text>
                 <Text style={[styles.diagLine, { color: theme.text }]} numberOfLines={1}>
                   method: POST
                 </Text>
                 <Text style={[styles.diagLine, { color: theme.text }]} numberOfLines={1}>
-                  host: <Text style={{ fontWeight: '600' }}>{currentHostname}</Text>
+                  host: <Text style={{ fontWeight: '500' }}>{currentHostname}</Text>
                 </Text>
               </View>
             </View>
@@ -1077,7 +1077,7 @@ const styles = StyleSheet.create({
   // Ionicons font on first paint, leaving a "tofu box". A simple
   // unicode chevron renders identically across all WebKit versions.
   backGlyph: { fontSize: 28, lineHeight: 30, fontWeight: '300' },
-  headerTitle: { fontSize: 18, fontWeight: '600' },
+  headerTitle: { fontSize: 18, fontWeight: '500' },
   progressRow: {
     flexDirection: 'row', justifyContent: 'center', alignItems: 'center',
     gap: 6, paddingHorizontal: 20, paddingTop: 4,
@@ -1086,7 +1086,7 @@ const styles = StyleSheet.create({
   stepLabel: { fontSize: 12, textAlign: 'center', marginTop: 6, marginBottom: 4 },
   scrollContent: { paddingHorizontal: 20, paddingBottom: 24, paddingTop: 16 },
   stepBlock: { gap: 8 },
-  stepTitle: { fontSize: 22, fontWeight: '600' },
+  stepTitle: { fontSize: 22, fontWeight: '500' },
   stepHint:  { fontSize: 13, lineHeight: 19, marginBottom: 12 },
   fieldLabel: { fontSize: 13, fontWeight: '500' },
   input: {
@@ -1122,19 +1122,19 @@ const styles = StyleSheet.create({
     flex: 1, paddingVertical: 12, borderRadius: 10, borderWidth: 1,
     alignItems: 'center', minHeight: 48, justifyContent: 'center',
   },
-  amPmText: { fontSize: 14, fontWeight: '600' },
+  amPmText: { fontSize: 14, fontWeight: '500' },
   reviewRow: {
     flexDirection: 'row', alignItems: 'center', gap: 12,
     paddingVertical: 14, borderBottomWidth: 1,
   },
   reviewLabel: { fontSize: 12, marginBottom: 2 },
   reviewValue: { fontSize: 15, fontWeight: '500' },
-  reviewEdit:  { fontSize: 14, fontWeight: '600' },
+  reviewEdit:  { fontSize: 14, fontWeight: '500' },
   precisionPanel: {
     marginTop: 24, padding: 16, borderRadius: 12, borderWidth: 1,
   },
   precisionLabel: { fontSize: 12, marginBottom: 4 },
-  precisionValue: { fontSize: 16, fontWeight: '600' },
+  precisionValue: { fontSize: 16, fontWeight: '500' },
   precisionFootnote: { fontSize: 12, marginTop: 6 },
 
   // ---------- Location autocomplete (Phase 1 P0 — May 2026) ----------
@@ -1148,7 +1148,7 @@ const styles = StyleSheet.create({
     borderRadius: 999,
     marginTop: 10,
   },
-  verifiedPillText: { fontSize: 12, fontWeight: '600' },
+  verifiedPillText: { fontSize: 12, fontWeight: '500' },
   unverifiedPill: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -1189,7 +1189,7 @@ const styles = StyleSheet.create({
   },
   diagLabel: {
     fontSize: 10,
-    fontWeight: '700',
+    fontWeight: '500',
     letterSpacing: 1.4,
     textTransform: 'uppercase',
     marginBottom: 6,
@@ -1211,7 +1211,7 @@ const styles = StyleSheet.create({
     flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
     gap: 6, minHeight: 48, borderRadius: 12, paddingHorizontal: 16,
   },
-  primaryBtnText: { fontSize: 16, fontWeight: '600' },
+  primaryBtnText: { fontSize: 16, fontWeight: '500' },
   secondaryBtn: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
     gap: 6, minHeight: 48, borderRadius: 12, borderWidth: 1,

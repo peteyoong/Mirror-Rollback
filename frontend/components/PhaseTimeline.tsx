@@ -273,7 +273,7 @@ const styles = StyleSheet.create({
   },
   nowPillText: {
     fontSize: 10,
-    fontWeight: '600',
+    fontWeight: '500',
     letterSpacing: 0.4,
   },
   label: {

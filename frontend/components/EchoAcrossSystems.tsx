@@ -195,7 +195,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
     letterSpacing: 0.2,
   },
   subtitle: {
@@ -209,7 +209,7 @@ const styles = StyleSheet.create({
   },
   atomName: {
     fontSize: 10,
-    fontWeight: '700',
+    fontWeight: '500',
     letterSpacing: 1.1,
     textTransform: 'uppercase',
     marginBottom: 6,
@@ -253,7 +253,7 @@ const styles = StyleSheet.create({
   },
   signalLens: {
     fontSize: 10,
-    fontWeight: '700',
+    fontWeight: '500',
     letterSpacing: 0.8,
     marginBottom: 2,
   },

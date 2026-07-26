@@ -145,7 +145,7 @@ const errorStyles = StyleSheet.create({
   },
   title: {
     fontSize: 24,
-    fontWeight: '600',
+    fontWeight: '500',
     color: LightTheme.text,
     marginBottom: 8,
   },
@@ -187,7 +187,7 @@ const errorStyles = StyleSheet.create({
   },
   reloadButtonText: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '500',
     color: LightTheme.background,
   },
   hint: {

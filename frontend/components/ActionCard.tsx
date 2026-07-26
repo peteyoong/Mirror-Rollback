@@ -226,13 +226,13 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: 10,
-    fontWeight: '600',
+    fontWeight: '500',
     letterSpacing: 0.8,
     marginBottom: 10,
   },
   action: {
     fontSize: 17,
-    fontWeight: '600',
+    fontWeight: '500',
     lineHeight: 24,
     marginBottom: 8,
   },
@@ -251,7 +251,7 @@ const styles = StyleSheet.create({
   },
   timeframeText: {
     fontSize: 11,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   ctaButton: {
     flexDirection: 'row',
@@ -264,7 +264,7 @@ const styles = StyleSheet.create({
   },
   ctaText: {
     fontSize: 15,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   ctaArrow: {
     fontSize: 16,

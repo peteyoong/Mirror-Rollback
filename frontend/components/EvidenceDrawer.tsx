@@ -344,7 +344,7 @@ const styles = StyleSheet.create({
     fontSize: 10,
     letterSpacing: 1.2,
     textTransform: 'uppercase',
-    fontWeight: '600',
+    fontWeight: '500',
   },
   sectionLine: {
     fontSize: 13.5,

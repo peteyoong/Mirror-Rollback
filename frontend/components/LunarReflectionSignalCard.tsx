@@ -355,7 +355,7 @@ const styles = StyleSheet.create({
   },
   cardTitle: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
     textTransform: 'uppercase',
     letterSpacing: 1,
   },
@@ -375,7 +375,7 @@ const styles = StyleSheet.create({
   },
   phaseBadgeText: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   // Task 50: Gate Section Styles
   gateSection: {
@@ -392,12 +392,12 @@ const styles = StyleSheet.create({
   },
   gateNumber: {
     fontSize: 16,
-    fontWeight: '700',
+    fontWeight: '500',
     letterSpacing: 0.5,
   },
   gateTitle: {
     fontSize: 22,
-    fontWeight: '600',
+    fontWeight: '500',
     flex: 1,
   },
   gateTheme: {
@@ -463,7 +463,7 @@ const styles = StyleSheet.create({
   },
   questionLabel: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
     letterSpacing: 1,
     marginBottom: 6,
   },
@@ -486,7 +486,7 @@ const styles = StyleSheet.create({
   },
   timingValue: {
     fontSize: 22,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   timingLabel: {
     fontSize: 14,

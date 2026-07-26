@@ -168,7 +168,7 @@ export default function EnneagramWheel({
         strokeWidth: 2.5,
         size: coreNodeSize,
         textColor: theme.isDark ? '#0B0B0C' : '#FFFFFF',
-        fontWeight: '700' as const,
+        fontWeight: '500' as const,
         opacity: 1,
         labelColor: colors.core,
       };
@@ -180,7 +180,7 @@ export default function EnneagramWheel({
         strokeWidth: 2,
         size: nodeSize + 2,
         textColor: colors.core,
-        fontWeight: '600' as const,
+        fontWeight: '500' as const,
         opacity: 1,
         labelColor: colors.core,
       };
@@ -192,7 +192,7 @@ export default function EnneagramWheel({
         strokeWidth: 2,
         size: nodeSize,
         textColor: colors.growth,
-        fontWeight: '600' as const,
+        fontWeight: '500' as const,
         opacity: 1,
         labelColor: colors.growth,
       };
@@ -204,7 +204,7 @@ export default function EnneagramWheel({
         strokeWidth: 2,
         size: nodeSize,
         textColor: colors.stress,
-        fontWeight: '600' as const,
+        fontWeight: '500' as const,
         opacity: 1,
         labelColor: colors.stress,
       };
@@ -518,6 +518,6 @@ const styles = StyleSheet.create({
   },
   resultText: {
     fontSize: 15,
-    fontWeight: '600',
+    fontWeight: '500',
   },
 });

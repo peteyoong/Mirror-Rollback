@@ -903,7 +903,7 @@ const styles = StyleSheet.create({
   },
   synthLabel: {
     fontSize: 11,
-    fontWeight: '700',
+    fontWeight: '500',
     letterSpacing: 1,
     textTransform: 'uppercase',
     marginBottom: 8,
@@ -928,7 +928,7 @@ const styles = StyleSheet.create({
   },
   evidenceHeaderLabel: {
     fontSize: 11,
-    fontWeight: '700',
+    fontWeight: '500',
     letterSpacing: 1,
     textTransform: 'uppercase',
   },
@@ -957,7 +957,7 @@ const styles = StyleSheet.create({
   },
   evidenceTitle: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
     lineHeight: 20,
   },
   evidenceExplanation: {
@@ -988,7 +988,7 @@ const styles = StyleSheet.create({
   },
   reflectBtnText: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
     letterSpacing: 0.3,
   },
   // Ask About My Life — primary CTA pill below the role card
@@ -1001,7 +1001,7 @@ const styles = StyleSheet.create({
   },
   askPillText: {
     fontSize: 13,
-    fontWeight: '700',
+    fontWeight: '500',
     letterSpacing: 0.3,
   },
   // life-tab-master-voice-v1 — secondary pill: opens the deep-reflection
@@ -1017,7 +1017,7 @@ const styles = StyleSheet.create({
   },
   deepPillText: {
     fontSize: 12.5,
-    fontWeight: '600',
+    fontWeight: '500',
     letterSpacing: 0.3,
   },
   // Today toggle — subordinate bar above the synthesis stack
@@ -1044,7 +1044,7 @@ const styles = StyleSheet.create({
   },
   todayIntensity: {
     fontSize: 10,
-    fontWeight: '700',
+    fontWeight: '500',
     letterSpacing: 1,
   },
   // Kept so legacy references compile if referenced elsewhere
@@ -1054,7 +1054,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 20,
-    fontWeight: '700',
+    fontWeight: '500',
     color: Colors.text,
   },
   contextDescription: {
@@ -1080,7 +1080,7 @@ const styles = StyleSheet.create({
   },
   sectionLabel: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
     color: Colors.text,
   },
   sectionContent: {

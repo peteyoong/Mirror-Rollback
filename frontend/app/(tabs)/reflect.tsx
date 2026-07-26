@@ -20,6 +20,7 @@ import { StatusBar } from 'expo-status-bar';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useTheme } from '../../contexts/ThemeContext';
 import { Colors } from '../../constants/colors';
+import { fontFamily } from '../../theme/tokens';
 import { useAppStore, storage } from '../../store';
 import JournalEntryItem from '../../components/JournalEntryItem';
 import MirrorReflectionModal from '../../components/MirrorReflectionModal';
@@ -2460,9 +2461,10 @@ const styles = StyleSheet.create({
     marginBottom: 56,
   },
   entryTitle: {
-    fontSize: 34,
-    fontWeight: '300',
-    letterSpacing: -0.6,
+    fontFamily: fontFamily.display,
+    fontSize: 32,
+    fontWeight: '400',
+    letterSpacing: 0.3,
     marginBottom: 12,
   },
   entrySubtitle: {
@@ -2565,7 +2567,7 @@ const styles = StyleSheet.create({
   },
   threadLabel: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
     textTransform: 'uppercase',
     letterSpacing: 0.5,
   },
@@ -2664,7 +2666,7 @@ const styles = StyleSheet.create({
   },
   dominantTruthPromptLabel: {
     fontSize: 9,
-    fontWeight: '700',
+    fontWeight: '500',
     letterSpacing: 0.6,
     color: Colors.accent,
     marginBottom: 3, // Reduced from 8
@@ -2677,7 +2679,7 @@ const styles = StyleSheet.create({
   },
   dominantTruthPromptCTA: {
     fontSize: 14, // Reduced from 13
-    fontWeight: '600',
+    fontWeight: '500',
     marginLeft: 10,
   },
   centered: {
@@ -2714,14 +2716,16 @@ const styles = StyleSheet.create({
   },
   modeButtonTextActive: {
     color: Colors.accent,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   header: {
     marginBottom: 24,
   },
   title: {
+    fontFamily: fontFamily.display,
     fontSize: 28,
-    fontWeight: '600',
+    fontWeight: '400',
+    letterSpacing: 0.3,
     color: Colors.text,
     marginBottom: 14,
   },
@@ -2810,7 +2814,7 @@ const styles = StyleSheet.create({
   },
   journalSaveChipText: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   inputActions: {
     flexDirection: 'column',
@@ -2853,7 +2857,7 @@ const styles = StyleSheet.create({
   },
   reflectCurrentText: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '500',
     color: Colors.accent,
   },
   reflectTextDisabled: {
@@ -2880,7 +2884,7 @@ const styles = StyleSheet.create({
   },
   capturedFeedbackText: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   listContent: {
     paddingBottom: 120, // Extra padding for PWA banner overlay
@@ -2926,7 +2930,7 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     fontSize: 22,
-    fontWeight: '600',
+    fontWeight: '500',
     color: Colors.textSecondary,
     marginTop: 16,
   },
@@ -2949,7 +2953,7 @@ const styles = StyleSheet.create({
   },
   timelineTitle: {
     fontSize: 22,
-    fontWeight: '600',
+    fontWeight: '500',
     color: Colors.text,
     letterSpacing: -0.3,
   },
@@ -2979,7 +2983,7 @@ const styles = StyleSheet.create({
   },
   timelineDateLabel: {
     fontSize: 17,
-    fontWeight: '600',
+    fontWeight: '500',
     flex: 1,
   },
   timelineEntryCount: {
@@ -3045,7 +3049,7 @@ const styles = StyleSheet.create({
   },
   timelineEmptyTitle: {
     fontSize: 22,
-    fontWeight: '600',
+    fontWeight: '500',
     marginTop: 16,
   },
   timelineEmptySubtext: {
@@ -3062,7 +3066,7 @@ const styles = StyleSheet.create({
   },
   timelineStartButtonText: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   // Mirror Insight card styles
   timelineInsightCard: {
@@ -3075,7 +3079,7 @@ const styles = StyleSheet.create({
   },
   insightLabel: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
     textTransform: 'uppercase',
     letterSpacing: 0.5,
   },
@@ -3115,7 +3119,7 @@ const styles = StyleSheet.create({
   },
   lunarSubNavTextActive: {
     color: '#C0C8D4',
-    fontWeight: '600',
+    fontWeight: '500',
   },
   lunarPromptCard: {
     borderRadius: 10,
@@ -3125,7 +3129,7 @@ const styles = StyleSheet.create({
   },
   lunarPromptLabel: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
     letterSpacing: 1,
     marginBottom: 6,
   },
@@ -3159,7 +3163,7 @@ const styles = StyleSheet.create({
   },
   lunarIntroTitle: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '500',
     marginBottom: 14,
     letterSpacing: -0.3,
   },
@@ -3185,7 +3189,7 @@ const styles = StyleSheet.create({
   },
   lunarReflectionLabel: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
     letterSpacing: 1,
     marginBottom: 14,
   },
@@ -3196,7 +3200,7 @@ const styles = StyleSheet.create({
   },
   lunarReflectionGate: {
     fontSize: 17,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   lunarReflectionGateTitle: {
     fontSize: 16,
@@ -3215,7 +3219,7 @@ const styles = StyleSheet.create({
   },
   lunarJournalInputLabel: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
     letterSpacing: 1,
     marginBottom: 6,
   },
@@ -3247,7 +3251,7 @@ const styles = StyleSheet.create({
   },
   lunarTimelineSectionTitle: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
     letterSpacing: 1,
     marginBottom: 16,
     paddingHorizontal: 4,
@@ -3275,7 +3279,7 @@ const styles = StyleSheet.create({
   },
   decisionsSectionTitle: {
     fontSize: 22,
-    fontWeight: '600',
+    fontWeight: '500',
     marginBottom: 4,
     letterSpacing: -0.3,
   },
@@ -3324,7 +3328,7 @@ const styles = StyleSheet.create({
   },
   decisionCardBadgeText: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
     color: '#81C784',
   },
   decisionCardProgress: {
@@ -3347,7 +3351,7 @@ const styles = StyleSheet.create({
   },
   noDecisionsTitle: {
     fontSize: 17,
-    fontWeight: '600',
+    fontWeight: '500',
     marginBottom: 14,
   },
   noDecisionsText: {
@@ -3390,7 +3394,7 @@ const styles = StyleSheet.create({
   },
   selectedDecisionLabel: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
     letterSpacing: 1,
     marginBottom: 14,
   },
@@ -3416,7 +3420,7 @@ const styles = StyleSheet.create({
   },
   todayReflectionTitle: {
     fontSize: 22,
-    fontWeight: '600',
+    fontWeight: '500',
     marginBottom: 4,
   },
   todayGateInfo: {
@@ -3454,7 +3458,7 @@ const styles = StyleSheet.create({
   },
   addReflectionButtonText: {
     fontSize: 17,
-    fontWeight: '600',
+    fontWeight: '500',
     color: '#1A1D24',
   },
   // Task 64: Reflection Timeline Styles
@@ -3463,7 +3467,7 @@ const styles = StyleSheet.create({
   },
   reflectionTimelineTitle: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
     letterSpacing: 1,
     marginBottom: 16,
     paddingHorizontal: 4,
@@ -3480,7 +3484,7 @@ const styles = StyleSheet.create({
   },
   reflectionEntryDay: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   reflectionEntryGate: {
     fontSize: 14,
@@ -3533,7 +3537,7 @@ const styles = StyleSheet.create({
   },
   decisionSelectorDot: {
     fontSize: 8,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   decisionHeaderCard: {
     borderRadius: 16,
@@ -3543,13 +3547,13 @@ const styles = StyleSheet.create({
   },
   decisionHeaderLabel: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
     letterSpacing: 1,
     marginBottom: 14,
   },
   decisionHeaderTopic: {
     fontSize: 22,
-    fontWeight: '600',
+    fontWeight: '500',
     marginBottom: 14,
     lineHeight: 32,
   },
@@ -3586,7 +3590,7 @@ const styles = StyleSheet.create({
   },
   noDecisionTitle: {
     fontSize: 22,
-    fontWeight: '600',
+    fontWeight: '500',
     marginBottom: 14,
     textAlign: 'center',
   },
@@ -3604,7 +3608,7 @@ const styles = StyleSheet.create({
   },
   instructionTitle: {
     fontSize: 17,
-    fontWeight: '600',
+    fontWeight: '500',
     marginBottom: 14,
   },
   instructionText: {
@@ -3619,13 +3623,13 @@ const styles = StyleSheet.create({
   },
   todaysLensLabel: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
     letterSpacing: 1,
     marginBottom: 14,
   },
   todaysLensGate: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '500',
     marginBottom: 4,
   },
   // Task 68: Gate/Line styling
@@ -3666,7 +3670,7 @@ const styles = StyleSheet.create({
   },
   todaysLensPromptLabel: {
     fontSize: 9,
-    fontWeight: '600',
+    fontWeight: '500',
     letterSpacing: 1,
     marginBottom: 6,
   },
@@ -3683,7 +3687,7 @@ const styles = StyleSheet.create({
   },
   reflectionInputLabel: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
     letterSpacing: 1,
     marginBottom: 16,
   },
@@ -3704,12 +3708,12 @@ const styles = StyleSheet.create({
   },
   saveReflectionButtonText: {
     fontSize: 17,
-    fontWeight: '600',
+    fontWeight: '500',
     color: '#1A1D24',
   },
   lunarWheelSectionLabel: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
     letterSpacing: 1,
     marginBottom: 4,
   },
@@ -3753,7 +3757,7 @@ const styles = StyleSheet.create({
   },
   cycleCompletionBannerTitle: {
     fontSize: 17,
-    fontWeight: '600',
+    fontWeight: '500',
     marginBottom: 2,
   },
   cycleCompletionBannerSubtitle: {
@@ -3767,7 +3771,7 @@ const styles = StyleSheet.create({
   },
   cycleCompletionBannerButtonText: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '500',
     color: '#1A1D24',
   },
   cycleCompletionBannerBody: {
@@ -3785,12 +3789,12 @@ const styles = StyleSheet.create({
   },
   debugPanelTitle: {
     fontSize: 16,
-    fontWeight: '700',
+    fontWeight: '500',
     marginBottom: 14,
   },
   debugPanelSubtitle: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
     marginTop: 12,
     marginBottom: 4,
   },
@@ -3819,12 +3823,14 @@ const styles = StyleSheet.create({
   },
   journeyDayText: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '500',
     letterSpacing: 0.5,
   },
   journeyPhaseLabel: {
+    fontFamily: fontFamily.display,
     fontSize: 24,
-    fontWeight: '600',
+    fontWeight: '400',
+    letterSpacing: 0.2,
     lineHeight: 32,
     marginBottom: 16,
   },
@@ -3840,7 +3846,7 @@ const styles = StyleSheet.create({
   },
   journeyDecisionLabel: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
     letterSpacing: 1.2,
     textTransform: 'uppercase',
     marginBottom: 6,
@@ -3870,7 +3876,7 @@ const styles = StyleSheet.create({
   },
   journeyCompletionText: {
     fontSize: 17,
-    fontWeight: '600',
+    fontWeight: '500',
     marginBottom: 4,
   },
   journeyCompletionSub: {

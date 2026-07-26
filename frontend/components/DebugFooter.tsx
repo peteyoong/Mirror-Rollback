@@ -145,7 +145,7 @@ const styles = StyleSheet.create({
   header: {
     color: '#00FF00',
     fontSize: 13,
-    fontWeight: 'bold',
+    fontWeight: '500',
     marginBottom: 6,
   },
   info: {
@@ -156,7 +156,7 @@ const styles = StyleSheet.create({
   warningLine: {
     color: '#FFAA00',
     fontSize: 11,
-    fontWeight: 'bold',
+    fontWeight: '500',
     marginTop: 4,
     marginBottom: 4,
   },
@@ -177,7 +177,7 @@ const styles = StyleSheet.create({
   },
   error: {
     color: '#FF0000',
-    fontWeight: 'bold',
+    fontWeight: '500',
   },
   timestamp: {
     color: '#666666',

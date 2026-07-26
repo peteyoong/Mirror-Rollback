@@ -2,6 +2,7 @@ import React, { useEffect, useState, createContext, useContext, useCallback } fr
 import { Platform, View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
+import { usePathname } from 'expo-router';
 import { Colors } from '../constants/colors';
 
 const BANNER_DISMISSED_KEY = 'pwa_banner_dismissed';
@@ -132,9 +133,23 @@ export function BannerProvider({ children }: { children: React.ReactNode }) {
 export function AddToHomeScreenBanner() {
   const { isBannerVisible, dismissBanner } = useContext(BannerContext);
   const isStandalone = useIsStandalone();
-  
+  const pathname = usePathname();
+
+  // Never overlay the auth / onboarding surfaces — the banner used to sit
+  // directly on top of the "Sign in" row on short viewports, making it
+  // untappable.
+  const isAuthSurface =
+    pathname === '/welcome' ||
+    pathname?.startsWith('/onboarding') ||
+    pathname?.startsWith('/questionnaire');
+
+  // Tab-bar routes need the banner lifted above the bottom tab bar.
+  const isTabRoute =
+    pathname === '/' || pathname === '/life' || pathname === '/reflect' ||
+    pathname === '/lenses' || pathname === '/patterns';
+
   // Don't render on native or if already standalone or if dismissed
-  if (Platform.OS !== 'web' || !isBannerVisible || isStandalone) {
+  if (Platform.OS !== 'web' || !isBannerVisible || isStandalone || isAuthSurface) {
     return null;
   }
   
@@ -142,20 +157,20 @@ export function AddToHomeScreenBanner() {
   const isIOS = typeof window !== 'undefined' && /iPad|iPhone|iPod/.test(window.navigator.userAgent);
   
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { bottom: isTabRoute ? 78 : 0 }]}>
       <View style={styles.content}>
-        <Ionicons name="phone-portrait-outline" size={24} color={Colors.text} />
+        <Ionicons name="phone-portrait-outline" size={20} color={Colors.accentMuted} />
         <View style={styles.textContainer}>
-          <Text style={styles.title}>📱 Get full-screen mode!</Text>
+          <Text style={styles.title}>Add The Mirror to your Home Screen</Text>
           <Text style={styles.subtitle}>
             {isIOS 
-              ? 'Tap Share ⬆️ → "Add to Home Screen"'
-              : 'Tap Menu ⋮ → "Add to Home Screen"'
+              ? 'Tap Share, then "Add to Home Screen"'
+              : 'Tap Menu ⋮, then "Add to Home Screen"'
             }
           </Text>
         </View>
-        <TouchableOpacity onPress={dismissBanner} style={styles.closeButton} accessibilityLabel="Dismiss banner">
-          <Ionicons name="close" size={24} color={Colors.textTertiary} />
+        <TouchableOpacity onPress={dismissBanner} style={styles.closeButton} accessibilityLabel="Dismiss banner" hitSlop={8}>
+          <Ionicons name="close" size={20} color={Colors.textTertiary} />
         </TouchableOpacity>
       </View>
     </View>
@@ -165,14 +180,13 @@ export function AddToHomeScreenBanner() {
 const styles = StyleSheet.create({
   container: {
     position: 'absolute',
-    bottom: 70, // Position above the tab bar (tab bar height is ~60)
     left: 0,
     right: 0,
-    backgroundColor: Colors.surface,
+    backgroundColor: 'rgba(22, 22, 22, 0.97)',
     borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: Colors.border,
+    borderTopColor: 'rgba(255,255,255,0.08)',
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: Colors.border,
+    borderBottomColor: 'rgba(255,255,255,0.08)',
     zIndex: 999,
   },
   content: {
@@ -186,8 +200,9 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   title: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '500',
+    letterSpacing: 0.2,
     color: Colors.text,
     marginBottom: 2,
   },
@@ -196,7 +211,7 @@ const styles = StyleSheet.create({
     color: Colors.textSecondary,
   },
   closeButton: {
-    padding: 4,
+    padding: 6,
   },
 });
 

@@ -410,7 +410,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 24,
-    fontWeight: '700',
+    fontWeight: '500',
     marginBottom: 14,
   },
   subtitle: {
@@ -445,7 +445,7 @@ const styles = StyleSheet.create({
   },
   pickerLabel: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
     letterSpacing: 1,
     marginBottom: 14,
   },
@@ -470,7 +470,7 @@ const styles = StyleSheet.create({
   },
   connectionText: {
     fontSize: 24,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   exploreButton: {
     paddingVertical: 14,
@@ -480,7 +480,7 @@ const styles = StyleSheet.create({
   },
   exploreButtonText: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   errorContainer: {
     padding: 12,
@@ -502,7 +502,7 @@ const styles = StyleSheet.create({
   },
   reflectionHeaderText: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   reflectionSection: {
     padding: 16,
@@ -510,7 +510,7 @@ const styles = StyleSheet.create({
   },
   reflectionSectionTitle: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '500',
     marginBottom: 14,
   },
   reflectionText: {
@@ -524,7 +524,7 @@ const styles = StyleSheet.create({
   },
   questionLabel: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
     letterSpacing: 0.5,
     textTransform: 'uppercase',
     marginBottom: 14,

@@ -298,7 +298,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 11,
-    fontWeight: '700',
+    fontWeight: '500',
     letterSpacing: 1.4,
   },
   stateRow: {
@@ -313,7 +313,7 @@ const styles = StyleSheet.create({
   },
   stateLabel: {
     fontSize: 10,
-    fontWeight: '700',
+    fontWeight: '500',
     letterSpacing: 1.0,
   },
   coverageLine: {
@@ -328,7 +328,7 @@ const styles = StyleSheet.create({
   fieldMessage: {
     fontSize: 17,
     lineHeight: 25,
-    fontWeight: '600',
+    fontWeight: '500',
     marginBottom: 16,
   },
 
@@ -341,7 +341,7 @@ const styles = StyleSheet.create({
   },
   posLabel: {
     fontSize: 10,
-    fontWeight: '700',
+    fontWeight: '500',
     letterSpacing: 1.2,
     marginBottom: 6,
   },
@@ -356,7 +356,7 @@ const styles = StyleSheet.create({
   },
   smallLabel: {
     fontSize: 10,
-    fontWeight: '700',
+    fontWeight: '500',
     letterSpacing: 1.2,
     marginBottom: 4,
   },

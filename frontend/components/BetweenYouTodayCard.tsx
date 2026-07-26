@@ -361,7 +361,7 @@ const styles = StyleSheet.create({
   },
   eyebrow: {
     fontSize: 11,
-    fontWeight: '700',
+    fontWeight: '500',
     letterSpacing: 1.2,
   },
   intensityChip: {
@@ -371,7 +371,7 @@ const styles = StyleSheet.create({
   },
   intensityText: {
     fontSize: 10,
-    fontWeight: '700',
+    fontWeight: '500',
     letterSpacing: 0.4,
     textTransform: 'uppercase',
   },
@@ -386,7 +386,7 @@ const styles = StyleSheet.create({
   },
   sectionLabel: {
     fontSize: 11,
-    fontWeight: '700',
+    fontWeight: '500',
     letterSpacing: 0.8,
     marginBottom: 8,
   },
@@ -440,7 +440,7 @@ const styles = StyleSheet.create({
   },
   modePillText: {
     fontSize: 11,
-    fontWeight: '600',
+    fontWeight: '500',
     letterSpacing: 0.4,
     textTransform: 'uppercase',
   },

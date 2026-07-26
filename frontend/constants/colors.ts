@@ -2,25 +2,25 @@
 // Onboarding should feel: calm, safe, intentional, reflective
 // NOT: transactional, bright, corporate
 export const Colors = {
-  // Backgrounds - Deep, calming dark
-  background: '#0B0B0C',          // Global dark background
-  surface: '#1C1C1E',             // Card/input surfaces
-  surfaceLight: '#2C2C2E',        // Elevated surfaces
-  surfaceMuted: '#151515',        // Subtle backgrounds
+  // Backgrounds - Deep, calming dark (aligned to theme/tokens.ts colorDark)
+  background: '#111111',          // Global dark background
+  surface: '#1C1C1C',             // Card/input surfaces
+  surfaceLight: '#262626',        // Elevated surfaces
+  surfaceMuted: '#161616',        // Subtle backgrounds
   
   // Text - Warm whites
-  text: '#F0EDE8',                // Primary text
-  textSecondary: '#B5B2AD',       // Secondary text
-  textTertiary: '#8E8E93',        // Muted/placeholder text
+  text: '#F5F5F0',                // Primary text
+  textSecondary: '#A3A3A3',       // Secondary text
+  textTertiary: '#8A8A8A',        // Muted/placeholder text
   textDisabled: '#4A4845',        // Disabled text
   
-  // Accent - Warm beige for CTAs
-  accent: '#EAE3D9',              // Primary CTA background
-  accentMuted: '#8A857A',         // Secondary accent
+  // Accent - Warm off-white for CTAs
+  accent: '#F5F5F0',              // Primary CTA background
+  accentMuted: '#967B54',         // Secondary accent (muted gold)
   
   // Borders - Subtle dark borders
-  border: '#2C2C2E',              // Primary border
-  borderLight: '#3A3A3C',         // Lighter border
+  border: '#2A2A2A',              // Primary border
+  borderLight: '#3A3A3A',         // Lighter border
   
   // Semantic Colors
   error: '#EF5350',               // Soft red for dark mode

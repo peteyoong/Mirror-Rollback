@@ -434,7 +434,7 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     fontSize: 17,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   headerSpacer: {
     width: 32,
@@ -458,7 +458,7 @@ const styles = StyleSheet.create({
   retryButtonText: {
     color: '#FFFFFF',
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   emptyContainer: {
     flex: 1,
@@ -479,7 +479,7 @@ const styles = StyleSheet.create({
   },
   emptyTitle: {
     fontSize: 24,
-    fontWeight: '600',
+    fontWeight: '500',
     marginBottom: 16,
     textAlign: 'center',
   },
@@ -500,7 +500,7 @@ const styles = StyleSheet.create({
   },
   screenLabel: {
     fontSize: 14,
-    fontWeight: '700',
+    fontWeight: '500',
     letterSpacing: 1.5,
     marginBottom: 14,
   },
@@ -531,7 +531,7 @@ const styles = StyleSheet.create({
   },
   statValue: {
     fontSize: 28,
-    fontWeight: '700',
+    fontWeight: '500',
     marginBottom: 4,
   },
   statLabel: {
@@ -549,7 +549,7 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 22,
-    fontWeight: '600',
+    fontWeight: '500',
     marginBottom: 4,
   },
   sectionSubtitle: {
@@ -583,13 +583,13 @@ const styles = StyleSheet.create({
   },
   patternLabel: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
     letterSpacing: 1,
     marginBottom: 2,
   },
   patternYears: {
     fontSize: 22,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   memberCountBadge: {
     paddingHorizontal: 10,
@@ -598,7 +598,7 @@ const styles = StyleSheet.create({
   },
   memberCountText: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   patternSummary: {
     fontSize: 16,
@@ -620,7 +620,7 @@ const styles = StyleSheet.create({
   },
   memberAvatarText: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   moreMembers: {
     fontSize: 14,
@@ -660,7 +660,7 @@ const styles = StyleSheet.create({
   },
   clusterYears: {
     fontSize: 17,
-    fontWeight: '600',
+    fontWeight: '500',
     marginBottom: 4,
   },
   clusterStats: {

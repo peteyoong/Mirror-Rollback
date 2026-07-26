@@ -366,7 +366,7 @@ const styles = StyleSheet.create({
   },
   yearText: {
     fontSize: 13,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   timelineConnector: {
     width: 20,
@@ -429,7 +429,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 15,
-    fontWeight: '600',
+    fontWeight: '500',
     lineHeight: 20,
     marginBottom: 4,
   },
@@ -472,6 +472,6 @@ const styles = StyleSheet.create({
   },
   resonanceIcon: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
   },
 });

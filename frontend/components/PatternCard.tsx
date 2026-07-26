@@ -845,7 +845,7 @@ const styles = StyleSheet.create({
   },
   headerLabel: {
     fontSize: 14,
-    fontWeight: '700',
+    fontWeight: '500',
     letterSpacing: 1.5,
     marginBottom: 4,
   },
@@ -857,7 +857,7 @@ const styles = StyleSheet.create({
   // Pattern title
   patternTitle: {
     fontSize: 24,
-    fontWeight: '600',
+    fontWeight: '500',
     marginBottom: 20,
   },
   
@@ -867,7 +867,7 @@ const styles = StyleSheet.create({
   },
   sectionLabel: {
     fontSize: 14,
-    fontWeight: '700',
+    fontWeight: '500',
     letterSpacing: 1.2,
     marginBottom: 14,
   },
@@ -905,7 +905,7 @@ const styles = StyleSheet.create({
   },
   archetype: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '500',
     fontStyle: 'italic',
   },
   
@@ -926,7 +926,7 @@ const styles = StyleSheet.create({
   },
   timingContextTitle: {
     fontSize: 9,
-    fontWeight: '700',
+    fontWeight: '500',
     letterSpacing: 1.2,
     marginBottom: 14,
   },
@@ -957,7 +957,7 @@ const styles = StyleSheet.create({
   },
   reflectButtonText: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   
   // Signal indicator with tap to expand
@@ -982,7 +982,7 @@ const styles = StyleSheet.create({
   },
   signalsSectionTitle: {
     fontSize: 14,
-    fontWeight: '700',
+    fontWeight: '500',
     letterSpacing: 1.2,
     marginBottom: 16,
   },
@@ -991,7 +991,7 @@ const styles = StyleSheet.create({
   },
   signalSourceLabel: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
     marginBottom: 14,
   },
   signalItem: {
@@ -1040,7 +1040,7 @@ const styles = StyleSheet.create({
   },
   timingContextTitleSecondary: {
     fontSize: 8,
-    fontWeight: '700',
+    fontWeight: '500',
     letterSpacing: 1,
     marginBottom: 6,
   },
@@ -1060,7 +1060,7 @@ const styles = StyleSheet.create({
   },
   primaryBadge: {
     fontSize: 9,
-    fontWeight: '600',
+    fontWeight: '500',
     textTransform: 'uppercase',
     letterSpacing: 0.5,
   },
@@ -1144,7 +1144,7 @@ const styles = StyleSheet.create({
   },
   whyShowingUpLabel: {
     fontSize: 9,
-    fontWeight: '700',
+    fontWeight: '500',
     letterSpacing: 1.2,
     marginBottom: 14,
   },
@@ -1178,7 +1178,7 @@ const styles = StyleSheet.create({
   },
   convergenceBadge: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
     marginTop: 6,
     textAlign: 'center',
   },
@@ -1195,7 +1195,7 @@ const styles = StyleSheet.create({
   },
   lensName: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '500',
     width: 100,
   },
   lensArrow: {
@@ -1219,7 +1219,7 @@ const styles = StyleSheet.create({
   },
   frictionLabel: {
     fontSize: 9,
-    fontWeight: '700',
+    fontWeight: '500',
     letterSpacing: 1.2,
     marginBottom: 14,
   },
@@ -1238,7 +1238,7 @@ const styles = StyleSheet.create({
   },
   practicalLabel: {
     fontSize: 9,
-    fontWeight: '700',
+    fontWeight: '500',
     letterSpacing: 1.2,
     marginBottom: 14,
   },

@@ -13,6 +13,7 @@ import { useRouter } from 'expo-router';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useForumContext } from '../../contexts/ForumContext';
 import { Colors } from '../../constants/colors';
+import { fontFamily } from '../../theme/tokens';
 import { useAppStore } from '../../store';
 import ChatBot from '../../components/ChatBot';
 import { ForumContextBanner } from '../../components/ForumContextBanner';
@@ -191,14 +192,16 @@ const styles = StyleSheet.create({
     marginBottom: 32,
   },
   title: {
+    fontFamily: fontFamily.display,
     fontSize: 28,
-    fontWeight: '600',
+    fontWeight: '400',
+    letterSpacing: 0.3,
     color: Colors.text,
     marginBottom: 16,
   },
   subtitle: {
-    fontSize: 17,
-    lineHeight: 30,
+    fontSize: 15,
+    lineHeight: 24,
     color: Colors.textSecondary,
   },
   lensesContainer: {
@@ -211,14 +214,16 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   lensName: {
+    fontFamily: fontFamily.display,
     fontSize: 22,
-    fontWeight: '600',
+    fontWeight: '400',
+    letterSpacing: 0.3,
     color: Colors.text,
-    marginBottom: 16,
+    marginBottom: 12,
   },
   lensDescription: {
-    fontSize: 17,
-    lineHeight: 30,
+    fontSize: 15,
+    lineHeight: 24,
     color: Colors.textSecondary,
     marginBottom: 16,
   },
@@ -232,7 +237,7 @@ const styles = StyleSheet.create({
   },
   infoLabel: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '500',
     color: Colors.textSecondary,
     marginLeft: 6,
   },
@@ -255,7 +260,7 @@ const styles = StyleSheet.create({
   },
   viewButtonText: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '500',
     color: Colors.background,
   },
   footer: {

@@ -515,14 +515,14 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     fontSize: 17,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   cancelText: {
     fontSize: 16,
   },
   saveText: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '500',
     textAlign: 'right',
   },
   scrollView: {
@@ -657,7 +657,7 @@ const styles = StyleSheet.create({
   },
   scaleText: {
     fontSize: 13,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   // Keep old impact styles for backward compatibility
   impactRow: {

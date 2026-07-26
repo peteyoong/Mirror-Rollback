@@ -194,7 +194,7 @@ const styles = StyleSheet.create({
     fontSize: 10.5,
     letterSpacing: 1.5,
     textTransform: 'uppercase',
-    fontWeight: '600',
+    fontWeight: '500',
   },
   fieldText: {
     fontSize: 16,
@@ -211,7 +211,7 @@ const styles = StyleSheet.create({
     fontSize: 10,
     letterSpacing: 1.4,
     textTransform: 'uppercase',
-    fontWeight: '600',
+    fontWeight: '500',
   },
   sectionText: { fontSize: 14, lineHeight: 21 },
   chipRow: {

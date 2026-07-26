@@ -708,7 +708,7 @@ const AstrologyTodayV4: React.FC<AstrologyTodayV4Props> = ({ userId, theme, onRe
                 {!!data.technical.dominant_pattern && (
                   <View style={{ marginBottom: 12 }}>
                     <Text style={[styles.technicalLabel, { color: theme.textTertiary }]}>DOMINANT PATTERN</Text>
-                    <Text style={[styles.technicalText, { color: theme.text, fontWeight: '600' }]}>
+                    <Text style={[styles.technicalText, { color: theme.text, fontWeight: '500' }]}>
                       {data.technical.dominant_pattern}
                     </Text>
                     {!!data.technical.pattern_detail && (
@@ -785,7 +785,7 @@ const styles = StyleSheet.create({
   loadingText: { fontSize: 16 },
   errorContainer: { padding: 24, alignItems: 'center', gap: 12 },
   errorText: { fontSize: 16, textAlign: 'center' },
-  retryText: { fontSize: 16, fontWeight: '600' },
+  retryText: { fontSize: 16, fontWeight: '500' },
 
   card: { margin: 16, padding: 20, borderRadius: 16, borderWidth: 1 },
 
@@ -797,7 +797,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     marginBottom: 10,
   },
-  intensityBadgeText: { fontSize: 10, fontWeight: '700', letterSpacing: 1 },
+  intensityBadgeText: { fontSize: 10, fontWeight: '500', letterSpacing: 1 },
 
   badgeRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 6 },
   overlayBadge: {
@@ -811,7 +811,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     marginBottom: 10,
   },
-  overlayBadgeText: { fontSize: 10, fontWeight: '600', letterSpacing: 0.6 },
+  overlayBadgeText: { fontSize: 10, fontWeight: '500', letterSpacing: 0.6 },
 
   divergenceBlock: {
     marginTop: 10,
@@ -820,13 +820,13 @@ const styles = StyleSheet.create({
   },
   divergenceHeader: {
     fontSize: 10,
-    fontWeight: '700',
+    fontWeight: '500',
     letterSpacing: 1,
     marginBottom: 6,
   },
 
   headlineSection: { marginBottom: 20 },
-  headlineText: { fontSize: 24, fontWeight: '600', lineHeight: 31 },
+  headlineText: { fontSize: 24, fontWeight: '500', lineHeight: 31 },
 
   paragraphSection: { marginBottom: 22 },
   paragraphText: { fontSize: 17, lineHeight: 27 },
@@ -835,7 +835,7 @@ const styles = StyleSheet.create({
   highlightedSection: { padding: 16, borderRadius: 12, marginHorizontal: -4 },
 
   sectionHeader: { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 12 },
-  sectionTitle: { fontSize: 13, fontWeight: '600', letterSpacing: 0.6, textTransform: 'uppercase' },
+  sectionTitle: { fontSize: 13, fontWeight: '500', letterSpacing: 0.6, textTransform: 'uppercase' },
 
   bulletRow: { flexDirection: 'row', paddingLeft: 4, marginBottom: 10 },
   bulletDot: { width: 5, height: 5, borderRadius: 2.5, marginTop: 10, marginRight: 10 },
@@ -847,13 +847,13 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     borderWidth: 1,
   },
-  riskLabel: { fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 6 },
+  riskLabel: { fontSize: 11, fontWeight: '500', letterSpacing: 1, marginBottom: 6 },
   riskText: { fontSize: 16, lineHeight: 24, fontWeight: '500' },
 
   moveSection: { paddingLeft: 16, borderLeftWidth: 3, marginBottom: 22 },
-  moveLabel: { fontSize: 12, fontWeight: '700', letterSpacing: 0.8, marginBottom: 10 },
+  moveLabel: { fontSize: 12, fontWeight: '500', letterSpacing: 0.8, marginBottom: 10 },
   moveLayer: { marginBottom: 12 },
-  moveLayerTag: { fontSize: 10, fontWeight: '700', letterSpacing: 1, marginBottom: 4 },
+  moveLayerTag: { fontSize: 10, fontWeight: '500', letterSpacing: 1, marginBottom: 4 },
   moveText: { fontSize: 16, fontWeight: '500', lineHeight: 25 },
   moveTextItalic: { fontSize: 16, fontWeight: '500', lineHeight: 25, fontStyle: 'italic' },
 
@@ -881,7 +881,7 @@ const styles = StyleSheet.create({
   },
   v5HeadLabel: {
     fontSize: 11,
-    fontWeight: '700',
+    fontWeight: '500',
     letterSpacing: 0.6,
     marginBottom: 8,
     textTransform: 'uppercase',
@@ -892,9 +892,9 @@ const styles = StyleSheet.create({
   whyEffect: { fontSize: 13 },
 
   technicalSection: { padding: 14, borderRadius: 8, borderWidth: StyleSheet.hairlineWidth, marginTop: 8 },
-  technicalLabel: { fontSize: 11, fontWeight: '700', letterSpacing: 0.9, marginBottom: 6, textTransform: 'uppercase' },
+  technicalLabel: { fontSize: 11, fontWeight: '500', letterSpacing: 0.9, marginBottom: 6, textTransform: 'uppercase' },
   technicalText: { fontSize: 14, lineHeight: 22 },
-  proofSectionLabel: { fontSize: 11, fontWeight: '700', letterSpacing: 1, textTransform: 'uppercase', marginBottom: 6 },
+  proofSectionLabel: { fontSize: 11, fontWeight: '500', letterSpacing: 1, textTransform: 'uppercase', marginBottom: 6 },
   proofItem: { fontSize: 13, lineHeight: 20, marginBottom: 3, paddingLeft: 4 },
 });
 

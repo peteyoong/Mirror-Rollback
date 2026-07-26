@@ -248,7 +248,7 @@ const styles = StyleSheet.create({
   },
   backButton: { width: 60 },
   backText: { fontSize: 16, fontWeight: '500' },
-  headerTitle: { fontSize: 24, fontWeight: '600' },
+  headerTitle: { fontSize: 24, fontWeight: '500' },
   center: {
     flex: 1,
     alignItems: 'center',
@@ -257,7 +257,7 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   loadingText: { fontSize: 14, marginTop: 12 },
-  errorTitle: { fontSize: 18, fontWeight: '600', marginBottom: 4, textAlign: 'center' },
+  errorTitle: { fontSize: 18, fontWeight: '500', marginBottom: 4, textAlign: 'center' },
   errorText: { fontSize: 14, lineHeight: 20, textAlign: 'center', marginBottom: 16 },
   previewContent: { flex: 1, paddingHorizontal: 20, paddingTop: 20 },
   previewCard: {
@@ -267,7 +267,7 @@ const styles = StyleSheet.create({
     marginBottom: 24,
     alignItems: 'center',
   },
-  previewName: { fontSize: 22, fontWeight: '600', marginBottom: 8, textAlign: 'center' },
+  previewName: { fontSize: 22, fontWeight: '500', marginBottom: 8, textAlign: 'center' },
   previewDescription: { fontSize: 15, lineHeight: 22, marginBottom: 12, textAlign: 'center' },
   previewMembers: { fontSize: 13 },
   confirmText: { fontSize: 14, lineHeight: 22, marginBottom: 32, textAlign: 'center' },
@@ -277,7 +277,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     alignItems: 'center',
   },
-  primaryButtonText: { fontSize: 16, fontWeight: '600' },
+  primaryButtonText: { fontSize: 16, fontWeight: '500' },
   errorBanner: {
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: 'rgba(220, 50, 50, 0.5)',

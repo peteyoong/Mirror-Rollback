@@ -290,7 +290,7 @@ const styles = StyleSheet.create({
   },
   headerText: {
     fontSize: 12,
-    fontWeight: '600',
+    fontWeight: '500',
     color: Colors.accent,
     fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
   },

@@ -300,7 +300,7 @@ const styles = StyleSheet.create({
   },
   accordionTitle: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   accordionSubtitle: {
     fontSize: 14,
@@ -336,7 +336,7 @@ const styles = StyleSheet.create({
   },
   sectionHeaderTitle: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
     letterSpacing: 1.5,
     marginBottom: 4,
   },
@@ -386,14 +386,14 @@ const styles = StyleSheet.create({
   },
   gateNumber: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   gateHeaderInfo: {
     flex: 1,
   },
   gateName: {
     fontSize: 17,
-    fontWeight: '600',
+    fontWeight: '500',
     marginBottom: 2,
   },
   gateCenter: {
@@ -431,7 +431,7 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
     letterSpacing: 0.5,
     marginBottom: 6,
   },
@@ -465,7 +465,7 @@ const styles = StyleSheet.create({
   },
   rememberLabel: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
     letterSpacing: 0.5,
     marginBottom: 6,
   },
@@ -482,7 +482,7 @@ const styles = StyleSheet.create({
   },
   bridgeLabel: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
     letterSpacing: 0.5,
     marginBottom: 14,
   },

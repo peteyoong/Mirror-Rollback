@@ -13,6 +13,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../../contexts/ThemeContext';
+import { fontFamily } from '../../theme/tokens';
 import { useAppStore } from '../../store';
 import { 
   getForumMemberMappings, 
@@ -103,6 +104,10 @@ export default function ForumMappingsScreen() {
   useEffect(() => {
     if (user?.id && forumId) {
       fetchMappings();
+    } else if (user?.id && !forumId) {
+      // Direct navigation without a forum — don't spin forever.
+      setLoading(false);
+      setError('Open this screen from one of your forums to see how its members map to you.');
     }
   }, [user?.id, forumId]);
 
@@ -541,7 +546,7 @@ export default function ForumMappingsScreen() {
                         const provText = PROV_LABELS[provRaw] || '';
                         return (
                           <View key={`evl-${i}`} style={{ marginBottom: 8 }}>
-                            <Text style={[styles.activationText, { color: theme.text, fontWeight: '600' }]}>
+                            <Text style={[styles.activationText, { color: theme.text, fontWeight: '500' }]}>
                               · {String(entry.claim || entry.claim_label || '')}
                             </Text>
                             {!!lensText && (
@@ -1131,7 +1136,7 @@ export default function ForumMappingsScreen() {
                                   color: theme.text,
                                   fontSize: 15,
                                   lineHeight: 22,
-                                  fontWeight: '600',
+                                  fontWeight: '500',
                                   marginBottom: 8,
                                 }}
                               >
@@ -1333,7 +1338,7 @@ export default function ForumMappingsScreen() {
                             if (typeof body !== 'string' || body.trim().length === 0) return null;
                             return (
                               <View key={`ev2-${key}`} style={{ marginTop: 10 }}>
-                                <Text style={[styles.lensSignalText, { color: theme.text, fontWeight: '600', marginBottom: 4 }]}>
+                                <Text style={[styles.lensSignalText, { color: theme.text, fontWeight: '500', marginBottom: 4 }]}>
                                   {label}
                                 </Text>
                                 <Text style={[styles.lensSignalText, { color: theme.textSecondary, lineHeight: 20 }]}>
@@ -1374,7 +1379,7 @@ export default function ForumMappingsScreen() {
                             if (typeof body !== 'string' || body.trim().length === 0) return null;
                             return (
                               <View key={`nv2-${key}`} style={{ marginTop: 10 }}>
-                                <Text style={[styles.lensSignalText, { color: theme.text, fontWeight: '600', marginBottom: 4 }]}>
+                                <Text style={[styles.lensSignalText, { color: theme.text, fontWeight: '500', marginBottom: 4 }]}>
                                   {label}
                                 </Text>
                                 <Text style={[styles.lensSignalText, { color: theme.textSecondary, lineHeight: 20 }]}>
@@ -1425,7 +1430,7 @@ export default function ForumMappingsScreen() {
                           </Text>
                           {!!(pair && pair.summary) && (
                             <View style={{ marginTop: 10 }}>
-                              <Text style={[styles.lensSignalText, { color: theme.text, fontWeight: '600', marginBottom: 4 }]}>
+                              <Text style={[styles.lensSignalText, { color: theme.text, fontWeight: '500', marginBottom: 4 }]}>
                                 Pair Dynamic{pair.tone ? `  ·  ${String(pair.tone).replace('-', ' ')}` : ''}
                               </Text>
                               <Text style={[styles.lensSignalText, { color: theme.textSecondary, lineHeight: 20 }]}>
@@ -1435,7 +1440,7 @@ export default function ForumMappingsScreen() {
                           )}
                           {!!(inner && inner.summary) && (
                             <View style={{ marginTop: 10 }}>
-                              <Text style={[styles.lensSignalText, { color: theme.text, fontWeight: '600', marginBottom: 4 }]}>
+                              <Text style={[styles.lensSignalText, { color: theme.text, fontWeight: '500', marginBottom: 4 }]}>
                                 Inner Dynamic
                               </Text>
                               <Text style={[styles.lensSignalText, { color: theme.textSecondary, lineHeight: 20 }]}>
@@ -1445,7 +1450,7 @@ export default function ForumMappingsScreen() {
                           )}
                           {!!(triad && triad.summary) && (
                             <View style={{ marginTop: 10 }}>
-                              <Text style={[styles.lensSignalText, { color: theme.text, fontWeight: '600', marginBottom: 4 }]}>
+                              <Text style={[styles.lensSignalText, { color: theme.text, fontWeight: '500', marginBottom: 4 }]}>
                                 Triad Signal{triad.element ? `  ·  ${triad.element}` : ''}
                               </Text>
                               <Text style={[styles.lensSignalText, { color: theme.textSecondary, lineHeight: 20 }]}>
@@ -1490,7 +1495,7 @@ export default function ForumMappingsScreen() {
                             if (typeof body !== 'string' || body.trim().length === 0) return null;
                             return (
                               <View key={`bzd-${key}`} style={{ marginTop: 10 }}>
-                                <Text style={[styles.lensSignalText, { color: theme.text, fontWeight: '600', marginBottom: 4 }]}>
+                                <Text style={[styles.lensSignalText, { color: theme.text, fontWeight: '500', marginBottom: 4 }]}>
                                   {label}
                                 </Text>
                                 <Text style={[styles.lensSignalText, { color: theme.textSecondary }]}>
@@ -1545,8 +1550,8 @@ export default function ForumMappingsScreen() {
                         borderColor: theme.border, borderWidth: StyleSheet.hairlineWidth,
                         borderRadius: 10, padding: 12, marginTop: 10,
                       };
-                      const tinyHeader = { fontSize: 11, fontWeight: '700' as const, letterSpacing: 1.0 };
-                      const labelText  = { fontSize: 13, fontWeight: '600' as const, marginBottom: 2 };
+                      const tinyHeader = { fontSize: 11, fontWeight: '500' as const, letterSpacing: 1.0 };
+                      const labelText  = { fontSize: 13, fontWeight: '500' as const, marginBottom: 2 };
 
                       return (
                         <View style={styles.lensSection}>
@@ -1559,15 +1564,15 @@ export default function ForumMappingsScreen() {
                             <Text style={[tinyHeader, { color: theme.textTertiary, marginBottom: 8 }]}>1 · ELEMENTAL STRUCTURE</Text>
                             <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 4 }}>
                               <Text style={[styles.lensSignalText, { color: theme.textSecondary }]}>{nameA}</Text>
-                              <Text style={[styles.lensSignalText, { color: theme.text, fontWeight: '600' }]}>{elA}</Text>
+                              <Text style={[styles.lensSignalText, { color: theme.text, fontWeight: '500' }]}>{elA}</Text>
                             </View>
                             <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 6 }}>
                               <Text style={[styles.lensSignalText, { color: theme.textSecondary }]}>{nameB}</Text>
-                              <Text style={[styles.lensSignalText, { color: theme.text, fontWeight: '600' }]}>{elB}</Text>
+                              <Text style={[styles.lensSignalText, { color: theme.text, fontWeight: '500' }]}>{elB}</Text>
                             </View>
                             <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 10 }}>
                               <Text style={[styles.lensSignalText, { color: theme.textSecondary }]}>Relationship Geometry</Text>
-                              <Text style={[styles.lensSignalText, { color: theme.text, fontWeight: '600' }]}>{geo}</Text>
+                              <Text style={[styles.lensSignalText, { color: theme.text, fontWeight: '500' }]}>{geo}</Text>
                             </View>
                             <Text style={[labelText, { color: theme.textTertiary }]}>{flowHeader}</Text>
                             {flowRows.length === 0 ? (
@@ -1821,7 +1826,7 @@ const styles = StyleSheet.create({
   diagFooterTitle: {
     fontSize: 10,
     letterSpacing: 1.5,
-    fontWeight: '600',
+    fontWeight: '500',
     marginBottom: 8,
   },
   diagFooterRow: {
@@ -1857,8 +1862,10 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   headerTitle: {
+    fontFamily: fontFamily.display,
     fontSize: 22,
-    fontWeight: '600',
+    fontWeight: '400',
+    letterSpacing: 0.3,
   },
   headerSubtitle: {
     fontSize: 14,
@@ -1921,7 +1928,7 @@ const styles = StyleSheet.create({
   },
   memberName: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '500',
     marginBottom: 4,
   },
   memberHeaderRow: {
@@ -1965,7 +1972,7 @@ const styles = StyleSheet.create({
   },
   lensPillText: {
     fontSize: 10,
-    fontWeight: '700',
+    fontWeight: '500',
     letterSpacing: 0.5,
   },
   lensText: {
@@ -1997,8 +2004,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   modalTitle: {
+    fontFamily: fontFamily.display,
     fontSize: 22,
-    fontWeight: '600',
+    fontWeight: '400',
+    letterSpacing: 0.3,
   },
   modalSubtitle: {
     fontSize: 14,
@@ -2019,16 +2028,18 @@ const styles = StyleSheet.create({
   },
   sectionLabel: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
     textTransform: 'uppercase',
     letterSpacing: 0.5,
     marginBottom: 14,
   },
   sectionTitle: {
-    fontSize: 22,
-    fontWeight: '600',
+    fontFamily: fontFamily.display,
+    fontSize: 21,
+    fontWeight: '400',
+    letterSpacing: 0.3,
     marginBottom: 14,
-    lineHeight: 32,
+    lineHeight: 30,
   },
   sectionText: {
     fontSize: 17,
@@ -2042,8 +2053,10 @@ const styles = StyleSheet.create({
     marginBottom: 28,
   },
   storyHeadline: {
+    fontFamily: fontFamily.display,
     fontSize: 24,
-    fontWeight: '600',
+    fontWeight: '400',
+    letterSpacing: 0.2,
     lineHeight: 32,
     marginBottom: 14,
   },
@@ -2056,7 +2069,7 @@ const styles = StyleSheet.create({
   },
   patternLabel: {
     fontSize: 14,
-    fontWeight: '700',
+    fontWeight: '500',
     letterSpacing: 0.6,
     marginBottom: 14,
   },
@@ -2101,7 +2114,7 @@ const styles = StyleSheet.create({
   },
   signalsNote: {
     fontSize: 14,
-    fontWeight: '700',
+    fontWeight: '500',
     letterSpacing: 0.5,
     marginBottom: 14,
   },
@@ -2141,7 +2154,7 @@ const styles = StyleSheet.create({
   },
   gateNumber: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   channelConnector: {
     flexDirection: 'row',
@@ -2154,7 +2167,7 @@ const styles = StyleSheet.create({
   },
   channelId: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
     marginHorizontal: 4,
   },
   channelInfo: {
@@ -2192,7 +2205,7 @@ const styles = StyleSheet.create({
   },
   channelName: {
     fontSize: 17,
-    fontWeight: '600',
+    fontWeight: '500',
     marginBottom: 6,
   },
   channelTheme: {
@@ -2219,7 +2232,7 @@ const styles = StyleSheet.create({
   },
   activationLabel: {
     fontSize: 11,
-    fontWeight: '700',
+    fontWeight: '500',
     letterSpacing: 1.2,
     marginBottom: 8,
   },
@@ -2239,7 +2252,7 @@ const styles = StyleSheet.create({
   },
   themeLabel: {
     fontSize: 17,
-    fontWeight: '600',
+    fontWeight: '500',
     marginBottom: 8,
   },
   themeWhatLivesHere: {
@@ -2261,7 +2274,7 @@ const styles = StyleSheet.create({
   },
   giftLabel: {
     fontSize: 11,
-    fontWeight: '700',
+    fontWeight: '500',
     letterSpacing: 1.2,
     marginBottom: 10,
   },

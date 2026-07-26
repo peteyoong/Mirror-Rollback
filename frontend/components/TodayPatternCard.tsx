@@ -674,7 +674,7 @@ const styles = StyleSheet.create({
   },
   primaryEntryText: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   
   loadingContainer: {
@@ -690,13 +690,13 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
     letterSpacing: 0.8,
     marginBottom: 14,
   },
   title: {
     fontSize: 24,
-    fontWeight: '600',
+    fontWeight: '500',
     marginBottom: 14,
     letterSpacing: -0.3,
   },
@@ -731,7 +731,7 @@ const styles = StyleSheet.create({
   },
   interactionQuestion: {
     fontSize: 17,
-    fontWeight: '600',
+    fontWeight: '500',
     marginBottom: 16,
     textAlign: 'center',
   },
@@ -750,7 +750,7 @@ const styles = StyleSheet.create({
   },
   interactionBtnText: {
     fontSize: 17,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   interactionOptionsCol: {
     gap: 8,
@@ -781,7 +781,7 @@ const styles = StyleSheet.create({
   },
   microReflectText: {
     fontSize: 17,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   
   // Moment type badge
@@ -805,7 +805,7 @@ const styles = StyleSheet.create({
   },
   workWithPatternLabel: {
     fontSize: 9,
-    fontWeight: '600',
+    fontWeight: '500',
     letterSpacing: 0.8,
     marginBottom: 14,
     textAlign: 'center',
@@ -822,7 +822,7 @@ const styles = StyleSheet.create({
   },
   workWithBtnText: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   
   // Wisdom section
@@ -831,7 +831,7 @@ const styles = StyleSheet.create({
   },
   wisdomLabel: {
     fontSize: 9,
-    fontWeight: '600',
+    fontWeight: '500',
     letterSpacing: 0.8,
     marginBottom: 6,
   },
@@ -867,7 +867,7 @@ const styles = StyleSheet.create({
   },
   evidenceLabel: {
     fontSize: 9,
-    fontWeight: '600',
+    fontWeight: '500',
     letterSpacing: 0.6,
     marginBottom: 4,
   },
@@ -905,7 +905,7 @@ const styles = StyleSheet.create({
   },
   ctaText: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   ctaArrow: {
     fontSize: 16,

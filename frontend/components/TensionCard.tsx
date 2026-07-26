@@ -420,7 +420,7 @@ const styles = StyleSheet.create({
   },
   retryText: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '500',
     textAlign: 'center',
   },
 
@@ -438,7 +438,7 @@ const styles = StyleSheet.create({
   },
   energyTitle: {
     fontSize: 14,
-    fontWeight: '700',
+    fontWeight: '500',
     letterSpacing: 0.8,
     textTransform: 'uppercase',
   },
@@ -446,7 +446,7 @@ const styles = StyleSheet.create({
   // Moment
   moment: {
     fontSize: 24,
-    fontWeight: '600',
+    fontWeight: '500',
     lineHeight: 32,
     marginBottom: 14,
   },
@@ -495,7 +495,7 @@ const styles = StyleSheet.create({
   },
   sceneObjectLabel: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
     marginRight: 6,
   },
   sceneObjectText: {
@@ -553,7 +553,7 @@ const styles = StyleSheet.create({
   },
   expandedHeader: {
     fontSize: 14,
-    fontWeight: '700',
+    fontWeight: '500',
     letterSpacing: 0.8,
     marginBottom: 16,
   },
@@ -585,7 +585,7 @@ const styles = StyleSheet.create({
   },
   technicalHeader: {
     fontSize: 9,
-    fontWeight: '600',
+    fontWeight: '500',
     letterSpacing: 0.5,
     marginBottom: 6,
   },
@@ -615,7 +615,7 @@ const styles = StyleSheet.create({
   },
   driverSource: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
     letterSpacing: 0.3,
     textTransform: 'uppercase',
     marginBottom: 2,
@@ -636,13 +636,13 @@ const styles = StyleSheet.create({
   },
   tensionLabelHeader: {
     fontSize: 9,
-    fontWeight: '700',
+    fontWeight: '500',
     letterSpacing: 0.6,
     marginBottom: 4,
   },
   tensionLabel: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '500',
   },
 
   // Synthesis
@@ -670,7 +670,7 @@ const styles = StyleSheet.create({
   },
   avoidedMoveLabel: {
     fontSize: 9,
-    fontWeight: '700',
+    fontWeight: '500',
     letterSpacing: 0.6,
     marginBottom: 4,
   },
@@ -688,7 +688,7 @@ const styles = StyleSheet.create({
   },
   microShiftLabel: {
     fontSize: 9,
-    fontWeight: '700',
+    fontWeight: '500',
     letterSpacing: 0.5,
     marginBottom: 4,
   },

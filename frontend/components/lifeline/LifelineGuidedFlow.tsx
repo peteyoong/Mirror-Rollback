@@ -890,7 +890,7 @@ const styles = StyleSheet.create({
   },
   progressText: {
     fontSize: 15,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   progressMessage: {
     fontSize: 13,
@@ -931,7 +931,7 @@ const styles = StyleSheet.create({
   },
   teaserTitle: {
     fontSize: 17,
-    fontWeight: '600',
+    fontWeight: '500',
     flex: 1,
     marginRight: 8,
   },
@@ -962,7 +962,7 @@ const styles = StyleSheet.create({
   },
   partialArcText: {
     fontSize: 12,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   partialArcConnector: {
     width: 16,
@@ -981,7 +981,7 @@ const styles = StyleSheet.create({
   },
   mainPrompt: {
     fontSize: 24,
-    fontWeight: '600',
+    fontWeight: '500',
     marginBottom: 8,
   },
   subPrompt: {
@@ -992,7 +992,7 @@ const styles = StyleSheet.create({
   // First entry memory trigger
   memoryTrigger: {
     fontSize: 22,
-    fontWeight: '600',
+    fontWeight: '500',
     marginBottom: 8,
     lineHeight: 30,
   },
@@ -1010,7 +1010,7 @@ const styles = StyleSheet.create({
   // Second entry bridge
   bridgeAffirmation: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '500',
     marginBottom: 6,
   },
   
@@ -1120,7 +1120,7 @@ const styles = StyleSheet.create({
   },
   scaleText: {
     fontSize: 13,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   
   // Actions
@@ -1140,7 +1140,7 @@ const styles = StyleSheet.create({
   saveButtonText: {
     color: '#FFFFFF',
     fontSize: 17,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   exitLink: {
     alignItems: 'center',
@@ -1202,7 +1202,7 @@ const styles = StyleSheet.create({
   },
   arcNodeText: {
     fontSize: 13,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   arcLine: {
     width: 24,

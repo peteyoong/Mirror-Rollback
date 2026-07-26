@@ -569,7 +569,7 @@ const styles = StyleSheet.create({
   },
   backText: { fontSize: 15, fontWeight: '500', width: 50 },
   headerCenter: { flex: 1, alignItems: 'center' },
-  headerTitle: { fontSize: 16, fontWeight: '600' },
+  headerTitle: { fontSize: 16, fontWeight: '500' },
   headerSubtitle: { fontSize: 11, marginTop: 2 },
 
   lensRow: { flexGrow: 0, maxHeight: 48, paddingVertical: 6 },
@@ -588,7 +588,7 @@ const styles = StyleSheet.create({
   listContent: { paddingHorizontal: 16, paddingTop: 8, paddingBottom: 16, gap: 8 },
 
   openerCard: { borderWidth: 1, borderRadius: 14, padding: 16, marginTop: 12 },
-  openerTitle: { fontSize: 15, fontWeight: '600', marginBottom: 8 },
+  openerTitle: { fontSize: 15, fontWeight: '500', marginBottom: 8 },
   openerBody: { fontSize: 14, lineHeight: 21, marginBottom: 12 },
   openerHint: { fontSize: 12, lineHeight: 18, fontStyle: 'italic' },
 
@@ -621,7 +621,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 8,
   },
-  debugTitle: { fontSize: 9, fontWeight: '700', letterSpacing: 1.5, marginBottom: 2 },
+  debugTitle: { fontSize: 9, fontWeight: '500', letterSpacing: 1.5, marginBottom: 2 },
   debugBody: { fontSize: 11, lineHeight: 15, fontFamily: Platform.select({ ios: 'Menlo', android: 'monospace', default: 'monospace' }) },
 
   composer: {
@@ -652,7 +652,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  sendText: { fontSize: 14, fontWeight: '600' },
+  sendText: { fontSize: 14, fontWeight: '500' },
 
   buildMarker: {
     fontSize: 9,

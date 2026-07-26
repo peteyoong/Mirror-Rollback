@@ -187,7 +187,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 11,
-    fontWeight: '600',
+    fontWeight: '500',
     letterSpacing: 1,
     textTransform: 'uppercase',
     marginBottom: 16,
@@ -217,7 +217,7 @@ const styles = StyleSheet.create({
   },
   ctaText: {
     fontSize: 15,
-    fontWeight: '600',
+    fontWeight: '500',
     color: '#FFFFFF',
   },
   secondaryAction: {
@@ -258,7 +258,7 @@ const styles = StyleSheet.create({
   },
   modalTitle: {
     fontSize: 22,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   exampleCard: {
     borderRadius: 12,
@@ -274,7 +274,7 @@ const styles = StyleSheet.create({
   },
   exampleYear: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   exampleCategory: {
     paddingVertical: 3,
@@ -283,11 +283,11 @@ const styles = StyleSheet.create({
   },
   exampleCategoryText: {
     fontSize: 11,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   exampleTitle: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '500',
     marginBottom: 8,
   },
   exampleDescription: {
@@ -308,7 +308,7 @@ const styles = StyleSheet.create({
   },
   exampleCtaText: {
     fontSize: 15,
-    fontWeight: '600',
+    fontWeight: '500',
     color: '#FFFFFF',
   },
 });

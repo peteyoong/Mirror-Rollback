@@ -949,7 +949,7 @@ const styles = StyleSheet.create({
   healthBannerText: {
     color: '#fff',
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   userIdChangedBanner: {
     backgroundColor: '#FF9800',
@@ -963,7 +963,7 @@ const styles = StyleSheet.create({
   userIdChangedBannerText: {
     color: '#fff',
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   tabContainer: {
     flexDirection: 'row',
@@ -1029,7 +1029,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 24,
-    fontWeight: '600',
+    fontWeight: '500',
     color: "inherit",
     marginBottom: 14,
   },
@@ -1049,7 +1049,7 @@ const styles = StyleSheet.create({
   },
   coreNumbersTitle: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
     color: "inherit",
     letterSpacing: 1,
     textAlign: 'center',
@@ -1071,7 +1071,7 @@ const styles = StyleSheet.create({
   },
   numberValue: {
     fontSize: 24,
-    fontWeight: '600',
+    fontWeight: '500',
     color: "inherit",
   },
   lockedNumber: {
@@ -1105,7 +1105,7 @@ const styles = StyleSheet.create({
   },
   cycleNumber: {
     fontSize: 24,
-    fontWeight: '600',
+    fontWeight: '500',
     color: "inherit",
   },
   cycleDivider: {
@@ -1141,7 +1141,7 @@ const styles = StyleSheet.create({
   },
   sectionLabel: {
     fontSize: 17,
-    fontWeight: '600',
+    fontWeight: '500',
     color: "inherit",
     flex: 1,
   },
@@ -1161,7 +1161,7 @@ const styles = StyleSheet.create({
   },
   mirrorPromptLabel: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
     color: "inherit",
     letterSpacing: 1,
     marginBottom: 14,
@@ -1213,7 +1213,7 @@ const styles = StyleSheet.create({
   },
   askMirrorText: {
     fontSize: 17,
-    fontWeight: '600',
+    fontWeight: '500',
     color: "inherit",
   },
   // Footer
@@ -1268,7 +1268,7 @@ const styles = StyleSheet.create({
   },
   modalTitle: {
     fontSize: 22,
-    fontWeight: '600',
+    fontWeight: '500',
     color: "inherit",
     textAlign: 'center',
     marginBottom: 4,
@@ -1339,7 +1339,7 @@ const styles = StyleSheet.create({
   },
   modalPrimaryButtonText: {
     fontSize: 17,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   disabledButton: {
     opacity: 0.6,
@@ -1387,7 +1387,7 @@ const styles = StyleSheet.create({
   },
   unlockButtonTitle: {
     fontSize: 17,
-    fontWeight: '600',
+    fontWeight: '500',
     color: "inherit",
     marginBottom: 2,
   },

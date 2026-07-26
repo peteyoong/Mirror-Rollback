@@ -235,7 +235,7 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     fontSize: 24,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   content: {
     flex: 1,
@@ -283,7 +283,7 @@ const styles = StyleSheet.create({
   },
   createButtonText: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   // Success screen styles
   successContent: {
@@ -299,7 +299,7 @@ const styles = StyleSheet.create({
   },
   successTitle: {
     fontSize: 22,
-    fontWeight: '600',
+    fontWeight: '500',
     marginBottom: 12,
     textAlign: 'center',
   },
@@ -330,7 +330,7 @@ const styles = StyleSheet.create({
   },
   copyButtonText: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   goButton: {
     paddingVertical: 16,

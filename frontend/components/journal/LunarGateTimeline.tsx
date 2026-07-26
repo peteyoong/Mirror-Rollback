@@ -375,7 +375,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 11,
-    fontWeight: '600',
+    fontWeight: '500',
     letterSpacing: 1,
     marginBottom: 8,
   },
@@ -400,13 +400,13 @@ const styles = StyleSheet.create({
   },
   currentLabel: {
     fontSize: 10,
-    fontWeight: '600',
+    fontWeight: '500',
     letterSpacing: 0.5,
     marginBottom: 2,
   },
   currentDay: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   currentGate: {
     fontSize: 13,
@@ -483,7 +483,7 @@ const styles = StyleSheet.create({
   },
   gateNumber: {
     fontSize: 13,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   gateTitle: {
     fontSize: 9,
@@ -501,7 +501,7 @@ const styles = StyleSheet.create({
   },
   entryIndicatorText: {
     fontSize: 9,
-    fontWeight: '700',
+    fontWeight: '500',
     color: '#1A1D24',
   },
   todayMarker: {
@@ -557,7 +557,7 @@ const styles = StyleSheet.create({
   },
   modalDay: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '500',
     marginBottom: 2,
   },
   modalGate: {
@@ -575,7 +575,7 @@ const styles = StyleSheet.create({
   },
   modalButtonText: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
     color: '#1A1D24',
   },
   moreEntries: {

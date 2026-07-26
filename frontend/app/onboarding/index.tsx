@@ -865,7 +865,7 @@ const styles = StyleSheet.create({
   selectedLocationLabel: {
     fontSize: 11,
     color: Colors.accent,
-    fontWeight: '600',
+    fontWeight: '500',
     marginBottom: 4,
   },
   selectedLocationText: {
@@ -920,12 +920,12 @@ const styles = StyleSheet.create({
   },
   buttonText: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '500',
     color: Colors.background,  // Dark text on warm beige
   },
   buttonSecondaryText: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '500',
     color: Colors.text,
   },
 });

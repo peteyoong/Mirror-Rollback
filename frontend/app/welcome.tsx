@@ -8,6 +8,7 @@ import {
   ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
+  ScrollView,
   useWindowDimensions,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -117,7 +118,12 @@ export default function Welcome() {
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
           style={styles.keyboardView}
         >
-          <View style={styles.loginBody}>
+          <ScrollView
+            contentContainerStyle={styles.loginBody}
+            showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
+            bounces={false}
+          >
             <View style={styles.loginBrand}>
               <Text style={styles.brandSeparator}>—</Text>
               <Text style={[styles.brandText, { color: t.onSurface }]}>The Mirror</Text>
@@ -181,7 +187,7 @@ export default function Welcome() {
                 <Text style={[styles.textButtonText, { color: t.onSurfaceTertiary }]}>Back</Text>
               </TouchableOpacity>
             </View>
-          </View>
+          </ScrollView>
         </KeyboardAvoidingView>
       </SafeAreaView>
     );
@@ -200,7 +206,12 @@ export default function Welcome() {
     <SafeAreaView style={[styles.container, { backgroundColor: t.background }]}>
       <StatusBar style="light" />
 
-      <View style={[styles.landingBody, { paddingVertical: verticalRoom }]}>
+      <ScrollView
+        style={styles.container}
+        contentContainerStyle={[styles.landingBody, { paddingVertical: verticalRoom }]}
+        showsVerticalScrollIndicator={false}
+        bounces={false}
+      >
         {/* HERO — brand + headline + subtext + bridge */}
         <View style={styles.hero}>
           <View style={styles.brandContainer}>
@@ -241,19 +252,22 @@ export default function Welcome() {
           </TouchableOpacity>
 
           <View style={styles.secondaryActionsRow}>
-            <TouchableOpacity onPress={handleBeginReflection} activeOpacity={0.6} hitSlop={8}>
-              <Text style={styles.secondaryActionText}>{"I\u2019m new here"}</Text>
-            </TouchableOpacity>
-            <Text style={styles.secondaryActionDivider}>·</Text>
             <TouchableOpacity
+              style={styles.ghostButton}
+              onPress={handleBeginReflection}
+              activeOpacity={0.6}
+            >
+              <Text style={styles.ghostButtonText}>{"I\u2019m new here"}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.ghostButton}
               onPress={() => setShowLogin(true)}
               activeOpacity={0.6}
-              hitSlop={8}
               testID="welcome-sign-in-link"
               accessibilityLabel="Sign in"
               accessibilityRole="button"
             >
-              <Text style={styles.secondaryActionText}>Sign in</Text>
+              <Text style={styles.ghostButtonText}>Sign in</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -271,7 +285,7 @@ export default function Welcome() {
           </View>
           <Text style={styles.buildMarker}>build · {BUILD_ID}</Text>
         </View>
-      </View>
+      </ScrollView>
     </SafeAreaView>
   );
 }
@@ -288,11 +302,12 @@ const styles = StyleSheet.create({
 
   // ── Landing single-page layout ──────────────────────────────
   landingBody: {
-    flex: 1,
+    flexGrow: 1,
     width: '100%',
     paddingHorizontal: space.xl,
     justifyContent: 'space-between',
     alignItems: 'center',
+    gap: space.xl,
   },
   hero: {
     width: '100%',
@@ -362,15 +377,21 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginTop: space.sm,
     gap: space.md,
+    width: '100%',
+  },
+  ghostButton: {
+    flex: 1,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.14)',
+    borderRadius: radius.md,
+    paddingVertical: space.md + 2,
+    alignItems: 'center',
+    justifyContent: 'center',
     minHeight: touchTarget.minSize,
   },
-  secondaryActionText: {
-    ...textRole.body,
-    color: 'rgba(255, 255, 255, 0.55)',
-  },
-  secondaryActionDivider: {
-    ...textRole.body,
-    color: 'rgba(255, 255, 255, 0.3)',
+  ghostButtonText: {
+    ...textRole.buttonSecondary,
+    color: 'rgba(255, 255, 255, 0.72)',
   },
 
   // ── Footer ────────────────────────────────────────────────
@@ -408,9 +429,10 @@ const styles = StyleSheet.create({
 
   // ── Login form ────────────────────────────────────────────
   loginBody: {
-    flex: 1,
+    flexGrow: 1,
     width: '100%',
     paddingHorizontal: space.xl,
+    paddingVertical: space['2xl'],
     justifyContent: 'center',
     alignItems: 'center',
   },

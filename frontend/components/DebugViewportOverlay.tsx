@@ -97,7 +97,7 @@ export function DebugViewportOverlay() {
         lineHeight: 1.4,
       }}
     >
-      <div style={{ fontWeight: 'bold', marginBottom: 4 }}>
+      <div style={{ fontWeight: '500', marginBottom: 4 }}>
         🖥️ Viewport Debug
       </div>
       <div>innerW: {innerWidth}px</div>
@@ -106,14 +106,14 @@ export function DebugViewportOverlay() {
       <div>scrollW: {scrollWidth}px</div>
       <div>DPR: {devicePixelRatio.toFixed(2)}</div>
       <div style={{ marginTop: 4, borderTop: '1px solid #333', paddingTop: 4 }}>
-        <div style={{ fontWeight: 'bold' }}>
+        <div style={{ fontWeight: '500' }}>
           {isStandalone ? '📱 Standalone' : '🌐 Browser'}
         </div>
         <div style={{ fontSize: 9 }}>mode: {standaloneSource}</div>
       </div>
       <div style={{ 
         marginTop: 4, 
-        fontWeight: 'bold',
+        fontWeight: '500',
         color: hasOverflow ? '#ffff00' : '#00ff00' 
       }}>
         {hasOverflow ? '⚠️ OVERFLOW!' : '✅ No overflow'}

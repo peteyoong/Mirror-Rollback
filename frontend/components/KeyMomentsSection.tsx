@@ -299,7 +299,7 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     fontSize: 9, // Reduced from 10 - smaller heading
-    fontWeight: '600',
+    fontWeight: '500',
     letterSpacing: 0.8,
   },
   headerLine: {
@@ -319,7 +319,7 @@ const styles = StyleSheet.create({
   },
   patternLabel: {
     fontSize: 9, // Reduced from 10
-    fontWeight: '600',
+    fontWeight: '500',
     letterSpacing: 0.4,
   },
   extractedLine: {

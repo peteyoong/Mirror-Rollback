@@ -405,7 +405,7 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   headerSubtitle: {
     fontSize: 14,

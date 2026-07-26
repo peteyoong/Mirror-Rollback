@@ -152,14 +152,14 @@ const styles = StyleSheet.create({
   },
   eyebrow: {
     fontSize: 10,
-    fontWeight: '700',
+    fontWeight: '500',
     letterSpacing: 1.5,
     marginBottom: 16,
     textTransform: 'uppercase',
   },
   title: {
     fontSize: 26,
-    fontWeight: '600',
+    fontWeight: '500',
     lineHeight: 32,
     marginBottom: 20,
     letterSpacing: -0.3,

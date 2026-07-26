@@ -612,7 +612,7 @@ const styles = StyleSheet.create({
   },
   patternTitle: {
     fontSize: 24,
-    fontWeight: '600',
+    fontWeight: '500',
     letterSpacing: -0.3,
     marginBottom: 4,
   },
@@ -630,7 +630,7 @@ const styles = StyleSheet.create({
   },
   sectionLabel: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
     letterSpacing: 1.2,
     marginBottom: 14,
   },
@@ -649,7 +649,7 @@ const styles = StyleSheet.create({
   },
   growthEdgeLabel: {
     fontSize: 14,
-    fontWeight: '700',
+    fontWeight: '500',
     letterSpacing: 1.5,
     marginBottom: 16,
   },
@@ -668,7 +668,7 @@ const styles = StyleSheet.create({
   },
   giftLabel: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
     letterSpacing: 1.2,
     marginBottom: 14,
   },
@@ -688,7 +688,7 @@ const styles = StyleSheet.create({
   },
   teachingLabel: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
     letterSpacing: 1,
     marginBottom: 16,
   },
@@ -712,7 +712,7 @@ const styles = StyleSheet.create({
   },
   tryThisLabel: {
     fontSize: 14,
-    fontWeight: '700',
+    fontWeight: '500',
     letterSpacing: 1.2,
   },
   tryThisText: {
@@ -735,7 +735,7 @@ const styles = StyleSheet.create({
   },
   peopleSectionTitle: {
     fontSize: 22,
-    fontWeight: '600',
+    fontWeight: '500',
     marginBottom: 2,
   },
   peopleSectionSubtitle: {
@@ -786,7 +786,7 @@ const styles = StyleSheet.create({
   },
   personName: {
     fontSize: 17,
-    fontWeight: '600',
+    fontWeight: '500',
     marginBottom: 2,
   },
   personType: {
@@ -832,11 +832,11 @@ const styles = StyleSheet.create({
   },
   modalTitle: {
     fontSize: 17,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   modalSave: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   modalContent: {
     flex: 1,
@@ -849,7 +849,7 @@ const styles = StyleSheet.create({
   },
   inputLabel: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '500',
     marginBottom: 14,
   },
   inputHint: {

@@ -193,13 +193,13 @@ const styles = StyleSheet.create({
   },
   labelText: {
     fontSize: 10,
-    fontWeight: '600',
+    fontWeight: '500',
     letterSpacing: 0.5,
     marginBottom: 2,
   },
   archetypeName: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '500',
     letterSpacing: -0.2,
   },
   currentExpression: {

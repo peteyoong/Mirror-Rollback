@@ -18,6 +18,7 @@ import { StatusBar } from 'expo-status-bar';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { useTheme, ThemeMode } from '../../contexts/ThemeContext';
 import { Colors } from '../../constants/colors';
+import { fontFamily } from '../../theme/tokens';
 import { useAppStore } from '../../store';
 import api from '../../services/api';
 import { storage } from '../../store';
@@ -695,13 +696,14 @@ const styles = StyleSheet.create({
     flexDirection: 'column',
   },
   headerTitle: {
-    fontSize: 22,
-    fontWeight: '600',
-    letterSpacing: 0.3,
+    fontFamily: fontFamily.display,
+    fontSize: 24,
+    fontWeight: '400',
+    letterSpacing: 0.6,
   },
   headerSubtitle: {
-    fontSize: 14,
-    fontWeight: '500',
+    fontSize: 13,
+    fontWeight: '400',
     letterSpacing: 0.5,
     marginTop: 2,
   },
@@ -824,7 +826,7 @@ const styles = StyleSheet.create({
   },
   heroAwarenessLabel: {
     fontSize: 14,
-    fontWeight: '700',
+    fontWeight: '500',
     letterSpacing: 0.5,
     marginBottom: 14,
   },
@@ -840,7 +842,7 @@ const styles = StyleSheet.create({
   },
   heroCTAText: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '500',
     letterSpacing: 0.3,
   },
 
@@ -856,7 +858,7 @@ const styles = StyleSheet.create({
   },
   influencesTitle: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
     letterSpacing: 1.2,
     marginBottom: 16,
     opacity: 0.7,
@@ -903,7 +905,7 @@ const styles = StyleSheet.create({
   },
   doorwayTitle: {
     fontSize: 17,
-    fontWeight: '600',
+    fontWeight: '500',
     marginBottom: 4,
   },
   doorwaySubtitle: {
@@ -963,7 +965,7 @@ const styles = StyleSheet.create({
   },
   lifelineBridgeLabel: {
     fontSize: 14,
-    fontWeight: '700',
+    fontWeight: '500',
     letterSpacing: 1.2,
     marginBottom: 14,
   },
@@ -980,7 +982,7 @@ const styles = StyleSheet.create({
   lifelineBridgeCTAText: {
     color: '#FFFFFF',
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   lifelineBridgeCount: {
     fontSize: 14,
@@ -999,7 +1001,7 @@ const styles = StyleSheet.create({
   },
   continuityTitle: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
     letterSpacing: 1.2,
     marginBottom: 16,
     opacity: 0.7,
@@ -1044,7 +1046,7 @@ const styles = StyleSheet.create({
   },
   depthTitle: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
     letterSpacing: 1.2,
     opacity: 0.7,
   },
@@ -1072,7 +1074,7 @@ const styles = StyleSheet.create({
   patternPillBadge: {
     marginLeft: 4,
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
   },
 
   // =========================================================================
@@ -1104,7 +1106,7 @@ const styles = StyleSheet.create({
   },
   forumsTitle: {
     fontSize: 17,
-    fontWeight: '600',
+    fontWeight: '500',
     marginBottom: 2,
   },
   forumsSubtitle: {
@@ -1135,7 +1137,7 @@ const styles = StyleSheet.create({
   },
   modalTitle: {
     fontSize: 17,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   closeButton: {
     paddingVertical: 4,
@@ -1158,7 +1160,7 @@ const styles = StyleSheet.create({
   },
   settingsSectionTitle: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
     letterSpacing: 0.5,
     paddingHorizontal: 16,
     paddingTop: 16,
@@ -1187,7 +1189,7 @@ const styles = StyleSheet.create({
   },
   checkmark: {
     fontSize: 22,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   appVersion: {
     fontSize: 14,
@@ -1206,13 +1208,13 @@ const styles = StyleSheet.create({
   },
   lensesExploreLabel: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
     letterSpacing: 0.8,
     marginBottom: 14,
   },
   lensesExploreTitle: {
     fontSize: 17,
-    fontWeight: '600',
+    fontWeight: '500',
     marginBottom: 6,
   },
   lensesExploreDescription: {

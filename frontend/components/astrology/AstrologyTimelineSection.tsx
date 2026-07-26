@@ -580,7 +580,7 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 16,
-    fontWeight: '700',
+    fontWeight: '500',
     letterSpacing: 0.5,
   },
   sectionSubtitle: {
@@ -613,7 +613,7 @@ const styles = StyleSheet.create({
   },
   yearThemeLabel: {
     fontSize: 14,
-    fontWeight: '700',
+    fontWeight: '500',
     letterSpacing: 0.8,
     marginBottom: 14,
   },
@@ -629,7 +629,7 @@ const styles = StyleSheet.create({
   },
   primaryArcLabel: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
     letterSpacing: 0.5,
     marginBottom: 14,
   },
@@ -644,7 +644,7 @@ const styles = StyleSheet.create({
   },
   phasesLabel: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
     letterSpacing: 0.5,
     marginBottom: 16,
   },
@@ -674,7 +674,7 @@ const styles = StyleSheet.create({
   },
   phaseName: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '500',
     marginTop: 2,
   },
   phaseExpandIcon: {
@@ -693,7 +693,7 @@ const styles = StyleSheet.create({
   },
   phaseSectionTitle: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
     marginBottom: 4,
   },
   phaseBullet: {
@@ -708,7 +708,7 @@ const styles = StyleSheet.create({
   },
   turningPointsLabel: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
     letterSpacing: 0.5,
     marginBottom: 16,
   },
@@ -720,7 +720,7 @@ const styles = StyleSheet.create({
   },
   turningPointDate: {
     fontSize: 16,
-    fontWeight: '700',
+    fontWeight: '500',
     marginBottom: 16,
   },
   turningPointSection: {
@@ -728,7 +728,7 @@ const styles = StyleSheet.create({
   },
   turningPointSectionTitle: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
     marginBottom: 3,
   },
   turningPointText: {
@@ -742,7 +742,7 @@ const styles = StyleSheet.create({
   },
   decisionWindowsLabel: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
     letterSpacing: 0.5,
     marginBottom: 16,
   },
@@ -771,7 +771,7 @@ const styles = StyleSheet.create({
   },
   decisionOutcomeLabel: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
     marginBottom: 3,
   },
   decisionOutcomeText: {

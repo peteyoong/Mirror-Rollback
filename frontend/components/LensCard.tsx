@@ -49,7 +49,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 22,
-    fontWeight: '600',
+    fontWeight: '500',
     color: Colors.text,
     marginBottom: 12,
   },
@@ -69,7 +69,7 @@ const styles = StyleSheet.create({
   },
   infoLabel: {
     fontSize: 13,
-    fontWeight: '600',
+    fontWeight: '500',
     color: Colors.textSecondary,
     marginLeft: 6,
   },

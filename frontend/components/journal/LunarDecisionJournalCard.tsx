@@ -357,7 +357,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 11,
-    fontWeight: '600',
+    fontWeight: '500',
     letterSpacing: 1,
     textTransform: 'uppercase',
   },
@@ -369,7 +369,7 @@ const styles = StyleSheet.create({
   },
   lunarDay: {
     fontSize: 22,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   phaseBadge: {
     paddingHorizontal: 10,
@@ -393,11 +393,11 @@ const styles = StyleSheet.create({
   },
   gateNumber: {
     fontSize: 14,
-    fontWeight: '700',
+    fontWeight: '500',
   },
   gateTitle: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   gateTheme: {
     fontSize: 13,
@@ -415,7 +415,7 @@ const styles = StyleSheet.create({
   },
   considerationLabel: {
     fontSize: 10,
-    fontWeight: '600',
+    fontWeight: '500',
     letterSpacing: 1,
     marginBottom: 6,
   },
@@ -450,7 +450,7 @@ const styles = StyleSheet.create({
   },
   inputLabel: {
     fontSize: 10,
-    fontWeight: '600',
+    fontWeight: '500',
     letterSpacing: 1,
   },
   input: {
@@ -485,7 +485,7 @@ const styles = StyleSheet.create({
   },
   saveButtonText: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
     color: '#1A1D24',
   },
   newMoonWarning: {

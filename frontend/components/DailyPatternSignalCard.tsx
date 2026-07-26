@@ -230,13 +230,13 @@ const styles = StyleSheet.create({
   },
   cardLabel: {
     fontSize: 10,
-    fontWeight: '600',
+    fontWeight: '500',
     textTransform: 'uppercase',
     letterSpacing: 1,
   },
   cardTitle: {
     fontSize: 22,
-    fontWeight: '600',
+    fontWeight: '500',
     lineHeight: 24,
     marginBottom: 10,
   },

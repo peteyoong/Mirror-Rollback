@@ -279,7 +279,7 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     fontSize: 17,
-    fontWeight: '600',
+    fontWeight: '500',
     color: Colors.text,
   },
   headerSpacer: {
@@ -308,7 +308,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 28,
-    fontWeight: '600',
+    fontWeight: '500',
     color: Colors.text,
     marginBottom: 12,
   },
@@ -340,7 +340,7 @@ const styles = StyleSheet.create({
   },
   infoLabel: {
     fontSize: 13,
-    fontWeight: '600',
+    fontWeight: '500',
     color: Colors.textSecondary,
   },
   infoText: {
@@ -356,7 +356,7 @@ const styles = StyleSheet.create({
   },
   assessmentTitle: {
     fontSize: 22,
-    fontWeight: '600',
+    fontWeight: '500',
     color: Colors.text,
     marginBottom: 8,
   },
@@ -386,7 +386,7 @@ const styles = StyleSheet.create({
   },
   sectionNumberText: {
     fontSize: 13,
-    fontWeight: '600',
+    fontWeight: '500',
     color: Colors.text,
   },
   sectionContent: {
@@ -394,7 +394,7 @@ const styles = StyleSheet.create({
   },
   sectionItemTitle: {
     fontSize: 15,
-    fontWeight: '600',
+    fontWeight: '500',
     color: Colors.text,
     marginBottom: 2,
   },
@@ -434,7 +434,7 @@ const styles = StyleSheet.create({
   },
   ctaButtonText: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '500',
     color: Colors.background,
   },
   ctaButtonSecondary: {

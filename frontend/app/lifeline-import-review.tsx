@@ -929,7 +929,7 @@ const styles = StyleSheet.create({
   },
   selectedCount: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   headerRight: {
     width: 60,
@@ -947,7 +947,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 22,
-    fontWeight: '700',
+    fontWeight: '500',
     marginBottom: 6,
   },
   subtitle: {
@@ -977,7 +977,7 @@ const styles = StyleSheet.create({
   },
   sourceLabel: {
     fontSize: 10,
-    fontWeight: '600',
+    fontWeight: '500',
     letterSpacing: 0.5,
     marginBottom: 2,
   },
@@ -992,7 +992,7 @@ const styles = StyleSheet.create({
   },
   extractedBadgeText: {
     fontSize: 12,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   
   selectionControls: {
@@ -1043,7 +1043,7 @@ const styles = StyleSheet.create({
   checkmark: {
     color: '#FFFFFF',
     fontSize: 14,
-    fontWeight: '700',
+    fontWeight: '500',
   },
   eventContent: {
     flex: 1,
@@ -1056,7 +1056,7 @@ const styles = StyleSheet.create({
   },
   eventYear: {
     fontSize: 14,
-    fontWeight: '700',
+    fontWeight: '500',
   },
   categoryBadge: {
     paddingHorizontal: 8,
@@ -1069,7 +1069,7 @@ const styles = StyleSheet.create({
   },
   eventTitle: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '500',
     marginBottom: 4,
   },
   eventDescription: {
@@ -1112,7 +1112,7 @@ const styles = StyleSheet.create({
   primaryButtonText: {
     color: '#FFFFFF',
     fontSize: 17,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   disabledButton: {
     opacity: 0.5,
@@ -1142,7 +1142,7 @@ const styles = StyleSheet.create({
   },
   emptyTitle: {
     fontSize: 24,
-    fontWeight: '600',
+    fontWeight: '500',
     marginBottom: 12,
     textAlign: 'center',
   },
@@ -1167,7 +1167,7 @@ const styles = StyleSheet.create({
   emptyButtonText: {
     color: '#FFFFFF',
     fontSize: 17,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   emptyButtonSecondary: {
     paddingVertical: 14,
@@ -1207,11 +1207,11 @@ const styles = StyleSheet.create({
   },
   modalTitle: {
     fontSize: 17,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   modalSave: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   modalBody: {
     flex: 1,
@@ -1222,7 +1222,7 @@ const styles = StyleSheet.create({
   },
   fieldLabel: {
     fontSize: 13,
-    fontWeight: '600',
+    fontWeight: '500',
     marginBottom: 8,
     textTransform: 'uppercase',
     letterSpacing: 0.5,

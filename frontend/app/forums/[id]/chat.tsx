@@ -104,11 +104,11 @@ const styles = StyleSheet.create({
     fontSize: 10.5,
     letterSpacing: 1.5,
     textTransform: 'uppercase',
-    fontWeight: '600',
+    fontWeight: '500',
   },
   title: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '500',
     letterSpacing: -0.2,
     marginTop: 1,
   },

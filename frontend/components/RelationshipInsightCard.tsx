@@ -226,7 +226,7 @@ const styles = StyleSheet.create({
   retryText: {
     fontSize: 16,
     textAlign: 'center',
-    fontWeight: '600',
+    fontWeight: '500',
   },
   
   // Header
@@ -242,7 +242,7 @@ const styles = StyleSheet.create({
   },
   otherName: {
     fontSize: 28,
-    fontWeight: '700',
+    fontWeight: '500',
     letterSpacing: -0.5,
     marginBottom: 6,
   },
@@ -273,7 +273,7 @@ const styles = StyleSheet.create({
   },
   breakthroughText: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '500',
     letterSpacing: 0.3,
   },
 

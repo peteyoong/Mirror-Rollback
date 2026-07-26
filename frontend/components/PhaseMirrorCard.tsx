@@ -401,7 +401,7 @@ const styles = StyleSheet.create({
   },
   phaseTagText: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   humanMeaning: {
     fontSize: 14,
@@ -427,7 +427,7 @@ const styles = StyleSheet.create({
   },
   repeatLine: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '500',
     marginBottom: 2,
   },
   repeatSubline: {
@@ -479,7 +479,7 @@ const styles = StyleSheet.create({
   },
   identityEchoLabel: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
     letterSpacing: 0.5,
     textTransform: 'uppercase',
     marginBottom: 4,
@@ -583,7 +583,7 @@ const styles = StyleSheet.create({
   },
   primaryCtaText: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   secondaryCta: {
     flex: 1,

@@ -275,7 +275,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 24,
-    fontWeight: '700',
+    fontWeight: '500',
     marginBottom: 14,
   },
   subtitle: {
@@ -294,11 +294,11 @@ const styles = StyleSheet.create({
   },
   explorePairText: {
     fontSize: 17,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   explorePairArrow: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   loadingContainer: {
     alignItems: 'center',
@@ -325,7 +325,7 @@ const styles = StyleSheet.create({
   },
   retryButtonText: {
     fontSize: 17,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   sectionsContainer: {
     gap: 16,
@@ -336,7 +336,7 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '500',
     marginBottom: 16,
   },
   distributionList: {
@@ -359,7 +359,7 @@ const styles = StyleSheet.create({
   },
   distributionCount: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   distributionMeta: {
     fontSize: 16,

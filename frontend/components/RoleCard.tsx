@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../contexts/ThemeContext';
+import { fontFamily } from '../theme/tokens';
 import { LifeRoleCard } from '../services/api';
 
 interface Props {
@@ -108,13 +109,15 @@ const styles = StyleSheet.create({
   },
   eyebrow: {
     fontSize: 11,
-    fontWeight: '700',
+    fontWeight: '500',
     letterSpacing: 1.2,
   },
   role: {
-    fontSize: 17,
-    lineHeight: 25,
-    fontWeight: '600',
+    fontFamily: fontFamily.display,
+    fontSize: 19,
+    lineHeight: 27,
+    fontWeight: '400',
+    letterSpacing: 0.2,
     marginBottom: 14,
   },
   subStack: {
@@ -125,7 +128,7 @@ const styles = StyleSheet.create({
   },
   subLabel: {
     fontSize: 10,
-    fontWeight: '700',
+    fontWeight: '500',
     letterSpacing: 1,
     textTransform: 'uppercase',
   },
@@ -141,7 +144,7 @@ const styles = StyleSheet.create({
   },
   notForLabel: {
     fontSize: 10,
-    fontWeight: '700',
+    fontWeight: '500',
     letterSpacing: 1,
     textTransform: 'uppercase',
   },

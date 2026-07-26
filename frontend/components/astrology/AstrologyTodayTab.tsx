@@ -547,7 +547,7 @@ const styles = StyleSheet.create({
   },
   altitudeText: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   loadingContainer: {
     flexDirection: 'row',
@@ -569,7 +569,7 @@ const styles = StyleSheet.create({
   },
   retryText: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   expertContainer: {
     borderRadius: 16,
@@ -596,14 +596,14 @@ const styles = StyleSheet.create({
   },
   themeLabel: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
     letterSpacing: 1.2,
     textTransform: 'uppercase',
     marginBottom: 6,
   },
   themeText: {
     fontSize: 24,
-    fontWeight: '700',
+    fontWeight: '500',
     lineHeight: 30,
     letterSpacing: -0.3,
   },
@@ -628,7 +628,7 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
     letterSpacing: 0.5,
     textTransform: 'uppercase',
   },
@@ -693,7 +693,7 @@ const styles = StyleSheet.create({
   },
   rawSignalsLabel: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
     letterSpacing: 1,
     textTransform: 'uppercase',
     marginBottom: 14,
@@ -741,7 +741,7 @@ const styles = StyleSheet.create({
   },
   askMirrorText: {
     fontSize: 17,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   
   // True Sidereal Transit Card Section
@@ -762,7 +762,7 @@ const styles = StyleSheet.create({
   },
   dividerText: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
     letterSpacing: 1,
     marginHorizontal: 12,
   },

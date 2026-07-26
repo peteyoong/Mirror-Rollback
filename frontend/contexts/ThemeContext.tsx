@@ -9,31 +9,31 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 // THEME TOKENS
 // ============================================
 
-// Light Theme - Calm, warm, paper-like (NO PURE WHITE)
+// Light Theme - Calm, warm, paper-like (aligned to theme/tokens.ts colorLight)
 export const LightTheme = {
-  // Backgrounds - warm beige tones (replaces all white)
-  background: '#F2ECE4',         // warm beige base
-  surface: '#EAE3D9',            // warm beige for cards/surfaces
-  surfaceElevated: '#F2ECE4',    // softer beige for elevated
-  surfaceLight: '#F5EFE7',       // lightest warm tone
-  surfaceMuted: '#E5DED4',       // muted warm
+  // Backgrounds - warm paper tones (replaces all white)
+  background: '#FDFCF8',         // warm paper base
+  surface: '#F5F5F0',            // warm surface for cards
+  surfaceElevated: '#FDFCF8',    // softer elevated
+  surfaceLight: '#F8F7F2',       // lightest warm tone
+  surfaceMuted: '#EFEDE6',       // muted warm
   
   // Text - dark on light
-  text: '#1C1C1E',               // primary text on beige
-  textSecondary: '#4A4A4A',
-  textTertiary: '#6B6B6B',       // muted text on beige
+  text: '#111111',               // primary text on paper
+  textSecondary: '#404040',
+  textTertiary: '#737373',       // muted text
   textDisabled: '#9A9A9A',
-  textInverse: '#F2ECE4',        // light text for dark backgrounds
+  textInverse: '#FDFCF8',        // light text for dark backgrounds
   
-  // Accent
-  accent: '#2A2A2A',
-  accentMuted: '#5A5A5A',
-  accentLight: '#DDD6CC',        // warm accent light
+  // Accent — muted gold brand
+  accent: '#967B54',
+  accentMuted: '#7A6647',
+  accentLight: '#EDE3D2',        // warm accent light
   
   // Borders - warm tinted
-  border: '#D4CCC2',
-  borderLight: '#E0D9CF',
-  borderFocus: '#1C1C1E',
+  border: '#E3DED4',
+  borderLight: '#EDE9DF',
+  borderFocus: '#111111',
   
   // Semantic
   error: '#C62828',
@@ -83,31 +83,31 @@ export const LightTheme = {
   isDark: false,
 };
 
-// Dark Theme - Deep, calming, premium
+// Dark Theme - "6 Glass / Luxe DARK" (aligned to theme/tokens.ts colorDark)
 export const DarkTheme = {
-  // Backgrounds - warm-tinted dark (not pure black)
-  background: '#0D0D0D',
-  surface: '#1A1A1A',
-  surfaceElevated: '#252525',
+  // Backgrounds - deep neutral dark (not pure black)
+  background: '#111111',
+  surface: '#1C1C1C',
+  surfaceElevated: '#262626',
   surfaceLight: '#1F1F1F',
-  surfaceMuted: '#151515',
+  surfaceMuted: '#161616',
   
   // Text - warm white
-  text: '#F0EDE8',
-  textSecondary: '#B5B2AD',
-  textTertiary: '#7A7875',
+  text: '#F5F5F0',
+  textSecondary: '#A3A3A3',
+  textTertiary: '#787878',
   textDisabled: '#4A4845',
-  textInverse: '#1A1A1A',
+  textInverse: '#111111',
   
-  // Accent - warm gold
-  accent: '#D4C9B8',
-  accentMuted: '#8A857A',
-  accentLight: '#2A2825',
+  // Accent - muted gold brand
+  accent: '#C6A87C',
+  accentMuted: '#967B54',
+  accentLight: '#2A251C',
   
   // Borders
-  border: '#333330',
-  borderLight: '#2A2825',
-  borderFocus: '#D4C9B8',
+  border: '#2A2A2A',
+  borderLight: '#222222',
+  borderFocus: '#C6A87C',
   
   // Semantic - adjusted for dark
   error: '#EF5350',
@@ -128,26 +128,26 @@ export const DarkTheme = {
   growthColorBg: '#1A2C1A',
   
   // Inputs
-  inputBg: '#1F1F1F',
-  inputBorder: '#333330',
-  inputPlaceholder: '#4A4845',
+  inputBg: '#1C1C1C',
+  inputBorder: '#2A2A2A',
+  inputPlaceholder: '#737373',
   
   // Tabs
-  tabActive: '#F0EDE8',
-  tabInactive: '#7A7875',
-  tabIndicator: '#D4C9B8',
-  tabBg: '#1A1A1A',
+  tabActive: '#C6A87C',
+  tabInactive: '#737373',
+  tabIndicator: '#C6A87C',
+  tabBg: '#161616',
   
   // Buttons - inverted for dark
-  buttonPrimaryBg: '#F0EDE8',
-  buttonPrimaryText: '#1A1A1A',
+  buttonPrimaryBg: '#F5F5F0',
+  buttonPrimaryText: '#111111',
   buttonSecondaryBg: 'transparent',
-  buttonSecondaryText: '#D4C9B8',
-  buttonSecondaryBorder: '#333330',
+  buttonSecondaryText: '#C6A87C',
+  buttonSecondaryBorder: '#404040',
   
   // Cards
-  cardBg: '#1A1A1A',
-  cardBorder: '#2A2825',
+  cardBg: '#1C1C1C',
+  cardBorder: '#2A2A2A',
   cardShadow: 'rgba(0,0,0,0.4)',
   
   // Overlay

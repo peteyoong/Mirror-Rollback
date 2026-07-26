@@ -508,7 +508,7 @@ export default function BaziLensView({ userId, onOpenChat }: Props) {
         style={[styles.tab, activeTab === 'summary' && styles.activeTab]}
         onPress={() => setActiveTab('summary')}
       >
-        <Text style={[styles.tabText, { color: theme.textTertiary }, activeTab === 'summary' && { color: theme.text, fontWeight: '600' }]}>
+        <Text style={[styles.tabText, { color: theme.textTertiary }, activeTab === 'summary' && { color: theme.text, fontWeight: '500' }]}>
           Summary
         </Text>
       </TouchableOpacity>
@@ -516,7 +516,7 @@ export default function BaziLensView({ userId, onOpenChat }: Props) {
         style={[styles.tab, activeTab === 'today' && styles.activeTab]}
         onPress={() => setActiveTab('today')}
       >
-        <Text style={[styles.tabText, { color: theme.textTertiary }, activeTab === 'today' && { color: theme.text, fontWeight: '600' }]}>
+        <Text style={[styles.tabText, { color: theme.textTertiary }, activeTab === 'today' && { color: theme.text, fontWeight: '500' }]}>
           Today
         </Text>
       </TouchableOpacity>
@@ -524,7 +524,7 @@ export default function BaziLensView({ userId, onOpenChat }: Props) {
         style={[styles.tab, activeTab === 'snapshot' && styles.activeTab]}
         onPress={() => setActiveTab('snapshot')}
       >
-        <Text style={[styles.tabText, { color: theme.textTertiary }, activeTab === 'snapshot' && { color: theme.text, fontWeight: '600' }]}>
+        <Text style={[styles.tabText, { color: theme.textTertiary }, activeTab === 'snapshot' && { color: theme.text, fontWeight: '500' }]}>
           Timing
         </Text>
       </TouchableOpacity>
@@ -532,7 +532,7 @@ export default function BaziLensView({ userId, onOpenChat }: Props) {
         style={[styles.tab, activeTab === 'deep_dive' && styles.activeTab]}
         onPress={() => setActiveTab('deep_dive')}
       >
-        <Text style={[styles.tabText, { color: theme.textTertiary }, activeTab === 'deep_dive' && { color: theme.text, fontWeight: '600' }]}>
+        <Text style={[styles.tabText, { color: theme.textTertiary }, activeTab === 'deep_dive' && { color: theme.text, fontWeight: '500' }]}>
           Deep Dive
         </Text>
       </TouchableOpacity>
@@ -1318,25 +1318,25 @@ export default function BaziLensView({ userId, onOpenChat }: Props) {
           {checks.work && (
             <View style={styles.realLifeCheckItem}>
               <Ionicons name="briefcase-outline" size={14} color={theme.textTertiary} />
-              <Text style={[styles.realLifeCheckText, { color: theme.textSecondary }]}><Text style={{ fontWeight: '600' }}>Work:</Text> {checks.work}</Text>
+              <Text style={[styles.realLifeCheckText, { color: theme.textSecondary }]}><Text style={{ fontWeight: '500' }}>Work:</Text> {checks.work}</Text>
             </View>
           )}
           {checks.relationships && (
             <View style={styles.realLifeCheckItem}>
               <Ionicons name="people-outline" size={14} color={theme.textTertiary} />
-              <Text style={[styles.realLifeCheckText, { color: theme.textSecondary }]}><Text style={{ fontWeight: '600' }}>Relationships:</Text> {checks.relationships}</Text>
+              <Text style={[styles.realLifeCheckText, { color: theme.textSecondary }]}><Text style={{ fontWeight: '500' }}>Relationships:</Text> {checks.relationships}</Text>
             </View>
           )}
           {checks.leadership && (
             <View style={styles.realLifeCheckItem}>
               <Ionicons name="flag-outline" size={14} color={theme.textTertiary} />
-              <Text style={[styles.realLifeCheckText, { color: theme.textSecondary }]}><Text style={{ fontWeight: '600' }}>Leadership:</Text> {checks.leadership}</Text>
+              <Text style={[styles.realLifeCheckText, { color: theme.textSecondary }]}><Text style={{ fontWeight: '500' }}>Leadership:</Text> {checks.leadership}</Text>
             </View>
           )}
           {checks.stress && (
             <View style={styles.realLifeCheckItem}>
               <Ionicons name="warning-outline" size={14} color={theme.textTertiary} />
-              <Text style={[styles.realLifeCheckText, { color: theme.textSecondary }]}><Text style={{ fontWeight: '600' }}>Under Stress:</Text> {checks.stress}</Text>
+              <Text style={[styles.realLifeCheckText, { color: theme.textSecondary }]}><Text style={{ fontWeight: '500' }}>Under Stress:</Text> {checks.stress}</Text>
             </View>
           )}
         </View>
@@ -1883,7 +1883,7 @@ const styles = StyleSheet.create({
   errorTitle: {
     marginTop: 16,
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   errorText: {
     marginTop: 8,
@@ -1908,7 +1908,7 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     fontSize: 28,
-    fontWeight: '700',
+    fontWeight: '500',
     letterSpacing: -0.5,
   },
   headerSubtitle: {
@@ -1945,7 +1945,7 @@ const styles = StyleSheet.create({
   },
   tabBlurbTitle: {
     fontSize: 24,
-    fontWeight: '600',
+    fontWeight: '500',
     marginBottom: 4,
   },
   tabBlurbText: {
@@ -1981,7 +1981,7 @@ const styles = StyleSheet.create({
   },
   signatureName: {
     fontSize: 22,
-    fontWeight: '700',
+    fontWeight: '500',
   },
   signatureDetail: {
     fontSize: 16,
@@ -2026,7 +2026,7 @@ const styles = StyleSheet.create({
   },
   sectionLabel: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
     letterSpacing: 0.5,
     marginBottom: 16,
   },
@@ -2040,12 +2040,12 @@ const styles = StyleSheet.create({
   },
   patternItemLabel: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
     marginBottom: 4,
   },
   patternItemValue: {
     fontSize: 17,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   patternInterpretation: {
     fontSize: 16,
@@ -2073,7 +2073,7 @@ const styles = StyleSheet.create({
   },
   pillarMeaning: {
     fontSize: 9,
-    fontWeight: '600',
+    fontWeight: '500',
     letterSpacing: 0.5,
     marginBottom: 6,
   },
@@ -2083,7 +2083,7 @@ const styles = StyleSheet.create({
   },
   pillarAnimalName: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
     marginBottom: 2,
   },
   pillarChars: {
@@ -2115,7 +2115,7 @@ const styles = StyleSheet.create({
   },
   combinedCorePattern: {
     fontSize: 17,
-    fontWeight: '600',
+    fontWeight: '500',
     lineHeight: 32,
   },
   combinedTensionBox: {
@@ -2125,7 +2125,7 @@ const styles = StyleSheet.create({
   },
   combinedTensionLabel: {
     fontSize: 14,
-    fontWeight: '700',
+    fontWeight: '500',
     letterSpacing: 0.8,
     marginBottom: 14,
   },
@@ -2142,7 +2142,7 @@ const styles = StyleSheet.create({
   },
   combinedSynthesisLabel: {
     fontSize: 9,
-    fontWeight: '700',
+    fontWeight: '500',
     letterSpacing: 0.8,
     marginBottom: 14,
   },
@@ -2185,7 +2185,7 @@ const styles = StyleSheet.create({
   },
   timingPreviewLabel: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   interactionBadge: {
     paddingHorizontal: 8,
@@ -2194,7 +2194,7 @@ const styles = StyleSheet.create({
   },
   interactionText: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
     textTransform: 'capitalize',
   },
   timingPreviewDesc: {
@@ -2225,7 +2225,7 @@ const styles = StyleSheet.create({
   },
   askTitle: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '500',
     marginBottom: 4,
   },
   askSubtitle: {
@@ -2254,7 +2254,7 @@ const styles = StyleSheet.create({
   },
   primaryAskButtonText: {
     fontSize: 17,
-    fontWeight: '600',
+    fontWeight: '500',
     color: '#FFFFFF',
   },
   primaryAskSubtext: {
@@ -2271,7 +2271,7 @@ const styles = StyleSheet.create({
   },
   suggestedQuestionsLabel: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
     letterSpacing: 0.8,
     marginBottom: 16,
     textTransform: 'uppercase',
@@ -2308,13 +2308,13 @@ const styles = StyleSheet.create({
   },
   snapshotLabel: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
     letterSpacing: 0.5,
     marginBottom: 4,
   },
   snapshotPillar: {
     fontSize: 17,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   snapshotMeta: {
     alignItems: 'flex-end',
@@ -2327,7 +2327,7 @@ const styles = StyleSheet.create({
   },
   elementPillText: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   tenGodPill: {
     paddingHorizontal: 8,
@@ -2359,7 +2359,7 @@ const styles = StyleSheet.create({
   },
   interactionLabelText: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   contentBlocks: {
     padding: 16,
@@ -2368,7 +2368,7 @@ const styles = StyleSheet.create({
   contentBlock: {},
   contentBlockLabel: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
     letterSpacing: 0.5,
     marginBottom: 4,
   },
@@ -2384,7 +2384,7 @@ const styles = StyleSheet.create({
   },
   reflectionLabel: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
     letterSpacing: 0.5,
     marginBottom: 6,
   },
@@ -2430,7 +2430,7 @@ const styles = StyleSheet.create({
   },
   deepDiveSectionTitle: {
     fontSize: 22,
-    fontWeight: '700',
+    fontWeight: '500',
     marginBottom: 4,
   },
   deepDiveSubtitle: {
@@ -2460,7 +2460,7 @@ const styles = StyleSheet.create({
   },
   coreEngineName: {
     fontSize: 24,
-    fontWeight: '700',
+    fontWeight: '500',
     marginBottom: 6,
   },
   strengthBadge: {
@@ -2471,7 +2471,7 @@ const styles = StyleSheet.create({
   },
   strengthBadgeText: {
     fontSize: 14,
-    fontWeight: '700',
+    fontWeight: '500',
     letterSpacing: 0.5,
   },
   reasoningBox: {
@@ -2481,7 +2481,7 @@ const styles = StyleSheet.create({
   },
   reasoningTitle: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
     letterSpacing: 0.5,
     marginBottom: 14,
   },
@@ -2504,7 +2504,7 @@ const styles = StyleSheet.create({
   },
   implicationLabel: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
     letterSpacing: 0.5,
     marginBottom: 14,
   },
@@ -2528,7 +2528,7 @@ const styles = StyleSheet.create({
   },
   supportsLabel: {
     fontSize: 14,
-    fontWeight: '700',
+    fontWeight: '500',
     letterSpacing: 0.5,
     marginBottom: 4,
   },
@@ -2567,7 +2567,7 @@ const styles = StyleSheet.create({
   },
   tenGodName: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '500',
     marginBottom: 4,
   },
   tenGodPresence: {
@@ -2583,7 +2583,7 @@ const styles = StyleSheet.create({
   },
   tenGodStrengthText: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
     textTransform: 'uppercase',
   },
   tenGodBehavior: {
@@ -2601,7 +2601,7 @@ const styles = StyleSheet.create({
   },
   itaLabel: {
     fontSize: 9,
-    fontWeight: '700',
+    fontWeight: '500',
     letterSpacing: 0.5,
     marginBottom: 4,
   },
@@ -2615,7 +2615,7 @@ const styles = StyleSheet.create({
   },
   stressLabel: {
     fontSize: 9,
-    fontWeight: '600',
+    fontWeight: '500',
     letterSpacing: 0.5,
     marginBottom: 4,
   },
@@ -2653,12 +2653,12 @@ const styles = StyleSheet.create({
   },
   hiddenPillar: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
     letterSpacing: 0.5,
   },
   hiddenStem: {
     fontSize: 17,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   hiddenTenGod: {
     paddingHorizontal: 8,
@@ -2687,7 +2687,7 @@ const styles = StyleSheet.create({
   },
   lifePatternLabel: {
     fontSize: 14,
-    fontWeight: '700',
+    fontWeight: '500',
     letterSpacing: 0.5,
     marginLeft: 8,
   },
@@ -2779,7 +2779,7 @@ const styles = StyleSheet.create({
   },
   realLifeCheckTitle: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
     letterSpacing: 0.5,
     marginBottom: 16,
   },
@@ -2812,7 +2812,7 @@ const styles = StyleSheet.create({
   },
   todayConnectionLabel: {
     fontSize: 14,
-    fontWeight: '700',
+    fontWeight: '500',
     letterSpacing: 0.5,
   },
   todayConnectionText: {
@@ -2844,7 +2844,7 @@ const styles = StyleSheet.create({
   },
   contextualPromptsTitle: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '500',
     marginBottom: 14,
   },
   contextualPromptsList: {
@@ -2860,7 +2860,7 @@ const styles = StyleSheet.create({
   },
   reflectionPromptsTitle: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
     letterSpacing: 0.5,
     marginBottom: 14,
   },
@@ -2883,7 +2883,7 @@ const styles = StyleSheet.create({
   },
   wowLineText: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '500',
     fontStyle: 'italic',
     textAlign: 'center',
     lineHeight: 32,
@@ -2897,7 +2897,7 @@ const styles = StyleSheet.create({
   },
   whyPatternLabel: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
     letterSpacing: 0.5,
     marginBottom: 14,
   },
@@ -2914,7 +2914,7 @@ const styles = StyleSheet.create({
   },
   hiddenBehavioralLabel: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
     letterSpacing: 0.5,
     marginBottom: 6,
   },
@@ -2990,7 +2990,7 @@ const styles = StyleSheet.create({
   },
   todayElementName: {
     fontSize: 22,
-    fontWeight: '700',
+    fontWeight: '500',
   },
   todayDateInfo: {
     alignItems: 'flex-end',
@@ -3030,7 +3030,7 @@ const styles = StyleSheet.create({
   },
   tenGodBadgeText: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   interactionsRow: {
     flexDirection: 'row',
@@ -3053,7 +3053,7 @@ const styles = StyleSheet.create({
   },
   interactionLabelLg: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '500',
     textTransform: 'capitalize',
   },
   strengthShiftBox: {
@@ -3065,12 +3065,12 @@ const styles = StyleSheet.create({
   },
   strengthShiftLabel: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
     letterSpacing: 0.5,
   },
   strengthShiftValue: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   
   // Where It Lands Card
@@ -3114,7 +3114,7 @@ const styles = StyleSheet.create({
   },
   watchHeaderText: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
     letterSpacing: 0.5,
   },
   pressurePointsList: {
@@ -3160,7 +3160,7 @@ const styles = StyleSheet.create({
   },
   helpsHeaderText: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
     letterSpacing: 0.5,
   },
   practicalText: {
@@ -3199,7 +3199,7 @@ const styles = StyleSheet.create({
   },
   patternLinkLabel: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
     letterSpacing: 0.5,
   },
   patternLinkText: {

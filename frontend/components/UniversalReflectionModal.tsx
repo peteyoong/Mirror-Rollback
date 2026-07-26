@@ -463,7 +463,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 24,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   scrollContent: {
     paddingHorizontal: 20,
@@ -483,7 +483,7 @@ const styles = StyleSheet.create({
   },
   sourceName: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   sourceValue: {
     fontSize: 16,
@@ -644,7 +644,7 @@ const styles = StyleSheet.create({
   saveButtonText: {
     color: '#fff',
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   saveSummary: {
     fontSize: 14,

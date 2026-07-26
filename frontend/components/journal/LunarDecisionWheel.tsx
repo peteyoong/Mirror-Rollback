@@ -584,12 +584,12 @@ const styles = StyleSheet.create({
   },
   centerLabel: {
     fontSize: 9,
-    fontWeight: '600',
+    fontWeight: '500',
     letterSpacing: 1,
   },
   centerDay: {
     fontSize: 16,
-    fontWeight: '700',
+    fontWeight: '500',
     marginBottom: 2,
   },
   centerGate: {
@@ -606,7 +606,7 @@ const styles = StyleSheet.create({
   },
   considerationLabel: {
     fontSize: 8,
-    fontWeight: '600',
+    fontWeight: '500',
     letterSpacing: 0.5,
     marginBottom: 4,
   },
@@ -666,12 +666,12 @@ const styles = StyleSheet.create({
   },
   modalDayNumber: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
     marginBottom: 4,
   },
   modalGate: {
     fontSize: 22,
-    fontWeight: '600',
+    fontWeight: '500',
     marginBottom: 2,
   },
   modalGateTitle: {
@@ -684,7 +684,7 @@ const styles = StyleSheet.create({
   },
   todayBadgeText: {
     fontSize: 11,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   entriesList: {
     maxHeight: 250,

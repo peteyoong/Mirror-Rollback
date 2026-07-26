@@ -2394,13 +2394,13 @@ const styles = StyleSheet.create({
   },
   unifiedPatternLabel: {
     fontSize: 9,
-    fontWeight: '700',
+    fontWeight: '500',
     letterSpacing: 0.8,
     marginBottom: 16,
   },
   unifiedPatternHeadline: {
     fontSize: 22,
-    fontWeight: '600',
+    fontWeight: '500',
     lineHeight: 32,
     marginBottom: 16,
   },
@@ -2444,7 +2444,7 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 24,
-    fontWeight: '600',
+    fontWeight: '500',
     letterSpacing: 0.3,
     marginBottom: 4,
   },
@@ -2459,7 +2459,7 @@ const styles = StyleSheet.create({
   },
   groupLabel: {
     fontSize: 14,
-    fontWeight: '700',
+    fontWeight: '500',
     letterSpacing: 0.8,
     marginBottom: 4,
   },
@@ -2478,7 +2478,7 @@ const styles = StyleSheet.create({
   },
   deepDiveCardTitle: {
     fontSize: 17,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   deepDiveExpandIcon: {
     fontSize: 14,
@@ -2510,7 +2510,7 @@ const styles = StyleSheet.create({
   },
   deepDiveSectionLabel: {
     fontSize: 9,
-    fontWeight: '700',
+    fontWeight: '500',
     letterSpacing: 0.5,
   },
   deepDiveSectionText: {
@@ -2528,7 +2528,7 @@ const styles = StyleSheet.create({
   // Mirror Layer styles
   mirrorSectionLabel: {
     fontSize: 14,
-    fontWeight: '700',
+    fontWeight: '500',
     letterSpacing: 0.6,
     marginBottom: 6,
   },
@@ -2550,7 +2550,7 @@ const styles = StyleSheet.create({
   },
   practicalShiftLabel: {
     fontSize: 9,
-    fontWeight: '700',
+    fontWeight: '500',
     letterSpacing: 0.5,
     marginBottom: 6,
   },
@@ -2584,7 +2584,7 @@ const styles = StyleSheet.create({
   },
   deepDiveTensionLabel: {
     fontSize: 9,
-    fontWeight: '700',
+    fontWeight: '500',
     letterSpacing: 0.5,
     marginBottom: 6,
   },
@@ -2600,7 +2600,7 @@ const styles = StyleSheet.create({
   },
   deepDiveGiftLabel: {
     fontSize: 9,
-    fontWeight: '700',
+    fontWeight: '500',
     letterSpacing: 0.5,
     marginBottom: 6,
   },
@@ -2615,7 +2615,7 @@ const styles = StyleSheet.create({
   },
   deepDiveReflectionLabel: {
     fontSize: 9,
-    fontWeight: '700',
+    fontWeight: '500',
     letterSpacing: 0.5,
     marginBottom: 14,
   },

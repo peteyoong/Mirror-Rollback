@@ -379,7 +379,7 @@ const styles = StyleSheet.create({
   primaryButtonText: {
     color: '#FFFFFF',
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   secondaryButton: {
     paddingVertical: 10,
@@ -421,7 +421,7 @@ const styles = StyleSheet.create({
   },
   inlineButtonText: {
     fontSize: 12,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   inlineDismiss: {
     padding: 4,

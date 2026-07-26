@@ -2074,7 +2074,7 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 28,
-    fontWeight: '600',
+    fontWeight: '500',
     color: Colors.text,
     marginBottom: 24,
     textAlign: 'center',
@@ -2095,7 +2095,7 @@ const styles = StyleSheet.create({
   },
   continueButtonText: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '500',
     color: Colors.background,
   },
   
@@ -2147,7 +2147,7 @@ const styles = StyleSheet.create({
   },
   likertValue: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '500',
     color: Colors.text,
   },
   likertLabel: {
@@ -2188,7 +2188,7 @@ const styles = StyleSheet.create({
   },
   forcedChoiceLetter: {
     fontSize: 16,
-    fontWeight: '700',
+    fontWeight: '500',
     color: Colors.text,
   },
   forcedChoiceText: {
@@ -2222,7 +2222,7 @@ const styles = StyleSheet.create({
   },
   placeholderTitle: {
     fontSize: 24,
-    fontWeight: '600',
+    fontWeight: '500',
     color: Colors.text,
     marginTop: 16,
     marginBottom: 14,
@@ -2266,7 +2266,7 @@ const styles = StyleSheet.create({
   },
   calibrationTitle: {
     fontSize: 24,
-    fontWeight: '600',
+    fontWeight: '500',
     color: Colors.text,
     marginBottom: 16,
     marginTop: 16,

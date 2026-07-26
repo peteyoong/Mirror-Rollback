@@ -234,7 +234,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 24,
-    fontWeight: '700',
+    fontWeight: '500',
     marginBottom: 14,
   },
   subtitle: {
@@ -271,7 +271,7 @@ const styles = StyleSheet.create({
   },
   retryButtonText: {
     fontSize: 17,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   storyContainer: {
     gap: 0,
@@ -282,7 +282,7 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 17,
-    fontWeight: '600',
+    fontWeight: '500',
     letterSpacing: 0.3,
     marginBottom: 16,
   },
@@ -299,7 +299,7 @@ const styles = StyleSheet.create({
   },
   questionLabel: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
     letterSpacing: 0.5,
     textTransform: 'uppercase',
     marginBottom: 14,

@@ -321,7 +321,7 @@ export default function ExperiencePreferences() {
                     <Text style={[
                       styles.optionLabel,
                       { color: isSelected ? theme.text : theme.textSecondary },
-                      isSelected && { fontWeight: '600' },
+                      isSelected && { fontWeight: '500' },
                     ]}>
                       {option.label}
                     </Text>
@@ -439,7 +439,7 @@ const styles = StyleSheet.create({
   // Title & Intro
   title: {
     fontSize: 28,
-    fontWeight: '700',
+    fontWeight: '500',
     marginTop: 8,
     marginBottom: 14,
   },
@@ -520,7 +520,7 @@ const styles = StyleSheet.create({
   },
   saveButtonText: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   savedRow: {
     flexDirection: 'row',

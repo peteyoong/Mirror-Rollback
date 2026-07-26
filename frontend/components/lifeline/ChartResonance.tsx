@@ -331,7 +331,7 @@ const styles = StyleSheet.create({
     borderRadius: 13,
   },
   markerIcon: {
-    fontWeight: '600',
+    fontWeight: '500',
   },
   markerIconSmall: {
     fontSize: 12,
@@ -362,7 +362,7 @@ const styles = StyleSheet.create({
   },
   modalTitle: {
     fontSize: 22,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   modalSubtitle: {
     fontSize: 14,
@@ -386,7 +386,7 @@ const styles = StyleSheet.create({
   },
   signalName: {
     fontSize: 17,
-    fontWeight: '600',
+    fontWeight: '500',
     marginBottom: 6,
   },
   signalTiming: {
@@ -413,7 +413,7 @@ const styles = StyleSheet.create({
   },
   sectionLabel: {
     fontSize: 12,
-    fontWeight: '600',
+    fontWeight: '500',
     letterSpacing: 0.5,
     marginBottom: 10,
   },
@@ -480,7 +480,7 @@ const styles = StyleSheet.create({
   },
   patternSectionHeader: {
     fontSize: 13,
-    fontWeight: '700',
+    fontWeight: '500',
     letterSpacing: 0.5,
     marginBottom: 14,
   },
@@ -496,7 +496,7 @@ const styles = StyleSheet.create({
   },
   patternItemYear: {
     fontSize: 15,
-    fontWeight: '600',
+    fontWeight: '500',
     marginRight: 8,
   },
   patternItemIcon: {

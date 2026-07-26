@@ -37,6 +37,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import api from '../services/api';
+import { fontFamily } from '../theme/tokens';
 import TimelineWhisper, { TimelineModulation } from './TimelineWhisper';
 
 // ============================================
@@ -439,7 +440,7 @@ const styles = StyleSheet.create({
   },
   retryText: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
   },
 
   // Anchor row
@@ -456,15 +457,17 @@ const styles = StyleSheet.create({
   },
   anchorLabel: {
     fontSize: 11,
-    fontWeight: '700',
+    fontWeight: '500',
     letterSpacing: 1.0,
   },
 
   // SECTION 1 — THE CALL
   theCall: {
-    fontSize: 22,
-    lineHeight: 30,
-    fontWeight: '600',
+    fontFamily: fontFamily.display,
+    fontSize: 24,
+    lineHeight: 32,
+    fontWeight: '400',
+    letterSpacing: 0.2,
     marginBottom: 14,
   },
 
@@ -496,7 +499,7 @@ const styles = StyleSheet.create({
   },
   whereTitle: {
     fontSize: 11,
-    fontWeight: '700',
+    fontWeight: '500',
     letterSpacing: 1.0,
     marginBottom: 8,
   },
@@ -526,7 +529,7 @@ const styles = StyleSheet.create({
   },
   edgeLabel: {
     fontSize: 11,
-    fontWeight: '700',
+    fontWeight: '500',
     letterSpacing: 1.0,
     marginBottom: 6,
   },
@@ -550,7 +553,7 @@ const styles = StyleSheet.create({
   },
   memoryLabel: {
     fontSize: 10,
-    fontWeight: '700',
+    fontWeight: '500',
     letterSpacing: 1.2,
   },
   memoryText: {
@@ -572,7 +575,7 @@ const styles = StyleSheet.create({
   },
   ctaText: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
   },
 });
 

@@ -236,7 +236,7 @@ const styles = StyleSheet.create({
   },
   phaseTagText: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   humanMeaning: {
     fontSize: 16,
@@ -286,7 +286,7 @@ const styles = StyleSheet.create({
   },
   seeRelatedText: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   closeBtn: {
     alignSelf: 'center',

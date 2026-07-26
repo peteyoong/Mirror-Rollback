@@ -318,7 +318,7 @@ const styles = StyleSheet.create({
   },
   big3Sign: {
     fontSize: 17,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   heroDescriptor: {
     fontSize: 16,
@@ -335,7 +335,7 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 14,
-    fontWeight: '700',
+    fontWeight: '500',
     letterSpacing: 0.8,
     marginBottom: 14,
   },
@@ -357,7 +357,7 @@ const styles = StyleSheet.create({
   },
   arenaRank: {
     fontSize: 16,
-    fontWeight: '700',
+    fontWeight: '500',
     width: 24,
     marginRight: 8,
   },
@@ -366,7 +366,7 @@ const styles = StyleSheet.create({
   },
   arenaLabel: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '500',
     marginBottom: 2,
   },
   arenaExplanation: {
@@ -395,7 +395,7 @@ const styles = StyleSheet.create({
   },
   pressureHeader: {
     fontSize: 9,
-    fontWeight: '700',
+    fontWeight: '500',
     letterSpacing: 0.5,
     marginBottom: 3,
   },
@@ -417,13 +417,13 @@ const styles = StyleSheet.create({
   },
   chapterLabel: {
     fontSize: 9,
-    fontWeight: '700',
+    fontWeight: '500',
     letterSpacing: 0.8,
     marginBottom: 6,
   },
   chapterTitle: {
     fontSize: 17,
-    fontWeight: '600',
+    fontWeight: '500',
     marginBottom: 6,
   },
   chapterDescription: {
@@ -442,7 +442,7 @@ const styles = StyleSheet.create({
   },
   askButtonText: {
     fontSize: 17,
-    fontWeight: '600',
+    fontWeight: '500',
   },
 });
 

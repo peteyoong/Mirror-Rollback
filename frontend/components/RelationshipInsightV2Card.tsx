@@ -723,8 +723,8 @@ const RelationshipInsightV2Card: React.FC<Props> = ({
                   padding: 12,
                   marginTop: 10,
                 };
-                const tinyHeader = { fontSize: 11, fontWeight: '700' as const, letterSpacing: 1.0 };
-                const labelText  = { fontSize: 13, fontWeight: '600' as const, marginBottom: 2 };
+                const tinyHeader = { fontSize: 11, fontWeight: '500' as const, letterSpacing: 1.0 };
+                const labelText  = { fontSize: 13, fontWeight: '500' as const, marginBottom: 2 };
 
                 return (
                   <View style={styles.signalGroup}>
@@ -737,15 +737,15 @@ const RelationshipInsightV2Card: React.FC<Props> = ({
                       <Text style={[tinyHeader, { color: theme.textTertiary, marginBottom: 8 }]}>1 · ELEMENTAL STRUCTURE</Text>
                       <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 4 }}>
                         <Text style={[styles.signalText, { color: theme.textSecondary }]}>{nameA}</Text>
-                        <Text style={[styles.signalText, { color: theme.text, fontWeight: '600' }]}>{elA}</Text>
+                        <Text style={[styles.signalText, { color: theme.text, fontWeight: '500' }]}>{elA}</Text>
                       </View>
                       <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 6 }}>
                         <Text style={[styles.signalText, { color: theme.textSecondary }]}>{nameB}</Text>
-                        <Text style={[styles.signalText, { color: theme.text, fontWeight: '600' }]}>{elB}</Text>
+                        <Text style={[styles.signalText, { color: theme.text, fontWeight: '500' }]}>{elB}</Text>
                       </View>
                       <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 10 }}>
                         <Text style={[styles.signalText, { color: theme.textSecondary }]}>Relationship Geometry</Text>
-                        <Text style={[styles.signalText, { color: theme.text, fontWeight: '600' }]}>{geo}</Text>
+                        <Text style={[styles.signalText, { color: theme.text, fontWeight: '500' }]}>{geo}</Text>
                       </View>
                       <Text style={[labelText, { color: theme.textTertiary }]}>{flowHeader}</Text>
                       {flowRows.length === 0 ? (
@@ -870,7 +870,7 @@ const styles = StyleSheet.create({
   },
   retryText: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '500',
   },
 
   // Header
@@ -886,7 +886,7 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     fontSize: 17,
-    fontWeight: '600',
+    fontWeight: '500',
     flex: 1,
   },
 
@@ -900,7 +900,7 @@ const styles = StyleSheet.create({
   },
   storyHeadline: {
     fontSize: 24,
-    fontWeight: '600',
+    fontWeight: '500',
     lineHeight: 32,
     marginBottom: 16,
   },
@@ -916,7 +916,7 @@ const styles = StyleSheet.create({
   },
   sectionLabel: {
     fontSize: 14,
-    fontWeight: '700',
+    fontWeight: '500',
     letterSpacing: 0.6,
     marginBottom: 16,
   },
@@ -980,7 +980,7 @@ const styles = StyleSheet.create({
   },
   signalGroupLabel: {
     fontSize: 14,
-    fontWeight: '700',
+    fontWeight: '500',
     letterSpacing: 0.5,
     marginBottom: 4,
   },
@@ -996,7 +996,7 @@ const styles = StyleSheet.create({
   },
   signalChannel: {
     fontSize: 14,
-    fontWeight: '700',
+    fontWeight: '500',
     fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace',
   },
   signalName: {

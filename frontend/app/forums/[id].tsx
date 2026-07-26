@@ -2182,11 +2182,11 @@ const styles = StyleSheet.create({
     fontSize: 10,
     letterSpacing: 1.5,
     textTransform: 'uppercase',
-    fontWeight: '600',
+    fontWeight: '500',
   },
   talkToRoomLabel: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '500',
     letterSpacing: -0.1,
     marginTop: 2,
   },
@@ -2206,7 +2206,7 @@ const styles = StyleSheet.create({
   },
   heroTitle: {
     fontSize: 18,
-    fontWeight: '700',
+    fontWeight: '500',
     marginBottom: 10,
     letterSpacing: 0.2,
   },
@@ -2220,7 +2220,7 @@ const styles = StyleSheet.create({
   },
   heroExpansionText: {
     fontSize: 13,
-    fontWeight: '600',
+    fontWeight: '500',
     letterSpacing: 0.3,
   },
   heroExpansionBody: {
@@ -2231,7 +2231,7 @@ const styles = StyleSheet.create({
   },
   heroExpansionHeader: {
     fontSize: 11,
-    fontWeight: '700',
+    fontWeight: '500',
     letterSpacing: 0.7,
     marginBottom: 6,
   },
@@ -2258,7 +2258,7 @@ const styles = StyleSheet.create({
   },
   positionLabel: {
     fontSize: 10,
-    fontWeight: '800',
+    fontWeight: '500',
     letterSpacing: 1,
     marginBottom: 6,
   },
@@ -2275,7 +2275,7 @@ const styles = StyleSheet.create({
   shareUpdateBtnText: {
     color: '#fff',
     fontSize: 15,
-    fontWeight: '700',
+    fontWeight: '500',
     letterSpacing: 0.3,
   },
   analyticsToggle: {
@@ -2287,7 +2287,7 @@ const styles = StyleSheet.create({
   },
   analyticsToggleText: {
     fontSize: 12,
-    fontWeight: '700',
+    fontWeight: '500',
     letterSpacing: 0.5,
   },
   container: {
@@ -2303,7 +2303,7 @@ const styles = StyleSheet.create({
   },
   forumPatternTitle: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '500',
     marginBottom: 6,
   },
   forumPatternSub: {
@@ -2317,14 +2317,14 @@ const styles = StyleSheet.create({
   },
   forumPatternButtonText: {
     fontSize: 17,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   forumPatternResult: {
     gap: 10,
   },
   forumPatternResultTitle: {
     fontSize: 22,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   forumPatternResultText: {
     fontSize: 16,
@@ -2357,7 +2357,7 @@ const styles = StyleSheet.create({
   },
   realLifeMeaningTitle: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
     letterSpacing: 0.5,
     marginBottom: 14,
   },
@@ -2395,7 +2395,7 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     fontSize: 22,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   headerRight: {
     flexDirection: 'row',
@@ -2437,7 +2437,7 @@ const styles = StyleSheet.create({
   },
   errorTitle: {
     fontSize: 18,
-    fontWeight: '600',
+    fontWeight: '500',
     textAlign: 'center',
     marginBottom: 8,
   },
@@ -2462,7 +2462,7 @@ const styles = StyleSheet.create({
   },
   recoveryBtnPrimaryText: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '500',
     letterSpacing: 0.3,
   },
   recoveryBtnSecondary: {
@@ -2508,7 +2508,7 @@ const styles = StyleSheet.create({
   },
   forumName: {
     fontSize: 26,
-    fontWeight: '700',
+    fontWeight: '500',
     marginBottom: 4,
   },
   forumDescription: {
@@ -2524,7 +2524,7 @@ const styles = StyleSheet.create({
   },
   membersTitle: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
     letterSpacing: 1,
     marginBottom: 16,
   },
@@ -2553,7 +2553,7 @@ const styles = StyleSheet.create({
   },
   memberInitial: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   memberName: {
     fontSize: 16,
@@ -2586,7 +2586,7 @@ const styles = StyleSheet.create({
   },
   summaryName: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   summaryRow: {
     flexDirection: 'row',
@@ -2599,7 +2599,7 @@ const styles = StyleSheet.create({
     fontSize: 11,
     letterSpacing: 0.8,
     textTransform: 'uppercase',
-    fontWeight: '600',
+    fontWeight: '500',
     paddingTop: 2,
   },
   summaryRowValue: {
@@ -2616,7 +2616,7 @@ const styles = StyleSheet.create({
     fontSize: 11,
     letterSpacing: 0.8,
     textTransform: 'uppercase',
-    fontWeight: '600',
+    fontWeight: '500',
     marginBottom: 4,
   },
   summaryHowText: {
@@ -2652,7 +2652,7 @@ const styles = StyleSheet.create({
   },
   askMirrorTitle: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '500',
     marginBottom: 2,
   },
   askMirrorSubtitle: {
@@ -2660,7 +2660,7 @@ const styles = StyleSheet.create({
   },
   askMirrorArrow: {
     fontSize: 22,
-    fontWeight: '600',
+    fontWeight: '500',
     paddingLeft: 8,
   },
   // ============================================
@@ -2706,7 +2706,7 @@ const styles = StyleSheet.create({
   },
   narrativeSectionHint: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
     textTransform: 'lowercase',
     letterSpacing: 0.5,
     marginBottom: 14,
@@ -2777,7 +2777,7 @@ const styles = StyleSheet.create({
   },
   liveFieldTitle: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   liveFieldBadge: {
     paddingHorizontal: 10,
@@ -2786,7 +2786,7 @@ const styles = StyleSheet.create({
   },
   liveFieldBadgeText: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
     textTransform: 'capitalize',
   },
   liveFieldReading: {
@@ -2801,7 +2801,7 @@ const styles = StyleSheet.create({
   },
   liveFieldSectionLabel: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
     textTransform: 'uppercase',
     letterSpacing: 0.5,
     marginBottom: 6,
@@ -2818,7 +2818,7 @@ const styles = StyleSheet.create({
   },
   liveFieldYourShiftLabel: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
     marginBottom: 6,
   },
   liveFieldYourShiftText: {
@@ -2846,7 +2846,7 @@ const styles = StyleSheet.create({
   },
   liveFieldPositionLabel: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
     textTransform: 'uppercase',
     letterSpacing: 0.5,
   },
@@ -2868,7 +2868,7 @@ const styles = StyleSheet.create({
   },
   liveFieldTrajectoryLabel: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
     textTransform: 'uppercase',
     letterSpacing: 0.5,
   },
@@ -2893,7 +2893,7 @@ const styles = StyleSheet.create({
   },
   liveFieldTheMoveLabel: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
     textTransform: 'uppercase',
     letterSpacing: 0.8,
   },
@@ -2927,7 +2927,7 @@ const styles = StyleSheet.create({
   },
   forumStoryTitle: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '500',
     marginBottom: 4,
   },
   forumStorySubtitle: {
@@ -2942,7 +2942,7 @@ const styles = StyleSheet.create({
   },
   forumStoryButtonText: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   // Forum Dynamics Card Styles
   forumDynamicsCard: {
@@ -2969,7 +2969,7 @@ const styles = StyleSheet.create({
   },
   forumDynamicsTitle: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '500',
     marginBottom: 4,
   },
   forumDynamicsSubtitle: {
@@ -2984,7 +2984,7 @@ const styles = StyleSheet.create({
   },
   forumDynamicsButtonText: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   // Forum Pulse Styles
   pulseSection: {
@@ -2995,7 +2995,7 @@ const styles = StyleSheet.create({
   },
   pulseSectionTitle: {
     fontSize: 22,
-    fontWeight: '600',
+    fontWeight: '500',
     marginBottom: 16,
   },
   pulseBlock: {
@@ -3003,7 +3003,7 @@ const styles = StyleSheet.create({
   },
   pulseBlockLabel: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
     letterSpacing: 1,
     marginBottom: 14,
   },
@@ -3027,7 +3027,7 @@ const styles = StyleSheet.create({
   },
   themeTagCount: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   activityStats: {
     flexDirection: 'row',
@@ -3040,7 +3040,7 @@ const styles = StyleSheet.create({
   },
   statNumber: {
     fontSize: 22,
-    fontWeight: '700',
+    fontWeight: '500',
     marginBottom: 2,
   },
   statLabel: {
@@ -3068,7 +3068,7 @@ const styles = StyleSheet.create({
   },
   hdTypeCount: {
     fontSize: 16,
-    fontWeight: '700',
+    fontWeight: '500',
   },
   lensInsightBlock: {
     padding: 16,
@@ -3092,7 +3092,7 @@ const styles = StyleSheet.create({
   },
   memberLensName: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '500',
     marginBottom: 14,
   },
   memberLensDetails: {
@@ -3137,7 +3137,7 @@ const styles = StyleSheet.create({
   },
   lensSectionTitle: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '500',
     letterSpacing: 0.5,
     marginBottom: 16,
   },
@@ -3191,7 +3191,7 @@ const styles = StyleSheet.create({
   },
   askMirrorButtonText: {
     fontSize: 17,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   askMirrorHint: {
     fontSize: 14,
@@ -3216,11 +3216,11 @@ const styles = StyleSheet.create({
   },
   humanProfileInitial: {
     fontSize: 28,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   humanProfileName: {
     fontSize: 22,
-    fontWeight: '600',
+    fontWeight: '500',
     marginBottom: 4,
   },
   humanProfileArchetype: {
@@ -3240,7 +3240,7 @@ const styles = StyleSheet.create({
   },
   humanSectionTitleFelt: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '500',
     marginBottom: 16,
     letterSpacing: 0.3,
     textTransform: 'uppercase',
@@ -3265,13 +3265,13 @@ const styles = StyleSheet.create({
   },
   humanSectionTitle: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '500',
     marginBottom: 14,
     letterSpacing: 0.3,
   },
   humanSectionTitleHighlight: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '500',
     marginBottom: 14,
     letterSpacing: 0.3,
   },
@@ -3313,7 +3313,7 @@ const styles = StyleSheet.create({
   },
   humanSectionTitleWarning: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '500',
     marginBottom: 14,
     letterSpacing: 0.3,
   },
@@ -3367,7 +3367,7 @@ const styles = StyleSheet.create({
   },
   mirrorProfileTitle: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '500',
     marginBottom: 2,
   },
   mirrorProfileSubtitle: {
@@ -3389,12 +3389,12 @@ const styles = StyleSheet.create({
   },
   exerciseLabel: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
     letterSpacing: 1,
   },
   exerciseTitle: {
     fontSize: 24,
-    fontWeight: '600',
+    fontWeight: '500',
     marginBottom: 14,
   },
   exerciseDescription: {
@@ -3409,7 +3409,7 @@ const styles = StyleSheet.create({
   },
   beginButtonText: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   submittedNote: {
     fontSize: 16,
@@ -3421,7 +3421,7 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 22,
-    fontWeight: '600',
+    fontWeight: '500',
     marginBottom: 16,
   },
   emptyReflections: {
@@ -3460,7 +3460,7 @@ const styles = StyleSheet.create({
   },
   reflectionAuthor: {
     fontSize: 17,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   reflectionDomain: {
     fontSize: 14,
@@ -3504,7 +3504,7 @@ const styles = StyleSheet.create({
   },
   modalTitle: {
     fontSize: 22,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   modalClose: {
     fontSize: 24,
@@ -3534,11 +3534,11 @@ const styles = StyleSheet.create({
   },
   memberProfileInitial: {
     fontSize: 26,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   memberProfileName: {
     fontSize: 24,
-    fontWeight: '600',
+    fontWeight: '500',
     marginBottom: 20,
     textAlign: 'center',
   },
@@ -3575,7 +3575,7 @@ const styles = StyleSheet.create({
   },
   modalReflectionAuthor: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '500',
     marginBottom: 6,
   },
   modalReflectionText: {
@@ -3603,7 +3603,7 @@ const styles = StyleSheet.create({
   },
   typeMemberInitial: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   typeMemberInfo: {
     flex: 1,
@@ -3659,7 +3659,7 @@ const styles = StyleSheet.create({
   },
   contributionsTitle: {
     fontSize: 18,
-    fontWeight: '600',
+    fontWeight: '500',
     marginBottom: 4,
   },
   contributionsSubtitle: {
@@ -3683,7 +3683,7 @@ const styles = StyleSheet.create({
   },
   contributionName: {
     fontSize: 17,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   contributionHostBadge: {
     fontSize: 11,
@@ -3695,7 +3695,7 @@ const styles = StyleSheet.create({
   },
   contributionItemTitle: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
     marginBottom: 3,
   },
   contributionItemDesc: {
@@ -3706,7 +3706,7 @@ const styles = StyleSheet.create({
   // older render path references them):
   superpowerTitle: {
     fontSize: 17,
-    fontWeight: '700',
+    fontWeight: '500',
     marginBottom: 6,
     letterSpacing: 0.2,
   },
@@ -3724,7 +3724,7 @@ const styles = StyleSheet.create({
   },
   contributionSuper: {
     fontSize: 16,
-    fontWeight: '700',
+    fontWeight: '500',
     letterSpacing: 0.2,
   },
   superpowerLinePrimary: {
@@ -3741,7 +3741,7 @@ const styles = StyleSheet.create({
   // forum page):
   contributionChips: {
     fontSize: 11,
-    fontWeight: '700',
+    fontWeight: '500',
     letterSpacing: 1.4,
     textTransform: 'uppercase',
     marginBottom: 4,

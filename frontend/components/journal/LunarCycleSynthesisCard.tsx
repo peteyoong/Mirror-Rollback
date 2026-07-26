@@ -482,7 +482,7 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     fontSize: 11,
-    fontWeight: '600',
+    fontWeight: '500',
     letterSpacing: 1,
   },
   expandIcon: {
@@ -514,7 +514,7 @@ const styles = StyleSheet.create({
   },
   overviewStatValue: {
     fontSize: 22,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   overviewStatLabel: {
     fontSize: 11,
@@ -533,7 +533,7 @@ const styles = StyleSheet.create({
   },
   sectionLabel: {
     fontSize: 10,
-    fontWeight: '600',
+    fontWeight: '500',
     letterSpacing: 0.5,
     marginBottom: 8,
   },
@@ -555,7 +555,7 @@ const styles = StyleSheet.create({
   },
   themeBadgeLabel: {
     fontSize: 11,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   themeList: {
     fontSize: 13,
@@ -569,7 +569,7 @@ const styles = StyleSheet.create({
   },
   gateTitle: {
     fontSize: 15,
-    fontWeight: '600',
+    fontWeight: '500',
     marginBottom: 6,
   },
   gateInsight: {
@@ -612,7 +612,7 @@ const styles = StyleSheet.create({
   },
   momentumLabel: {
     fontSize: 13,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   momentumDescription: {
     fontSize: 13,

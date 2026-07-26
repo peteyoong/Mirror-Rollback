@@ -1673,13 +1673,13 @@ const styles = StyleSheet.create({
   },
   stepTitle: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
     letterSpacing: 1,
     marginBottom: 14,
   },
   title: {
     fontSize: 26,
-    fontWeight: '700',
+    fontWeight: '500',
     marginBottom: 16,
   },
   subtitle: {
@@ -1701,7 +1701,7 @@ const styles = StyleSheet.create({
   },
   landscapeTitle: {
     fontSize: 17,
-    fontWeight: '600',
+    fontWeight: '500',
     marginBottom: 16,
   },
   landscapeLoading: {
@@ -1726,7 +1726,7 @@ const styles = StyleSheet.create({
   },
   statusPillText: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   landscapeQuiet: {
     fontSize: 16,
@@ -1744,7 +1744,7 @@ const styles = StyleSheet.create({
   },
   landscapeSectionTitle: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   changeSelectionButton: {
     paddingVertical: 4,
@@ -1788,7 +1788,7 @@ const styles = StyleSheet.create({
   },
   selectedCheckmark: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   landscapeDomainSummary: {
     fontSize: 16,
@@ -1804,7 +1804,7 @@ const styles = StyleSheet.create({
   },
   interpretationDomainTitle: {
     fontSize: 22,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   // Inline interpretation preview - directly below selected card
   inlineInterpretationPreview: {
@@ -1823,7 +1823,7 @@ const styles = StyleSheet.create({
   },
   inlineInterpretationTitle: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '500',
     marginBottom: 6,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
@@ -1849,7 +1849,7 @@ const styles = StyleSheet.create({
   },
   inlineContinueButtonText: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   // Legacy styles (kept for compatibility)
   landscapeDomains: {
@@ -1890,7 +1890,7 @@ const styles = StyleSheet.create({
   },
   infoTitle: {
     fontSize: 17,
-    fontWeight: '600',
+    fontWeight: '500',
     marginBottom: 16,
   },
   infoItem: {
@@ -1906,7 +1906,7 @@ const styles = StyleSheet.create({
   },
   primaryButtonText: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   // Source selection
   sourceOptions: {
@@ -1924,7 +1924,7 @@ const styles = StyleSheet.create({
   },
   sourceTitle: {
     fontSize: 22,
-    fontWeight: '600',
+    fontWeight: '500',
     marginBottom: 6,
   },
   sourceDesc: {
@@ -1937,7 +1937,7 @@ const styles = StyleSheet.create({
     top: 16,
     right: 16,
     fontSize: 24,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   // Domain selection
   domainsList: {
@@ -1977,7 +1977,7 @@ const styles = StyleSheet.create({
   },
   statusText: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
     letterSpacing: 0.5,
   },
   // Interpretation Preview
@@ -2005,7 +2005,7 @@ const styles = StyleSheet.create({
   },
   interpretationLabel: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
     letterSpacing: 1,
   },
   signalStrengthBadge: {
@@ -2015,7 +2015,7 @@ const styles = StyleSheet.create({
   },
   signalStrengthText: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   interpretationText: {
     fontSize: 16,
@@ -2028,7 +2028,7 @@ const styles = StyleSheet.create({
   },
   interpretationSectionTitle: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '500',
     marginBottom: 14,
   },
   interpretationSectionText: {
@@ -2052,7 +2052,7 @@ const styles = StyleSheet.create({
   },
   whyActiveLabel: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
     letterSpacing: 0.5,
     marginBottom: 6,
     textTransform: 'uppercase',
@@ -2085,7 +2085,7 @@ const styles = StyleSheet.create({
   },
   lensTitle: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '500',
     marginBottom: 4,
   },
   lensDesc: {
@@ -2110,7 +2110,7 @@ const styles = StyleSheet.create({
   },
   hdInsightName: {
     fontSize: 17,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   hdInsightValue: {
     fontSize: 16,
@@ -2130,7 +2130,7 @@ const styles = StyleSheet.create({
   },
   guidanceValue: {
     fontSize: 22,
-    fontWeight: '600',
+    fontWeight: '500',
     marginBottom: 20,
   },
   guidanceCard: {
@@ -2144,7 +2144,7 @@ const styles = StyleSheet.create({
   },
   guidanceLabel: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
     letterSpacing: 0.5,
     marginBottom: 6,
   },
@@ -2165,7 +2165,7 @@ const styles = StyleSheet.create({
   },
   promptsLabel: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
     letterSpacing: 0.5,
     marginBottom: 16,
   },
@@ -2206,7 +2206,7 @@ const styles = StyleSheet.create({
   },
   privacyOptionTitle: {
     fontSize: 17,
-    fontWeight: '600',
+    fontWeight: '500',
     marginBottom: 6,
   },
   privacyOptionDesc: {
@@ -2238,14 +2238,14 @@ const styles = StyleSheet.create({
   checkboxCheck: {
     color: '#FFFFFF',
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   destinationTextContainer: {
     flex: 1,
   },
   destinationOptionTitle: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '500',
     marginBottom: 4,
   },
   destinationOptionDesc: {
@@ -2266,7 +2266,7 @@ const styles = StyleSheet.create({
   },
   completeTitle: {
     fontSize: 24,
-    fontWeight: '600',
+    fontWeight: '500',
     marginBottom: 16,
     textAlign: 'center',
   },

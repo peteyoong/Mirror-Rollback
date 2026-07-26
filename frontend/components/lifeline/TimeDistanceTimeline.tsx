@@ -600,7 +600,7 @@ const styles = StyleSheet.create({
   },
   jumpBadgeText: {
     fontSize: 11,
-    fontWeight: '600',
+    fontWeight: '500',
     color: '#FFFFFF',
   },
   
@@ -620,7 +620,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 6,
     fontSize: 11,
-    fontWeight: '600',
+    fontWeight: '500',
     letterSpacing: 0.5,
     textTransform: 'uppercase',
   },
@@ -636,7 +636,7 @@ const styles = StyleSheet.create({
   },
   yearMarkerYear: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   yearMarkerCount: {
     fontSize: 11,
