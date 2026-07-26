@@ -16,6 +16,11 @@ Two-mode lens architecture: **Reading** (recognition-first) and **Explore** (tec
 
 ## Completed (as of 2026-06 fork)
 - Sessions 3c/3d/3e: HD narratives, activation table, topology, product integration, Reading/Explore UX. 110 backend unit tests pass (`pytest /app/backend/tests/`).
+- UI retrofit Round 2 (user feedback with ~320px device screenshots):
+  - New shared `components/LensTabBar.tsx` — horizontally scrollable pill tabs; replaced broken `flex:1` tab rows in AstrologyLensView, HumanDesignLensView, EnneagramLensView, NumerologyLensView, BaziLensViewV2 (labels no longer overlap on narrow viewports).
+  - Type scale calmed: home insight headline 20px serif; lenses/reflect/forums/mappings headers reduced 2–6px; mappings modal body 15/23; BetweenYouTodayCard hero 16px; RoleCard 17px serif; astrology big-3 trio no longer collides at 320px; mappings modal header fixed (single-line subtitle).
+  - Verified by testing agent iteration_28 at 320x650 — all 7 criteria pass. ALWAYS validate UI at 320px width, not just 360px.
+
 - App-wide UI/UX retrofit (this session):
   - Root cause of unclickable Sign in fixed: PWA "Add to Home Screen" banner overlaid the sign-in row; banner now hidden on /welcome, /onboarding, /questionnaire, dark-styled, bottom:78 on tab routes else bottom:0 (`components/AddToHomeScreenBanner.tsx`).
   - Landing `welcome.tsx`: ScrollView (no clipping at 360x700), "I'm new here" / "Sign in" as bordered ghost buttons (44px+ targets); login form scrollable.
