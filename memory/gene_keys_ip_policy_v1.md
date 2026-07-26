@@ -1,13 +1,13 @@
-# GENE KEYS IP POLICY — Personal Mirror
+# GENE KEYS IP POLICY — The Mirror
 Author: Product owner sign-off, Session-2 (2026-07-22)
-Applies to: All Gene Keys content shipped inside Personal Mirror
+Applies to: All Gene Keys content shipped inside The Mirror
 Build marker: gene-keys-ip-policy-v1
 
 ---
 
 ## Position
 
-Personal Mirror will present a Gene Keys lens using **original interpretive
+The Mirror will present a Gene Keys lens using **original interpretive
 copy only**. We reuse the underlying gate-activation calculation (which
 Gene Keys shares with Human Design as astronomical fact, not proprietary
 authorship) but we do **not** reproduce, paraphrase, or scrape any
@@ -55,7 +55,7 @@ published works is copyrighted.
 
 - Every Gene Keys interpretive claim ships with a `content_provenance`
   field on its `EvidenceRef` set to one of:
-  - `mirror_original` — written from scratch inside Personal Mirror
+  - `mirror_original` — written from scratch inside The Mirror
   - `structural_label` — a permitted structural term (e.g. "Shadow of Gene Key 25")
 - A CI-side content-similarity test (Session-4) will flag any Mirror
   copy whose Jaccard-token overlap with a small held-out corpus of
@@ -70,7 +70,7 @@ published works is copyrighted.
 Where the Gene Keys tradition is referenced, use language such as:
 
   "Gene Keys is a contemplative framework developed within the Gene Keys
-  tradition. The interpretations below are Personal Mirror's own reading
+  tradition. The interpretations below are The Mirror's own reading
   of your calculated activations and sphere placements — they are not a
   reproduction of the published Gene Keys material."
 

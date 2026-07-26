@@ -1,5 +1,5 @@
 # PERSONAL MIRROR — MULTI-SESSION ROADMAP
-Companion to `/app/memory/personal_mirror_audit_2026_07.md`
+Companion to `/app/memory/the_mirror_audit_2026_07.md`
 Date: 2026-07-22
 
 This is the sequenced plan for shipping the full "Complete Lens Content

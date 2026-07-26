@@ -1,12 +1,15 @@
-"""Phase-11 integrity tests — Personal Mirror Session-1 scaffold
+"""Phase-11 integrity tests — The Mirror Session-1 scaffold
 =================================================================
+
+Project identity: The Mirror Emergent application (`/app`).
+Not the separate Codex Personal Mirror project.
 
 Only tests for concrete Session-1 fixes ship here. The broader Phase-11
 test suite (degree bounds under Variant-A, no-boilerplate similarity,
 prompt/token integrity) is Session-2+ scope pending the design decisions
 listed in the audit doc.
 
-build_marker: personal-mirror-session1-tests-v1
+build_marker: the-mirror-session1-tests-v1
 """
 from __future__ import annotations
 import os

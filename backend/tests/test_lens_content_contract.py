@@ -315,7 +315,7 @@ def test_frontend_no_modulo_30_in_mappings():
 def test_session1_tests_still_pass():
     import subprocess
     result = subprocess.run(
-        [sys.executable, os.path.join(HERE, "test_personal_mirror_session1_integrity.py")],
+        [sys.executable, os.path.join(HERE, "test_the_mirror_session1_integrity.py")],
         capture_output=True, text=True, timeout=60,
     )
     assert result.returncode == 0, (

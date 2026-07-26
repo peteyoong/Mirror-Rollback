@@ -1,7 +1,7 @@
 # PERSONAL MIRROR SESSION-2 — AUDIT + DELIVERABLES
 Date: 2026-07-22
-Companion to `/app/memory/personal_mirror_audit_2026_07.md` (Session-1)
-and `/app/memory/personal_mirror_roadmap_2026_07.md`
+Companion to `/app/memory/the_mirror_audit_2026_07.md` (Session-1)
+and `/app/memory/the_mirror_roadmap_2026_07.md`
 
 Build marker: personal-mirror-session2-scaffolding
 
@@ -100,7 +100,7 @@ Covers all 12 Session-2 test requirements:
 11. No modulo-30 or clamping in FE (source grep)  ✅
 12. Session-1 tests still pass (subprocess re-run)  ✅
 
-Session-1 tests: `python tests/test_personal_mirror_session1_integrity.py` → **5/5 green**.
+Session-1 tests: `python tests/test_the_mirror_session1_integrity.py` → **5/5 green**.
 
 ## J. Files changed / added
 
@@ -112,7 +112,7 @@ Added:
 - `/app/frontend/types/lens_content_contract.ts`
 - `/app/frontend/components/lens_contract/LensContractView.tsx`
 - `/app/memory/gene_keys_ip_policy_v1.md`
-- `/app/memory/personal_mirror_session2_audit_2026_07.md` (this file)
+- `/app/memory/the_mirror_session2_audit_2026_07.md` (this file)
 
 Modified: none. All Session-2 work is purely additive per the "no lens narrative rewrites" scope constraint. Session-1 modifications remain in place.
 

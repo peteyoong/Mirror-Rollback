@@ -13,9 +13,9 @@ PERSONAL MIRROR SESSION 3 — HUMAN DESIGN REBUILD (STRUCTURE FIRST)
 Session 2 is accepted. Shared Lens Content Contract + adapter + Heart/Ego
 canonicalizer + Variant-A degree tests + Gene Keys IP policy have all
 shipped and pass 19/19 tests. See:
-- /app/memory/personal_mirror_session2_audit_2026_07.md
-- /app/memory/personal_mirror_audit_2026_07.md
-- /app/memory/personal_mirror_roadmap_2026_07.md
+- /app/memory/the_mirror_session2_audit_2026_07.md
+- /app/memory/the_mirror_audit_2026_07.md
+- /app/memory/the_mirror_roadmap_2026_07.md
 
 Session-3 scope is Phase 3 from the master rebuild plan — Human Design
 only. Structure work FIRST, narrative rebalancing SECOND.
@@ -98,7 +98,7 @@ DELIVERABLES (Session-3 exit criteria):
   envelope with populated CORE STORY + at least 3 COMPONENT STORIES for
   centres and 3 for channels
 - Session-3 audit doc at
-  /app/memory/personal_mirror_session3_audit_2026_07.md
+  /app/memory/the_mirror_session3_audit_2026_07.md
 - Recommended bounded Session-4 prompt (Astrology or Gene Keys — pick
   the higher-user-value lens next based on Session-3 findings)
 

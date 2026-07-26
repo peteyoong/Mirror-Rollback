@@ -17120,7 +17120,7 @@ async def get_human_design_today_diagnosis(user_id: str):
             logger.debug(f"Could not get transit gates: {te}")
         
         defined_centers = hd_data.get('defined_centers', [])
-        # ── FIX (Session-1, personal_mirror_audit_2026_07.md §3c) ──
+        # ── FIX (Session-1, the_mirror_audit_2026_07.md §3c) ──
         # Historically defined_centers came out of the chart engine as
         # 'Ego' / 'G Center' etc., but undefined_centers was computed
         # against a hardcoded canonical list using 'Heart/Ego' /

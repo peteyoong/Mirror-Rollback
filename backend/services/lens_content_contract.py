@@ -4,9 +4,10 @@
 Canonical 7-layer envelope every lens deep-dive endpoint returns.
 
 Build marker: lens-content-contract-v1
-Session:      Personal Mirror Session-2
-Docs:         /app/memory/personal_mirror_audit_2026_07.md
-              /app/memory/personal_mirror_roadmap_2026_07.md
+Project:      The Mirror (Emergent `/app` application)
+Session:      The Mirror Session-2 — Shared Lens Content Contract
+Docs:         /app/memory/the_mirror_audit_2026_07.md
+              /app/memory/the_mirror_roadmap_2026_07.md
 
 Design principles enforced by the schema:
 

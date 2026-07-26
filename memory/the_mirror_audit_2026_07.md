@@ -179,7 +179,7 @@ Session-1 is complete when:
 - ✅ Astrology angle-consistency test is passing
 - ⚠️ Astrology degree normalization: **awaiting user's A/B/C decision** — deferred to Session-2 unless decision arrives in-session
 - ✅ Test scaffold committed for all four tests
-- ✅ Roadmap document written (`personal_mirror_roadmap_2026_07.md`)
+- ✅ Roadmap document written (`the_mirror_roadmap_2026_07.md`)
 
 ## 10. OPEN QUESTIONS FOR USER
 
