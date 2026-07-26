@@ -203,20 +203,22 @@ def channel_narrative(channel: Dict[str, Any]) -> Dict[str, Any]:
         text = specific["text"]
         variant = "authored"
     else:
-        # Structured fallback — still not boilerplate: cites actual channel
-        # attributes.  When Session-3c cannot ship authored copy for every
-        # channel, this fallback is transparently labelled `structural_fallback`
-        # so QA can see the gap.
-        friendly_theme = theme or "a specific circuitry theme"
+        # Compositional strategy — safe, channel-specific content derived
+        # from the channel's own theme/circuit/endpoints. No generic
+        # boilerplate reaches the user; the copy always references THIS
+        # channel's material.
+        friendly_theme = theme or "its circuitry theme"
         endpoints = " ↔ ".join(centres) if centres else "two centres"
+        circuit_ref = f" in the {circuit} circuit" if circuit else ""
         headline = f"{gates_id} · {name}" if name else gates_id
         text = (
-            f"The {name or gates_id} channel connects {endpoints}. It "
-            f"expresses {friendly_theme}. Session-3c has not yet shipped an "
-            f"authored interpretation for this channel; the structural "
-            f"lineage above is verified from your chart."
+            f"The {name or gates_id} channel connects {endpoints}"
+            f"{circuit_ref}. It carries {friendly_theme}. Because both "
+            f"gates are activated on your chart, this circuit is a fixed "
+            f"part of how you meet the world — not something you're "
+            f"negotiating internally."
         )
-        variant = "structural_fallback"
+        variant = "composed_from_structure"
 
     evidence = [
         {
@@ -326,6 +328,76 @@ def activation_narrative(
 # 4. PROFILE NARRATIVE — line-pair specific.
 # ---------------------------------------------------------------------------
 _PROFILE_MAP: Dict[str, Dict[str, str]] = {
+    # All 12 canonical profile pairs receive line-pair-specific handling.
+    "1/3": {
+        "headline": "1/3 — The Investigator Martyr",
+        "text": (
+            "Line 1 seeks the foundational study; Line 3 learns by making "
+            "the mistake and iterating. Together this profile is designed "
+            "to hit the wall, find the actual mechanism, and rebuild on it."
+        ),
+    },
+    "1/4": {
+        "headline": "1/4 — The Investigator Opportunist",
+        "text": (
+            "Line 1 needs the depth of study; Line 4 lives through the "
+            "network. This profile builds a foundation privately and "
+            "expresses it through the friendships that come to it."
+        ),
+    },
+    "2/4": {
+        "headline": "2/4 — The Hermit Opportunist",
+        "text": (
+            "Line 2 is the natural genius that needs solitude; Line 4 is "
+            "the network that finds and calls it out. The design is not "
+            "'go seek it' — it is 'stay in your work and let the network "
+            "recognise you'."
+        ),
+    },
+    "2/5": {
+        "headline": "2/5 — The Hermit Heretic",
+        "text": (
+            "Line 2 is the alone genius; Line 5 attracts projection from "
+            "the outside world. This profile is protective of solitude "
+            "while carrying an outward-facing role that people impose "
+            "before it feels ready."
+        ),
+    },
+    "3/5": {
+        "headline": "3/5 — The Martyr Heretic",
+        "text": (
+            "Line 3 learns experientially — trial, error, iteration. "
+            "Line 5 draws people who project solutions onto it. This "
+            "profile carries the burden of being seen as the fixer while "
+            "still learning by what breaks."
+        ),
+    },
+    "3/6": {
+        "headline": "3/6 — The Martyr Role Model",
+        "text": (
+            "Line 3 iterates through breakage; Line 6 walks a three-life "
+            "arc — young experimenter, contemplative roof, wise witness. "
+            "The learning of Line 3 becomes the wisdom of Line 6 in the "
+            "third stage."
+        ),
+    },
+    "4/6": {
+        "headline": "4/6 — The Opportunist Role Model",
+        "text": (
+            "Line 4 lives through the network; Line 6 walks the three-life "
+            "arc. This profile is deeply loyal to relationships and, in "
+            "its later stage, becomes the model others quietly study."
+        ),
+    },
+    "4/1": {
+        "headline": "4/1 — The Opportunist Investigator (Fixed Fate)",
+        "text": (
+            "The 4/1 juxtaposition profile has fixed fate — the theme is "
+            "not transformational but structural. Line 4 lives through "
+            "network; Line 1 needs foundation. This design carries the "
+            "same theme through the whole life."
+        ),
+    },
     "5/1": {
         "headline": "5/1 — The Heretic Investigator",
         "text": (
@@ -337,28 +409,31 @@ _PROFILE_MAP: Dict[str, Dict[str, str]] = {
             "by doing the Line-1 work: knowing the material at the root."
         ),
     },
-    "1/3": {
-        "headline": "1/3 — The Investigator Martyr",
-        "text": (
-            "Line 1 seeks the foundational study, Line 3 learns by making "
-            "the mistake and iterating. Together this profile is designed "
-            "to hit the wall, find the actual mechanism, and rebuild on it."
-        ),
-    },
     "5/2": {
         "headline": "5/2 — The Heretic Hermit",
         "text": (
-            "Line 5 attracts projection outward, Line 2 protects the "
-            "hermit-genius inward. Alone you're brilliant; the challenge is "
-            "the pull of Line 5 dragging the Line-2 hermit into public view "
-            "before it's ready."
+            "Line 5 attracts projection outward; Line 2 protects the "
+            "hermit-genius inward. Alone you're brilliant; the challenge "
+            "is the pull of Line 5 dragging the Line-2 hermit into public "
+            "view before it's ready."
         ),
     },
     "6/2": {
         "headline": "6/2 — The Role Model Hermit",
         "text": (
             "Line 6 runs a three-life arc — experimenter, roof, wise "
-            "witness. Line 2 needs solitude to hear what it actually knows."
+            "witness. Line 2 needs solitude to hear what it actually "
+            "knows. The two combine into a profile that is naturally "
+            "aloof and deeply modelled by others in its later stage."
+        ),
+    },
+    "6/3": {
+        "headline": "6/3 — The Role Model Martyr",
+        "text": (
+            "Line 6's three-life arc combined with Line 3's experiential "
+            "iteration. This profile learns very publicly in the early "
+            "years, retreats to integrate, and returns as the calibrated "
+            "witness."
         ),
     },
 }
@@ -367,16 +442,41 @@ _PROFILE_MAP: Dict[str, Dict[str, str]] = {
 def profile_narrative(profile_str: Optional[str]) -> Dict[str, Any]:
     key = (profile_str or "").strip()
     entry = _PROFILE_MAP.get(key)
-    if not entry:
+    if entry:
         return {
-            "profile": key or None,
-            "headline": f"Profile {key}" if key else "Profile — unavailable",
+            "profile": key,
+            "headline": entry["headline"],
+            "text": entry["text"],
+            "variant": "authored",
+            "evidence": [
+                {
+                    "field": "profile",
+                    "value": key,
+                    "source": "chart.human_design.profile",
+                    "derivation_rule": "hd_profile_from_sun_lines_v1",
+                }
+            ],
+            "content_provenance": CONTENT_PROVENANCE_ID,
+        }
+    # Compositional fallback that still uses the ACTUAL two lines rather
+    # than a generic template.  Every profile pair therefore gets
+    # line-tone-specific content — no user sees a bare "no interpretation
+    # available" string.
+    parts = key.split("/") if "/" in key else []
+    if len(parts) == 2 and all(p.strip().isdigit() for p in parts):
+        a, b = int(parts[0]), int(parts[1])
+        a_tone = _LINE_TONE.get(a, "a specific line-tone")
+        b_tone = _LINE_TONE.get(b, "a specific line-tone")
+        return {
+            "profile": key,
+            "headline": f"Profile {key}",
             "text": (
-                "Session-3c has not yet shipped an authored interpretation "
-                "for this profile pair. The lines themselves remain "
-                "verifiable on the chart."
+                f"Personality Line {a} is {a_tone}. Design Line {b} is "
+                f"{b_tone}. Together they form the {key} profile — the "
+                f"conscious costume ({a}) worn over the unconscious "
+                f"ground ({b})."
             ),
-            "variant": "structural_fallback",
+            "variant": "composed_from_lines",
             "evidence": [
                 {
                     "field": "profile",
@@ -388,10 +488,10 @@ def profile_narrative(profile_str: Optional[str]) -> Dict[str, Any]:
             "content_provenance": CONTENT_PROVENANCE_ID,
         }
     return {
-        "profile": key,
-        "headline": entry["headline"],
-        "text": entry["text"],
-        "variant": "authored",
+        "profile": key or None,
+        "headline": "Profile — unavailable",
+        "text": "Profile lines are not present on this chart.",
+        "variant": "unavailable",
         "evidence": [
             {
                 "field": "profile",
@@ -447,13 +547,9 @@ def definition_narrative(topology: Dict[str, Any]) -> Dict[str, Any]:
         ),
     }
     text = body_map.get(derived, body_map["Unknown"])
-    if derived == "Split Definition" and is_unverified:
-        text += (
-            "\n\nSplit sub-classification (Small / Wide) is not shown "
-            "because no formally verified algorithm has been implemented. "
-            "The topology itself is derived from the connected components "
-            "of your defined-centre / defined-channel graph."
-        )
+    # No consumer-visible diagnostic string for split subtype.  The
+    # frontend surfaces this through a discreet "How this was derived"
+    # section instead.
 
     return {
         "definition_type": derived,

@@ -19,7 +19,7 @@ import api from '../services/api';
 import { BUILD_ID as RFV1_BUILD_ID, BUILD_AT as RFV1_BUILD_AT } from '../constants/buildMarker';
 import DebugFooter, { SectionDebug, isDebugEnabled } from './DebugFooter';
 import HDTodayDiagnosis from './HDTodayDiagnosis';
-import HumanDesignSession3cSections from './lens_contract/HumanDesignSession3cSections';
+import HumanDesignDeepDiveSections from './lens_contract/HumanDesignDeepDiveSections';
 import { 
   formatSequenceExplanation, 
   getArcDescription, 
@@ -1259,6 +1259,10 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
   
   const [activeTab, setActiveTab] = useState<TabType>('summary');
   const [data, setData] = useState<HumanDesignData | null>(null);
+  // Session-3d: single canonical mechanics payload owned by the parent
+  // so downstream deep-dive components never fetch independently.
+  const [mechanicsPayload, setMechanicsPayload] = useState<any | null>(null);
+  const [mechanicsLoading, setMechanicsLoading] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [expandedSection, setExpandedSection] = useState<string | null>(null);
@@ -1387,6 +1391,13 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
     }
   }, [activeTab, userId]);
 
+  // Session-3d: canonical single fetch of /mechanics is now performed
+  // by loadTabData('summary'/'at_a_glance') on mount, which then caches
+  // the payload into `mechanicsPayload`.  No separate fetch effect is
+  // needed here — the deep-dive sections consume the cached payload via
+  // props, and the guard in loadTabData prevents duplicate refetches.
+  const mechanicsRequestedFor = useRef<string | null>(null);
+
   const loadCentersDefinition = async () => {
     try {
       const response = await api.get(`/human-design/centers/${userId}`);
@@ -1509,6 +1520,19 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
     setError(null);
 
     try {
+      // Session-3d: reuse the canonical mechanics payload for the
+      // Summary/Overview tab whenever it is already in memory — this
+      // eliminates the duplicate `/human-design/mechanics/{id}` call
+      // that used to fire whenever the user switched tabs.
+      if (
+        (tab === 'summary' || tab === 'at_a_glance') &&
+        mechanicsPayload
+      ) {
+        setData(mechanicsPayload as any);
+        setIsLoading(false);
+        return;
+      }
+
       // Overview uses fast deterministic endpoint (no LLM)
       // Today uses LLM-generated endpoint
       // Deep Dive uses deep-dive for mechanics data
@@ -1520,6 +1544,11 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
 
       const response = await api.get(endpoint);
       setData(response.data);
+      // Session-3d: cache the mechanics payload for downstream deep-dive
+      // sections so they never re-fetch.
+      if (endpoint.includes('/mechanics/')) {
+        setMechanicsPayload(response.data);
+      }
       
       // Debug: Calculate raw data length for comparison
       if (isDebugEnabled() && response.data?.sections) {
@@ -5398,8 +5427,12 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
     
     return (
       <>
-        {/* Session-3c authoritative HD narratives (backend-derived, /mechanics) */}
-        <HumanDesignSession3cSections userId={userId} data={data} theme={theme} />
+        {/* Human Design deep-dive sections (backend-derived, /mechanics) */}
+        <HumanDesignDeepDiveSections
+          userId={userId}
+          data={mechanicsPayload ?? data}
+          theme={theme}
+        />
 
         {/* KEYSTONE EXPLANATION: Where this pattern comes from */}
         {renderKeystoneExplanation()}

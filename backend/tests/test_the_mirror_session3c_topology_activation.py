@@ -136,6 +136,21 @@ def test_definition_narrative_never_says_small_or_wide(pete_mechanics):
     assert "wide split" not in lowered, definition_block
 
 
+def test_definition_narrative_hides_diagnostic_language(pete_mechanics):
+    """Session-3d: consumer-facing text must not expose internal
+    diagnostic sentences like 'no formally verified algorithm'."""
+    narr = pete_mechanics.get("component_narratives", {})
+    definition_block = narr.get("definition", {}) if isinstance(narr, dict) else {}
+    text = (definition_block.get("text") or "").lower()
+    for phrase in (
+        "no formally verified algorithm",
+        "not shown",
+        "session-3",
+        "unverified",
+    ):
+        assert phrase not in text, (phrase, text)
+
+
 # =======================================================================
 # Unit tests on the topology module directly (edge cases)
 # =======================================================================

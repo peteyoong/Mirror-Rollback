@@ -138,11 +138,9 @@ def build_core_story(
             f"information internally and how much your environment fills "
             f"in the bridges."
         )
-        if derived_def == "Split Definition" and topology.get("split_subtype_unverified"):
-            text += (
-                " Split sub-classification (Small / Wide) is not shown — "
-                "no formally verified algorithm has been implemented yet."
-            )
+        # Split-subtype detail is intentionally not surfaced in the
+        # consumer-facing text; it remains available on the topology
+        # payload for methodology inspection.
         threads.append(_thread(
             thread_id="definition_topology",
             headline=derived_def,

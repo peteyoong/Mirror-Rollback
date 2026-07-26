@@ -167,6 +167,20 @@ def build_activation_table(hd_raw: Dict[str, Any]) -> Dict[str, Any]:
             "personality_total": len(personality_rows),
             "design_total": len(design_rows),
         },
+        # Session-3d Decision 4 — advanced activation fields
+        # (color / tone / base) are computed by the canonical
+        # gate-line-color-tone-base subdivision, but no INDEPENDENT
+        # reproducible fixture has been added to verify them against a
+        # third-party HD source.  Until such calibration ships, the
+        # frontend must render gate.line only and treat color/tone/base
+        # as PRESENT_BUT_UNVERIFIED.  The values remain in the payload
+        # for developer inspection but MUST NOT drive narrative claims.
+        "advanced_fields_verified": False,
+        "advanced_fields_status": "PRESENT_BUT_UNVERIFIED",
+        "advanced_fields_reason": (
+            "canonical 6-6-5 subdivision computed from sidereal longitude "
+            "but no independent HD calibration fixture yet"
+        ),
         "provenance": {
             "source": "chart.human_design",
             "algorithm": "hd_activation_table_v1",
