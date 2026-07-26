@@ -2163,6 +2163,17 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
     const centerName = rawCenterName;
     const safeCenterName = centerName.toLowerCase().replace(/\s/g, '_');
     const crossLink = getCenterCrossLink(centerName, isDefined, context);
+
+    // ── Session-1 fix (audit §3b): Prefer backend display_name when
+    // present and normalize the title so we never render "X Center Center".
+    // The backend sometimes emits center_name = "G Center" (Center already
+    // baked in) and other times "Ego" (no suffix) — use display_name for
+    // the human-facing title, falling back to a de-suffixed center_name.
+    // build_marker: hd-center-title-normalization-v1
+    const displayNameRaw: string = center.display_name || centerName;
+    const _stripTrailingCenter = (s: string): string =>
+      (s || '').replace(/\s+(Center|Centre)\s*$/i, '').trim();
+    const centerTitle = `${_stripTrailingCenter(displayNameRaw)} Center`;
     
     // ACTUAL CENTER DATA from API - use interpretation fields
     const interpretation = center.interpretation || {};
@@ -2204,7 +2215,7 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
     return (
       <NestedCollapsible
         key={`center-${centerName}`}
-        title={`${centerName} Center`}
+        title={centerTitle}
         subtitle={isDefined ? `Defined${gatesStr ? ` • ${gatesStr}` : ''}` : 'Open / Undefined'}
         defaultOpen={defaultOpen}
         status={isDefined ? 'defined' : 'undefined'}
@@ -6355,7 +6366,16 @@ Remember: Your wisdom comes from sampling. You're not designed for quick certain
     // Separate defined and undefined centers
     const definedCenters = centersData.centers.filter((c: any) => c.defined === true);
     const undefinedCenters = centersData.centers.filter((c: any) => c.defined !== true);
-    
+
+    // Session-1 fix (audit §3b): normalize any centre title to avoid
+    // "G Center Center" / "Head Center Center" etc. Prefer backend
+    // display_name; fall back to name; then strip trailing "Center".
+    // build_marker: hd-center-title-normalization-v1
+    const _titleFor = (c: any): string => {
+      const raw: string = (c && (c.display_name || c.name || c.center_name)) || 'Center';
+      return String(raw).replace(/\s+(Center|Centre)\s*$/i, '').trim();
+    };
+
     return (
       <View style={{ gap: 8 }}>
         {/* Defined Centers First */}
@@ -6365,7 +6385,7 @@ Remember: Your wisdom comes from sampling. You're not designed for quick certain
             {definedCenters.map((center: any, idx: number) => (
               <NestedCollapsible
                 key={`def-${idx}`}
-                title={center.name || center.center_name}
+                title={`${_titleFor(center)} Center`}
                 subtitle="Consistent access to this energy"
                 defaultOpen={idx === 0} // First defined center open
                 status="defined"
@@ -6384,7 +6404,7 @@ Remember: Your wisdom comes from sampling. You're not designed for quick certain
             {undefinedCenters.map((center: any, idx: number) => (
               <NestedCollapsible
                 key={`undef-${idx}`}
-                title={center.name || center.center_name}
+                title={`${_titleFor(center)} Center`}
                 subtitle="Amplifies energy from others"
                 defaultOpen={false} // All closed by default
                 status="undefined"

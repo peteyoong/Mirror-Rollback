@@ -17120,7 +17120,46 @@ async def get_human_design_today_diagnosis(user_id: str):
             logger.debug(f"Could not get transit gates: {te}")
         
         defined_centers = hd_data.get('defined_centers', [])
-        undefined_centers = [c for c in ['Head', 'Ajna', 'Throat', 'G/Identity', 'Heart/Ego', 'Sacral', 'Solar Plexus', 'Spleen', 'Root'] if c not in defined_centers]
+        # ── FIX (Session-1, personal_mirror_audit_2026_07.md §3c) ──
+        # Historically defined_centers came out of the chart engine as
+        # 'Ego' / 'G Center' etc., but undefined_centers was computed
+        # against a hardcoded canonical list using 'Heart/Ego' /
+        # 'G/Identity' — which meant SAME centre appeared in BOTH lists.
+        # Canonicalize both lists to a single vocabulary before diffing.
+        # build_marker: hd-center-name-canonicalization-v1
+        _CANON = {
+            "ego":         "Heart/Ego",
+            "heart":       "Heart/Ego",
+            "heart/ego":   "Heart/Ego",
+            "heart / ego": "Heart/Ego",
+            "g center":    "G/Identity",
+            "g":           "G/Identity",
+            "g/identity":  "G/Identity",
+            "g / identity":"G/Identity",
+            "identity":    "G/Identity",
+            "head":        "Head",
+            "ajna":        "Ajna",
+            "throat":      "Throat",
+            "sacral":      "Sacral",
+            "solar plexus":"Solar Plexus",
+            "spleen":      "Spleen",
+            "root":        "Root",
+        }
+
+        def _canon_center(name: str) -> str:
+            if not isinstance(name, str):
+                return ""
+            return _CANON.get(name.lower().strip(), name)
+
+        _ALL_CANON = [
+            "Head", "Ajna", "Throat", "G/Identity", "Heart/Ego",
+            "Sacral", "Solar Plexus", "Spleen", "Root",
+        ]
+        canonical_defined = sorted({_canon_center(c) for c in defined_centers if _canon_center(c) in _ALL_CANON})
+        undefined_centers = [c for c in _ALL_CANON if c not in canonical_defined]
+        # Emit the canonicalized defined list to downstream too, so the
+        # FE never sees "Ego" in one field and "Heart/Ego" in another.
+        defined_centers = canonical_defined
         
         # Generate diagnosis
         diagnosis = await generate_hd_today_diagnosis(

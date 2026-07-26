@@ -101,8 +101,17 @@ export default function LensesScreen() {
         <View style={styles.header}>
           <Text style={[styles.title, { color: theme.text }]}>Your Lenses</Text>
           <Text style={[styles.subtitle, { color: theme.textSecondary }]}>
-            Four perspectives for understanding yourself. Each offers a different way of
-            seeing, not a definition of who you are.
+            {/* Session-1 fix (audit §3a): count was hardcoded "Four" while
+                five lenses render (Astrology / Human Design / Numerology /
+                Enneagram / BaZi). Compute from the actual rendered list so
+                the header can never drift again.
+                build_marker: lens-library-dynamic-count-v1 */}
+            {(() => {
+              const NUMS = ['Zero','One','Two','Three','Four','Five','Six','Seven','Eight','Nine','Ten'];
+              const n = lenses.length;
+              const noun = NUMS[n] || String(n);
+              return `${noun} perspectives for understanding yourself. Each offers a different way of seeing, not a definition of who you are.`;
+            })()}
           </Text>
         </View>
 
