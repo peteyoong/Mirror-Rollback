@@ -17,6 +17,12 @@ import { useRouter } from 'expo-router';
 import { Colors } from '../../constants/colors';
 import { useAppStore } from '../../store';
 import { createUser, searchLocations, calculateChart } from '../../services/api';
+import { fontFamily } from '../../theme/tokens';
+
+// Font-family shorthands so we can use them inside the local StyleSheet
+// while keeping the tokens module as the single source of truth.
+const displayFont = fontFamily.display;
+const textFont = fontFamily.text;
 
 // Debug flag for touch diagnostics
 const DEBUG_TOUCHES = __DEV__;
@@ -597,15 +603,19 @@ const styles = StyleSheet.create({
     marginTop: 24,
   },
   title: {
+    fontFamily: displayFont,
     fontSize: 28,
-    fontWeight: '600',
+    fontWeight: '400',
     color: Colors.text,
     marginBottom: 8,
+    letterSpacing: 0.3,
+    lineHeight: 34,
   },
   subtitle: {
+    fontFamily: textFont,
     fontSize: 15,
     color: Colors.textSecondary,
-    lineHeight: 22,
+    lineHeight: 24,
   },
   progressContainer: {
     flexDirection: 'row',
@@ -614,17 +624,20 @@ const styles = StyleSheet.create({
     marginBottom: 32,
   },
   progressDot: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
+    width: 8,
+    height: 8,
+    borderRadius: 4,
     backgroundColor: Colors.border,
   },
   progressDotActive: {
     backgroundColor: Colors.accent,
+    width: 10,
+    height: 10,
+    borderRadius: 5,
   },
   progressLine: {
-    width: 60,
-    height: 2,
+    width: 48,
+    height: 1,
     backgroundColor: Colors.border,
     marginHorizontal: 8,
   },
@@ -635,39 +648,51 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   stepTitle: {
+    fontFamily: displayFont,
     fontSize: 22,
-    fontWeight: '600',
+    fontWeight: '400',
     color: Colors.text,
     marginBottom: 8,
+    letterSpacing: 0.2,
+    lineHeight: 28,
   },
   stepDescription: {
+    fontFamily: textFont,
     fontSize: 14,
     color: Colors.textSecondary,
     marginBottom: 24,
-    lineHeight: 20,
+    lineHeight: 22,
   },
   inputGroup: {
-    marginBottom: 20,
+    marginBottom: 24,
   },
   label: {
-    fontSize: 14,
+    fontFamily: textFont,
+    fontSize: 12,
     fontWeight: '500',
-    color: Colors.text,
-    marginBottom: 8,
+    color: Colors.textSecondary,
+    textTransform: 'uppercase',
+    letterSpacing: 0.8,
+    marginBottom: 10,
   },
   input: {
+    fontFamily: textFont,
     backgroundColor: Colors.surface,
     borderRadius: 12,
     padding: 16,
     fontSize: 16,
+    fontWeight: '400',
     color: Colors.text,
     borderWidth: 1,
     borderColor: Colors.border,
+    minHeight: 52,
   },
   hint: {
+    fontFamily: textFont,
     fontSize: 12,
     color: Colors.textTertiary,
-    marginTop: 6,
+    marginTop: 8,
+    lineHeight: 18,
   },
   // Date fields
   genderRow: {
@@ -682,98 +707,121 @@ const styles = StyleSheet.create({
     borderColor: Colors.border,
     backgroundColor: Colors.surface,
     alignItems: 'center',
+    minHeight: 48,
+    justifyContent: 'center',
   },
   genderButtonActive: {
     borderColor: Colors.accent,
     backgroundColor: Colors.accent + '15',
   },
   genderButtonText: {
+    fontFamily: textFont,
     fontSize: 16,
     color: Colors.textSecondary,
-    fontWeight: '500',
+    fontWeight: '400',
   },
   genderButtonTextActive: {
     color: Colors.accent,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   dateRow: {
     flexDirection: 'row',
     alignItems: 'flex-start',
+    gap: 6,
   },
   dateInputContainer: {
     flex: 1,
+    minWidth: 0,
   },
   yearInputContainer: {
-    flex: 1.5,
+    flex: 1.6,
+    minWidth: 0,
   },
   dateInput: {
-    backgroundColor: Colors.surface,
-    borderRadius: 12,
-    padding: 16,
-    fontSize: 22,
-    color: Colors.text,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    textAlign: 'center',
-  },
-  dateLabel: {
-    fontSize: 11,
-    color: Colors.textTertiary,
-    textAlign: 'center',
-    marginTop: 4,
-  },
-  dateSeparator: {
-    fontSize: 24,
-    color: Colors.textTertiary,
-    marginHorizontal: 8,
-    marginTop: 14,
-  },
-  // Time fields - Task 45: Increased touch target for reliable native input
-  timeRow: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-  },
-  timeInputContainer: {
-    width: 80, // Increased from 70 for better touch target
-  },
-  timeInput: {
+    fontFamily: textFont,
     backgroundColor: Colors.surface,
     borderRadius: 12,
     paddingVertical: 16,
-    paddingHorizontal: 12,
-    fontSize: 22,
+    paddingHorizontal: 8,
+    fontSize: 18,
+    fontWeight: '400',
     color: Colors.text,
     borderWidth: 1,
     borderColor: Colors.border,
     textAlign: 'center',
-    minHeight: 56, // Increased from 52 for better touch target (min 44pt + padding)
+    minHeight: 56,
+  },
+  dateLabel: {
+    fontFamily: textFont,
+    fontSize: 11,
+    color: Colors.textTertiary,
+    textAlign: 'center',
+    marginTop: 6,
+    letterSpacing: 0.4,
+  },
+  dateSeparator: {
+    fontFamily: textFont,
+    fontSize: 20,
+    color: Colors.textTertiary,
+    marginTop: 18,
+  },
+  // Time fields — flex-based so AM/PM never clips on narrow viewports.
+  timeRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 6,
+    flexWrap: 'wrap',
+  },
+  timeInputContainer: {
+    flex: 1,
+    minWidth: 0,
+  },
+  timeInput: {
+    fontFamily: textFont,
+    backgroundColor: Colors.surface,
+    borderRadius: 12,
+    paddingVertical: 16,
+    paddingHorizontal: 8,
+    fontSize: 18,
+    fontWeight: '400',
+    color: Colors.text,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    textAlign: 'center',
+    minHeight: 56,
   },
   timeSeparator: {
-    fontSize: 24,
+    fontFamily: textFont,
+    fontSize: 20,
     color: Colors.textTertiary,
-    marginHorizontal: 6,
-    marginTop: 14,
+    marginTop: 18,
   },
   amPmContainer: {
     flexDirection: 'row',
-    marginLeft: 12,
+    marginLeft: 4,
     backgroundColor: Colors.surface,
     borderRadius: 12,
     borderWidth: 1,
     borderColor: Colors.border,
     overflow: 'hidden',
+    height: 56,
   },
   amPmButton: {
-    paddingVertical: 16,
-    paddingHorizontal: 16,
+    paddingVertical: 0,
+    paddingHorizontal: 14,
+    justifyContent: 'center',
+    alignItems: 'center',
+    minWidth: 44,
   },
   amPmButtonActive: {
     backgroundColor: Colors.accent,
   },
   amPmText: {
-    fontSize: 14,
-    fontWeight: '600',
+    fontFamily: textFont,
+    fontSize: 13,
+    fontWeight: '500',
     color: Colors.textSecondary,
+    letterSpacing: 0.4,
   },
   amPmTextActive: {
     color: Colors.surface,
