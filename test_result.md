@@ -26020,3 +26020,15 @@ agent_communication:
       signals, and confirm shape for a handful of core-pair
       combinations (same-type, line-connected, hand-authored,
       fallback).
+
+agent_communication:
+  - agent: "main"
+    message: |
+      App-wide UI/UX retrofit (June 2026). Fixed unclickable Sign in
+      (PWA banner overlay root cause), landing/login scroll safety,
+      global palette alignment to design tokens (ThemeContext +
+      constants/colors), app-wide font-weight cap at 500, serif
+      display headers across Home/Life/Reflect/Lenses/Forums/mappings,
+      duplicate tab headers removed, mappings no-param dead-end fixed.
+      Verified by testing agent iteration_27 — all 11 frontend flows
+      pass at 360x700. Backend untouched.
