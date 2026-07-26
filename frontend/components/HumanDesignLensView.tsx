@@ -4844,6 +4844,16 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
   // ============================================
   // HOW YOU WORK BEST - Unified Environment + Determination + Cognition
   // Mirror tone, lived experience, no system language
+  //
+  // ⚠️ content_provenance: unverified
+  // Session-3 audit (2026-07-22) flagged these three translation tables
+  // (ENVIRONMENT / DETERMINATION / COGNITION) as PHS-style claims whose
+  // deterministic calculation provenance has NOT yet been reproduced
+  // from the source engine. Do not treat them as calculated facts.
+  // Session-3 policy: they remain in the file but are labelled
+  // unverified here; a follow-up session will either wire provenance
+  // or withdraw them from user-facing surfaces. See
+  // /app/memory/the_mirror_session3_hd_audit_2026_07.md.
   // ============================================
   
   // Environment translations - where you function best (1 line each)

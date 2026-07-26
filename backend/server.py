@@ -16578,21 +16578,86 @@ async def get_human_design_mechanics(user_id: str):
         strategy_desc = HD_STRATEGY_DESCRIPTIONS.get(hd_data['type'], 'Unique engagement pattern')
         incarnation_cross = hd_data.get('incarnation_cross', 'Unknown')
         cross_gates_str = hd_data.get('incarnation_cross_gates')
+
+        # ── Session-3: canonicalize centre lists once (used in response).
+        try:
+            from services.hd_center_canonical import split_defined_undefined
+            _hd_canon_defined, _hd_canon_undefined = split_defined_undefined(
+                hd_data.get('defined_centers', []) or []
+            )
+        except Exception:
+            _hd_canon_defined = hd_data.get('defined_centers', []) or []
+            _hd_canon_undefined = []
         
         # Extract channels from raw HD data
         defined_channels = hd_raw.get('defined_channels', [])
-        # Normalize channel format - handle both string and dict formats
-        channels_normalized = []
-        for channel in defined_channels:
-            if isinstance(channel, dict):
-                channels_normalized.append({
-                    "gates": channel.get('gates', channel.get('name', '')),
-                    "name": channel.get('name', ''),
-                    "circuit": channel.get('circuit', ''),
-                    "centers": channel.get('centers', [])
+        # ── Session-3 fix (audit §Phase-1): channel dicts from the
+        # chart engine sometimes ship without name/circuit/gates
+        # populated.  Derive/repair them from the canonical HD_CHANNELS
+        # table by intersecting the personality+design gate lists.
+        # build_marker: hd-mechanics-channel-derivation-v1
+        try:
+            from services.forum_hd_mapping import HD_CHANNELS
+        except Exception:
+            HD_CHANNELS = {}
+        personality_gates_raw = hd_raw.get('personality_gates', []) or []
+        design_gates_raw = hd_raw.get('design_gates', []) or []
+        all_activated_gates = set()
+        for g in list(personality_gates_raw) + list(design_gates_raw):
+            try:
+                all_activated_gates.add(int(g))
+            except (TypeError, ValueError):
+                pass
+        derived_channels = []
+        for chan_key, chan_meta in HD_CHANNELS.items():
+            try:
+                a_str, b_str = chan_key.split('-')
+                a, b = int(a_str), int(b_str)
+            except (ValueError, TypeError):
+                continue
+            if a in all_activated_gates and b in all_activated_gates:
+                a_p = a in [int(x) for x in personality_gates_raw if str(x).isdigit()]
+                a_d = a in [int(x) for x in design_gates_raw if str(x).isdigit()]
+                b_p = b in [int(x) for x in personality_gates_raw if str(x).isdigit()]
+                b_d = b in [int(x) for x in design_gates_raw if str(x).isdigit()]
+                def _side(is_p, is_d):
+                    if is_p and is_d: return "both"
+                    if is_p: return "conscious"
+                    if is_d: return "unconscious"
+                    return "unknown"
+                derived_channels.append({
+                    "gates": chan_key,
+                    "name": chan_meta.get("name", ""),
+                    "circuit": chan_meta.get("circuit", ""),
+                    "theme": chan_meta.get("theme", ""),
+                    "centers": chan_meta.get("centers", []),
+                    "gate_activations": {
+                        str(a): {"side": _side(a_p, a_d), "personality": a_p, "design": a_d},
+                        str(b): {"side": _side(b_p, b_d), "personality": b_p, "design": b_d},
+                    },
+                    "provenance": {
+                        "source": "hd_mechanics.derived_from_gate_intersection",
+                        "table": "HD_CHANNELS",
+                    },
                 })
-            elif isinstance(channel, str):
-                channels_normalized.append({"gates": channel, "name": channel})
+        # Prefer derived channels when the stored list is empty / malformed.
+        if not defined_channels or all(
+            (isinstance(c, dict) and not c.get('gates') and not c.get('name'))
+            for c in defined_channels
+        ):
+            channels_normalized = derived_channels
+        else:
+            channels_normalized = []
+            for channel in defined_channels:
+                if isinstance(channel, dict):
+                    channels_normalized.append({
+                        "gates": channel.get('gates', channel.get('name', '')),
+                        "name": channel.get('name', ''),
+                        "circuit": channel.get('circuit', ''),
+                        "centers": channel.get('centers', [])
+                    })
+                elif isinstance(channel, str):
+                    channels_normalized.append({"gates": channel, "name": channel})
         
         # Extract conscious (personality) vs unconscious (design) gates
         personality_gates = hd_raw.get('personality_gates', [])
@@ -16672,9 +16737,10 @@ async def get_human_design_mechanics(user_id: str):
             },
             # MASTER LEVEL DATA
             "channels": channels_normalized,
-            "defined_centers": hd_data.get('defined_centers', []),
-            "undefined_centers": [c for c in ['Head', 'Ajna', 'Throat', 'G', 'Heart', 'Sacral', 'Spleen', 'Solar Plexus', 'Root'] 
-                                  if c.lower() not in [x.lower() for x in hd_data.get('defined_centers', [])]],
+            # ── Session-3: canonical Heart/Ego + G/Identity vocabulary ─
+            # (build_marker: hd-mechanics-canonical-centers-v1)
+            "defined_centers": _hd_canon_defined,
+            "undefined_centers": _hd_canon_undefined,
             "conscious_gates": personality_gates,
             "unconscious_gates": design_gates,
             "personality_sun": personality_data.get('Sun', {}).get('gate') if isinstance(personality_data.get('Sun'), dict) else None,

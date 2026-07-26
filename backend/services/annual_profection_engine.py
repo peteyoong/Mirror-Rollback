@@ -2,7 +2,7 @@
 ================================================================
 Surface marker: annual-profection-engine-v1
 
-Canonical annual profection calculator for Personal Mirror.
+Canonical annual profection calculator for The Mirror.
 
 Model
 -----

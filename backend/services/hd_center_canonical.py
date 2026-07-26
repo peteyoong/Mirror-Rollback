@@ -84,9 +84,13 @@ def canonicalize_center(name: object) -> Optional[str]:
     if not isinstance(name, str) or not name.strip():
         return None
     key = name.strip().lower().replace("_", " ").replace("-", " ")
+    # Strip parenthetical annotations like "Ajna (Mind)" → "ajna"
+    import re
+    key = re.sub(r"\s*\([^)]*\)", "", key)
     # collapse repeat whitespace
     while "  " in key:
         key = key.replace("  ", " ")
+    key = key.strip()
     return _ALIAS_MAP.get(key)
 
 
