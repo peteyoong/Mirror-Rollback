@@ -25,7 +25,7 @@ export default function Root({ children }: PropsWithChildren) {
             ============================================ */}
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-        <meta name="apple-mobile-web-app-title" content="Project Mirror" />
+        <meta name="apple-mobile-web-app-title" content="The Mirror" />
         <meta name="mobile-web-app-capable" content="yes" />
         
         {/* Theme color for browser chrome */}

@@ -8,6 +8,7 @@ import {
   ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
+  ScrollView,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
@@ -158,7 +159,7 @@ export default function Welcome() {
         >
           <View style={styles.content}>
             <View style={styles.header}>
-              <Text style={[styles.title, { color: darkTheme.text }]}>Project Mirror</Text>
+              <Text style={[styles.title, { color: darkTheme.text }]}>The Mirror</Text>
             </View>
             
             <View style={styles.loginContainer}>
@@ -238,84 +239,91 @@ export default function Welcome() {
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: darkTheme.background }]}>
       <StatusBar style="light" />
-      
-      <View style={styles.content}>
-        {/* Brand - Framed wordmark with em-dash separators */}
-        <View style={styles.brandContainer}>
-          <Text style={styles.brandSeparator}>—</Text>
-          <Text style={styles.brandText}>The Mirror</Text>
-          <Text style={styles.brandSeparator}>—</Text>
-        </View>
-        
-        {/* Headline */}
-        <View style={styles.headlineContainer}>
-          <Text style={[styles.headline, { color: darkTheme.text }]}>
-            {headline.main}
-          </Text>
-        </View>
-        
-        {/* Subtext */}
-        <View style={styles.subtextContainer}>
-          <Text style={[styles.subtext, { color: darkTheme.textSecondary }]}>
-            {headline.sub}
-          </Text>
-        </View>
-        
-        {/* Bridge line */}
-        <View style={styles.bridgeContainer}>
-          <Text style={[styles.bridgeLine, { color: darkTheme.textTertiary }]}>
-            This isn't about who you are.{'\n'}
-            It's about what's happening right now.
-          </Text>
-        </View>
-        
-        {/* Primary CTA - Same visual, smart routing */}
-        <View style={styles.buttonContainer}>
-          <TouchableOpacity 
-            style={[styles.primaryButton, { 
-              backgroundColor: 'rgba(255, 255, 255, 0.08)',
-              borderColor: 'rgba(255, 255, 255, 0.15)' 
-            }]}
-            onPress={handleShowMe}
-            activeOpacity={0.7}
-          >
-            <Text style={[styles.primaryButtonText, { color: 'rgba(255, 255, 255, 0.9)' }]}>
-              Show me
+
+      <ScrollView
+        style={styles.scrollHost}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+        bounces={false}
+      >
+        <View style={styles.content}>
+          {/* Brand - Framed wordmark with em-dash separators */}
+          <View style={styles.brandContainer}>
+            <Text style={styles.brandSeparator}>—</Text>
+            <Text style={styles.brandText}>The Mirror</Text>
+            <Text style={styles.brandSeparator}>—</Text>
+          </View>
+
+          {/* Headline */}
+          <View style={styles.headlineContainer}>
+            <Text style={[styles.headline, { color: darkTheme.text }]}>
+              {headline.main}
             </Text>
-          </TouchableOpacity>
-          
-          {/* Secondary actions row */}
-          <View style={styles.secondaryActionsRow}>
-            <TouchableOpacity onPress={handleBeginReflection} activeOpacity={0.6}>
-              <Text style={styles.secondaryActionText}>I'm new here</Text>
-            </TouchableOpacity>
-            <Text style={styles.secondaryActionDivider}>·</Text>
+          </View>
+
+          {/* Subtext */}
+          <View style={styles.subtextContainer}>
+            <Text style={[styles.subtext, { color: darkTheme.textSecondary }]}>
+              {headline.sub}
+            </Text>
+          </View>
+
+          {/* Bridge line */}
+          <View style={styles.bridgeContainer}>
+            <Text style={[styles.bridgeLine, { color: darkTheme.textTertiary }]}>
+              This isn&apos;t about who you are.{'\n'}
+              It&apos;s about what&apos;s happening right now.
+            </Text>
+          </View>
+
+          {/* Primary CTA - Same visual, smart routing */}
+          <View style={styles.buttonContainer}>
             <TouchableOpacity
-              onPress={() => setShowLogin(true)}
-              activeOpacity={0.6}
-              testID="welcome-sign-in-link"
-              accessibilityLabel="Sign in"
-              accessibilityRole="button"
+              style={[styles.primaryButton, {
+                backgroundColor: 'rgba(255, 255, 255, 0.08)',
+                borderColor: 'rgba(255, 255, 255, 0.15)'
+              }]}
+              onPress={handleShowMe}
+              activeOpacity={0.7}
             >
-              <Text style={styles.secondaryActionText}>Sign in</Text>
+              <Text style={[styles.primaryButtonText, { color: 'rgba(255, 255, 255, 0.9)' }]}>
+                Show me
+              </Text>
             </TouchableOpacity>
+
+            {/* Secondary actions row */}
+            <View style={styles.secondaryActionsRow}>
+              <TouchableOpacity onPress={handleBeginReflection} activeOpacity={0.6}>
+                <Text style={styles.secondaryActionText}>I&apos;m new here</Text>
+              </TouchableOpacity>
+              <Text style={styles.secondaryActionDivider}>·</Text>
+              <TouchableOpacity
+                onPress={() => setShowLogin(true)}
+                activeOpacity={0.6}
+                testID="welcome-sign-in-link"
+                accessibilityLabel="Sign in"
+                accessibilityRole="button"
+              >
+                <Text style={styles.secondaryActionText}>Sign in</Text>
+              </TouchableOpacity>
+            </View>
           </View>
         </View>
-      </View>
-      
-      {/* Footer - Forums */}
-      <View style={styles.footerArea}>
-        <View style={styles.forumsFooter}>
-          <TouchableOpacity style={styles.forumLink} onPress={handleCreateForum} activeOpacity={0.5}>
-            <Text style={styles.forumLinkText}>Create Forum</Text>
-          </TouchableOpacity>
-          <Text style={styles.forumDivider}>·</Text>
-          <TouchableOpacity style={styles.forumLink} onPress={handleJoinForum} activeOpacity={0.5}>
-            <Text style={styles.forumLinkText}>Join Forum</Text>
-          </TouchableOpacity>
+
+        {/* Footer - Forums (inside ScrollView so it never overlaps content) */}
+        <View style={styles.footerArea}>
+          <View style={styles.forumsFooter}>
+            <TouchableOpacity style={styles.forumLink} onPress={handleCreateForum} activeOpacity={0.5}>
+              <Text style={styles.forumLinkText}>Create Forum</Text>
+            </TouchableOpacity>
+            <Text style={styles.forumDivider}>·</Text>
+            <TouchableOpacity style={styles.forumLink} onPress={handleJoinForum} activeOpacity={0.5}>
+              <Text style={styles.forumLinkText}>Join Forum</Text>
+            </TouchableOpacity>
+          </View>
+          <Text style={styles.buildMarker}>build · {BUILD_ID}</Text>
         </View>
-        <Text style={styles.buildMarker}>build · {BUILD_ID}</Text>
-      </View>
+      </ScrollView>
     </SafeAreaView>
   );
 }
@@ -329,11 +337,24 @@ const styles = StyleSheet.create({
     flex: 1,
     width: '100%',
   },
-  content: {
+  // ScrollView host — lets the landing content flex naturally and adds a
+  // safety valve on short viewports so nothing collides with the footer.
+  scrollHost: {
     flex: 1,
+    width: '100%',
+  },
+  scrollContent: {
+    flexGrow: 1,
+    justifyContent: 'space-between',
+    paddingBottom: 12,
+  },
+  content: {
+    flexGrow: 1,
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: 28,
+    paddingTop: 24,
+    paddingBottom: 24,
     width: '100%',
   },
   
@@ -342,7 +363,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 32,
+    marginBottom: 24,
     gap: 12,
   },
   brandText: {
@@ -360,7 +381,7 @@ const styles = StyleSheet.create({
   
   // Headline
   headlineContainer: {
-    marginBottom: 24,
+    marginBottom: 18,
     paddingHorizontal: 8,
   },
   headline: {
@@ -372,7 +393,7 @@ const styles = StyleSheet.create({
   
   // Subtext
   subtextContainer: {
-    marginBottom: 32,
+    marginBottom: 22,
   },
   subtext: {
     fontSize: 16,
@@ -383,13 +404,13 @@ const styles = StyleSheet.create({
   
   // Bridge line
   bridgeContainer: {
-    marginBottom: 48,
+    marginBottom: 32,
     paddingHorizontal: 12,
   },
   bridgeLine: {
     fontSize: 16,
     textAlign: 'center',
-    lineHeight: 28,
+    lineHeight: 26,
     fontStyle: 'italic',
   },
   
@@ -397,8 +418,8 @@ const styles = StyleSheet.create({
   buttonContainer: {
     width: '100%',
     maxWidth: 300,
-    gap: 16,
-    marginBottom: 32,
+    gap: 14,
+    marginBottom: 8,
     alignItems: 'center',
   },
   primaryButton: {
@@ -422,7 +443,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: 18,
+    marginTop: 14,
     gap: 12,
   },
   secondaryActionText: {
@@ -437,10 +458,11 @@ const styles = StyleSheet.create({
   
   // Footer area
   footerArea: {
-    paddingBottom: 24,
+    paddingTop: 12,
+    paddingBottom: 20,
     paddingHorizontal: 32,
     alignItems: 'center',
-    gap: 12,
+    gap: 10,
   },
   forumsFooter: {
     flexDirection: 'row',

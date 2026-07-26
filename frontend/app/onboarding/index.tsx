@@ -280,7 +280,7 @@ export default function Onboarding() {
         >
           {/* Header */}
           <View style={styles.header}>
-            <Text style={styles.title}>Project Mirror</Text>
+            <Text style={styles.title}>The Mirror</Text>
             <Text style={styles.subtitle}>
               A mirror for self-understanding, not a map of your future.
             </Text>
