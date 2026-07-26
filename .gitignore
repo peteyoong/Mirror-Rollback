@@ -94,3 +94,8 @@ memory/test_credentials.md
 !backend/.env
 
 model.patch
+.env
+.env.*
+*.env
+credentials.json
+.credentials
