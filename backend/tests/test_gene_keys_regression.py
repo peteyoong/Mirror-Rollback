@@ -2,6 +2,7 @@
 Gene Keys Regression Tests
 ==========================
 FROZEN: 2025-03-07
+Reconciled to canonical first-party sphere map: 2026-07-26 (Session 4A).
 
 These tests ensure the Gene Keys sequence computation remains stable.
 DO NOT modify expected values without explicit approval and version bump.
@@ -69,8 +70,8 @@ class TestGeneKeysVersion:
     """Test version and structure."""
     
     def test_version_constant(self):
-        """Version should be gk_sidereal_v1."""
-        assert GENE_KEYS_VERSION == "gk_sidereal_v1"
+        """Version should be gk_sidereal_v2 (canonical sphere-map reconciled)."""
+        assert GENE_KEYS_VERSION == "gk_sidereal_v2"
     
     def test_sequence_definitions_complete(self):
         """All 13 sequence positions should be defined."""
@@ -249,11 +250,15 @@ class TestSequenceMappings:
         assert SEQUENCE_DEFINITIONS["purpose"] == ("Earth", "design")
     
     def test_love_arc_mappings(self):
-        """Love Arc planets should be correct."""
-        assert SEQUENCE_DEFINITIONS["attraction"] == ("Venus", "design")
-        assert SEQUENCE_DEFINITIONS["iq"] == ("Mercury", "personality")
-        assert SEQUENCE_DEFINITIONS["eq"] == ("Venus", "personality")
-        assert SEQUENCE_DEFINITIONS["sq"] == ("Moon", "design")
+        """Love Arc planets should follow the first-party canonical mapping.
+
+        Reconciled 2026-07-26 (Session 4A) — see
+        `services/gene_keys_sphere_map.CANONICAL_SPHERE_MAP`.
+        """
+        assert SEQUENCE_DEFINITIONS["attraction"] == ("Moon", "design")
+        assert SEQUENCE_DEFINITIONS["iq"] == ("Venus", "personality")
+        assert SEQUENCE_DEFINITIONS["eq"] == ("Mars", "personality")
+        assert SEQUENCE_DEFINITIONS["sq"] == ("Venus", "design")
         assert SEQUENCE_DEFINITIONS["core_wound"] == ("Mars", "design")
     
     def test_prosperity_arc_mappings(self):

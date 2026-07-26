@@ -324,40 +324,39 @@ class VenusSequenceResponse(TypedDict):
 def get_venus_sequence(
     design_moon_gate: int,
     design_moon_line: int,
-    personality_mercury_gate: int,
-    personality_mercury_line: int,
-    design_mercury_gate: int,
-    design_mercury_line: int,
+    personality_venus_gate: int,
+    personality_venus_line: int,
+    personality_mars_gate: int,
+    personality_mars_line: int,
     design_venus_gate: int,
     design_venus_line: int,
-    personality_mars_gate: int,
-    personality_mars_line: int
+    design_mars_gate: int,
+    design_mars_line: int
 ) -> VenusSequenceResponse:
     """Build the complete Venus Sequence from HD planetary data.
-    
-    Venus Sequence mapping (relationships & emotional intelligence):
-    - Attraction = Design Moon (what you unconsciously attract)
-    - IQ = Personality Mercury (mental intelligence in relationships)
-    - EQ = Design Mercury (emotional intelligence)
-    - SQ = Design Venus (spiritual intelligence in love)
-    - Core = Personality Mars (deepest wound and potential in relationships)
-    
-    Args:
-        design_moon_gate/line: Unconscious Moon placement
-        personality_mercury_gate/line: Conscious Mercury placement
-        design_mercury_gate/line: Unconscious Mercury placement
-        design_venus_gate/line: Unconscious Venus placement
-        personality_mars_gate/line: Conscious Mars placement
-    
+
+    Venus Sequence mapping (relationships & emotional intelligence).
+    Canonical first-party correlations
+    (see `services/gene_keys_sphere_map.CANONICAL_SPHERE_MAP`):
+
+    - Attraction = Pre-Natal/Design Moon
+    - IQ         = Natal/Personality Venus
+    - EQ         = Natal/Personality Mars
+    - SQ         = Pre-Natal/Design Venus
+    - Core       = Pre-Natal/Design Mars
+
+    Reconciled 2026-07-26 (Session 4A) — the previous docstring incorrectly
+    stated IQ/EQ/SQ/Core planet correlations.
+
     Returns:
         VenusSequenceResponse with all 5 spheres
     """
     spheres = [
         get_sphere_interpretation("Attraction", design_moon_gate, design_moon_line),
-        get_sphere_interpretation("IQ", personality_mercury_gate, personality_mercury_line),
-        get_sphere_interpretation("EQ", design_mercury_gate, design_mercury_line),
+        get_sphere_interpretation("IQ", personality_venus_gate, personality_venus_line),
+        get_sphere_interpretation("EQ", personality_mars_gate, personality_mars_line),
         get_sphere_interpretation("SQ", design_venus_gate, design_venus_line),
-        get_sphere_interpretation("Core", personality_mars_gate, personality_mars_line),
+        get_sphere_interpretation("Core", design_mars_gate, design_mars_line),
     ]
     
     return {
@@ -375,35 +374,35 @@ class PearlSequenceResponse(TypedDict):
 def get_pearl_sequence(
     design_mars_gate: int,
     design_mars_line: int,
-    personality_jupiter_gate: int,
-    personality_jupiter_line: int,
+    design_jupiter_gate: int,
+    design_jupiter_line: int,
     personality_sun_gate: int,
     personality_sun_line: int,
-    design_jupiter_gate: int,
-    design_jupiter_line: int
+    personality_jupiter_gate: int,
+    personality_jupiter_line: int
 ) -> PearlSequenceResponse:
     """Build the complete Pearl Sequence from HD planetary data.
-    
-    Pearl Sequence mapping (prosperity & material world):
-    - Vocation = Design Mars (the work you're here to do)
-    - Culture = Personality Jupiter (the environment where you thrive)
-    - Brand = Personality Sun (your authentic signature in the world)
-    - Pearl = Design Jupiter (where prosperity flows from alignment)
-    
-    Args:
-        design_mars_gate/line: Unconscious Mars placement
-        personality_jupiter_gate/line: Conscious Jupiter placement
-        personality_sun_gate/line: Conscious Sun placement
-        design_jupiter_gate/line: Unconscious Jupiter placement
-    
+
+    Pearl Sequence mapping (prosperity & material world).
+    Canonical first-party correlations
+    (see `services/gene_keys_sphere_map.CANONICAL_SPHERE_MAP`):
+
+    - Vocation = Pre-Natal/Design Mars    (shared activation with Core)
+    - Culture  = Pre-Natal/Design Jupiter
+    - Brand    = Natal/Personality Sun    (shared activation with Life's Work)
+    - Pearl    = Natal/Personality Jupiter
+
+    Reconciled 2026-07-26 (Session 4A) — the previous docstring reversed
+    the Personality/Design side on Culture and Pearl.
+
     Returns:
         PearlSequenceResponse with all 4 spheres
     """
     spheres = [
         get_sphere_interpretation("Vocation", design_mars_gate, design_mars_line),
-        get_sphere_interpretation("Culture", personality_jupiter_gate, personality_jupiter_line),
+        get_sphere_interpretation("Culture", design_jupiter_gate, design_jupiter_line),
         get_sphere_interpretation("Brand", personality_sun_gate, personality_sun_line),
-        get_sphere_interpretation("Pearl", design_jupiter_gate, design_jupiter_line),
+        get_sphere_interpretation("Pearl", personality_jupiter_gate, personality_jupiter_line),
     ]
     
     return {
@@ -452,32 +451,46 @@ def build_gene_keys_profile(
     design_sun_line: int,
     design_earth_gate: int,
     design_earth_line: int,
-    # Venus Sequence planets
+    # Venus Sequence planets — canonical first-party correlations
     design_moon_gate: int,
     design_moon_line: int,
-    personality_mercury_gate: int,
-    personality_mercury_line: int,
-    design_mercury_gate: int,
-    design_mercury_line: int,
-    design_venus_gate: int,
-    design_venus_line: int,
-    personality_mars_gate: int,
-    personality_mars_line: int,
+    personality_venus_gate: int = None,
+    personality_venus_line: int = None,
+    personality_mars_gate: int = None,
+    personality_mars_line: int = None,
+    design_venus_gate: int = None,
+    design_venus_line: int = None,
+    design_mars_gate: int = None,
+    design_mars_line: int = None,
     # Pearl Sequence planets
-    design_mars_gate: int,
-    design_mars_line: int,
-    personality_jupiter_gate: int,
-    personality_jupiter_line: int,
-    design_jupiter_gate: int,
-    design_jupiter_line: int,
+    personality_jupiter_gate: int = None,
+    personality_jupiter_line: int = None,
+    design_jupiter_gate: int = None,
+    design_jupiter_line: int = None,
+    # Legacy kwargs kept for backwards compatibility with pre-Session-4A
+    # callers.  They are no longer read by the canonical mapping.
+    personality_mercury_gate: int = None,
+    personality_mercury_line: int = None,
+    design_mercury_gate: int = None,
+    design_mercury_line: int = None,
 ) -> GeneKeysProfile:
     """Build complete Gene Keys profile from all planetary data.
-    
-    This function builds all three sequences from a single set of planetary
-    data, avoiding multiple HD computations.
-    
+
+    Uses the canonical first-party sphere→activation map defined in
+    `services/gene_keys_sphere_map.CANONICAL_SPHERE_MAP`.
+
+    Args:
+        personality_*_gate/line: Natal/Personality gate & line for the
+            listed planet.
+        design_*_gate/line: Pre-Natal/Design gate & line for the listed
+            planet.
+        personality_mercury_*, design_mercury_*: Legacy no-op parameters
+            (kept for backwards compatibility — the canonical Venus
+            sequence uses Venus/Mars, not Mercury).
+
     Returns:
-        GeneKeysProfile with activation, venus, pearl sequences and flattened spheres
+        GeneKeysProfile with activation, venus, pearl sequences and
+        flattened spheres.
     """
     # Build Activation Sequence
     activation = get_activation_sequence(
@@ -487,21 +500,22 @@ def build_gene_keys_profile(
         design_earth_gate, design_earth_line
     )
     
-    # Build Venus Sequence
+    # Build Venus Sequence (canonical: IQ=P Venus, EQ=P Mars, SQ=D Venus, Core=D Mars)
     venus = get_venus_sequence(
         design_moon_gate, design_moon_line,
-        personality_mercury_gate, personality_mercury_line,
-        design_mercury_gate, design_mercury_line,
+        personality_venus_gate, personality_venus_line,
+        personality_mars_gate, personality_mars_line,
         design_venus_gate, design_venus_line,
-        personality_mars_gate, personality_mars_line
+        design_mars_gate, design_mars_line,
     )
     
-    # Build Pearl Sequence (Note: Brand uses personality_sun, same as Life's Work)
+    # Build Pearl Sequence (canonical: Vocation=D Mars, Culture=D Jupiter,
+    # Brand=P Sun (shares Life's Work), Pearl=P Jupiter)
     pearl = get_pearl_sequence(
         design_mars_gate, design_mars_line,
+        design_jupiter_gate, design_jupiter_line,
+        personality_sun_gate, personality_sun_line,
         personality_jupiter_gate, personality_jupiter_line,
-        personality_sun_gate, personality_sun_line,  # Brand = Personality Sun
-        design_jupiter_gate, design_jupiter_line
     )
     
     # Flatten all spheres with sequence attribution

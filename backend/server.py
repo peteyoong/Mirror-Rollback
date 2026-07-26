@@ -7393,6 +7393,17 @@ async def get_lenses():
                 "icon": "apps"
             },
             {
+                "name": "Gene Keys",
+                "description": "A contemplative framework of 64 archetypes and three Golden Path sequences",
+                "helps_with": "Contemplating your Activation, Venus and Pearl sequences alongside the True Sidereal activation engine",
+                "does_not": "Reproduce the published Gene Keys interpretations — this is The Mirror's original reading of your calculated activations",
+                "icon": "leaf",
+                "availability": {
+                    "explore": "present",
+                    "reading": "pending_session_4b"
+                }
+            },
+            {
                 "name": "Levels of Consciousness",
                 "description": "A map of emotional and spiritual development (Hawkins Scale)",
                 "helps_with": "Understanding where you are and what might shift",
@@ -19029,6 +19040,8 @@ async def get_pattern_graph(user_id: str):
                         personality_mercury_line=extract_gate_line(personality.get('Mercury', {}))[1],
                         design_mercury_gate=extract_gate_line(design.get('Mercury', {}))[0],
                         design_mercury_line=extract_gate_line(design.get('Mercury', {}))[1],
+                        personality_venus_gate=extract_gate_line(personality.get('Venus', {}))[0],
+                        personality_venus_line=extract_gate_line(personality.get('Venus', {}))[1],
                         design_venus_gate=extract_gate_line(design.get('Venus', {}))[0],
                         design_venus_line=extract_gate_line(design.get('Venus', {}))[1],
                         personality_mars_gate=extract_gate_line(personality.get('Mars', {}))[0],
@@ -19455,6 +19468,8 @@ async def get_pattern_timeline(user_id: str):
                             personality_mercury_line=extract_gate_line(personality.get('Mercury', {}))[1],
                             design_mercury_gate=extract_gate_line(design.get('Mercury', {}))[0],
                             design_mercury_line=extract_gate_line(design.get('Mercury', {}))[1],
+                            personality_venus_gate=extract_gate_line(personality.get('Venus', {}))[0],
+                            personality_venus_line=extract_gate_line(personality.get('Venus', {}))[1],
                             design_venus_gate=extract_gate_line(design.get('Venus', {}))[0],
                             design_venus_line=extract_gate_line(design.get('Venus', {}))[1],
                             personality_mars_gate=extract_gate_line(personality.get('Mars', {}))[0],
@@ -19828,6 +19843,8 @@ async def get_weekly_patterns(user_id: str):
                             personality_mercury_line=extract_gate_line(personality.get('Mercury', {}))[1],
                             design_mercury_gate=extract_gate_line(design.get('Mercury', {}))[0],
                             design_mercury_line=extract_gate_line(design.get('Mercury', {}))[1],
+                            personality_venus_gate=extract_gate_line(personality.get('Venus', {}))[0],
+                            personality_venus_line=extract_gate_line(personality.get('Venus', {}))[1],
                             design_venus_gate=extract_gate_line(design.get('Venus', {}))[0],
                             design_venus_line=extract_gate_line(design.get('Venus', {}))[1],
                             personality_mars_gate=extract_gate_line(personality.get('Mars', {}))[0],
@@ -20066,6 +20083,8 @@ async def get_pattern_timeline(user_id: str, weeks: int = 8):
                             personality_mercury_line=extract_gate_line(personality.get('Mercury', {}))[1],
                             design_mercury_gate=extract_gate_line(design.get('Mercury', {}))[0],
                             design_mercury_line=extract_gate_line(design.get('Mercury', {}))[1],
+                            personality_venus_gate=extract_gate_line(personality.get('Venus', {}))[0],
+                            personality_venus_line=extract_gate_line(personality.get('Venus', {}))[1],
                             design_venus_gate=extract_gate_line(design.get('Venus', {}))[0],
                             design_venus_line=extract_gate_line(design.get('Venus', {}))[1],
                             personality_mars_gate=extract_gate_line(personality.get('Mars', {}))[0],
@@ -27323,21 +27342,30 @@ async def get_user_venus_sequence(user_id: str):
         d_mercury_gate, d_mercury_line = extract_gate_line(d_mercury)
         d_venus_gate, d_venus_line = extract_gate_line(d_venus)
         p_mars_gate, p_mars_line = extract_gate_line(p_mars)
-        
-        logger.info(f"[GeneKeys] Venus Sequence gates: Attraction={d_moon_gate}, IQ={p_mercury_gate}, EQ={d_mercury_gate}, SQ={d_venus_gate}, Core={p_mars_gate}")
+        # Canonical Venus Sequence planets (first-party mapping)
+        p_venus = personality.get('Venus', {})
+        d_mars = design.get('Mars', {})
+        p_venus_gate, p_venus_line = extract_gate_line(p_venus)
+        d_mars_gate, d_mars_line = extract_gate_line(d_mars)
+
+        logger.info(
+            "[GeneKeys] Venus Sequence gates (canonical mirror_true_sidereal_gk_v1): "
+            f"Attraction(DMoon)={d_moon_gate}, IQ(PVenus)={p_venus_gate}, "
+            f"EQ(PMars)={p_mars_gate}, SQ(DVenus)={d_venus_gate}, Core(DMars)={d_mars_gate}"
+        )
         
         # Build Venus sequence
         venus = get_venus_sequence(
             design_moon_gate=d_moon_gate,
             design_moon_line=d_moon_line,
-            personality_mercury_gate=p_mercury_gate,
-            personality_mercury_line=p_mercury_line,
-            design_mercury_gate=d_mercury_gate,
-            design_mercury_line=d_mercury_line,
-            design_venus_gate=d_venus_gate,
-            design_venus_line=d_venus_line,
+            personality_venus_gate=p_venus_gate,
+            personality_venus_line=p_venus_line,
             personality_mars_gate=p_mars_gate,
             personality_mars_line=p_mars_line,
+            design_venus_gate=d_venus_gate,
+            design_venus_line=d_venus_line,
+            design_mars_gate=d_mars_gate,
+            design_mars_line=d_mars_line,
         )
         
         logger.info("[GeneKeys] Successfully built Venus Sequence")
@@ -27437,18 +27465,22 @@ async def get_user_pearl_sequence(user_id: str):
         p_sun_gate, p_sun_line = extract_gate_line(p_sun)
         d_jupiter_gate, d_jupiter_line = extract_gate_line(d_jupiter)
         
-        logger.info(f"[GeneKeys] Pearl Sequence gates: Vocation={d_mars_gate}, Culture={p_jupiter_gate}, Brand={p_sun_gate}, Pearl={d_jupiter_gate}")
+        logger.info(
+            "[GeneKeys] Pearl Sequence gates (canonical mirror_true_sidereal_gk_v1): "
+            f"Vocation(DMars)={d_mars_gate}, Culture(DJupiter)={d_jupiter_gate}, "
+            f"Brand(PSun)={p_sun_gate}, Pearl(PJupiter)={p_jupiter_gate}"
+        )
         
-        # Build Pearl sequence
+        # Build Pearl sequence (canonical first-party mapping)
         pearl = get_pearl_sequence(
             design_mars_gate=d_mars_gate,
             design_mars_line=d_mars_line,
-            personality_jupiter_gate=p_jupiter_gate,
-            personality_jupiter_line=p_jupiter_line,
-            personality_sun_gate=p_sun_gate,
-            personality_sun_line=p_sun_line,
             design_jupiter_gate=d_jupiter_gate,
             design_jupiter_line=d_jupiter_line,
+            personality_sun_gate=p_sun_gate,
+            personality_sun_line=p_sun_line,
+            personality_jupiter_gate=p_jupiter_gate,
+            personality_jupiter_line=p_jupiter_line,
         )
         
         logger.info("[GeneKeys] Successfully built Pearl Sequence")
@@ -27460,6 +27492,82 @@ async def get_user_pearl_sequence(user_id: str):
         import traceback
         logger.error(f"[GeneKeys] Pearl Sequence Error: {e}\n{traceback.format_exc()}")
         raise HTTPException(status_code=500, detail=f"Error building Pearl Sequence: {str(e)}")
+
+
+# =============================================================================
+# CANONICAL GENE KEYS MECHANICS (Session 4A)
+# =============================================================================
+
+@api_router.get("/gene-keys/mechanics/{user_id}")
+async def get_user_gene_keys_mechanics(user_id: str):
+    """Canonical Gene Keys mechanics envelope for the standalone lens.
+
+    Consumes the existing verified HD activation engine — never recomputes
+    astronomy independently.  See `services/gene_keys_mechanics.py` for
+    the schema and `services/gene_keys_sphere_map.py` for the sphere-to-
+    activation map.
+
+    Governance:
+    - No Human Design vocabulary in this response.
+    - Every content-bearing field carries `content_provenance`.
+    - Star Pearl remains `UNAVAILABLE_OR_DEFERRED` in Session 4A.
+    """
+    from services.gene_keys_mechanics import build_gene_keys_mechanics
+
+    logger.info(f"[GK-Mechanics] Building canonical mechanics for user {user_id}")
+
+    try:
+        user = await db.users.find_one({"_id": ObjectId(user_id)})
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+
+        # Resolve birth data
+        birth_date = user.get("birth_date")
+        birth_time = user.get("birth_time")
+        tz_hint = user.get("timezone", "UTC")
+        birth_location = user.get("birth_location") or {}
+        if isinstance(birth_location, dict):
+            latitude = birth_location.get("latitude")
+            longitude = birth_location.get("longitude")
+        else:
+            latitude = user.get("latitude") or user.get("birth_lat")
+            longitude = user.get("longitude") or user.get("birth_lon")
+
+        if not all([birth_date, birth_time, latitude, longitude]):
+            return build_gene_keys_mechanics({}, user_id=user_id)
+
+        from calculations.timezone_utils import resolve_birth_utc_with_debug
+        if hasattr(birth_date, 'strftime'):
+            birth_date_str = birth_date.strftime("%Y-%m-%d")
+        else:
+            birth_date_str = str(birth_date).split(' ')[0]
+
+        result = resolve_birth_utc_with_debug(birth_date_str, birth_time, tz_hint)
+        birth_utc = result.get('birth_utc')
+        if not birth_utc:
+            return build_gene_keys_mechanics({}, user_id=user_id)
+
+        from calculations.human_design import get_human_design_chart
+        canonical_hd = get_human_design_chart(
+            birth_datetime=birth_utc,
+            lat=float(latitude),
+            lon=float(longitude)
+        )
+        envelope = build_gene_keys_mechanics(canonical_hd, user_id=user_id)
+        logger.info(
+            f"[GK-Mechanics] Built canonical mechanics for {user_id}: "
+            f"profile_availability={envelope['profile_availability']} "
+            f"verification_status={envelope['verification_status']} "
+            f"discrepancies={len(envelope['verification_discrepancies'])}"
+        )
+        return envelope
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        import traceback
+        logger.error(f"[GK-Mechanics] Error: {e}\n{traceback.format_exc()}")
+        raise HTTPException(status_code=500, detail=f"Error building Gene Keys mechanics: {str(e)}")
 
 
 @api_router.get("/gene-keys/profile/{user_id}")
@@ -27536,35 +27644,33 @@ async def get_user_gene_keys_profile(user_id: str):
         d_sun_gate, d_sun_line = extract_gate_line(design.get('Sun', {}))
         d_earth_gate, d_earth_line = extract_gate_line(design.get('Earth', {}))
         
-        # Venus Sequence planets
+        # Venus Sequence planets (canonical first-party)
         d_moon_gate, d_moon_line = extract_gate_line(design.get('Moon', {}))
-        p_mercury_gate, p_mercury_line = extract_gate_line(personality.get('Mercury', {}))
-        d_mercury_gate, d_mercury_line = extract_gate_line(design.get('Mercury', {}))
-        d_venus_gate, d_venus_line = extract_gate_line(design.get('Venus', {}))
+        p_venus_gate, p_venus_line = extract_gate_line(personality.get('Venus', {}))
         p_mars_gate, p_mars_line = extract_gate_line(personality.get('Mars', {}))
-        
-        # Pearl Sequence planets
+        d_venus_gate, d_venus_line = extract_gate_line(design.get('Venus', {}))
         d_mars_gate, d_mars_line = extract_gate_line(design.get('Mars', {}))
+
+        # Pearl Sequence planets (canonical first-party)
         p_jupiter_gate, p_jupiter_line = extract_gate_line(personality.get('Jupiter', {}))
         d_jupiter_gate, d_jupiter_line = extract_gate_line(design.get('Jupiter', {}))
         
         logger.info(f"[GeneKeys] Profile gates extracted for user {user_id}")
         
-        # Build complete profile with single function call
+        # Build complete profile with single function call (canonical mapping)
         profile = build_gene_keys_profile(
             # Activation
             personality_sun_gate=p_sun_gate, personality_sun_line=p_sun_line,
             personality_earth_gate=p_earth_gate, personality_earth_line=p_earth_line,
             design_sun_gate=d_sun_gate, design_sun_line=d_sun_line,
             design_earth_gate=d_earth_gate, design_earth_line=d_earth_line,
-            # Venus
+            # Venus (canonical: Moon, Venus P/D, Mars P/D)
             design_moon_gate=d_moon_gate, design_moon_line=d_moon_line,
-            personality_mercury_gate=p_mercury_gate, personality_mercury_line=p_mercury_line,
-            design_mercury_gate=d_mercury_gate, design_mercury_line=d_mercury_line,
-            design_venus_gate=d_venus_gate, design_venus_line=d_venus_line,
+            personality_venus_gate=p_venus_gate, personality_venus_line=p_venus_line,
             personality_mars_gate=p_mars_gate, personality_mars_line=p_mars_line,
-            # Pearl
+            design_venus_gate=d_venus_gate, design_venus_line=d_venus_line,
             design_mars_gate=d_mars_gate, design_mars_line=d_mars_line,
+            # Pearl (canonical: Mars D, Jupiter P/D, Sun P shared with Life's Work)
             personality_jupiter_gate=p_jupiter_gate, personality_jupiter_line=p_jupiter_line,
             design_jupiter_gate=d_jupiter_gate, design_jupiter_line=d_jupiter_line,
         )

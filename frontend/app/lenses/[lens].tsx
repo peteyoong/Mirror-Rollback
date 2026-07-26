@@ -27,6 +27,7 @@ import HumanDesignLensView from '../../components/HumanDesignLensView';
 import NumerologyLensView from '../../components/NumerologyLensView';
 import EnneagramLensView from '../../components/EnneagramLensView';
 import BaziLensView from '../../components/BaziLensViewV2';
+import GeneKeysLensView from '../../components/GeneKeysLensView';
 
 // =============================================================================
 // FEATURE FLAGS
@@ -41,6 +42,7 @@ const LENS_META: { [key: string]: { name: string; icon: string } } = {
   numerology: { name: 'Numerology', icon: 'calculator-outline' },
   enneagram: { name: 'Enneagram', icon: 'git-branch-outline' },
   bazi: { name: 'BaZi', icon: 'apps-outline' },
+  gene_keys: { name: 'Gene Keys', icon: 'leaf-outline' },
   // Consciousness disabled - kept for future meta layer integration
   ...(FEATURE_CONSCIOUSNESS_LENS ? { consciousness: { name: 'Consciousness', icon: 'eye-outline' } } : {}),
 };
@@ -807,6 +809,13 @@ export default function LensDetail() {
             </SafeAreaView>
           </Modal>
         </>
+      ) : lens === 'gene_keys' && user?.id ? (
+        // Gene Keys standalone lens (Session 4A scaffold — structural only)
+        <GeneKeysLensView userId={user.id} />
+      ) : lens === 'gene_keys' && !user?.id ? (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={theme.accent} />
+        </View>
       ) : (lens === 'astrology' || lens === 'human_design') && !user?.id ? (
         // LOADING STATE: User session is being restored for astrology/human_design
         <View style={styles.loadingContainer}>

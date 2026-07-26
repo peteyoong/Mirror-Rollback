@@ -3,14 +3,17 @@
 ===============================================================================
 DETERMINISTIC COMPUTATION CORE - FROZEN
 ===============================================================================
-This file is part of Project Mirror's deterministic computation core.
+This file is part of The Mirror's deterministic computation core.
 Outputs must remain stable across versions.
 Do NOT modify without updating regression tests and bumping computation_version.
 
-Current version: gk_sidereal_v1
+Current version: gk_sidereal_v2  (sphere_map: mirror_true_sidereal_gk_v1)
 Derived from: Human Design planetary positions (hd_sidereal_v1)
 
-FROZEN: 2025-03-07 - All benchmarks passed (Jay, Melissa, Pete)
+Session 4A (2026-07-26): sphere-to-activation mapping consolidated behind
+`services/gene_keys_sphere_map.CANONICAL_SPHERE_MAP` (first-party Gene Keys
+correlations).  No astronomical or gate-calculation code lives in this
+file — we only read pre-computed HD activations and label them per sphere.
 ===============================================================================
 
 Gene Keys sequences are deterministically derived from Human Design chart data.
@@ -18,47 +21,66 @@ Each sequence position maps to a specific planet from either the personality
 (conscious/birth) or design (unconscious/88° before birth) chart.
 
 Sequences:
-- Purpose Arc: lifes_work, evolution, radiance, purpose
-- Love Arc: attraction, iq, eq, sq, core_wound
-- Prosperity Arc: brand, culture, vocation, pearl
+- Activation Sequence: Life's Work, Evolution, Radiance, Purpose
+- Venus Sequence:      Attraction, IQ, EQ, SQ, Core
+- Pearl Sequence:      Vocation, Culture, Brand, Pearl
 """
 
 from typing import Dict, Any, List
 
+from services.gene_keys_sphere_map import (
+    CANONICAL_SPHERE_MAP,
+    ACTIVATION_SEQUENCE,
+    VENUS_SEQUENCE,
+    PEARL_SEQUENCE,
+    GENE_KEYS_SPHERE_MAP_VERSION,
+)
 
-# Gene Keys version (frozen)
-GENE_KEYS_VERSION = "gk_sidereal_v1"
+
+# Gene Keys version (bumped in Session 4A for the canonical-map reconciliation)
+GENE_KEYS_VERSION = "gk_sidereal_v2"
 
 
 # =============================================================================
-# SEQUENCE DEFINITIONS (FROZEN)
+# SEQUENCE DEFINITIONS (canonicalised via gene_keys_sphere_map)
 # =============================================================================
-# Each sequence position maps to: (planet_name, chart_type)
-# chart_type: "personality" (conscious/birth) or "design" (unconscious)
+# Structure preserved for backwards-compatibility with callers that still
+# import SEQUENCE_DEFINITIONS.  Values are derived — do not hand-edit.
+#
+# Legacy snake_case keys are retained for existing callers (server.py,
+# regression tests).  Their semantics now follow the first-party canonical
+# sphere map (`services/gene_keys_sphere_map.CANONICAL_SPHERE_MAP`).
 
-SEQUENCE_DEFINITIONS = {
-    # Purpose Arc
-    "lifes_work": ("Sun", "personality"),
-    "evolution": ("Earth", "personality"),
-    "radiance": ("Sun", "design"),
-    "purpose": ("Earth", "design"),
-    
-    # Love Arc
-    "attraction": ("Venus", "design"),
-    "iq": ("Mercury", "personality"),
-    "eq": ("Venus", "personality"),
-    "sq": ("Moon", "design"),
-    "core_wound": ("Mars", "design"),
-    
-    # Prosperity Arc
-    "brand": ("Sun", "personality"),  # Same as lifes_work
-    "culture": ("Jupiter", "design"),
-    "vocation": ("Mars", "design"),  # Same as core_wound
-    "pearl": ("Jupiter", "personality"),
+_SNAKE_TO_CANONICAL: Dict[str, str] = {
+    # Activation Sequence
+    "lifes_work": "Life's Work",
+    "evolution":  "Evolution",
+    "radiance":   "Radiance",
+    "purpose":    "Purpose",
+    # Venus Sequence
+    "attraction": "Attraction",
+    "iq":         "IQ",
+    "eq":         "EQ",
+    "sq":         "SQ",
+    "core_wound": "Core",
+    # Pearl Sequence
+    "brand":      "Brand",
+    "culture":    "Culture",
+    "vocation":   "Vocation",
+    "pearl":      "Pearl",
+}
+
+SEQUENCE_DEFINITIONS: Dict[str, tuple] = {
+    snake: (
+        CANONICAL_SPHERE_MAP[canonical]["planet"],
+        CANONICAL_SPHERE_MAP[canonical]["chart_side"],
+    )
+    for snake, canonical in _SNAKE_TO_CANONICAL.items()
 }
 
 
-# Arc groupings for structured output
+# Sequence groupings (canonical Golden Path structure — snake_case keys for
+# legacy callers).
 PURPOSE_ARC = ["lifes_work", "evolution", "radiance", "purpose"]
 LOVE_ARC = ["attraction", "iq", "eq", "sq", "core_wound"]
 PROSPERITY_ARC = ["brand", "culture", "vocation", "pearl"]

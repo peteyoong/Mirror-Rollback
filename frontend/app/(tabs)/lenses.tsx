@@ -43,6 +43,7 @@ const LENS_KEYS: { [key: string]: string } = {
   ...(FEATURE_CONSCIOUSNESS_LENS ? { 'Levels of Consciousness': 'consciousness' } : {}),
   'Enneagram': 'enneagram',
   'BaZi': 'bazi',
+  'Gene Keys': 'gene_keys',
 };
 
 export default function LensesScreen() {
