@@ -17,22 +17,16 @@ import { Platform } from 'react-native';
 // ---------------------------------------------------------------------------
 // Base URL resolution
 // ---------------------------------------------------------------------------
-// IMPORTANT (P0 hotfix — May 2026):
-//   The previous version of this resolver returned the *absolute*
-//   EXPO_PUBLIC_BACKEND_URL value baked in at build time. On the
-//   PREVIEW domain that happened to work, but the moment we
-//   PUBLISHED, the bundle was hosted on a different host (the
-//   Emergent production domain) while still trying to POST to the
-//   preview backend — producing a stale-host 404 on Save.
-//
-//   New behaviour (mirrors services/api.ts):
-//     • On any Emergent web host → return '' (relative). The Kubernetes
-//       ingress proxy routes /api/* to backend:8001 regardless of which
-//       Emergent domain serves the bundle.
-//     • On localhost dev web → http://localhost:8001
-//     • On native (iOS / Android) → fall back to the build-time
-//       EXPO_PUBLIC_BACKEND_URL (mobile binaries have no concept of
-//       "current origin").
+// Mirrors services/api.ts — see that file for the full rationale.
+// Summary:
+//   • On any Emergent web host → return '' (relative). The Kubernetes
+//     ingress proxy routes /api/* to backend:8001 regardless of which
+//     Emergent domain serves the bundle.
+//   • On localhost dev web AND in DEV builds only → http://localhost:8001
+//     (dead-code-eliminated from shipped production bundles).
+//   • On native (iOS / Android) → resolve from EXPO_PUBLIC_BACKEND_URL.
+//     No cleartext http:// fallback ships in shipped native builds
+//     (iOS ATS / Android network security config would reject it).
 const getApiBaseUrl = (): string => {
   if (Platform.OS === 'web' && typeof window !== 'undefined') {
     const hostname = window.location.hostname;
@@ -43,9 +37,10 @@ const getApiBaseUrl = (): string => {
     ) {
       return '';
     }
-    if (hostname === 'localhost' || hostname === '127.0.0.1') {
+    if (__DEV__ && (hostname === 'localhost' || hostname === '127.0.0.1')) {
       return 'http://localhost:8001';
     }
+    return '';
   }
   const extraUrl = Constants.expoConfig?.extra?.EXPO_PUBLIC_BACKEND_URL;
   if (typeof extraUrl === 'string' && extraUrl.length > 0) {
@@ -55,6 +50,7 @@ const getApiBaseUrl = (): string => {
   if (typeof envUrl === 'string' && envUrl.length > 0) {
     return envUrl;
   }
+  // Native release: fail closed — never emit cleartext http:// fallback.
   return '';
 };
 

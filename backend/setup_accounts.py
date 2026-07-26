@@ -1,20 +1,62 @@
-import asyncio, sys, os
-sys.path.insert(0, '/app/backend')
-os.environ.setdefault('MONGO_URL', 'mongodb://localhost:27017')
+"""One-off operator script to seed non-canonical test accounts and the
+Yoong family forum.
 
-from motor.motor_asyncio import AsyncIOMotorClient
-from bson import ObjectId
+This script is a local operator utility — it is not invoked at deploy
+time.  It resolves every environment-sensitive value (Mongo URL,
+database name, backend base URL) from environment variables and refuses
+to run when they are missing, so it can never accidentally target the
+wrong database or a cleartext localhost endpoint in an unintended env.
+
+Usage:
+    MONGO_URL=... DB_NAME=... BACKEND_BASE_URL=... python3 setup_accounts.py
+
+If your local `.env` already exports these values, running
+    python3 setup_accounts.py
+is sufficient.
+"""
+
+import asyncio
+import os
+import sys
 from datetime import datetime, timezone
 
+sys.path.insert(0, '/app/backend')
+
+from dotenv import load_dotenv
+load_dotenv('/app/backend/.env')
+
+MONGO_URL = os.environ.get('MONGO_URL')
+DB_NAME = os.environ.get('DB_NAME')
+BACKEND_BASE_URL = os.environ.get('BACKEND_BASE_URL')  # e.g. http://localhost:8001
+
+if not MONGO_URL or not DB_NAME:
+    print(
+        "ERROR: MONGO_URL and DB_NAME must be set in the environment "
+        "(usually via backend/.env)."
+    )
+    sys.exit(1)
+
+if not BACKEND_BASE_URL:
+    print(
+        "ERROR: BACKEND_BASE_URL must be set to reach the chart-calculate "
+        "endpoint (e.g. `BACKEND_BASE_URL=http://localhost:8001`)."
+    )
+    sys.exit(1)
+
+
+from motor.motor_asyncio import AsyncIOMotorClient  # noqa: E402
+from bson import ObjectId  # noqa: E402
+
+
 async def setup():
-    client = AsyncIOMotorClient(os.environ['MONGO_URL'])
-    db = client['test_database']
-    
+    client = AsyncIOMotorClient(MONGO_URL)
+    db = client[DB_NAME]
+
     accounts = [
-        {"name": "Isaac Yoong", "email": "isaac.yoong@test.com", "birth": datetime(2012,4,5), "time": "05:25"},
-        {"name": "Thaddeus Yoong", "email": "thaddeus.yoong@test.com", "birth": datetime(2014,6,23), "time": "18:17"},
+        {"name": "Isaac Yoong", "email": "isaac.yoong@test.com", "birth": datetime(2012, 4, 5), "time": "05:25"},
+        {"name": "Thaddeus Yoong", "email": "thaddeus.yoong@test.com", "birth": datetime(2014, 6, 23), "time": "18:17"},
     ]
-    
+
     created_ids = {}
     for acct in accounts:
         existing = await db.users.find_one({"email": acct["email"]})
@@ -32,7 +74,7 @@ async def setup():
             })
             created_ids[acct["email"]] = str(oid)
             print(f"CREATED: {acct['name']} ({oid})")
-    
+
     # Compute charts via API
     import httpx
     async with httpx.AsyncClient(timeout=30) as c:
@@ -42,13 +84,19 @@ async def setup():
             if chart and chart.get("human_design"):
                 print(f"CHART OK: {acct['name']}")
             else:
-                resp = await c.post("http://localhost:8001/api/charts/calculate", json={
-                    "user_id": uid, "birth_date": str(acct["birth"])[:10], "birth_time": acct["time"],
-                    "latitude": 3.1073, "longitude": 101.6067,
-                    "city": "Petaling Jaya", "country": "Malaysia", "timezone": "Asia/Kuala_Lumpur"
-                })
+                resp = await c.post(
+                    f"{BACKEND_BASE_URL.rstrip('/')}/api/charts/calculate",
+                    json={
+                        "user_id": uid,
+                        "birth_date": str(acct["birth"])[:10],
+                        "birth_time": acct["time"],
+                        "latitude": 3.1073, "longitude": 101.6067,
+                        "city": "Petaling Jaya", "country": "Malaysia",
+                        "timezone": "Asia/Kuala_Lumpur",
+                    },
+                )
                 print(f"CHART COMPUTED: {acct['name']} ({resp.status_code})")
-    
+
     # Forum
     pete_id = "697f0c6abf35c0528ff06954"
     mel_id = "697ec826ad4b18f75bf42616"
@@ -62,12 +110,22 @@ async def setup():
             "updated_at": datetime.now(timezone.utc), "member_count": 4,
             "is_private": True, "status": "active", "invite_token": "yoong-family",
         })
-        for uid, name, role in [(pete_id,"Pete","admin"),(created_ids["thaddeus.yoong@test.com"],"Thaddeus","member"),(created_ids["isaac.yoong@test.com"],"Isaac","member"),(mel_id,"Melissa","member")]:
-            await db.forum_members.insert_one({"forum_id": fid, "user_id": uid, "name": name, "status": "active", "role": role, "joined_at": datetime.now(timezone.utc)})
-        print(f"FORUM CREATED: Yoong family")
+        for uid, name, role in [
+            (pete_id, "Pete", "admin"),
+            (created_ids["thaddeus.yoong@test.com"], "Thaddeus", "member"),
+            (created_ids["isaac.yoong@test.com"], "Isaac", "member"),
+            (mel_id, "Melissa", "member"),
+        ]:
+            await db.forum_members.insert_one({
+                "forum_id": fid, "user_id": uid, "name": name, "status": "active",
+                "role": role, "joined_at": datetime.now(timezone.utc),
+            })
+        print("FORUM CREATED: Yoong family")
     else:
-        print(f"FORUM EXISTS: Yoong family")
-    
+        print("FORUM EXISTS: Yoong family")
+
     print("\nDONE")
 
-asyncio.run(setup())
+
+if __name__ == "__main__":
+    asyncio.run(setup())
