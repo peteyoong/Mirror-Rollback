@@ -8,7 +8,7 @@ import {
   ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
-  ScrollView,
+  useWindowDimensions,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
@@ -16,129 +16,85 @@ import { useRouter } from 'expo-router';
 import { useAppStore } from '../store';
 import { loginUser } from '../services/api';
 import { BUILD_ID } from '../constants/buildMarker';
+import {
+  colorDark,
+  space,
+  radius,
+  textRole,
+  fontFamily,
+  fontSize,
+  touchTarget,
+} from '../theme/tokens';
 
 // Forums redirect target type
 type ForumsRedirect = 'create' | 'join' | null;
 
 /**
- * Welcome Page - SINGLE SOURCE OF TRUTH
- * Clean typography-led design - same visual for ALL users
- * Only behavior differs (CTA actions), not UI
- * 
- * ALWAYS DARK MODE - Onboarding should feel calm, safe, intentional
+ * Welcome — The Mirror's single-page arrival moment.
+ *
+ * A confident, non-scrolling composition on standard mobile viewports.
+ * The layout uses `justifyContent: 'space-between'` so the wordmark
+ * block breathes at the top-third and the primary CTA is anchored to
+ * the safe-area bottom, with forums / build marker footer beneath.
+ *
+ * Kept intentionally under one screen height on ≥ 360×640; on very
+ * short viewports the KeyboardAvoidingView / SafeArea still absorbs
+ * cleanly without visual collision.
  */
 export default function Welcome() {
   const router = useRouter();
   const { setUser, setChart, user, hasCompletedOnboarding } = useAppStore();
-  
-  // User state for routing decisions
+  const { height } = useWindowDimensions();
+
   const isAuthenticated = !!user?.id;
-  // Legacy alias for backwards compatibility
   const hasExistingSession = isAuthenticated;
-  
-  // Dark onboarding colors (hardcoded)
-  const darkTheme = {
-    background: '#0B0B0C',
-    surface: '#1C1C1E',
-    surfaceElevated: '#2C2C2E',
-    text: '#F0EDE8',
-    textSecondary: '#B5B2AD',
-    textTertiary: '#8E8E93',
-    border: '#2C2C2E',
-    accent: '#EAE3D9',
-    buttonPrimaryBg: '#EAE3D9',
-    buttonPrimaryText: '#1C1C1E',
-    error: '#EF5350',
-  };
-  
+
+  const t = colorDark;
+
   const [showLogin, setShowLogin] = useState(false);
   const [email, setEmail] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [forumsRedirect, setForumsRedirect] = useState<ForumsRedirect>(null);
 
-  // HEADLINE - experiential hook
   const headline = {
-    main: "You almost did it again.",
-    sub: "You were about to decide—then stopped.\nYou noticed it—then moved past it."
+    main: 'You almost did it again.',
+    sub: 'You were about to decide—then stopped.\nYou noticed it—then moved past it.',
   };
 
-  const handleBeginReflection = () => {
-    router.push('/onboarding');
-  };
-
-  const handleContinue = () => {
-    router.replace('/(tabs)');
-  };
-
-  /**
-   * SHOW ME BUTTON LOGIC
-   * - If authenticated AND onboarding complete → go to home
-   * - Otherwise → go to onboarding
-   */
+  const handleBeginReflection = () => router.push('/onboarding');
   const handleShowMe = () => {
-    if (isAuthenticated && hasCompletedOnboarding) {
-      console.log('[Welcome] Show Me → authenticated + onboarding complete → going to home');
-      router.replace('/(tabs)');
-    } else {
-      console.log('[Welcome] Show Me → needs onboarding → going to onboarding');
-      router.push('/onboarding');
-    }
+    if (isAuthenticated && hasCompletedOnboarding) router.replace('/(tabs)');
+    else router.push('/onboarding');
   };
-
-  // Forums quick access handlers
   const handleCreateForum = () => {
-    if (hasExistingSession) {
-      router.push('/forums/create');
-    } else {
-      setForumsRedirect('create');
-      setShowLogin(true);
-    }
+    if (hasExistingSession) router.push('/forums/create');
+    else { setForumsRedirect('create'); setShowLogin(true); }
   };
-
   const handleJoinForum = () => {
-    if (hasExistingSession) {
-      router.push('/forums/join');
-    } else {
-      setForumsRedirect('join');
-      setShowLogin(true);
-    }
+    if (hasExistingSession) router.push('/forums/join');
+    else { setForumsRedirect('join'); setShowLogin(true); }
   };
 
   const handleLogin = async () => {
-    if (!email.trim()) {
-      setError('Please enter your email');
-      return;
-    }
-    
+    if (!email.trim()) { setError('Please enter your email'); return; }
     setIsLoading(true);
     setError('');
-    
     try {
       const result = await loginUser(email.trim());
-      
       if (result.success && result.user) {
         await setUser(result.user);
-        
-        if (result.chart) {
-          await setChart(result.chart);
-        }
-        
-        // Navigate based on forums redirect or default to main app
-        if (forumsRedirect === 'create') {
-          router.replace('/forums/create');
-        } else if (forumsRedirect === 'join') {
-          router.replace('/forums/join');
-        } else {
-          router.replace('/(tabs)');
-        }
+        if (result.chart) await setChart(result.chart);
+        if (forumsRedirect === 'create') router.replace('/forums/create');
+        else if (forumsRedirect === 'join') router.replace('/forums/join');
+        else router.replace('/(tabs)');
       } else {
         setError(result.detail || 'No account found with this email. Please create a new account.');
       }
     } catch (err: any) {
       const rawDetail = err.response?.data?.detail;
-      const errorMsg = typeof rawDetail === 'string' 
-        ? rawDetail 
+      const errorMsg = typeof rawDetail === 'string'
+        ? rawDetail
         : (rawDetail?.message || err.message || 'Login failed. Please try again.');
       setError(errorMsg);
     } finally {
@@ -146,84 +102,83 @@ export default function Welcome() {
     }
   };
 
+  // Short-viewport threshold: below this, allow the KeyboardAvoidingView
+  // to relax spacing so nothing collides.
+  const isCompactHeight = height < 700;
+
   // ============================================================
-  // LOGIN FORM VIEW
+  // LOGIN — same brand, tighter form
   // ============================================================
   if (showLogin) {
     return (
-      <SafeAreaView style={[styles.container, { backgroundColor: darkTheme.background }]}>
+      <SafeAreaView style={[styles.container, { backgroundColor: t.background }]}>
         <StatusBar style="light" />
         <KeyboardAvoidingView
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
           style={styles.keyboardView}
         >
-          <View style={styles.content}>
-            <View style={styles.header}>
-              <Text style={[styles.title, { color: darkTheme.text }]}>The Mirror</Text>
+          <View style={styles.loginBody}>
+            <View style={styles.loginBrand}>
+              <Text style={styles.brandSeparator}>—</Text>
+              <Text style={[styles.brandText, { color: t.onSurface }]}>The Mirror</Text>
+              <Text style={styles.brandSeparator}>—</Text>
             </View>
-            
+
             <View style={styles.loginContainer}>
-              <Text style={[styles.loginTitle, { color: darkTheme.text }]}>Welcome back</Text>
-              <Text style={[styles.loginSubtitle, { color: darkTheme.textSecondary }]}>
+              <Text style={[styles.loginTitle, { color: t.onSurface }]}>Welcome back</Text>
+              <Text style={[styles.loginSubtitle, { color: t.onSurfaceSecondary }]}>
                 Enter the email you used to save your reflection space.
               </Text>
-              
+
               <TextInput
-                style={[styles.input, { 
-                  backgroundColor: darkTheme.surface,
-                  borderColor: darkTheme.border,
-                  color: darkTheme.text 
-                }]}
+                style={[
+                  styles.input,
+                  {
+                    backgroundColor: t.surfaceSecondary,
+                    borderColor: t.border,
+                    color: t.onSurface,
+                  },
+                ]}
                 value={email}
-                onChangeText={(text) => {
-                  setEmail(text);
-                  setError('');
-                }}
+                onChangeText={(text) => { setEmail(text); setError(''); }}
                 placeholder="your@email.com"
-                placeholderTextColor={darkTheme.textTertiary}
+                placeholderTextColor={t.onSurfaceTertiary}
                 keyboardType="email-address"
                 autoCapitalize="none"
                 autoCorrect={false}
                 editable={!isLoading}
               />
-              
+
               {error ? (
-                <View style={[styles.errorContainer, { backgroundColor: darkTheme.error + '20' }]}>
-                  <Text style={[styles.errorText, { color: darkTheme.error }]}>{error}</Text>
+                <View style={[styles.errorContainer, { backgroundColor: t.error + '20' }]}>
+                  <Text style={[styles.errorText, { color: t.error }]}>{error}</Text>
                 </View>
               ) : null}
-              
-              <TouchableOpacity 
+
+              <TouchableOpacity
                 style={[
-                  styles.primaryButton, 
-                  { 
-                    backgroundColor: darkTheme.buttonPrimaryBg,
-                    borderColor: darkTheme.border 
-                  },
-                  isLoading && styles.buttonDisabled
+                  styles.primaryButton,
+                  { backgroundColor: t.buttonPrimaryBg, borderColor: t.border },
+                  isLoading && styles.buttonDisabled,
                 ]}
                 onPress={handleLogin}
                 disabled={isLoading}
                 activeOpacity={0.8}
               >
                 {isLoading ? (
-                  <ActivityIndicator size="small" color={darkTheme.buttonPrimaryText} />
+                  <ActivityIndicator size="small" color={t.buttonPrimaryText} />
                 ) : (
-                  <Text style={[styles.primaryButtonText, { color: darkTheme.buttonPrimaryText }]}>Enter</Text>
+                  <Text style={[styles.primaryButtonText, { color: t.buttonPrimaryText }]}>Enter</Text>
                 )}
               </TouchableOpacity>
-              
-              <TouchableOpacity 
+
+              <TouchableOpacity
                 style={styles.textButton}
-                onPress={() => {
-                  setShowLogin(false);
-                  setEmail('');
-                  setError('');
-                }}
+                onPress={() => { setShowLogin(false); setEmail(''); setError(''); }}
                 disabled={isLoading}
                 activeOpacity={0.8}
               >
-                <Text style={[styles.textButtonText, { color: darkTheme.textTertiary }]}>Back</Text>
+                <Text style={[styles.textButtonText, { color: t.onSurfaceTertiary }]}>Back</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -233,97 +188,90 @@ export default function Welcome() {
   }
 
   // ============================================================
-  // MAIN WELCOME VIEW - SINGLE UI FOR ALL USERS
-  // Only behavior differs (CTA target), not visual design
+  // LANDING — single confident page (non-scrolling by default)
+  // Uses justifyContent: 'space-between' so wordmark breathes at the
+  // top-third and CTA anchors to the safe-area bottom above the
+  // forums footer.  No ScrollView — the layout is designed to fit on
+  // 360×640 and up; on shorter viewports paddings shrink instead.
   // ============================================================
+  const verticalRoom = isCompactHeight ? space.md : space.xl;
+
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: darkTheme.background }]}>
+    <SafeAreaView style={[styles.container, { backgroundColor: t.background }]}>
       <StatusBar style="light" />
 
-      <ScrollView
-        style={styles.scrollHost}
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
-        bounces={false}
-      >
-        <View style={styles.content}>
-          {/* Brand - Framed wordmark with em-dash separators */}
+      <View style={[styles.landingBody, { paddingVertical: verticalRoom }]}>
+        {/* HERO — brand + headline + subtext + bridge */}
+        <View style={styles.hero}>
           <View style={styles.brandContainer}>
             <Text style={styles.brandSeparator}>—</Text>
-            <Text style={styles.brandText}>The Mirror</Text>
+            <Text style={[styles.brandText, { color: t.onSurface }]}>The Mirror</Text>
             <Text style={styles.brandSeparator}>—</Text>
           </View>
 
-          {/* Headline */}
-          <View style={styles.headlineContainer}>
-            <Text style={[styles.headline, { color: darkTheme.text }]}>
-              {headline.main}
-            </Text>
-          </View>
+          <Text style={[styles.headline, { color: t.onSurface, marginTop: isCompactHeight ? space.lg : space.xl }]}>
+            {headline.main}
+          </Text>
 
-          {/* Subtext */}
-          <View style={styles.subtextContainer}>
-            <Text style={[styles.subtext, { color: darkTheme.textSecondary }]}>
-              {headline.sub}
-            </Text>
-          </View>
+          <Text style={[styles.subtext, { color: t.onSurfaceSecondary, marginTop: space.lg }]}>
+            {headline.sub}
+          </Text>
 
-          {/* Bridge line */}
-          <View style={styles.bridgeContainer}>
-            <Text style={[styles.bridgeLine, { color: darkTheme.textTertiary }]}>
-              This isn&apos;t about who you are.{'\n'}
-              It&apos;s about what&apos;s happening right now.
-            </Text>
-          </View>
+          <Text style={[styles.bridgeLine, { color: t.onSurfaceTertiary, marginTop: isCompactHeight ? space.lg : space.xl }]}>
+            {"This isn\u2019t about who you are.\nIt\u2019s about what\u2019s happening right now."}
+          </Text>
+        </View>
 
-          {/* Primary CTA - Same visual, smart routing */}
-          <View style={styles.buttonContainer}>
-            <TouchableOpacity
-              style={[styles.primaryButton, {
+        {/* PRIMARY CTA + secondary auth row */}
+        <View style={styles.ctaBlock}>
+          <TouchableOpacity
+            style={[
+              styles.primaryButton,
+              {
                 backgroundColor: 'rgba(255, 255, 255, 0.08)',
-                borderColor: 'rgba(255, 255, 255, 0.15)'
-              }]}
-              onPress={handleShowMe}
-              activeOpacity={0.7}
-            >
-              <Text style={[styles.primaryButtonText, { color: 'rgba(255, 255, 255, 0.9)' }]}>
-                Show me
-              </Text>
-            </TouchableOpacity>
+                borderColor: 'rgba(255, 255, 255, 0.15)',
+              },
+            ]}
+            onPress={handleShowMe}
+            activeOpacity={0.7}
+          >
+            <Text style={[styles.primaryButtonText, { color: 'rgba(255, 255, 255, 0.9)' }]}>
+              Show me
+            </Text>
+          </TouchableOpacity>
 
-            {/* Secondary actions row */}
-            <View style={styles.secondaryActionsRow}>
-              <TouchableOpacity onPress={handleBeginReflection} activeOpacity={0.6}>
-                <Text style={styles.secondaryActionText}>I&apos;m new here</Text>
-              </TouchableOpacity>
-              <Text style={styles.secondaryActionDivider}>·</Text>
-              <TouchableOpacity
-                onPress={() => setShowLogin(true)}
-                activeOpacity={0.6}
-                testID="welcome-sign-in-link"
-                accessibilityLabel="Sign in"
-                accessibilityRole="button"
-              >
-                <Text style={styles.secondaryActionText}>Sign in</Text>
-              </TouchableOpacity>
-            </View>
+          <View style={styles.secondaryActionsRow}>
+            <TouchableOpacity onPress={handleBeginReflection} activeOpacity={0.6} hitSlop={8}>
+              <Text style={styles.secondaryActionText}>{"I\u2019m new here"}</Text>
+            </TouchableOpacity>
+            <Text style={styles.secondaryActionDivider}>·</Text>
+            <TouchableOpacity
+              onPress={() => setShowLogin(true)}
+              activeOpacity={0.6}
+              hitSlop={8}
+              testID="welcome-sign-in-link"
+              accessibilityLabel="Sign in"
+              accessibilityRole="button"
+            >
+              <Text style={styles.secondaryActionText}>Sign in</Text>
+            </TouchableOpacity>
           </View>
         </View>
 
-        {/* Footer - Forums (inside ScrollView so it never overlaps content) */}
+        {/* FOOTER — forums quick-access + build marker */}
         <View style={styles.footerArea}>
           <View style={styles.forumsFooter}>
-            <TouchableOpacity style={styles.forumLink} onPress={handleCreateForum} activeOpacity={0.5}>
+            <TouchableOpacity style={styles.forumLink} onPress={handleCreateForum} activeOpacity={0.5} hitSlop={4}>
               <Text style={styles.forumLinkText}>Create Forum</Text>
             </TouchableOpacity>
             <Text style={styles.forumDivider}>·</Text>
-            <TouchableOpacity style={styles.forumLink} onPress={handleJoinForum} activeOpacity={0.5}>
+            <TouchableOpacity style={styles.forumLink} onPress={handleJoinForum} activeOpacity={0.5} hitSlop={4}>
               <Text style={styles.forumLinkText}>Join Forum</Text>
             </TouchableOpacity>
           </View>
           <Text style={styles.buildMarker}>build · {BUILD_ID}</Text>
         </View>
-      </ScrollView>
+      </View>
     </SafeAreaView>
   );
 }
@@ -337,208 +285,184 @@ const styles = StyleSheet.create({
     flex: 1,
     width: '100%',
   },
-  // ScrollView host — lets the landing content flex naturally and adds a
-  // safety valve on short viewports so nothing collides with the footer.
-  scrollHost: {
+
+  // ── Landing single-page layout ──────────────────────────────
+  landingBody: {
     flex: 1,
     width: '100%',
-  },
-  scrollContent: {
-    flexGrow: 1,
+    paddingHorizontal: space.xl,
     justifyContent: 'space-between',
-    paddingBottom: 12,
-  },
-  content: {
-    flexGrow: 1,
-    justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: 28,
-    paddingTop: 24,
-    paddingBottom: 24,
-    width: '100%',
   },
-  
-  // Brand container - framed wordmark
+  hero: {
+    width: '100%',
+    alignItems: 'center',
+    marginTop: space['2xl'],
+  },
   brandContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 24,
-    gap: 12,
+    gap: space.md,
   },
   brandText: {
-    fontSize: 24,
+    fontFamily: fontFamily.display,
+    fontSize: fontSize['2xl'],
     fontWeight: '400',
     letterSpacing: 2.5,
-    color: 'rgba(255, 255, 255, 0.88)',
     textAlign: 'center',
   },
   brandSeparator: {
-    fontSize: 24,
-    fontWeight: '300',
+    fontFamily: fontFamily.display,
+    fontSize: fontSize['2xl'],
+    fontWeight: '400',
     color: 'rgba(255, 255, 255, 0.5)',
   },
-  
-  // Headline
-  headlineContainer: {
-    marginBottom: 18,
-    paddingHorizontal: 8,
-  },
   headline: {
-    fontSize: 24,
-    fontWeight: '500',
+    ...textRole.h1,
     textAlign: 'center',
-    lineHeight: 32,
-  },
-  
-  // Subtext
-  subtextContainer: {
-    marginBottom: 22,
+    paddingHorizontal: space.sm,
   },
   subtext: {
-    fontSize: 16,
+    ...textRole.bodyLg,
     textAlign: 'center',
-    lineHeight: 26,
-    fontWeight: '400',
-  },
-  
-  // Bridge line
-  bridgeContainer: {
-    marginBottom: 32,
-    paddingHorizontal: 12,
   },
   bridgeLine: {
-    fontSize: 16,
+    ...textRole.body,
     textAlign: 'center',
-    lineHeight: 26,
     fontStyle: 'italic',
   },
-  
-  // Buttons
-  buttonContainer: {
+
+  // ── CTA block ──────────────────────────────────────────────
+  ctaBlock: {
     width: '100%',
-    maxWidth: 300,
-    gap: 14,
-    marginBottom: 8,
+    maxWidth: 320,
     alignItems: 'center',
+    gap: space.md,
   },
   primaryButton: {
     borderWidth: 1,
-    paddingVertical: 16,
-    paddingHorizontal: 32,
-    borderRadius: 10,
+    paddingVertical: space.lg,
+    paddingHorizontal: space['2xl'],
+    borderRadius: radius.md,
     alignItems: 'center',
     width: '100%',
+    minHeight: touchTarget.minSize,
+    justifyContent: 'center',
   },
   primaryButtonText: {
-    fontSize: 17,
-    fontWeight: '600',
+    ...textRole.buttonPrimary,
   },
   buttonDisabled: {
     opacity: 0.6,
   },
-  
-  // Secondary actions row
   secondaryActionsRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: 14,
-    gap: 12,
+    marginTop: space.sm,
+    gap: space.md,
+    minHeight: touchTarget.minSize,
   },
   secondaryActionText: {
-    fontSize: 16,
-    fontWeight: '400',
-    color: 'rgba(255, 255, 255, 0.52)',
+    ...textRole.body,
+    color: 'rgba(255, 255, 255, 0.55)',
   },
   secondaryActionDivider: {
-    fontSize: 16,
+    ...textRole.body,
     color: 'rgba(255, 255, 255, 0.3)',
   },
-  
-  // Footer area
+
+  // ── Footer ────────────────────────────────────────────────
   footerArea: {
-    paddingTop: 12,
-    paddingBottom: 20,
-    paddingHorizontal: 32,
     alignItems: 'center',
-    gap: 10,
+    gap: space.sm,
+    paddingBottom: space.xs,
   },
   forumsFooter: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
+    gap: space.md,
+    minHeight: touchTarget.minSize,
   },
   forumLink: {
-    paddingVertical: 4,
-    paddingHorizontal: 8,
+    paddingVertical: space.xs,
+    paddingHorizontal: space.sm,
   },
   forumLinkText: {
-    fontSize: 16,
-    fontWeight: '400',
-    color: 'rgba(255, 255, 255, 0.4)',
+    ...textRole.body,
+    color: 'rgba(255, 255, 255, 0.42)',
   },
   forumDivider: {
-    fontSize: 16,
+    ...textRole.body,
     color: 'rgba(255, 255, 255, 0.25)',
   },
   buildMarker: {
+    fontFamily: fontFamily.text,
     fontSize: 11,
     fontVariant: ['tabular-nums'],
     color: 'rgba(255, 255, 255, 0.22)',
-    marginTop: 4,
     letterSpacing: 0.3,
+    marginTop: space.xs,
   },
-  
-  // Login form styles
-  header: {
-    marginBottom: 48,
+
+  // ── Login form ────────────────────────────────────────────
+  loginBody: {
+    flex: 1,
+    width: '100%',
+    paddingHorizontal: space.xl,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-  title: {
-    fontSize: 28,
-    fontWeight: '300',
-    letterSpacing: 1,
+  loginBrand: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: space.md,
+    marginBottom: space['3xl'],
   },
   loginContainer: {
     width: '100%',
-    maxWidth: 320,
+    maxWidth: 340,
     alignItems: 'center',
   },
   loginTitle: {
-    fontSize: 22,
-    fontWeight: '500',
-    marginBottom: 14,
+    ...textRole.h2,
+    marginBottom: space.md,
   },
   loginSubtitle: {
-    fontSize: 16,
+    ...textRole.body,
     textAlign: 'center',
-    marginBottom: 24,
-    lineHeight: 25,
+    marginBottom: space.xl,
   },
   input: {
     width: '100%',
-    borderRadius: 12,
-    padding: 16,
-    fontSize: 16,
+    borderRadius: radius.md,
+    padding: space.lg,
+    fontFamily: fontFamily.text,
+    fontSize: fontSize.lg,
+    fontWeight: '400',
     borderWidth: 1,
-    marginBottom: 16,
+    marginBottom: space.lg,
+    minHeight: touchTarget.minSize + 8,
   },
   errorContainer: {
     width: '100%',
-    borderRadius: 8,
-    padding: 12,
-    marginBottom: 16,
+    borderRadius: radius.sm,
+    padding: space.md,
+    marginBottom: space.lg,
   },
   errorText: {
-    fontSize: 16,
+    ...textRole.body,
     textAlign: 'center',
   },
   textButton: {
-    paddingVertical: 12,
+    paddingVertical: space.md,
     alignItems: 'center',
+    minHeight: touchTarget.minSize,
+    justifyContent: 'center',
   },
   textButtonText: {
-    fontSize: 16,
-    fontWeight: '400',
+    ...textRole.body,
   },
 });
