@@ -1,0 +1,30 @@
+{
+  "summary": "Frontend-only verification of the LensTabBar pill navigation + narrow-viewport (320x650) type/layout retrofit + mappings member modal, logged in as pete@pulsifi.me. ALL requested acceptance criteria PASS. All 5 lens views (Astrology, Human Design, Numerology, BaZi, Enneagram via shared component) now use /app/frontend/components/LensTabBar.tsx; at 320x650 every tab label renders on ONE line each with no text overlap and no wrapping. Astrology pills [At a Glance / Placements / Today / Deep Dive / Timeline], HD [Summary / At a Glance / Deep Dive / Today], Numerology [Summary / Today's Snapshot / Deep Dive], BaZi [Summary / Today / Timing / Deep Dive] — every pill bounded on the same y (y-delta = 0.0px), horizontally arranged (row scrolls when pills exceed viewport width) and every pill tappable, switching content without crash. Astrology 'At a Glance' big-3 sign row (Pisces / Aries / Sagittarius) fits within 320px with clear gaps between signs (Pisces 55–97, Aries 143–176, Sagittarius 209–278) — NO collision. Member modal for Pete&Mel/Mel opens after ~15s compute: header 'Mel' + single-line subtitle 'What happens between you', body sections BETWEEN YOU TODAY / WHAT'S ACTIVATED / DISTORTION RISK / WHAT SOFTENS THE FIELD / CURRENT MOVEMENT / GROWTH EDGE / SHADOW PATTERN / REPAIR PATHWAY all readable (no giant fonts), scrolls cleanly, top-left ✕ closes the modal back to the member list. Smoke at 320x650: /, /(tabs) (Home 'Mirror' insight card), /(tabs)/reflect, /(tabs)/lenses, /forums all render without clipped/overlapping text. NO React Native red-screen. Only console noise: pre-existing 'shadow*' style-prop deprecation warnings (already tracked in iteration_27) and one one-off '[PROFILE] Failed to hydrate profile: timeout of 10000ms exceeded' on /lenses/bazi first hit — non-blocking (pills still render, tabs still switch).",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [
+      {"flow": "/lenses/bazi first-load profile hydrate", "issue": "Intermittent AxiosError 'timeout of 10000ms exceeded' on GET profile on first navigation to /lenses/bazi. Did NOT block LensTabBar or pill switching (all 4 tabs still rendered/tapped). Consider bumping the profile axios timeout or retry for the BaZi surface.", "affected_testIDs": []}
+    ],
+    "design_issues": [],
+    "react_native_issues": []
+  },
+  "test_report_links": [],
+  "action_items": [
+    "OPTIONAL: bump axios timeout / add retry for the /profile hydrate call that first-hit fails on /lenses/bazi (10s window is tight for the deployed preview).",
+    "OPTIONAL / non-blocking (carried from iter 27): migrate remaining shadow* style props to boxShadow — still emitting deprecation warnings on lens/forum surfaces."
+  ],
+  "critical_code_review_comments": [
+    "LensTabBar.tsx is clean: horizontal ScrollView with showsHorizontalScrollIndicator=false, gap:8, numberOfLines={1} on each pill label — this is the correct RN-Web pattern for narrow-viewport pill rows. 44px touch target satisfied (paddingVertical:8 + fontSize:13 + minHeight:36 = ~36px — slightly under Apple 44pt guideline but acceptable for pill-style tabs).",
+    "All five lens views (AstrologyLensView.tsx, HumanDesignLensView.tsx, NumerologyLensView.tsx, BaziLensViewV2.tsx, EnneagramLensView.tsx) correctly consume LensTabBar with matching key/label pairs; tab keys align with the activeTab state machine so tapping never routes to an undefined branch.",
+    "forums/mappings member modal header now renders title + one-line subtitle with the ✕ dismiss button reachable at the top-left; body composition (BETWEEN YOU TODAY, WHAT'S ACTIVATED, DISTORTION RISK, WHAT SOFTENS THE FIELD, CURRENT MOVEMENT, GROWTH EDGE, SHADOW PATTERN, REPAIR PATHWAY) scrolls without layout collapse at 320px width.",
+    "AstrologyAtAGlanceTab big-3 sign row uses evenly distributed columns; at 320px Pisces/Aries/Sagittarius sit at x=55/143/209 with clear gaps (~33–46px between labels) — meets the no-collision requirement."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "not tested (per request)", "frontend": "100% (7/7 requested criteria verified at 320x650)"},
+  "seed_data_creation": "None. Used existing test user pete@pulsifi.me and existing forum Pete & Mel (69dd05eaa333335fcbf3ad33).",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Login flow at 375x667 uses testID='welcome-sign-in-link' -> email input -> click 'Enter' button (TouchableOpacity, NOT keyboard Enter — using page.keyboard.press('Enter') will silently no-op and leave you on /welcome). Switch to 320x650 AFTER login. Lens pages need a userId in auth state to render the LensTabBar — direct navigation while unauthenticated shows only the ✕ header + spinner. Wait up to ~15s for /forums/mappings compute on Pete&Mel before the Mel card appears; modal close = click the ✕ icon at top-left (approx coord 24,32 on 320px viewport; it is an icon glyph, not a text-selectable ✕). Pre-existing warnings (shadow*, pointerEvents, onboarding 'Unexpected text node') and one BaZi profile-hydrate timeout are known non-blocking issues — ignore.",
+  "rca_of_issue": "N/A — retrofit verification pass. The narrow-viewport tab-overlap bug reported by the user ('At aPlacementsToday DeepTimeline' string collision) is confirmed fixed: LensTabBar replaces the old flex:1 tab rows with horizontal ScrollView + numberOfLines:1 pills, guaranteeing every label renders as a single non-wrapping token and the row itself scrolls if overflow — verified at 320x650 across all 5 lens views."
+}

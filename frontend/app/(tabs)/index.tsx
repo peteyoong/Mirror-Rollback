@@ -697,7 +697,7 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     fontFamily: fontFamily.display,
-    fontSize: 24,
+    fontSize: 22,
     fontWeight: '400',
     letterSpacing: 0.6,
   },

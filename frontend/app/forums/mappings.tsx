@@ -1863,7 +1863,7 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     fontFamily: fontFamily.display,
-    fontSize: 22,
+    fontSize: 20,
     fontWeight: '400',
     letterSpacing: 0.3,
   },
@@ -1909,10 +1909,10 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   introText: {
-    fontSize: 16,
+    fontSize: 14,
     fontStyle: 'italic',
     marginBottom: 16,
-    lineHeight: 31,
+    lineHeight: 21,
   },
   mappingRow: {
     flexDirection: 'row',
@@ -2005,12 +2005,12 @@ const styles = StyleSheet.create({
   },
   modalTitle: {
     fontFamily: fontFamily.display,
-    fontSize: 22,
+    fontSize: 19,
     fontWeight: '400',
     letterSpacing: 0.3,
   },
   modalSubtitle: {
-    fontSize: 14,
+    fontSize: 12,
     marginTop: 2,
   },
   modalScroll: {
@@ -2035,15 +2035,15 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontFamily: fontFamily.display,
-    fontSize: 21,
+    fontSize: 18,
     fontWeight: '400',
     letterSpacing: 0.3,
-    marginBottom: 14,
-    lineHeight: 30,
+    marginBottom: 12,
+    lineHeight: 25,
   },
   sectionText: {
-    fontSize: 17,
-    lineHeight: 30,
+    fontSize: 15,
+    lineHeight: 23,
   },
   // V2 3-Layer Styles
   storyCard: {
@@ -2054,15 +2054,15 @@ const styles = StyleSheet.create({
   },
   storyHeadline: {
     fontFamily: fontFamily.display,
-    fontSize: 24,
+    fontSize: 19,
     fontWeight: '400',
     letterSpacing: 0.2,
-    lineHeight: 32,
-    marginBottom: 14,
+    lineHeight: 26,
+    marginBottom: 12,
   },
   storySummary: {
-    fontSize: 16,
-    lineHeight: 32,
+    fontSize: 15,
+    lineHeight: 23,
   },
   patternSection: {
     marginBottom: 24,
@@ -2079,7 +2079,7 @@ const styles = StyleSheet.create({
     paddingRight: 8,
   },
   patternBulletDash: {
-    fontSize: 17,
+    fontSize: 15,
     marginRight: 10,
     marginTop: 2,
     width: 16,
@@ -2087,8 +2087,8 @@ const styles = StyleSheet.create({
   },
   patternBulletText: {
     flex: 1,
-    fontSize: 17,
-    lineHeight: 31,
+    fontSize: 15,
+    lineHeight: 23,
   },
   giftSection: {
     paddingLeft: 16,
@@ -2109,7 +2109,7 @@ const styles = StyleSheet.create({
     marginBottom: 14,
   },
   signalsToggleText: {
-    fontSize: 17,
+    fontSize: 15,
     fontWeight: '500',
   },
   signalsNote: {

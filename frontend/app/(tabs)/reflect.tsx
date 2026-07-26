@@ -2462,10 +2462,10 @@ const styles = StyleSheet.create({
   },
   entryTitle: {
     fontFamily: fontFamily.display,
-    fontSize: 32,
+    fontSize: 26,
     fontWeight: '400',
     letterSpacing: 0.3,
-    marginBottom: 12,
+    marginBottom: 10,
   },
   entrySubtitle: {
     fontSize: 17,
@@ -2723,11 +2723,11 @@ const styles = StyleSheet.create({
   },
   title: {
     fontFamily: fontFamily.display,
-    fontSize: 28,
+    fontSize: 22,
     fontWeight: '400',
     letterSpacing: 0.3,
     color: Colors.text,
-    marginBottom: 14,
+    marginBottom: 12,
   },
   subtitle: {
     fontSize: 16,
@@ -3828,11 +3828,11 @@ const styles = StyleSheet.create({
   },
   journeyPhaseLabel: {
     fontFamily: fontFamily.display,
-    fontSize: 24,
+    fontSize: 20,
     fontWeight: '400',
     letterSpacing: 0.2,
-    lineHeight: 32,
-    marginBottom: 16,
+    lineHeight: 27,
+    marginBottom: 14,
   },
   journeyHook: {
     fontSize: 17,

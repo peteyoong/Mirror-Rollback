@@ -193,11 +193,11 @@ const styles = StyleSheet.create({
   },
   title: {
     fontFamily: fontFamily.display,
-    fontSize: 28,
+    fontSize: 24,
     fontWeight: '400',
     letterSpacing: 0.3,
     color: Colors.text,
-    marginBottom: 16,
+    marginBottom: 12,
   },
   subtitle: {
     fontSize: 15,
@@ -215,11 +215,11 @@ const styles = StyleSheet.create({
   },
   lensName: {
     fontFamily: fontFamily.display,
-    fontSize: 22,
+    fontSize: 19,
     fontWeight: '400',
     letterSpacing: 0.3,
     color: Colors.text,
-    marginBottom: 12,
+    marginBottom: 10,
   },
   lensDescription: {
     fontSize: 15,

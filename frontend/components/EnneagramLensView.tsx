@@ -1,3 +1,4 @@
+import LensTabBar from './LensTabBar';
 import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
@@ -2924,40 +2925,17 @@ export default function EnneagramLensView({ result: propResult, userId, onOpenCh
   // ============================================
 
   const renderTabs = () => (
-    <View style={[styles.tabContainer, { backgroundColor: theme.surface, borderBottomColor: theme.border }]}>
-      <TouchableOpacity
-        style={[styles.tab, activeTab === 'summary' && styles.activeTab, activeTab === 'summary' && { borderBottomColor: theme.text }]}
-        onPress={() => setActiveTab('summary')}
-      >
-        <Text style={[styles.tabText, { color: theme.textTertiary }, activeTab === 'summary' && { color: theme.text }]}>
-          Overview
-        </Text>
-      </TouchableOpacity>
-      <TouchableOpacity
-        style={[styles.tab, activeTab === 'at_a_glance' && styles.activeTab, activeTab === 'at_a_glance' && { borderBottomColor: theme.text }]}
-        onPress={() => setActiveTab('at_a_glance')}
-      >
-        <Text style={[styles.tabText, { color: theme.textTertiary }, activeTab === 'at_a_glance' && { color: theme.text }]}>
-          At a Glance
-        </Text>
-      </TouchableOpacity>
-      <TouchableOpacity
-        style={[styles.tab, activeTab === 'today' && styles.activeTab, activeTab === 'today' && { borderBottomColor: theme.text }]}
-        onPress={() => setActiveTab('today')}
-      >
-        <Text style={[styles.tabText, { color: theme.textTertiary }, activeTab === 'today' && { color: theme.text }]}>
-          Today
-        </Text>
-      </TouchableOpacity>
-      <TouchableOpacity
-        style={[styles.tab, activeTab === 'deep_dive' && styles.activeTab, activeTab === 'deep_dive' && { borderBottomColor: theme.text }]}
-        onPress={() => setActiveTab('deep_dive')}
-      >
-        <Text style={[styles.tabText, { color: theme.textTertiary }, activeTab === 'deep_dive' && { color: theme.text }]}>
-          Deep Dive
-        </Text>
-      </TouchableOpacity>
-    </View>
+    <LensTabBar
+      tabs={[
+        { key: 'summary', label: 'Overview' },
+        { key: 'at_a_glance', label: 'At a Glance' },
+        { key: 'today', label: 'Today' },
+        { key: 'deep_dive', label: 'Deep Dive' },
+      ]}
+      activeKey={activeTab}
+      onChange={(k) => setActiveTab(k as any)}
+      theme={theme}
+    />
   );
 
   const renderConfidenceBadge = () => {

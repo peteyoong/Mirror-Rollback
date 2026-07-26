@@ -337,7 +337,7 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     fontFamily: fontFamily.display,
-    fontSize: 24,
+    fontSize: 20,
     fontWeight: '400',
     letterSpacing: 0.4,
   },
@@ -515,10 +515,10 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontFamily: fontFamily.display,
-    fontSize: 21,
+    fontSize: 18,
     fontWeight: '400',
     letterSpacing: 0.3,
-    marginBottom: 16,
+    marginBottom: 14,
   },
   emptyState: {
     padding: 32,

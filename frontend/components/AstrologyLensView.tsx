@@ -1,3 +1,4 @@
+import LensTabBar from './LensTabBar';
 import React, { useState, useEffect } from 'react';
 import {
   View,
@@ -222,48 +223,18 @@ export default function AstrologyLensView({ userId, onOpenChat }: AstrologyLensV
   // RENDER: TABS
   // ============================================
   const renderTabs = () => (
-    <View style={[styles.tabContainer, { borderBottomColor: theme.border }]}>
-      <TouchableOpacity
-        style={[styles.tab, activeTab === 'at_a_glance' && styles.activeTab]}
-        onPress={() => setActiveTab('at_a_glance')}
-      >
-        <Text style={[styles.tabText, { color: theme.textTertiary }, activeTab === 'at_a_glance' && { color: theme.text }]}>
-          At a Glance
-        </Text>
-      </TouchableOpacity>
-      <TouchableOpacity
-        style={[styles.tab, activeTab === 'placements' && styles.activeTab]}
-        onPress={() => setActiveTab('placements')}
-      >
-        <Text style={[styles.tabText, { color: theme.textTertiary }, activeTab === 'placements' && { color: theme.text }]}>
-          Placements
-        </Text>
-      </TouchableOpacity>
-      <TouchableOpacity
-        style={[styles.tab, activeTab === 'today' && styles.activeTab]}
-        onPress={() => setActiveTab('today')}
-      >
-        <Text style={[styles.tabText, { color: theme.textTertiary }, activeTab === 'today' && { color: theme.text }]}>
-          Today
-        </Text>
-      </TouchableOpacity>
-      <TouchableOpacity
-        style={[styles.tab, activeTab === 'deep_dive' && styles.activeTab]}
-        onPress={() => setActiveTab('deep_dive')}
-      >
-        <Text style={[styles.tabText, { color: theme.textTertiary }, activeTab === 'deep_dive' && { color: theme.text }]}>
-          Deep Dive
-        </Text>
-      </TouchableOpacity>
-      <TouchableOpacity
-        style={[styles.tab, activeTab === 'timeline' && styles.activeTab]}
-        onPress={() => setActiveTab('timeline')}
-      >
-        <Text style={[styles.tabText, { color: theme.textTertiary }, activeTab === 'timeline' && { color: theme.text }]}>
-          Timeline
-        </Text>
-      </TouchableOpacity>
-    </View>
+    <LensTabBar
+      tabs={[
+        { key: 'at_a_glance', label: 'At a Glance' },
+        { key: 'placements', label: 'Placements' },
+        { key: 'today', label: 'Today' },
+        { key: 'deep_dive', label: 'Deep Dive' },
+        { key: 'timeline', label: 'Timeline' },
+      ]}
+      activeKey={activeTab}
+      onChange={(k) => setActiveTab(k as any)}
+      theme={theme}
+    />
   );
 
   // ============================================

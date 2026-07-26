@@ -1,3 +1,4 @@
+import LensTabBar from './LensTabBar';
 import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
@@ -1584,42 +1585,17 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
   };
 
   const renderTabs = () => (
-    <View style={[styles.tabSection, { borderBottomColor: theme.border }]}>
-      <View style={styles.tabContainer}>
-        <TouchableOpacity
-          style={[styles.tab, activeTab === 'summary' && styles.activeTab]}
-          onPress={() => setActiveTab('summary')}
-        >
-          <Text style={[styles.tabText, { color: theme.textTertiary }, activeTab === 'summary' && { color: theme.text }]}>
-            Summary
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.tab, activeTab === 'at_a_glance' && styles.activeTab]}
-          onPress={() => setActiveTab('at_a_glance')}
-        >
-          <Text style={[styles.tabText, { color: theme.textTertiary }, activeTab === 'at_a_glance' && { color: theme.text }]}>
-            At a Glance
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.tab, activeTab === 'deep_dive' && styles.activeTab]}
-          onPress={() => setActiveTab('deep_dive')}
-        >
-          <Text style={[styles.tabText, { color: theme.textTertiary }, activeTab === 'deep_dive' && { color: theme.text }]}>
-            Deep Dive
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.tab, activeTab === 'today' && styles.activeTab]}
-          onPress={() => setActiveTab('today')}
-        >
-          <Text style={[styles.tabText, { color: theme.textTertiary }, activeTab === 'today' && { color: theme.text }]}>
-            Today
-          </Text>
-        </TouchableOpacity>
-      </View>
-    </View>
+    <LensTabBar
+      tabs={[
+        { key: 'summary', label: 'Summary' },
+        { key: 'at_a_glance', label: 'At a Glance' },
+        { key: 'deep_dive', label: 'Deep Dive' },
+        { key: 'today', label: 'Today' },
+      ]}
+      activeKey={activeTab}
+      onChange={(k) => setActiveTab(k as TabType)}
+      theme={theme}
+    />
   );
 
   const renderTabBlurb = () => {

@@ -313,18 +313,20 @@ const styles = StyleSheet.create({
     opacity: 0.3,
   },
   big3Symbol: {
-    fontSize: 22,
+    fontSize: 20,
     marginBottom: 4,
   },
   big3Sign: {
-    fontSize: 17,
+    fontSize: 14,
     fontWeight: '500',
+    letterSpacing: 0.2,
+    textAlign: 'center',
   },
   heroDescriptor: {
-    fontSize: 16,
+    fontSize: 14,
     textAlign: 'center',
     fontStyle: 'italic',
-    lineHeight: 27,
+    lineHeight: 21,
   },
 
   // SECTION 2: Chart Spine

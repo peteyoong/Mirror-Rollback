@@ -114,8 +114,8 @@ const styles = StyleSheet.create({
   },
   role: {
     fontFamily: fontFamily.display,
-    fontSize: 19,
-    lineHeight: 27,
+    fontSize: 17,
+    lineHeight: 24,
     fontWeight: '400',
     letterSpacing: 0.2,
     marginBottom: 14,

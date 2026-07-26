@@ -464,11 +464,11 @@ const styles = StyleSheet.create({
   // SECTION 1 — THE CALL
   theCall: {
     fontFamily: fontFamily.display,
-    fontSize: 24,
-    lineHeight: 32,
+    fontSize: 20,
+    lineHeight: 27,
     fontWeight: '400',
     letterSpacing: 0.2,
-    marginBottom: 14,
+    marginBottom: 12,
   },
 
   // SECTION 2 — THE REALITY

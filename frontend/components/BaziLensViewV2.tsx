@@ -23,6 +23,7 @@
  * @date 2026-03-18
  */
 
+import LensTabBar from './LensTabBar';
 import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
@@ -503,40 +504,17 @@ export default function BaziLensView({ userId, onOpenChat }: Props) {
   // =============================================================================
 
   const renderTabBar = () => (
-    <View style={[styles.tabBar, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-      <TouchableOpacity
-        style={[styles.tab, activeTab === 'summary' && styles.activeTab]}
-        onPress={() => setActiveTab('summary')}
-      >
-        <Text style={[styles.tabText, { color: theme.textTertiary }, activeTab === 'summary' && { color: theme.text, fontWeight: '500' }]}>
-          Summary
-        </Text>
-      </TouchableOpacity>
-      <TouchableOpacity
-        style={[styles.tab, activeTab === 'today' && styles.activeTab]}
-        onPress={() => setActiveTab('today')}
-      >
-        <Text style={[styles.tabText, { color: theme.textTertiary }, activeTab === 'today' && { color: theme.text, fontWeight: '500' }]}>
-          Today
-        </Text>
-      </TouchableOpacity>
-      <TouchableOpacity
-        style={[styles.tab, activeTab === 'snapshot' && styles.activeTab]}
-        onPress={() => setActiveTab('snapshot')}
-      >
-        <Text style={[styles.tabText, { color: theme.textTertiary }, activeTab === 'snapshot' && { color: theme.text, fontWeight: '500' }]}>
-          Timing
-        </Text>
-      </TouchableOpacity>
-      <TouchableOpacity
-        style={[styles.tab, activeTab === 'deep_dive' && styles.activeTab]}
-        onPress={() => setActiveTab('deep_dive')}
-      >
-        <Text style={[styles.tabText, { color: theme.textTertiary }, activeTab === 'deep_dive' && { color: theme.text, fontWeight: '500' }]}>
-          Deep Dive
-        </Text>
-      </TouchableOpacity>
-    </View>
+    <LensTabBar
+      tabs={[
+        { key: 'summary', label: 'Summary' },
+        { key: 'today', label: 'Today' },
+        { key: 'snapshot', label: 'Timing' },
+        { key: 'deep_dive', label: 'Deep Dive' },
+      ]}
+      activeKey={activeTab}
+      onChange={(k) => setActiveTab(k as any)}
+      theme={theme}
+    />
   );
   
   // Tab blurbs - short descriptions of each tab's focus

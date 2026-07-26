@@ -16,6 +16,7 @@ import { StatusBar } from 'expo-status-bar';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useTheme } from '../../contexts/ThemeContext';
 import { Colors } from '../../constants/colors';
+import { fontFamily } from '../../theme/tokens';
 // Removed Ionicons - using text-based alternatives for web compatibility
 import { useAppStore } from '../../store';
 import { InlineReflectButton } from '../../components/UniversalReflectButton';
@@ -932,8 +933,10 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   headerTitle: {
-    fontSize: 17,
-    fontWeight: '500',
+    fontFamily: fontFamily.display,
+    fontSize: 18,
+    fontWeight: '400',
+    letterSpacing: 0.3,
     color: Colors.text,
   },
   headerSpacer: {

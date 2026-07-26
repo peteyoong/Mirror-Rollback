@@ -1,3 +1,4 @@
+import LensTabBar from './LensTabBar';
 import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
@@ -313,32 +314,16 @@ export default function NumerologyLensView({ userId, onOpenChat }: Props) {
   };
 
   const renderTabs = () => (
-    <View style={[styles.tabContainer, { borderBottomColor: theme.border }]}>
-      <TouchableOpacity
-        style={[styles.tab, activeTab === 'summary' && styles.activeTab]}
-        onPress={() => setActiveTab('summary')}
-      >
-        <Text style={[styles.tabText, { color: theme.textTertiary }, activeTab === 'summary' && { color: theme.text }]}>
-          Summary
-        </Text>
-      </TouchableOpacity>
-      <TouchableOpacity
-        style={[styles.tab, activeTab === 'today' && styles.activeTab]}
-        onPress={() => setActiveTab('today')}
-      >
-        <Text style={[styles.tabText, { color: theme.textTertiary }, activeTab === 'today' && { color: theme.text }]}>
-          Today&apos;s Snapshot
-        </Text>
-      </TouchableOpacity>
-      <TouchableOpacity
-        style={[styles.tab, activeTab === 'deep_dive' && styles.activeTab]}
-        onPress={() => setActiveTab('deep_dive')}
-      >
-        <Text style={[styles.tabText, { color: theme.textTertiary }, activeTab === 'deep_dive' && { color: theme.text }]}>
-          Deep Dive
-        </Text>
-      </TouchableOpacity>
-    </View>
+    <LensTabBar
+      tabs={[
+        { key: 'summary', label: 'Summary' },
+        { key: 'today', label: "Today's Snapshot" },
+        { key: 'deep_dive', label: 'Deep Dive' },
+      ]}
+      activeKey={activeTab}
+      onChange={(k) => setActiveTab(k as any)}
+      theme={theme}
+    />
   );
 
   // Core Numbers Card (for Deep Dive)
