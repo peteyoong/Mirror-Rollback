@@ -24,6 +24,7 @@ import {
   textRole,
   fontFamily,
   fontSize,
+  fontWeight,
   touchTarget,
 } from '../theme/tokens';
 
@@ -197,12 +198,22 @@ export default function Welcome() {
             {headline.main}
           </Text>
 
-          <Text style={[styles.subtext, { color: t.onSurfaceSecondary, marginTop: space.lg }]}>
+          <Text
+            style={[styles.subtext, { color: t.onSurfaceSecondary, marginTop: space.lg }]}
+            adjustsFontSizeToFit
+            numberOfLines={2}
+            minimumFontScale={0.7}
+          >
             {headline.sub}
           </Text>
 
-          <Text style={[styles.bridgeLine, { color: t.onSurfaceTertiary, marginTop: isCompactHeight ? space.lg : space.xl }]}>
-            {"This isn\u2019t about who you are.\nIt\u2019s about what\u2019s happening right now."}
+          <Text
+            style={[styles.bridgeLine, { color: t.onSurfaceTertiary, marginTop: isCompactHeight ? space.lg : space.xl }]}
+            adjustsFontSizeToFit
+            numberOfLines={2}
+            minimumFontScale={0.7}
+          >
+            {"This isn\u2019t about who you are. It\u2019s about what\u2019s happening right now."}
           </Text>
         </View>
 
@@ -290,13 +301,21 @@ const styles = StyleSheet.create({
     paddingHorizontal: space.sm,
   },
   subtext: {
-    ...textRole.bodyLg,
+    fontFamily: fontFamily.text,
+    fontSize: 13,
+    fontWeight: fontWeight.regular,
+    lineHeight: 20,
     textAlign: 'center',
+    letterSpacing: 0.1,
   },
   bridgeLine: {
-    ...textRole.body,
+    fontFamily: fontFamily.text,
+    fontSize: 12,
+    fontWeight: fontWeight.regular,
+    lineHeight: 18,
     textAlign: 'center',
     fontStyle: 'italic',
+    letterSpacing: 0.1,
   },
 
   // ── CTA block ──────────────────────────────────────────────
