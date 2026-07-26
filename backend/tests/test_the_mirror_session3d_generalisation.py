@@ -350,19 +350,22 @@ def test_synthetic_generator_narratives_have_no_pete_leakage():
 # ─────────────────────────────────────────────────────────────
 def test_fe_component_has_no_session_terminology_in_source():
     """The renamed FE component must not carry session-3 identifiers in
-    user-visible strings."""
-    import pathlib
+    user-visible strings (comments/docstrings ignored — the intentional
+    Methodology disclosure section is allowed)."""
+    import pathlib, re
     p = pathlib.Path("/app/frontend/components/lens_contract/HumanDesignDeepDiveSections.tsx")
     assert p.exists(), "renamed FE component missing"
     src = p.read_text()
-    # No user-visible session labels
+    # Strip /* ... */ blocks and // line comments so we only inspect
+    # user-visible strings.
+    src_no_comments = re.sub(r"/\*.*?\*/", "", src, flags=re.DOTALL)
+    src_no_comments = re.sub(r"(?m)^\s*//.*$", "", src_no_comments)
     for banned in [
-        "Session-3c · Human Design narratives",
-        "The Mirror · Session-3c",
+        "Session-3c \u00b7 Human Design narratives",
+        "The Mirror \u00b7 Session-3c",
         "Authored narrative pending; structural lineage only",
-        "Split sub-classification (Small / Wide) is intentionally not shown",
     ]:
-        assert banned not in src, banned
+        assert banned not in src_no_comments, banned
     # Old filename must be gone
     old = pathlib.Path("/app/frontend/components/lens_contract/HumanDesignSession3cSections.tsx")
     assert not old.exists(), "old session-named FE component still present"

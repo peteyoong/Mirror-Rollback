@@ -1,8 +1,11 @@
-"""hd_activation_table.py — 13-planet Personality/Design activations
+"""hd_activation_table.py — Personality and Design Activations
 ========================================================================
 
-Session-3c Decision 3: surface the full 13-planet Personality and
-13-planet Design activation table on `/api/human-design/mechanics/{id}`
+Session-3c Decision 3: surface the full Personality and Design
+activation table on `/api/human-design/mechanics/{id}` — 13 activation
+points on each side (planets + Earth + Lunar Nodes; the term "planet"
+is not accurate for Earth or the Nodes and is intentionally avoided in
+user-facing copy)
 so the user-facing HD view can render each activation with gate·line
 (and colour·tone·base when available) plus its derivation lineage.
 
@@ -34,7 +37,7 @@ from __future__ import annotations
 
 from typing import Any, Dict, List, Optional
 
-# 13 planets in canonical HD order
+# 13 activation points in canonical HD order (planets + Earth + Nodes)
 HD_PLANET_ORDER = (
     "Sun",
     "Earth",

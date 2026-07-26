@@ -19,7 +19,7 @@ import api from '../services/api';
 import { BUILD_ID as RFV1_BUILD_ID, BUILD_AT as RFV1_BUILD_AT } from '../constants/buildMarker';
 import DebugFooter, { SectionDebug, isDebugEnabled } from './DebugFooter';
 import HDTodayDiagnosis from './HDTodayDiagnosis';
-import HumanDesignDeepDiveSections from './lens_contract/HumanDesignDeepDiveSections';
+import HumanDesignDeepDiveSections, { HDReadingSections, HDExploreSections } from './lens_contract/HumanDesignDeepDiveSections';
 import { 
   formatSequenceExplanation, 
   getArcDescription, 
@@ -5427,13 +5427,6 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
     
     return (
       <>
-        {/* Human Design deep-dive sections (backend-derived, /mechanics) */}
-        <HumanDesignDeepDiveSections
-          userId={userId}
-          data={mechanicsPayload ?? data}
-          theme={theme}
-        />
-
         {/* KEYSTONE EXPLANATION: Where this pattern comes from */}
         {renderKeystoneExplanation()}
         
@@ -5568,87 +5561,19 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
     
     return (
       <>
-        {/* 1. PATTERN THREAD - The unified narrative */}
-        {patternThread && renderPatternThread(patternThread)}
-        
-        {/* 2. PATTERN STATE - Where you are right now (NEW) */}
-        {patternState && renderPatternState(patternState)}
-        
-        {/* 3. CORE SYNTHESIS - The existing synthesis card */}
-        {renderCoreSynthesis()}
-        
-        {/* 4. BODY GRAPH - Visual overview */}
+        {/* Session-3e: BodyGraph first, then canonical structural sections */}
         {renderImprovedBodygraph()}
-        
-        {/* 5. TYPE / AUTHORITY / PROFILE - Core Mechanics */}
-        <SectionHeader title="Core Mechanics" count={4} icon="◎" />
-        
-        {/* Type Card - Default OPEN (most important) */}
-        {typeMirrorCard && renderMechanicCollapsibleCardWithCrossLink(
-          'type',
-          typeMirrorCard,
-          data.core_mechanics?.type || '',
-          true, // Default open
-          getTypeCrossLink(data.core_mechanics?.type || '', data.core_mechanics?.authority || '')
-        )}
-        
-        {/* Authority Card - Default CLOSED */}
-        {authorityMirrorCard && renderMechanicCollapsibleCardWithCrossLink(
-          'authority',
-          authorityMirrorCard,
-          data.core_mechanics?.authority || '',
-          false,
-          getAuthorityCrossLink(data.core_mechanics?.authority || '', data.core_mechanics?.type || '')
-        )}
-        
-        {/* Profile Card - Default CLOSED */}
-        {profileMirrorCard && renderMechanicCollapsibleCardWithCrossLink(
-          'profile',
-          profileMirrorCard,
-          data.core_mechanics?.profile || '',
-          false,
-          null // No cross-link for profile
-        )}
-        
-        {/* Incarnation Cross Card - Default CLOSED */}
-        {crossMirrorCard && renderMechanicCollapsibleCardWithCrossLink(
-          'cross',
-          crossMirrorCard,
-          data.core_mechanics?.incarnation_cross || '',
-          false,
-          null // No cross-link for cross
-        )}
-        
-        {/* YOUR ENVIRONMENT Card - Only if environment data exists */}
+
+        {/* Canonical Explore-mode sections (Core Mechanics → Definition → Centres →
+            Channels → Profile → P/D Activations → Cross → Methodology) */}
+        <HDExploreSections userId={userId} data={mechanicsPayload ?? data} theme={theme} />
+
+        {/* Legacy Explore secondary content (Pattern Thread / Pattern State /
+            Gene Keys sequences) — retained for interactive depth but no longer
+            claims master-story authority. */}
+        {patternThread && renderPatternThread(patternThread)}
+        {patternState && renderPatternState(patternState)}
         {renderEnvironmentCard()}
-        
-        {/* 5. CENTERS SECTION */}
-        {centersData && (
-          <CollapsibleCard
-            title="Centers"
-            subtitle="Your consistent vs. open energies"
-            badge={`${centersData.centers?.length || 0}`}
-            defaultOpen={false}
-            priority="medium"
-          >
-            {renderCentersCardsWithCrossLinks(crossLinkContext)}
-          </CollapsibleCard>
-        )}
-        
-        {/* 6. GATES SECTION */}
-        {gatesData && (
-          <CollapsibleCard
-            title="Gates"
-            subtitle="Your activated energies"
-            badge={`${gatesData.gates?.length || 0}`}
-            defaultOpen={false}
-            priority="medium"
-          >
-            {renderGatesCardsWithCrossLinks(crossLinkContext)}
-          </CollapsibleCard>
-        )}
-        
-        {/* 7. GENE KEYS SEQUENCES SECTION */}
         {renderGeneKeysUpgraded()}
       </>
     );
@@ -5657,12 +5582,32 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
   // READING MODE - Flowing narrative (PDF-style)
   const renderReadingMode = () => {
     if (!data?.core_mechanics) return null;
-    
+
+    // Session-3e: Reading mode is the recognition-first canonical
+    // narrative (Core synthesis → Natural capacities → Central tension
+    // → Relational impact → Integrated gift → Developmental edge →
+    // Practical experiment → Reflection → Why Mirror is saying this).
+    // The legacy PDF-style Reading sections are removed because they
+    // substantially duplicated this synthesis and produced a
+    // competing master reading.
+    return (
+      <View style={styles.readingModeContainer}>
+        <HDReadingSections userId={userId} data={mechanicsPayload ?? data} theme={theme} />
+      </View>
+    );
+  };
+
+  // Legacy Reading builder kept in-file (unused) to preserve helper
+  // signatures.  Referenced by _renderLegacyReadingMode should we ever
+  // need to A/B against the canonical Reading.
+  const _renderLegacyReadingMode = () => {
+    if (!data?.core_mechanics) return null;
+
     const { type, authority, profile, strategy } = data.core_mechanics;
     const notSelf = (data.core_mechanics as any).not_self;
     const definedCenters = centersData?.centers?.filter((c: any) => c.defined) || [];
     const undefinedCenters = centersData?.centers?.filter((c: any) => !c.defined) || [];
-    
+
     return (
       <View style={styles.readingModeContainer}>
         {/* SECTION 1: Your Core Pattern */}
@@ -5672,7 +5617,7 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
             {getReadingCorePattern(type || '', profile || '')}
           </Text>
         </View>
-        
+
         {/* SECTION 2: How You Make Decisions */}
         <View style={styles.readingSection}>
           <Text style={[styles.readingSectionTitle, { color: theme.text }]}>How You Make Decisions</Text>
