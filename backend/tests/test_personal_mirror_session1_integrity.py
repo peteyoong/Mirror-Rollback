@@ -149,41 +149,17 @@ def test_astrology_angles_mc_ic_and_asc_dsc_opposite():
     )
 
 
-# ── Astrology degree-normalization TEST SCAFFOLD (skipped by design) ─
+# ── Astrology degree — Option A (constellation-relative, Variant-A) ─
 def test_astrology_deg_bounds_under_tropical():
-    """Phase 5A test scaffold — SKIPPED pending user's A/B/C policy call.
+    """Session-2 update: Option A is now the ratified policy — degrees
+    are constellation-relative under Variant-A and may exceed 30°.
 
-    Under Option B (normalized-by-default) this will read
-    `degree_normalized` and assert it ∈ [0, 30). Under Option A (raw +
-    label) it will read `degree` and compare against per-sign
-    `constellation_width_by_sign[sign]`. Until the policy decision
-    lands, the test is xfailed so CI stays green.
+    The rigorous Variant-A degree validation lives in
+    `test_lens_content_contract.py::test_variant_a_degrees_within_constellation_width`.
+    This wrapper delegates so Session-1 stays green under the new policy.
     """
-    import urllib.request
-    import json
-    PETE = "697f0c6abf35c0528ff06954"
-    url = f"http://localhost:8001/api/astrology/chart/{PETE}"
-    with urllib.request.urlopen(url, timeout=45) as resp:
-        data = json.loads(resp.read())
-    planets = (data.get("natal") or {}).get("planets") or {}
-
-    # Discover which mode we're in — look for degree_normalized presence.
-    any_planet = next(iter(planets.values()), {}) if isinstance(planets, dict) else {}
-    has_normalized = "degree_normalized" in any_planet
-
-    if not has_normalized:
-        # xfail: policy decision pending
-        print(
-            "SKIP: astrology degree normalization test — Option A/B/C "
-            "not yet decided; awaiting user input per audit §10.1"
-        )
-        return  # soft-skip until policy lands
-
-    for name, p in planets.items():
-        deg = float(p.get("degree_normalized"))
-        assert 0.0 <= deg < 30.0, (
-            f"planet {name} normalized degree out of [0,30): {deg}"
-        )
+    from tests import test_lens_content_contract as t2  # noqa: E402
+    t2.test_variant_a_degrees_within_constellation_width()
 
 
 # ── Runner ──
