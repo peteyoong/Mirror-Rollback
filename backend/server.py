@@ -16579,7 +16579,17 @@ async def get_human_design_mechanics(user_id: str):
         incarnation_cross = hd_data.get('incarnation_cross', 'Unknown')
         cross_gates_str = hd_data.get('incarnation_cross_gates')
 
-        # ── Session-3: canonicalize centre lists once (used in response).
+        # ── Session-3b Decision 2: Signature + Not-Self from backend ─
+        # Derived from verified Type via canonical HD map. Frontend must
+        # NOT re-derive.  build_marker: hd-signature-notself-backend-v1
+        try:
+            from services.hd_signature_notself import (
+                signature_and_not_self, DERIVATION_RULE_ID as _SIG_RULE,
+            )
+            _sig_bundle = signature_and_not_self(hd_data.get("type"))
+        except Exception:
+            _sig_bundle = None
+            _SIG_RULE = "unavailable"
         try:
             from services.hd_center_canonical import split_defined_undefined
             _hd_canon_defined, _hd_canon_undefined = split_defined_undefined(
@@ -16600,6 +16610,19 @@ async def get_human_design_mechanics(user_id: str):
             from services.forum_hd_mapping import HD_CHANNELS
         except Exception:
             HD_CHANNELS = {}
+        # Session-3c: canonical channel→centres map lives in transit_signals.
+        # Merge it in so topology + narratives receive proper endpoint centres.
+        try:
+            from services.transit_signals import HD_CHANNELS as _HD_CH_TS
+        except Exception:
+            _HD_CH_TS = {}
+        def _canon_center(nm: str) -> str:
+            aliases = {
+                "G": "G/Identity", "Identity": "G/Identity",
+                "Heart": "Heart/Ego", "Ego": "Heart/Ego",
+                "Emotional": "Solar Plexus",
+            }
+            return aliases.get(nm, nm) if isinstance(nm, str) else nm
         personality_gates_raw = hd_raw.get('personality_gates', []) or []
         design_gates_raw = hd_raw.get('design_gates', []) or []
         all_activated_gates = set()
@@ -16627,17 +16650,17 @@ async def get_human_design_mechanics(user_id: str):
                     return "unknown"
                 derived_channels.append({
                     "gates": chan_key,
-                    "name": chan_meta.get("name", ""),
+                    "name": chan_meta.get("name", "") or (_HD_CH_TS.get(chan_key, {}) or {}).get("name", ""),
                     "circuit": chan_meta.get("circuit", ""),
                     "theme": chan_meta.get("theme", ""),
-                    "centers": chan_meta.get("centers", []),
+                    "centers": [_canon_center(c) for c in ((_HD_CH_TS.get(chan_key, {}) or {}).get("centers") or chan_meta.get("centers", []) or []) if c],
                     "gate_activations": {
                         str(a): {"side": _side(a_p, a_d), "personality": a_p, "design": a_d},
                         str(b): {"side": _side(b_p, b_d), "personality": b_p, "design": b_d},
                     },
                     "provenance": {
                         "source": "hd_mechanics.derived_from_gate_intersection",
-                        "table": "HD_CHANNELS",
+                        "table": "HD_CHANNELS + transit_signals.HD_CHANNELS (centres)",
                     },
                 })
         # Prefer derived channels when the stored list is empty / malformed.
@@ -16725,6 +16748,152 @@ async def get_human_design_mechanics(user_id: str):
                 variables = None
                 logger.warning(f"[HD Variables] Could not compute Variables for user {user_id}: {e}")
         
+        # ── Session-3c Decision 3 — 13-planet activation table ─────
+        try:
+            from services.hd_activation_table import build_activation_table
+            _activation_table = build_activation_table(hd_raw)
+        except Exception as _e_act:
+            logger.warning(f"[HD Session-3c] activation_table build failed: {_e_act}")
+            _activation_table = None
+
+        # ── Session-3c Decision 4 — Formal Definition topology ──────
+        try:
+            from services.hd_definition_topology import analyse_definition_topology
+            _topology = analyse_definition_topology(
+                defined_centers=_hd_canon_defined,
+                defined_channels=channels_normalized,
+                upstream_label=hd_data.get('definition'),
+            )
+        except Exception as _e_top:
+            logger.warning(f"[HD Session-3c] topology analysis failed: {_e_top}")
+            _topology = {
+                "derived_type": hd_data.get('definition', 'Unknown'),
+                "unverified": True,
+                "reason": "topology_module_error",
+            }
+
+        # ── Session-3c Phase 4 — Component narratives (evidence-grounded) ─
+        _p_sun_g = None
+        _p_earth_g = None
+        _d_sun_g = None
+        _d_earth_g = None
+        try:
+            _p_sun_raw = personality_data.get('Sun', {}) if isinstance(personality_data, dict) else {}
+            _p_earth_raw = personality_data.get('Earth', {}) if isinstance(personality_data, dict) else {}
+            _d_sun_raw = design_data.get('Sun', {}) if isinstance(design_data, dict) else {}
+            _d_earth_raw = design_data.get('Earth', {}) if isinstance(design_data, dict) else {}
+            def _extract_gate(raw):
+                if not isinstance(raw, dict):
+                    return None
+                g = raw.get('gate')
+                if isinstance(g, dict):
+                    v = g.get('gate')
+                    try: return int(v) if v is not None else None
+                    except (TypeError, ValueError): return None
+                if isinstance(g, (int, str)):
+                    try: return int(g)
+                    except (TypeError, ValueError): return None
+                return None
+            def _extract_line(raw):
+                if not isinstance(raw, dict):
+                    return None
+                g = raw.get('gate')
+                if isinstance(g, dict):
+                    v = g.get('line')
+                    try: return int(v) if v is not None else None
+                    except (TypeError, ValueError): return None
+                return None
+            _p_sun_g = _extract_gate(_p_sun_raw)
+            _p_earth_g = _extract_gate(_p_earth_raw)
+            _d_sun_g = _extract_gate(_d_sun_raw)
+            _d_earth_g = _extract_gate(_d_earth_raw)
+        except Exception:
+            pass
+
+        _component_narratives: Dict[str, Any] = {}
+        try:
+            from services.hd_narratives import (
+                center_narrative, channel_narrative, activation_narrative,
+                profile_narrative, definition_narrative,
+                incarnation_cross_narrative,
+            )
+            # Centres
+            _center_blocks = []
+            for c in _hd_canon_defined:
+                _center_blocks.append(center_narrative(
+                    centre=c, is_defined=True,
+                    channels=channels_normalized,
+                    hd_type=hd_data.get('type'),
+                ))
+            for c in _hd_canon_undefined:
+                _center_blocks.append(center_narrative(
+                    centre=c, is_defined=False,
+                    channels=channels_normalized,
+                    hd_type=hd_data.get('type'),
+                ))
+            # Channels
+            _channel_blocks = [channel_narrative(ch) for ch in channels_normalized]
+            # Sun/Earth activations
+            _activation_blocks = []
+            for side, planet, g_key, raw in (
+                ("personality", "Sun", _p_sun_g, _p_sun_raw),
+                ("personality", "Earth", _p_earth_g, _p_earth_raw),
+                ("design", "Sun", _d_sun_g, _d_sun_raw),
+                ("design", "Earth", _d_earth_g, _d_earth_raw),
+            ):
+                _line = (raw.get('gate', {}) or {}).get('line') if isinstance(raw, dict) else None
+                try: _line = int(_line) if _line is not None else None
+                except (TypeError, ValueError): _line = None
+                blk = activation_narrative(side, planet, g_key, _line)
+                if blk:
+                    _activation_blocks.append(blk)
+            # Profile
+            _profile_block = profile_narrative(hd_data.get('profile'))
+            # Definition
+            _definition_block = definition_narrative(_topology)
+            # Incarnation Cross
+            _cross_block = incarnation_cross_narrative(
+                cross_label=hd_data.get('incarnation_cross_label') or incarnation_cross,
+                cross_gates=cross_gates_str,
+                p_sun_gate=_p_sun_g,
+                p_earth_gate=_p_earth_g,
+                d_sun_gate=_d_sun_g,
+                d_earth_gate=_d_earth_g,
+            )
+            _component_narratives = {
+                "centers": _center_blocks,
+                "channels": _channel_blocks,
+                "activations": _activation_blocks,
+                "profile": _profile_block,
+                "definition": _definition_block,
+                "incarnation_cross": _cross_block,
+                "content_provenance": "session3c_verified",
+            }
+        except Exception as _e_narr:
+            logger.warning(f"[HD Session-3c] narratives build failed: {_e_narr}")
+            _component_narratives = {"error": str(_e_narr)}
+
+        # ── Session-3c Decision 5 — Evidence-ranked hierarchical Core Story ─
+        try:
+            from services.hd_core_story import build_core_story
+            _core_story = build_core_story(
+                hd_type=hd_data.get('type'),
+                strategy=strategy_desc,
+                authority=hd_data.get('authority'),
+                profile=hd_data.get('profile'),
+                topology=_topology,
+                channels=channels_normalized,
+                defined_centers=_hd_canon_defined,
+                undefined_centers=_hd_canon_undefined,
+                p_sun_gate=_p_sun_g,
+                d_sun_gate=_d_sun_g,
+                signature=(_sig_bundle or {}).get("signature"),
+                not_self=(_sig_bundle or {}).get("not_self"),
+            )
+        except Exception as _e_cs:
+            logger.warning(f"[HD Session-3c] core_story build failed: {_e_cs}")
+            _core_story = {"error": str(_e_cs)}
+
         return {
             "core_mechanics": {
                 "type": hd_data['type'],
@@ -16733,8 +16902,26 @@ async def get_human_design_mechanics(user_id: str):
                 "profile": hd_data.get('profile', 'Unknown'),
                 "definition": hd_data.get('definition', 'Unknown'),
                 "incarnation_cross": hd_data.get('incarnation_cross_label', incarnation_cross),
-                "incarnation_cross_gates": cross_gates_str
+                "incarnation_cross_gates": cross_gates_str,
+                # Session-3b Decision 2 — backend-derived Signature + Not-Self.
+                # Frontend must render these verbatim; do not re-derive.
+                "signature":       (_sig_bundle or {}).get("signature"),
+                "not_self":        (_sig_bundle or {}).get("not_self"),
+                "signature_derivation": {
+                    "rule":   _SIG_RULE,
+                    "source": (_sig_bundle or {}).get("source", "unavailable"),
+                    "input_type": hd_data.get("type"),
+                    "confidence": "high" if _sig_bundle else "unknown",
+                },
+                # Session-3c Decision 4 — Definition topology (verified independently)
+                "definition_topology": _topology,
             },
+            # Session-3c Decision 3 — full 13-planet activation table
+            "activation_table": _activation_table,
+            # Session-3c Phase 4 — evidence-grounded component narratives
+            "component_narratives": _component_narratives,
+            # Session-3c Decision 5 — evidence-ranked hierarchical core story
+            "core_story": _core_story,
             # MASTER LEVEL DATA
             "channels": channels_normalized,
             # ── Session-3: canonical Heart/Ego + G/Identity vocabulary ─

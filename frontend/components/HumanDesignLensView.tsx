@@ -19,6 +19,7 @@ import api from '../services/api';
 import { BUILD_ID as RFV1_BUILD_ID, BUILD_AT as RFV1_BUILD_AT } from '../constants/buildMarker';
 import DebugFooter, { SectionDebug, isDebugEnabled } from './DebugFooter';
 import HDTodayDiagnosis from './HDTodayDiagnosis';
+import HumanDesignSession3cSections from './lens_contract/HumanDesignSession3cSections';
 import { 
   formatSequenceExplanation, 
   getArcDescription, 
@@ -4893,18 +4894,33 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
     cognitionType: string | undefined,
     hdType: string
   ): { line1: string; line2: string; line3: string } | null => {
-    // Need at least one variable to show the section
+    // ── Session-3b Decision 1 (PHS withdrawal, content_provenance: unverified) ─
+    // The Environment / Determination / Cognition translation tables
+    // above have not yet had their calculation provenance verified
+    // against the source HD engine. Per Session-3b policy they are
+    // withdrawn from every user-facing surface until either provenance
+    // is established OR they are formally removed. Returning null
+    // suppresses the "How You Work Best" block entirely — the raw
+    // fields remain in the payload for audit but are NOT interpreted
+    // for the user. Do NOT re-enable without a passing provenance test.
+    // build_marker: hd-phs-withdrawal-v1
+    return null;
+  };
+
+  // Retained for historical audit only — DO NOT invoke from render paths.
+  const _getHowYouWorkBestAtAGlance_LEGACY = (
+    environmentType: string | undefined,
+    determinationType: string | undefined,
+    cognitionType: string | undefined,
+    hdType: string
+  ): { line1: string; line2: string; line3: string } | null => {
     if (!environmentType && !determinationType && !cognitionType) return null;
-    
     const env = environmentType?.toLowerCase() || '';
     const det = determinationType?.toLowerCase() || '';
     const cog = cognitionType?.toLowerCase() || '';
-    
-    // Get translations or use type-based defaults
     const line1 = ENVIRONMENT_TRANSLATIONS[env] || getTypeBasedEnvironment(hdType);
     const line2 = DETERMINATION_TRANSLATIONS[det] || getTypeBasedDetermination(hdType);
     const line3 = COGNITION_TRANSLATIONS[cog] || getTypeBasedCognition(hdType);
-    
     return { line1, line2, line3 };
   };
   
@@ -5382,6 +5398,9 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
     
     return (
       <>
+        {/* Session-3c authoritative HD narratives (backend-derived, /mechanics) */}
+        <HumanDesignSession3cSections userId={userId} data={data} theme={theme} />
+
         {/* KEYSTONE EXPLANATION: Where this pattern comes from */}
         {renderKeystoneExplanation()}
         
