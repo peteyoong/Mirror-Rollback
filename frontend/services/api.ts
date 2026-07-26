@@ -9,34 +9,38 @@ const getApiBaseUrl = (): string => {
     if (typeof window !== 'undefined') {
       const hostname = window.location.hostname;
       
-      // If on preview domain, use relative URLs (ingress will proxy)
+      // If on preview / deployed domain, use relative URLs (ingress proxies /api/*)
       if (hostname.includes('preview.emergentagent.com') || hostname.includes('.emergent.host')) {
         return '';  // Use relative URLs
       }
-      
-      // If localhost, use direct backend URL
-      if (hostname === 'localhost' || hostname === '127.0.0.1') {
+
+      // Local development on raw dev server (localhost:3000).  Only enabled
+      // in DEV builds — this branch is dead-code-eliminated in production
+      // web bundles by Metro, so no cleartext http:// fallback ships.
+      if (__DEV__ && (hostname === 'localhost' || hostname === '127.0.0.1')) {
         return 'http://localhost:8001';
       }
     }
-    // Fallback for web
+    // Fallback for shipped web builds — relative URLs only
     return '';
   }
-  
-  // 2. Try expo-constants extra config (for native builds)
+
+  // Native: resolve from expo-constants extra
   const extraUrl = Constants.expoConfig?.extra?.EXPO_PUBLIC_BACKEND_URL;
   if (extraUrl && typeof extraUrl === 'string' && extraUrl.length > 0) {
     return extraUrl;
   }
   
-  // 3. Try process.env (works in Expo with EXPO_PUBLIC_ prefix)
+  // Native: resolve from process.env (EXPO_PUBLIC_ prefix)
   const envUrl = process.env.EXPO_PUBLIC_BACKEND_URL;
   if (envUrl && typeof envUrl === 'string' && envUrl.length > 0) {
     return envUrl;
   }
   
-  // 4. Fallback for native development
-  return 'http://localhost:8001';
+  // Native builds MUST NOT ship a hardcoded cleartext http:// fallback
+  // (iOS ATS / Android cleartext rules).  Return empty so the app surfaces
+  // a network error rather than silently pointing at localhost.
+  return '';
 };
 
 const API_BASE_URL = getApiBaseUrl();

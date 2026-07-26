@@ -31,11 +31,6 @@ next-env.d.ts
 !frontend/dist/
 !frontend/dist/**
 
-# Environment files (comprehensive coverage)
-
-*token.json*
-*credentials.json*
-
 # Logs and debug files
 npm-debug.log*
 yarn-debug.log*
@@ -77,138 +72,25 @@ agenthub/agents/youtube/db
 # Build caches
 .cache/
 
-# Mobile development
+# Credentials / secrets (never commit)
+*token.json*
+*credentials.json*
+*.key
 
-# Environment files (allow frontend/.env for Expo config)
-*.env
-*.env.*
+# Local operator-only test credentials — must NOT be included in the deploy
+# context (contains live seeded logins).
+/memory/test_credentials.md
+memory/test_credentials.md
+
+# Environment files
+# NOTE: Required runtime .env files (frontend/.env and backend/.env) MUST be
+# available in the deployment context and are therefore explicitly allowed
+# below.  Only genuinely local / secret .env variants should be ignored.
+.env.local
+.env.local.*
+*.env.local
+*.env.local.*
 !frontend/.env
+!backend/.env
 
 model.patch
--e 
-# Environment files
-*.env
-*.env.*
--e 
-# Environment files
-*.env
-*.env.*
--e 
-# Environment files
-*.env
-*.env.*
--e 
-# Environment files
-*.env
-*.env.*
--e 
-# Environment files
-*.env
-*.env.*
--e 
-# Environment files
-*.env
-*.env.*
--e 
-# Environment files
-*.env
-*.env.*
--e 
-# Environment files
-*.env
-*.env.*
--e 
-# Environment files
-*.env
-*.env.*
--e 
-# Environment files
-*.env
-*.env.*
--e 
-# Environment files
-*.env
-*.env.*
--e 
-# Environment files
-*.env
-*.env.*
--e 
-# Environment files
-*.env
-*.env.*
--e 
-# Environment files
-*.env
-*.env.*
--e 
-# Environment files
-*.env
-*.env.*
--e 
-# Environment files
-*.env
-*.env.*
--e 
-# Environment files
-*.env
-*.env.*
--e 
-# Environment files
-*.env
-*.env.*
--e 
-# Environment files
-*.env
-*.env.*
--e 
-# Environment files
-*.env
-*.env.*
--e 
-# Environment files
-*.env
-*.env.*
--e 
-# Environment files
-*.env
-*.env.*
--e 
-# Environment files
-*.env
-*.env.*
--e 
-# Environment files
-*.env
-*.env.*
--e 
-# Environment files
-*.env
-*.env.*
--e 
-# Environment and credential files
-.env
-.env.*
-*.env
-credentials.json
-*.pem
-*.key
-.credentials
--e 
-# Environment and credential files
-.env
-.env.*
-*.env
-credentials.json
-*.pem
-*.key
-.credentials
--e 
-# Environment and credential files
-.env
-.env.*
-*.env
-credentials.json
-*.pem
-*.key
-.credentials
